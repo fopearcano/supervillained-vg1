@@ -1,8 +1,10 @@
 import { Container, type Application } from 'pixi.js';
+import { ScreenTransition } from '../fx/transition';
 import { computeViewport, type Viewport } from './display';
 import { Input } from './input';
 import { GameLoop } from './loop';
 import { SceneManager, type Scene } from './scene';
+import { loadSettings, type Settings } from './settings';
 
 /**
  * Shared services for all scenes: renderer, logical size, input, scene stack, loop.
@@ -14,6 +16,10 @@ export class Game {
   readonly overlayLayer = new Container();
   readonly scenes: SceneManager;
   readonly loop: GameLoop;
+  readonly transition: ScreenTransition;
+  readonly settings: Settings = loadSettings();
+  /** Listeners notified when settings change (e.g. audio mute). */
+  readonly settingsListeners: Array<(s: Settings) => void> = [];
   view: Viewport;
   /** Called after each logic step (after scenes). */
   readonly stepHooks: Array<(dt: number) => void> = [];
@@ -28,6 +34,7 @@ export class Game {
   ) {
     this.view = computeViewport(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
     app.stage.addChild(this.sceneLayer, this.overlayLayer);
+    this.transition = new ScreenTransition(app.stage);
     this.scenes = new SceneManager(this.sceneLayer, this.view);
     this.scenes.onChange = () => this.input.clearPending();
     this.input.attach(canvas, (cx, cy) => this.toLogical(cx, cy));
@@ -48,6 +55,10 @@ export class Game {
     return this.view.height;
   }
 
+  onSettingsChanged(): void {
+    for (const fn of this.settingsListeners) fn(this.settings);
+  }
+
   onResize(fn: (w: number, h: number) => void): void {
     this.resizeListeners.push(fn);
   }
@@ -61,6 +72,7 @@ export class Game {
     this.time += dt;
     this.input.update(dt);
     this.scenes.update(dt);
+    this.transition.update(dt);
     for (const h of this.stepHooks) h(dt);
   }
 
@@ -82,6 +94,7 @@ export class Game {
     s.left = `${v.cssLeft}px`;
     s.top = `${v.cssTop}px`;
     this.scenes.resize(v.width, v.height);
+    this.transition.resize(v.width, v.height);
     for (const fn of this.resizeListeners) fn(v.width, v.height);
   }
 

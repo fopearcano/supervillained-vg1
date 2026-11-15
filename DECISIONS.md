@@ -82,3 +82,24 @@ Short entries, newest milestone at the bottom. Anything that deviates from or ex
 - **HUD**: drawn with crisp 1 px rects (no stroked shapes). Text uses a 1 px self-colored glow plus
   a dark drop shadow for readability over bright grass (a 2 px glow smeared the 8 px font).
   Radar is screen-aligned (dots are screen offsets), exit shown on the rim when out of range.
+
+## M3 — Scenes
+
+- **Flow** (`scenes/flow.ts`): the GameScene always sits at the bottom of the scene stack; Title,
+  Briefing, Pause, Level End and Game Over are overlays pushed on top (the level stays visible
+  underneath, as in the video). The Title blurs the frozen level (`BlurFilter`), the Briefing shows
+  the HUD dimmed behind the rules text.
+- **Glitch filter** written now (one custom GLSL filter: slices, RGB split, scanlines, sepia,
+  flash) because the title needs a glitch entrance. Used full-screen for transitions and attached
+  only while a transition plays. Note: uniforms shared with the vertex shader are declared `highp`
+  in the fragment (precision mismatch otherwise breaks the program on some GPUs).
+- **Briefing text** is the spec's sentences, one colored paragraph each (orange / green / red /
+  cyan / yellow), fully justified *including* paragraph ends like the video, at 2x scale when it
+  fits, else 1x.
+- **Level end**: "GOOD BOY!" + stats, stars popping one by one, time bonus, star bonus, total;
+  tap skips the animation. Final health applies the PEES < POOPS penalty before computing stars.
+  With a single level, NEXT is replaced by TITLE (the flow already supports more levels).
+- **Records**: per level best score, best stars and best time are kept independently; coins
+  accumulate across runs (also on game over) for the future shop.
+- **Auto-pause** on `visibilitychange` (hidden) and window `blur`. Esc / MENU toggle pause.
+- Scene changes clear queued input so the key that confirmed a menu can't also trigger a pee.

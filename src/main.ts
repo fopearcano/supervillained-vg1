@@ -2,7 +2,7 @@ import { Application, TextureSource } from 'pixi.js';
 import { buildGlobalTextures } from './assets/build';
 import { Game } from './core/game';
 import { levelByNumber } from './levels';
-import { GameScene } from './scenes/gameScene';
+import { Flow } from './scenes/flow';
 import { SpriteViewerScene } from './scenes/spriteViewerScene';
 import type { CharacterKey } from './assets/manifest';
 import { loadPixelFont } from './ui/pixelFont';
@@ -35,16 +35,21 @@ async function boot(): Promise<void> {
 
   const params = new URLSearchParams(location.search);
   const level = levelByNumber(Number(params.get('level') ?? 1)) ?? levelByNumber(1)!;
+  const flow = new Flow(game);
   if (params.get('debug') === 'sprites') {
     game.start(new SpriteViewerScene(game, (params.get('char') ?? 'zampano') as CharacterKey));
   } else {
-    game.start(new GameScene(game, level));
+    game.loop.start();
+    if (params.get('skip') === 'game') flow.play(level.number);
+    else flow.toTitle(level.number);
   }
 
   // Debug/automation hook (used by the Playwright screenshot script).
   (window as unknown as { __sv: unknown }).__sv = {
     game,
-    scene: () => game.scenes.top,
+    flow,
+    scene: () => flow.current ?? game.scenes.top,
+    top: () => game.scenes.top,
     step: (n: number) => game.loop.stepNow(n),
   };
 }

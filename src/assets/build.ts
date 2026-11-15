@@ -86,8 +86,13 @@ export async function buildGlobalTextures(): Promise<void> {
   packAtlas(entries, textures, 'global');
 }
 
+let builtPalette = '';
+
 /** Zone-specific textures: ground tiles and vegetation, colored by the level palette. */
 export function buildLevelTextures(pal: Palette): void {
+  const key = JSON.stringify(pal);
+  if (key === builtPalette) return;
+  builtPalette = key;
   const entries: AtlasEntry[] = [];
   const tile = (name: string, image: PixelBuffer, anchorY = 0) => entries.push({ name, image, anchorX: TW / 2, anchorY });
   for (let v = 0; v < TILE_VARIANTS.grass; v++) tile(`grass_${v}`, tiles.drawGrass(pal, v));

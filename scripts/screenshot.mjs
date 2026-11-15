@@ -128,6 +128,54 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** M3: title → briefing → game → pause → level end; then game over. */
+  async m3(browser) {
+    const page = await openGame(browser, '');
+    await wait(1200);
+    await page.screenshot({ path: `${OUT}/m3-title.png` });
+    await page.mouse.click(200, 500);
+    await wait(150);
+    await page.screenshot({ path: `${OUT}/m3-glitch-transition.png` });
+    await wait(1250);
+    await page.screenshot({ path: `${OUT}/m3-briefing.png` });
+    await page.mouse.click(200, 500);
+    await wait(500);
+    await holdKeys(page, ['KeyW'], 500);
+    await page.keyboard.press('Escape');
+    await wait(400);
+    await page.screenshot({ path: `${OUT}/m3-pause.png` });
+    await page.keyboard.press('Escape');
+    await wait(300);
+    // Jump to the exit.
+    await page.evaluate(() => {
+      const s = window.__sv.scene();
+      s.rules.stats.coins = 10;
+      s.teleport(s.map.exit.x + 1.2, s.map.exit.y + 1.2);
+    });
+    await holdKeys(page, ['KeyW'], 700);
+    await wait(5200);
+    await page.screenshot({ path: `${OUT}/m3-level-end.png` });
+    console.log('top after exit:', await page.evaluate(() => window.__sv.top().constructor.name));
+    // Retry, then starve twice → game over.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowUp');
+    await page.evaluate(() => window.__sv.flow.restart());
+    await wait(900);
+    for (let k = 0; k < 2; k++) {
+      await page.evaluate(() => {
+        const s = window.__sv.scene();
+        s.player.invulnerable = 0;
+        s.rules.hunger.value = 0.01;
+      });
+      await wait(900);
+    }
+    await wait(1800);
+    await page.screenshot({ path: `${OUT}/m3-game-over.png` });
+    console.log('top after starving:', await page.evaluate(() => window.__sv.top().constructor.name));
+    console.log('records:', await page.evaluate(() => localStorage.getItem('supervillained:records')), 'coins:', await page.evaluate(() => localStorage.getItem('supervillained:coins')));
+    await page.close();
+  },
+
   /** M1: the floating touch joystick (mouse-driven pointer events). */
   async joystick(browser) {
     const page = await openGame(browser, '?skip=game');

@@ -21,6 +21,8 @@ export interface PixelTextStyle {
   maxWidth: number;
   lineGap: number;
   letterSpacing: number;
+  /** With align 'justify': also stretch the last line of each paragraph (the video does). */
+  justifyLast: boolean;
 }
 
 export interface Span {
@@ -40,6 +42,7 @@ export const DEFAULT_TEXT_STYLE: PixelTextStyle = {
   maxWidth: 0,
   lineGap: 2,
   letterSpacing: 0,
+  justifyLast: false,
 };
 
 interface Glyph {
@@ -198,7 +201,7 @@ export class PixelText extends Sprite {
       let extraPerGap: number[] = [];
       if (st.align === 'center') x = Math.floor((bodyW - lineW) / 2);
       else if (st.align === 'right') x = bodyW - lineW;
-      else if (st.align === 'justify' && !last) {
+      else if (st.align === 'justify' && (!last || st.justifyLast)) {
         const gaps = line.reduce((n, g) => n + (g.ch === ' ' ? 1 : 0), 0);
         const extra = bodyW - lineW;
         if (gaps > 0 && extra > 0) {
