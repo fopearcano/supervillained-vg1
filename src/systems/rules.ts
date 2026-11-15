@@ -43,6 +43,8 @@ export class Rules {
   readonly treats: Treat[] = [];
   readonly poops: PoopPile[] = [];
   private readonly pees: ActivePee[] = [];
+  /** Props already marked: the marking bonus is paid once per tree/pole/bush. */
+  private readonly marked = new Set<number>();
   state: RunState = 'playing';
   /** Extra per-step hooks (threat systems). */
   readonly hooks: Array<(dt: number) => void> = [];
@@ -154,9 +156,11 @@ export class Rules {
     const cx = target ? (player.gx + target.x) / 2 : player.gx;
     const cy = target ? (player.gy + target.y) / 2 : player.gy;
     this.pees.push({ x: cx, y: cy, radius, elapsed: 0, duration });
-    const score = marking ? BLADDER.MARK_SCORE : BLADDER.SCORE;
+    const firstMark = target !== null && !this.marked.has(target.id);
+    if (target) this.marked.add(target.id);
+    const score = firstMark ? BLADDER.MARK_SCORE : BLADDER.SCORE;
     if (marking) this.stats.marks++;
-    this.addScore(score, player.gx, player.gy, marking ? 'MARKING!' : undefined);
+    this.addScore(score, player.gx, player.gy, firstMark ? 'MARKING!' : undefined);
     this.world.events.emit('pee', { x: cx, y: cy, marking, radius, score });
   }
 

@@ -4,6 +4,7 @@ import { addCoins, saveRecord, saveSettings } from '../core/settings';
 import { LEVELS, levelByNumber } from '../levels';
 import { finalHealth, starBonus, starsFromHealth, timeBonus } from '../systems/scoring';
 import type { LevelDef } from '../world/level';
+import { bindGameAudio } from '../fx/gameAudio';
 import { GameScene } from './gameScene';
 import { BriefingScene, GameOverScene, LevelEndScene, PauseScene, TitleScene, type LevelResult } from './overlays';
 
@@ -15,8 +16,6 @@ export class Flow {
   private gameScene: GameScene | null = null;
   private level: LevelDef = LEVELS[0]!;
   private readonly blur = new BlurFilter({ strength: 3, quality: 2, resolution: 1 });
-  /** Optional hooks (audio). */
-  onStar: ((k: number) => void) | null = null;
 
   constructor(private readonly game: Game) {
     document.addEventListener('visibilitychange', () => {
@@ -40,13 +39,14 @@ export class Flow {
     scene.setControlsEnabled(false);
     scene.controls.root.visible = false;
     this.game.scenes.push(new TitleScene(this.game, this.level, () => this.toBriefing()));
-    this.game.transition.play(null, 0.7, 1);
+    this.glitch(null, 0.7, 1);
   }
 
   toBriefing(): void {
     const scene = this.gameScene;
     if (!scene) return;
-    this.game.transition.play(() => {
+    this.game.audio.startMusic();
+    this.glitch(() => {
       this.popOverlays();
       scene.worldRoot.filters = [];
       scene.hud.root.visible = true;
@@ -61,6 +61,14 @@ export class Flow {
     scene.active = true;
     scene.controls.root.visible = true;
     scene.setControlsEnabled(true);
+    this.game.audio.setDuck(1);
+    this.game.audio.startMusic();
+  }
+
+  /** Glitch transition with its sound. */
+  private glitch(mid: (() => void) | null, duration?: number, flash?: number): void {
+    this.game.audio.play('glitch');
+    this.game.transition.play(mid, duration, flash);
   }
 
   /** Straight into gameplay (Retry / Restart / ?skip=game). */
@@ -72,11 +80,13 @@ export class Flow {
   }
 
   restart(): void {
-    this.game.transition.play(() => this.play(this.level.number));
+    this.game.audio.play('click');
+    this.glitch(() => this.play(this.level.number));
   }
 
   quitToTitle(): void {
-    this.game.transition.play(() => this.toTitle(this.level.number));
+    this.game.audio.play('click');
+    this.glitch(() => this.toTitle(this.level.number));
   }
 
   pause(): void {
@@ -84,6 +94,8 @@ export class Flow {
     if (!scene || this.game.scenes.top !== scene || !scene.active || scene.rules.state !== 'playing') return;
     scene.setControlsEnabled(false);
     this.game.input.joystick.active = false;
+    this.game.audio.play('click');
+    this.game.audio.setDuck(0.4);
     this.game.scenes.push(
       new PauseScene(this.game, {
         resume: () => this.resume(),
@@ -95,6 +107,15 @@ export class Flow {
           this.game.onSettingsChanged();
         },
         muted: () => this.game.settings.muted,
+        volume: () => this.game.settings.volume,
+        cycleVolume: () => {
+          const steps = [0.25, 0.5, 0.7, 1];
+          const i = steps.findIndex((v) => v >= this.game.settings.volume - 0.01);
+          this.game.settings.volume = steps[(i + 1) % steps.length]!;
+          saveSettings(this.game.settings);
+          this.game.onSettingsChanged();
+          this.game.audio.play('click');
+        },
       }),
     );
   }
@@ -104,6 +125,8 @@ export class Flow {
     if (!scene) return;
     this.popOverlays();
     scene.setControlsEnabled(true);
+    this.game.audio.play('click');
+    this.game.audio.setDuck(scene.threats.director.state === 'attack' ? 0.45 : 1);
   }
 
   /** Called when the app goes to the background. */
@@ -134,11 +157,11 @@ export class Flow {
     };
     scene.setControlsEnabled(false);
     const end = new LevelEndScene(this.game, this.level, result, {
-      next: () => this.game.transition.play(() => this.toTitle(LEVELS[idx + 1]!.number)),
+      next: () => this.glitch(() => this.toTitle(LEVELS[idx + 1]!.number)),
       retry: () => this.restart(),
       quit: () => this.quitToTitle(),
     });
-    end.onStar = (k) => this.onStar?.(k);
+    end.onStar = (k) => this.game.audio.play('star', { rate: 1 + k * 0.12 });
     this.game.scenes.push(end);
   }
 
@@ -155,6 +178,7 @@ export class Flow {
 
   private newGameScene(): GameScene {
     const scene = new GameScene(this.game, this.level);
+    bindGameAudio(scene.events, this.game.audio);
     scene.hooks = {
       onMenu: () => this.pause(),
       onComplete: (s) => this.levelComplete(s),

@@ -65,6 +65,9 @@ export class Hud {
   private lastHungerBlink = false;
   private clock = 0;
   private lastStars = -1;
+  /** Remaining flash time per stat (value turns white when it changes). */
+  private readonly flash = { pees: 0, poops: 0, treats: 0, lives: 0, score: 0 };
+  private readonly last = { pees: -1, poops: -1, treats: -1, lives: -1, score: -1 };
   private radarCenter = { x: 0, y: 0 };
 
   constructor(private readonly input: Input) {
@@ -139,17 +142,23 @@ export class Hud {
 
   update(s: HudState, dt: number): void {
     this.clock += dt;
+    for (const k of ['pees', 'poops', 'treats', 'lives', 'score'] as const) {
+      if (this.last[k] !== -1 && this.last[k] !== s[k]) this.flash[k] = 0.35;
+      this.last[k] = s[k];
+      this.flash[k] = Math.max(0, this.flash[k] - dt);
+    }
+    const hot = (k: keyof typeof this.flash, color: string) => (this.flash[k] > 0 && Math.floor(this.flash[k] * 16) % 2 === 0 ? C.white : color);
     this.pees.setText([
       { text: 'PEES: ', color: C.yellow },
-      { text: String(s.pees), color: C.cyan },
+      { text: String(s.pees), color: hot('pees', C.cyan) },
     ]);
     this.poops.setText([
       { text: 'POOPS: ', color: C.orange },
-      { text: String(s.poops), color: C.cyan },
+      { text: String(s.poops), color: hot('poops', C.cyan) },
     ]);
     this.treats.setText([
       { text: 'TREATS: ', color: C.pink },
-      { text: String(s.treats), color: C.magenta },
+      { text: String(s.treats), color: hot('treats', C.magenta) },
     ]);
     if (s.stars !== this.lastStars) {
       this.lastStars = s.stars;
@@ -159,7 +168,11 @@ export class Hud {
       });
     }
     this.lives.setText(`${s.lives}x`);
-    this.score.setText(`SCORE: ${formatScore(s.score)}`);
+    this.lives.visible = this.flash.lives <= 0 || Math.floor(this.flash.lives * 16) % 2 === 0;
+    this.score.setText([
+      { text: 'SCORE: ', color: C.cyan },
+      { text: formatScore(s.score), color: hot('score', C.cyan) },
+    ]);
     this.zone.setText(s.zoneName);
     this.time.setText([
       { text: 'TIME: ', color: C.green },

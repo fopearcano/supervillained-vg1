@@ -126,3 +126,29 @@ Short entries, newest milestone at the bottom. Anything that deviates from or ex
   (+400) and fades out.
 - The bark sound wave is drawn as three `)` arcs (ground-plane arcs projected to the iso view)
   travelling along the facing direction.
+
+## M5 — Polish and balancing
+
+- **Audio**: own sfxr-style synthesizer (`core/synth.ts`, pure and unit-tested). Every SFX is a
+  recipe in `fx/sounds.ts`, rendered once into an `AudioBuffer` at 22 kHz on first use, then played
+  as a buffer source (cheap on phones, no audio files). The music loop (8 bars, C–Am–F–G, square
+  lead + triangle bass + noise hats) is rendered once after the first tap. The `AudioContext` is
+  created/resumed on the first gesture (autoplay rules) and suspended in the background. Music is
+  ducked during pause, "under attack" and the level end. Master volume (25/50/70/100 %) and mute
+  are in the pause menu and saved.
+- **Juice**: squash & stretch spring on Zampanò (treat, poop, bark, cat), screen shake (poop, hurt,
+  bark, hit), geometric particles on treats, footstep dust when running, leaves in bushes/tall
+  grass, splashes in puddles, HUD values blink when they change.
+- **Marking bonus is paid once per object** (re-peeing the same tree is a normal pee), otherwise
+  standing next to a tree and spamming PEE was the best strategy.
+- **Level 1 rebuilt bigger (96×96)**: a bot showed the first map could be crossed in ~48 s by
+  cutting across lawns. Any path that only goes "up" the screen has the same grid length
+  (≈ 2 × map size), so the map grew instead. Shortest walk ≈ 75 s at walking speed; with treats,
+  peeing, cats and the Bagnaskiz fight a run lands at 2–3 minutes. Par time 180 s.
+- **Speeds** slightly lower (walk 2.2, run 3.8 tiles/s) — a Maltese is small, and the camera has
+  more time to show what's ahead. Cats (3.1) and the magnet (3.2) sit between walk and run.
+- **Hunger drain raised** (idle 0.9, walk 1.5, run 2.3 per second): walking straight to the exit
+  without eating now starves, so treats (and therefore poops) are part of every run.
+  `tests/balance.test.ts` runs a bot through Level 1 to keep these numbers honest.
+- Bagnaskiz trail slightly thinner (radius 0.95, every 0.25 s): one attack now costs about one star
+  if left alone instead of two.

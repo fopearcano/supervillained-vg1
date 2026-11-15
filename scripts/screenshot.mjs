@@ -247,6 +247,42 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** M5: juice — treat popup + geometric particles, marking a tree, running dust, audio on. */
+  async m5(browser) {
+    const page = await openGame(browser, '');
+    await wait(900);
+    await page.mouse.click(200, 500); // title → briefing (also unlocks audio)
+    await wait(1300);
+    await page.mouse.click(200, 500); // briefing → play
+    await wait(400);
+    await page.keyboard.down('ShiftLeft');
+    await holdKeys(page, ['KeyW'], 900);
+    await page.keyboard.up('ShiftLeft');
+    await page.evaluate(() => {
+      const s = window.__sv.scene();
+      const p = s.player;
+      const t = [...s.rules.treats].sort((a, b) => Math.hypot(a.gx - p.gx, a.gy - p.gy) - Math.hypot(b.gx - p.gx, b.gy - p.gy))[0];
+      s.teleport(t.gx + 0.05, t.gy + 0.05);
+    });
+    await wait(160);
+    await page.screenshot({ path: `${OUT}/m5-treat.png` });
+    await wait(900);
+    await page.evaluate(() => {
+      const s = window.__sv.scene();
+      const p = s.player;
+      const tree = s.map.props
+        .filter((t) => t.kind === 'tree')
+        .sort((a, b) => Math.hypot(a.x - p.gx, a.y - p.gy) - Math.hypot(b.x - p.gx, b.y - p.gy))[0];
+      s.teleport(tree.x + 0.7, tree.y + 0.3);
+    });
+    await wait(200);
+    await page.keyboard.press('Space');
+    await wait(380);
+    await page.screenshot({ path: `${OUT}/m5-marking.png` });
+    console.log('m5', JSON.stringify(await page.evaluate(() => { const d = window.__sv.scene().debugState(); return { score: d.stats.score, marks: d.stats.marks, audio: window.__sv.game.audio.ready }; })));
+    await page.close();
+  },
+
   /** M1: the floating touch joystick (mouse-driven pointer events). */
   async joystick(browser) {
     const page = await openGame(browser, '?skip=game');

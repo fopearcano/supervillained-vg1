@@ -160,7 +160,15 @@ export class PauseScene extends Overlay {
 
   constructor(
     game: Game,
-    private readonly actions: { resume: () => void; restart: () => void; toggleSound: () => void; quit: () => void; muted: () => boolean },
+    private readonly actions: {
+      resume: () => void;
+      restart: () => void;
+      toggleSound: () => void;
+      quit: () => void;
+      muted: () => boolean;
+      volume: () => number;
+      cycleVolume: () => void;
+    },
   ) {
     super(game, 0.5);
     const items: MenuItem[] = [
@@ -170,6 +178,14 @@ export class PauseScene extends Overlay {
         label: () => (actions.muted() ? 'SOUND: OFF' : 'SOUND: ON'),
         action: () => {
           actions.toggleSound();
+          this.menu.refreshLabels();
+        },
+        color: C.cyan,
+      },
+      {
+        label: () => `VOLUME: ${Math.round(actions.volume() * 100)}%`,
+        action: () => {
+          actions.cycleVolume();
           this.menu.refreshLabels();
         },
         color: C.cyan,

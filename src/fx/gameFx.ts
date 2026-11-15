@@ -47,6 +47,9 @@ export class GameFx {
   private readonly bubble: Sprite;
   private time = 0;
   private streamTimer = 0;
+  private stepTimer = 0;
+  /** Returns the terrain under Zampanò for footstep particles. */
+  terrainAt: (x: number, y: number) => 'water' | 'bush' | 'tall' | 'ground' = () => 'ground';
 
   constructor(
     events: Emitter<GameEvents>,
@@ -80,7 +83,8 @@ export class GameFx {
       });
     });
     events.on('score', (e) => {
-      const p = at(e.x, e.y, 34);
+      // Above the big popup icons (bone, rainbow, poop).
+      const p = at(e.x, e.y, 62);
       const label = e.label ? `${e.label} +${e.amount}` : `+${e.amount}`;
       this.popups.text(label, p.x, p.y, { color: e.label ? C.yellow : C.cyan, glow: 'self', glowAlpha: 0.3 }, FX.SCORE_POPUP_TIME);
     });
@@ -210,6 +214,23 @@ export class GameFx {
     this.time += dt;
     this.particles.update(dt);
     this.popups.update(dt);
+    // Footsteps: dust when running, leaves in bushes, splashes in puddles.
+    const p = this.player;
+    if (p.moving) {
+      this.stepTimer -= dt;
+      if (this.stepTimer <= 0) {
+        const terrain = this.terrainAt(p.gx, p.gy);
+        this.stepTimer = p.running ? 0.11 : 0.22;
+        const s = gridToScreen(p.gx, p.gy);
+        if (terrain === 'water') {
+          this.particles.burst(s.x, s.y - 1, { count: 3, textures: ['pixel'], colors: [0x8fd0ff, 0xffffff], speed: [15, 35], life: [0.2, 0.35], gravity: 160, angle: [-Math.PI * 0.85, -Math.PI * 0.15] });
+        } else if (terrain === 'bush' || terrain === 'tall') {
+          this.particles.burst(s.x, s.y - 6, { count: 2, textures: ['pixel'], colors: [0x2cb02a, 0x82f24a, 0x14701a], speed: [10, 30], life: [0.3, 0.5], gravity: 90, angle: [-Math.PI * 0.9, -Math.PI * 0.1] });
+        } else if (p.running) {
+          this.particles.burst(s.x, s.y - 1, { count: 1, textures: ['pixel'], colors: [0xe8dcc0, 0xc8b894], speed: [5, 15], life: [0.25, 0.4], gravity: -20, drag: 4 });
+        }
+      }
+    }
     // Pee stream: little yellow drops falling from Zampanò.
     if (this.streamTimer > 0) {
       this.streamTimer -= dt;

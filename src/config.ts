@@ -45,8 +45,8 @@ export const CAMERA = {
 } as const;
 
 export const PLAYER = {
-  WALK_SPEED: 2.4,
-  RUN_SPEED: 4.0,
+  WALK_SPEED: 2.2,
+  RUN_SPEED: 3.8,
   ACCEL: 16,
   DECEL: 20,
   /** Collision radius in tiles. */
@@ -85,9 +85,9 @@ export const HUNGER = {
   MAX: 100,
   START: 100,
   /** Drain per second by activity. */
-  DRAIN_IDLE: 0.55,
-  DRAIN_WALK: 0.95,
-  DRAIN_RUN: 1.6,
+  DRAIN_IDLE: 0.9,
+  DRAIN_WALK: 1.5,
+  DRAIN_RUN: 2.3,
   /** Hunger restored after losing a life. */
   REFILL_ON_LIFE_LOST: 50,
   /** Hunger below which the bar blinks. */
@@ -126,7 +126,7 @@ export const BLADDER = {
   MAX_CHARGES: 3,
   START_CHARGES: 3,
   /** Seconds to regenerate one charge. */
-  REGEN_TIME: 15,
+  REGEN_TIME: 18,
   PEE_TIME: 0.7,
   MARK_TIME: 0.9,
   RADIUS: 2.2,
@@ -169,7 +169,7 @@ export const SCORE = {
 } as const;
 
 export const CAT = {
-  SPEED: 3.3,
+  SPEED: 3.1,
   RADIUS: 0.22,
   TOUCH_RADIUS: 0.55,
   /** Cats start fleeing when Zampanò is closer than this. */
@@ -186,7 +186,7 @@ export const CAT = {
 export const BALL = {
   MAGNET_RADIUS: 3.6,
   /** Max pull speed (tiles/s) at the ball. */
-  MAGNET_STRENGTH: 3.4,
+  MAGNET_STRENGTH: 3.2,
   GRAB_RADIUS: 0.45,
   LIFETIME: 22,
   FETCH_TIME: 2,
@@ -211,14 +211,14 @@ export const ATTACK = {
 } as const;
 
 export const BAGNASKIZ = {
-  SPEED: 2.3,
-  FLEE_SPEED: 4.6,
+  SPEED: 2.1,
+  FLEE_SPEED: 4.4,
   RADIUS: 0.3,
   HITS_TO_FLEE: 3,
   /** Pollution trail stamp. */
-  TRAIL_RADIUS: 1.15,
+  TRAIL_RADIUS: 0.95,
   TRAIL_STRENGTH: 0.8,
-  TRAIL_INTERVAL: 0.22,
+  TRAIL_INTERVAL: 0.25,
   KNOCKBACK_SPEED: 7,
   KNOCKBACK_DECAY: 9,
   STUN_TIME: 0.7,

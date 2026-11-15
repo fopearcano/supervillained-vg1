@@ -106,6 +106,13 @@ export class GameScene implements Scene {
     this.threats = new Threats(this, this.rules, levelDef);
     this.fx = new GameFx(this.events, this.player, this.camera, () => this.rules.poopWarning);
     this.decalLayer.addChild(this.fx.below, this.magnetG);
+    this.fx.terrainAt = (x, y) => {
+      const i = Math.floor(x);
+      const j = Math.floor(y);
+      if (this.map.isWaterAt(x, y)) return 'water';
+      if (this.map.propAt(i, j)?.kind === 'bush') return 'bush';
+      return this.map.groundAt(i, j) === Ground.TallGrass ? 'tall' : 'ground';
+    };
     this.fxLayer.addChild(this.fx.above);
 
     this.camera.bounds = this.walkableBounds(4);
@@ -169,7 +176,7 @@ export class GameScene implements Scene {
         let near = false;
         for (let b = -2; b <= 2 && !near; b++) for (let a = -2; a <= 2 && !near; a++) if (m.isWalkable(i + a, j + b)) near = true;
         const h = hash2(i, j, 21);
-        if ((near && h < 0.42) || (!near && h < 0.1)) {
+        if ((near && h < 0.42) || (!near && h < 0.05)) {
           this.addEntity(new PropEntity('forestTree', hash2(i, j, 22) < 0.5 ? 0 : 1, i + 0.5, j + 0.5, null, true));
         }
       }

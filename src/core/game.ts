@@ -1,5 +1,6 @@
 import { Container, type Application } from 'pixi.js';
 import { ScreenTransition } from '../fx/transition';
+import { AudioEngine } from './audio';
 import { computeViewport, type Viewport } from './display';
 import { Input } from './input';
 import { GameLoop } from './loop';
@@ -20,6 +21,7 @@ export class Game {
   readonly settings: Settings = loadSettings();
   /** Listeners notified when settings change (e.g. audio mute). */
   readonly settingsListeners: Array<(s: Settings) => void> = [];
+  readonly audio: AudioEngine;
   view: Viewport;
   /** Called after each logic step (after scenes). */
   readonly stepHooks: Array<(dt: number) => void> = [];
@@ -35,6 +37,8 @@ export class Game {
     this.view = computeViewport(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
     app.stage.addChild(this.sceneLayer, this.overlayLayer);
     this.transition = new ScreenTransition(app.stage);
+    this.audio = new AudioEngine(this.settings);
+    this.settingsListeners.push((st) => this.audio.applySettings(st));
     this.scenes = new SceneManager(this.sceneLayer, this.view);
     this.scenes.onChange = () => this.input.clearPending();
     this.input.attach(canvas, (cx, cy) => this.toLogical(cx, cy));
