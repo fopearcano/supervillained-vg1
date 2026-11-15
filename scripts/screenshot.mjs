@@ -84,6 +84,50 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** M2: HUD, treats, digestion warning, poop on the path, pee cleaning. */
+  async m2(browser) {
+    const page = await openGame(browser, '?skip=game');
+    await holdKeys(page, ['KeyW'], 900);
+    await wait(300);
+    await page.screenshot({ path: `${OUT}/m2-hud.png` });
+    // Eat the four nearest treats.
+    for (let k = 0; k < 4; k++) {
+      await page.evaluate(() => {
+        const s = window.__sv.scene();
+        const p = s.player;
+        const t = [...s.rules.treats].sort((a, b) => Math.hypot(a.gx - p.gx, a.gy - p.gy) - Math.hypot(b.gx - p.gx, b.gy - p.gy))[0];
+        s.teleport(t.gx + 0.05, t.gy + 0.05);
+      });
+      await wait(450);
+    }
+    // Stand on the path while the warning runs out → heavy poop.
+    await page.evaluate(() => {
+      const s = window.__sv.scene();
+      const m = s.map;
+      const p = s.player;
+      let best = null;
+      for (let j = 0; j < m.height; j++)
+        for (let i = 0; i < m.width; i++)
+          if (m.groundAt(i, j) === 2) {
+            const d = Math.hypot(i + 0.5 - p.gx, j + 0.5 - p.gy);
+            if (!best || d < best.d) best = { i, j, d };
+          }
+      s.teleport(best.i + 0.5, best.j + 0.5);
+    });
+    await wait(1200);
+    await page.screenshot({ path: `${OUT}/m2-warning.png` });
+    await wait(2300);
+    await page.screenshot({ path: `${OUT}/m2-poop.png` });
+    console.log('after poop', JSON.stringify(await page.evaluate(() => window.__sv.scene().debugState())));
+    await wait(1200);
+    await page.keyboard.press('Space');
+    await wait(450);
+    await page.screenshot({ path: `${OUT}/m2-pee.png` });
+    await wait(900);
+    console.log('after pee', JSON.stringify(await page.evaluate(() => window.__sv.scene().debugState())));
+    await page.close();
+  },
+
   /** M1: the floating touch joystick (mouse-driven pointer events). */
   async joystick(browser) {
     const page = await openGame(browser, '?skip=game');

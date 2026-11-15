@@ -177,7 +177,7 @@ export class PixelText extends Sprite {
     const naturalW = Math.max(0, ...lines.map((l) => l.line.length * adv - (l.line.length ? st.letterSpacing : 0)));
     const bodyW = st.align === 'justify' && st.maxWidth > 0 ? Math.max(naturalW, st.maxWidth) : naturalW;
     const bodyH = lines.length * lineH + Math.max(0, lines.length - 1) * st.lineGap;
-    const glowR = st.glow ? 2 : 0;
+    const glowR = st.glow ? 1 : 0;
     const pad = Math.max(st.outline ? st.outlineWidth : 0, glowR) + (st.shadow ? 1 : 0);
     this.pad = pad;
     this.textWidth = bodyW;
@@ -219,25 +219,23 @@ export class PixelText extends Sprite {
       for (const p of placed) ctx.drawImage(tintedGlyph(p.g.ch, color ?? p.g.color, s), p.x + dx, p.y + dy);
     };
     if (st.glow) {
-      const ring1: Array<[number, number]> = [
-        [-1, 0],
-        [1, 0],
-        [0, -1],
-        [0, 1],
+      // Soft pixel glow: orthogonal neighbors stronger than diagonals, 1px radius only
+      // (a wider glow smears 8px text).
+      const glowColor = st.glow === 'self' ? null : st.glow;
+      for (const [dx, dy] of [
         [-1, -1],
         [1, -1],
         [-1, 1],
         [1, 1],
-      ];
-      const ring2: Array<[number, number]> = [
-        [-2, 0],
-        [2, 0],
-        [0, -2],
-        [0, 2],
-      ];
-      const glowColor = st.glow === 'self' ? null : st.glow;
-      for (const [dx, dy] of ring2) draw(glowColor, dx, dy, st.glowAlpha * 0.4);
-      for (const [dx, dy] of ring1) draw(glowColor, dx, dy, st.glowAlpha * 0.6);
+      ] as const)
+        draw(glowColor, dx, dy, st.glowAlpha * 0.35);
+      for (const [dx, dy] of [
+        [-1, 0],
+        [1, 0],
+        [0, -1],
+        [0, 1],
+      ] as const)
+        draw(glowColor, dx, dy, st.glowAlpha * 0.6);
     }
     if (st.shadow) draw(st.shadow, 1, 1);
     if (st.outline) {

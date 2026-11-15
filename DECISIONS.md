@@ -59,3 +59,26 @@ Short entries, newest milestone at the bottom. Anything that deviates from or ex
   40×40 (the dog is ~30 px wide) — bigger than the 32 px minimum for readability on phones.
 - **Debug hooks**: `window.__sv` (scene access, teleport, debug state) and `?debug=sprites&char=…`
   sprite viewer. `npm run screens` drives the game with Playwright for verification screenshots.
+
+## M2 — Core loop and HUD
+
+- **Zone health** is literally "clean playable tiles / playable tiles" (a tile is clean while its
+  dirt < 0.3). Because Level 1 has ~1,700 playable tiles, the stars use a zoomed-in scale:
+  80 % clean → 0 stars, 99.5 % → 5 stars (`ZONE` in config), **floored** to half stars so even
+  one path poop is visible in the HUD.
+- **Pollution**: poops stamp dirt with a radial falloff (max-blend, never additive). Footprint by
+  surface: bush/tall grass = small, grass = medium, path = large. Unattended poops slowly
+  **spread** (radius ×1.45 over 35 s) until a pee neutralizes the pile (+100 "CLEAN!").
+- **Pee** spreads outward over its duration like paint (Splatoon-style), cleaning dirt and leaving
+  a short "re-greened" highlight. Marking = a vertical object (tree/pole/bush/fountain) within
+  ~1 tile: bigger radius, leg-lift, +150. With no charges the button just shows "EMPTY!".
+- **Digestion**: the poop happens when the 3 s warning expires, but waits while Zampanò is busy
+  (peeing, drinking) so actions never overlap. Overflow from extra treats carries over.
+- **Drinking** is automatic when stepping on a puddle or next to a fountain and a charge is missing
+  (short animation, 1.5 s cooldown).
+- **Lives**: starving costs a life, refills hunger to 50 and gives 2 s of invulnerability.
+- **Events**: gameplay emits typed events (`core/events.ts`); FX (and later audio) subscribe, so
+  rules stay free of presentation code.
+- **HUD**: drawn with crisp 1 px rects (no stroked shapes). Text uses a 1 px self-colored glow plus
+  a dark drop shadow for readability over bright grass (a 2 px glow smeared the 8 px font).
+  Radar is screen-aligned (dots are screen offsets), exit shown on the rim when out of range.
