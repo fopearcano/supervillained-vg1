@@ -1,0 +1,57 @@
+# CLAUDE.md — SUPERVILLAINED
+
+2D isometric arcade game (browser + Android via Capacitor), **no game engine**. Zampanò, a Maltese
+dog, walks through a park: eat treats, pee to clean, avoid pollution, bark at the bully pug.
+Spec: `SPEC.md`. Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`.
+
+## Commands
+
+```bash
+npm install
+npm run dev          # Vite dev server on the LAN (open the printed Network URL on a phone)
+npm run build        # typecheck (tsc --noEmit) + production build into dist/
+npm run typecheck
+npm test             # Vitest (pure logic)
+npm run screens      # Playwright verification screenshots → docs/screens/ (all scenarios)
+npm run screens -- m1 joystick   # selected scenarios (see scripts/screenshot.mjs)
+```
+
+Debug URLs: `?skip=game` (straight into gameplay), `?debug=sprites&char=zampano|bagnaskiz|cat`.
+`window.__sv` exposes the game for automation (`__sv.scene()` = top scene).
+
+## Architecture (src/)
+
+- `config.ts` — **every tuning number** (speeds, timers, radii, scores, thresholds). Never hardcode
+  gameplay numbers elsewhere.
+- `core/` — `game.ts` (services: renderer, input, scenes, loop, resize), `loop.ts` (fixed 60 Hz
+  step + interpolation), `input.ts` (keyboard, floating joystick, touch buttons, taps),
+  `scene.ts` (scene stack), `display.ts` (logical resolution + integer scale), `assets.ts`
+  (texture registry + atlas packer), `storage.ts` (guarded localStorage), `rng.ts`.
+- `iso/` — `projection.ts` (grid↔screen, screen-direction → grid, 8 directions), `depth.ts`
+  (painter's sort, occlusion test), `camera.ts`.
+- `world/` — `tiles.ts` (ground types, props, ASCII legend), `level.ts` (level types + ASCII parser
+  + `loadLevel`), `map.ts` (runtime map: collision, pollution field, zone health, BFS distances),
+  `mapRenderer.ts` (chunked ground sprites + pollution overlays).
+- `levels/` — level data (`level1.ts`) and registry (`index.ts`).
+- `entities/` — `Entity` base (grid position, interpolation, view), `CharacterAnimator`,
+  `Zampano`, `PropEntity`, …
+- `systems/` — gameplay rules as small, mostly pure classes (unit-tested).
+- `ui/` — `pixelFont.ts` + `pixelText.ts` (crisp bitmap text with glow/outline), HUD, touch controls.
+- `fx/` — particles, popups, screen effects, glitch filter.
+- `scenes/` — Title, Briefing, Game, Pause, LevelEnd, GameOver, sprite viewer.
+- `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims), `build.ts` (load PNGs or generate
+  placeholders), `placeholders/*` (procedural pixel art), `fonts/`.
+
+## Conventions
+
+- TypeScript strict, ES modules, `import type` for types (`verbatimModuleSyntax`).
+- Grid space: tile (i, j) covers [i, i+1) × [j, j+1); entity positions are floats `gx, gy`.
+  Screen: `sx = (gx - gy) * 16`, `sy = (gx + gy) * 8`. Map rows = gy, columns = gx.
+- Directions (`Dir8`) are screen-space names: N = up on screen.
+- Logic in fixed steps (`update(dt)`), visuals in `render(alpha)`; entities call `savePrev()` at
+  the start of each step so rendering can interpolate.
+- Everything visible in the world goes through the depth-sorted `objectLayer` (props, characters,
+  items). Ground decals live in the map renderer / decal layer.
+- No new runtime dependencies without a note in `DECISIONS.md`. No CDN resources (offline).
+- Game text in English, uppercase pixel font.
+- After each milestone: `npm run build`, `npm test`, `npm run screens`, look at the PNGs, commit.
