@@ -176,6 +176,77 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** M4: scripted "under attack" with Bagnaskiz, barking him away, a cat and a magnet ball. */
+  async m4(browser) {
+    const page = await openGame(browser, '?skip=game');
+    // Jump past 55% of the walk → scripted attack.
+    await page.evaluate(() => {
+      const s = window.__sv.scene();
+      const m = s.map;
+      const d0 = m.exitDistance[m.index(m.startTile.i, m.startTile.j)];
+      let best = null;
+      for (let j = 0; j < m.height; j++)
+        for (let i = 0; i < m.width; i++) {
+          if (m.groundAt(i, j) !== 2) continue;
+          const d = m.exitDistance[m.index(i, j)];
+          const err = Math.abs(d - d0 * 0.42);
+          if (!best || err < best.err) best = { i, j, err };
+        }
+      s.teleport(best.i + 0.5, best.j + 0.5);
+    });
+    await wait(900);
+    await page.screenshot({ path: `${OUT}/m4-attack-title.png` });
+    await wait(3500);
+    await page.screenshot({ path: `${OUT}/m4-attack.png` });
+    console.log('attack', JSON.stringify(await page.evaluate(() => window.__sv.scene().debugState())));
+    // Bark three times at Bagnaskiz from close range.
+    for (let k = 0; k < 3; k++) {
+      await page.evaluate(() => {
+        const s = window.__sv.scene();
+        const pug = s.threats.pug;
+        if (!pug) return;
+        const m = s.map;
+        for (const [dx, dy] of [[1.4, 0], [-1.4, 0], [0, 1.4], [0, -1.4], [1, 1], [-1, -1]]) {
+          if (m.isWalkable(Math.floor(pug.gx + dx), Math.floor(pug.gy + dy))) {
+            s.teleport(pug.gx + dx, pug.gy + dy);
+            break;
+          }
+        }
+        window.__sv.faceToward(pug.gx, pug.gy);
+      });
+      await page.keyboard.press('KeyJ');
+      await wait(k === 2 ? 120 : 700);
+      if (k === 2) await page.screenshot({ path: `${OUT}/m4-bark.png` });
+    }
+    await wait(800);
+    console.log('after barks', JSON.stringify(await page.evaluate(() => window.__sv.scene().debugState().pug)));
+    // Heal the zone so the attack can end, then a cat and a ball.
+    await page.evaluate(() => {
+      const s = window.__sv.scene();
+      for (let k = 0; k < s.map.dirt.length; k++) if (s.map.dirt[k] > 0) s.map.clean((k % s.map.width) + 0.5, Math.floor(k / s.map.width) + 0.5, 0.1);
+    });
+    await wait(2500);
+    console.log('healed', JSON.stringify(await page.evaluate(() => window.__sv.scene().debugState().attack)));
+    await page.evaluate(() => {
+      const s = window.__sv.scene();
+      s.threats.catTimer = 0;
+      s.threats.ballTimer = 0;
+    });
+    await wait(1200);
+    await page.screenshot({ path: `${OUT}/m4-cat-ball.png` });
+    console.log('spawned', JSON.stringify(await page.evaluate(() => { const d = window.__sv.scene().debugState(); return { cats: d.cats, balls: d.balls }; })));
+    // Walk into the ball's magnet.
+    await page.evaluate(() => {
+      const s = window.__sv.scene();
+      const b = s.threats.balls[0];
+      if (b) s.teleport(b.gx + 2.2, b.gy + 0.2);
+    });
+    await wait(1500);
+    console.log('ball', JSON.stringify(await page.evaluate(() => { const d = window.__sv.scene().debugState(); return { state: d.player.state, time: d.stats.time, balls: d.balls }; })));
+    await page.screenshot({ path: `${OUT}/m4-fetch.png` });
+    await page.close();
+  },
+
   /** M1: the floating touch joystick (mouse-driven pointer events). */
   async joystick(browser) {
     const page = await openGame(browser, '?skip=game');

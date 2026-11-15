@@ -23,14 +23,22 @@ export function drawTreat(): PixelBuffer {
 }
 
 export function drawBall(): PixelBuffer {
-  const pb = new PixelBuffer(7, 7);
-  pb.disc(3.5, 3.5, 3.3, rgba('#a6c020'));
-  pb.disc(3.2, 3.1, 2.6, rgba('#dcf23a'));
-  pb.set(1, 2, rgba('#ffffff'));
-  pb.set(2, 3, rgba('#ffffff'));
-  pb.set(3, 4, rgba('#ffffff'));
-  pb.set(4, 4, rgba('#ffffff'));
-  pb.set(5, 3, rgba('#ffffff'));
+  const pb = new PixelBuffer(9, 9);
+  pb.disc(4.5, 4.5, 4.2, rgba('#98b418'));
+  pb.disc(4.1, 4.0, 3.4, rgba('#dcf23a'));
+  // Seam
+  for (const [x, y] of [
+    [1, 3],
+    [2, 4],
+    [3, 5],
+    [4, 5],
+    [5, 5],
+    [6, 4],
+    [7, 3],
+  ] as const)
+    pb.set(x, y, rgba('#ffffff'));
+  pb.set(3, 2, rgba('#f4ff9a'));
+  pb.outline(rgba('#3a4a00'));
   return pb;
 }
 
@@ -102,14 +110,16 @@ export function drawThought(): PixelBuffer {
 /** Bark sound-wave arc for a screen direction: `)` shapes, iso-squashed. */
 export function drawWave(dir: Dir8): PixelBuffer {
   const pb = new PixelBuffer(16, 16);
+  // Arc of a ground-plane circle around the facing direction, projected (y squashed by 2).
   const v = dirToScreenVector(dir);
-  const base = Math.atan2(v.y * 2, v.x);
+  const base = Math.atan2(v.y, v.x);
   const c = rgba('#ffffff');
-  for (let a = -0.9; a <= 0.9; a += 0.05) {
+  for (let a = -0.95; a <= 0.95; a += 0.04) {
     const ang = base + a;
-    const x = 8 + Math.cos(ang) * 6.5;
-    const y = 8 + Math.sin(ang) * 6.5 * 0.6;
+    const x = 8 + Math.cos(ang) * 7;
+    const y = 8 + Math.sin(ang) * 7 * 0.5;
     pb.set(Math.round(x - 0.5), Math.round(y - 0.5), c);
+    pb.set(Math.round(x - 0.5 - Math.cos(ang)), Math.round(y - 0.5 - Math.sin(ang) * 0.5), c);
   }
   return pb;
 }

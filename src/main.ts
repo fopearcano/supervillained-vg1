@@ -6,6 +6,7 @@ import { Flow } from './scenes/flow';
 import { SpriteViewerScene } from './scenes/spriteViewerScene';
 import type { CharacterKey } from './assets/manifest';
 import { loadPixelFont } from './ui/pixelFont';
+import { dirFromGridVector } from './iso/projection';
 
 async function boot(): Promise<void> {
   // Pixel-perfect: every texture is sampled with nearest-neighbor.
@@ -51,6 +52,10 @@ async function boot(): Promise<void> {
     scene: () => flow.current ?? game.scenes.top,
     top: () => game.scenes.top,
     step: (n: number) => game.loop.stepNow(n),
+    faceToward: (x: number, y: number) => {
+      const s = flow.current;
+      if (s) s.player.face(dirFromGridVector(x - s.player.gx, y - s.player.gy));
+    },
   };
 }
 

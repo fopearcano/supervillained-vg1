@@ -1,10 +1,10 @@
-import { Container, Sprite } from 'pixi.js';
+import { Container, Graphics, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import { Emitter, type GameEvents } from '../core/events';
 import type { Game } from '../core/game';
 import { hash2 } from '../core/rng';
 import type { Scene } from '../core/scene';
-import { OCCLUSION } from '../config';
+import { BALL, OCCLUSION } from '../config';
 import { buildLevelTextures } from '../assets/build';
 import { PropEntity } from '../entities/prop';
 import { Zampano } from '../entities/zampano';
@@ -14,6 +14,9 @@ import { Camera } from '../iso/camera';
 import { compareDepth, occludes, rectsOverlap, type Rect } from '../iso/depth';
 import { gridToScreen, gridVecToScreen } from '../iso/projection';
 import { Rules } from '../systems/rules';
+import { Threats } from '../systems/threats';
+import { GlitchFilter } from '../fx/glitchFilter';
+import { AttackBanner } from '../ui/attackBanner';
 import { Hud, type RadarDot } from '../ui/hud';
 import { PixelText } from '../ui/pixelText';
 import { TouchControls } from '../ui/touchControls';
@@ -45,13 +48,20 @@ export class GameScene implements Scene {
   readonly entities: Entity[] = [];
   readonly events = new Emitter<GameEvents>();
   readonly rules: Rules;
+  readonly threats: Threats;
   readonly hud: Hud;
+  readonly banner = new AttackBanner();
+  private readonly attackFilter = new GlitchFilter();
+  /** Smoothed visual intensity of the "under attack" effects. */
+  private attackFx = 0;
+  private burst = 0;
   readonly fx: GameFx;
   readonly controls: TouchControls;
   hooks: GameSceneHooks = {};
   /** When false, gameplay is frozen (title/briefing shown over the level). */
   active = true;
   private readonly exitRing: Sprite;
+  private readonly magnetG = new Graphics();
   private readonly exitLabel: PixelText;
   private time = 0;
   private endNotified = false;
@@ -93,18 +103,25 @@ export class GameScene implements Scene {
     this.addEntity(this.player);
 
     this.rules = new Rules(this, levelDef);
+    this.threats = new Threats(this, this.rules, levelDef);
     this.fx = new GameFx(this.events, this.player, this.camera, () => this.rules.poopWarning);
-    this.decalLayer.addChild(this.fx.below);
+    this.decalLayer.addChild(this.fx.below, this.magnetG);
     this.fxLayer.addChild(this.fx.above);
 
     this.camera.bounds = this.walkableBounds(4);
     this.hud = new Hud(game.input);
     this.controls = new TouchControls(game.input);
-    this.uiLayer.addChild(this.controls.root, this.hud.root);
+    this.uiLayer.addChild(this.controls.root, this.hud.root, this.banner.root);
 
     this.events.on('levelComplete', () => {
       this.controls.setEnabled(false);
     });
+    this.events.on('attackStart', () => {
+      this.banner.start();
+      this.burst = 0.6;
+    });
+    this.events.on('attackEnd', () => this.banner.end());
+    this.events.on('barkHit', () => (this.burst = Math.max(this.burst, 0.15)));
   }
 
   addEntity(e: Entity): void {
@@ -175,6 +192,7 @@ export class GameScene implements Scene {
     this.game.input.joystickZone = { x: 0, y: 60, w: w * 0.62, h: h - 60 };
     this.controls.setLayout({ peeX: w - 60, peeY: h - 50, peeR: 15, barkX: w - 23, barkY: h - 60, barkR: 17 });
     this.hud.layout(w, h);
+    this.banner.layout(w, h);
   }
 
   update(dt: number): void {
@@ -184,6 +202,7 @@ export class GameScene implements Scene {
     if (this.active) {
       if (input.consume('menu') && this.rules.state === 'playing') this.hooks.onMenu?.(this);
       this.rules.update(dt, input);
+      if (this.rules.state === 'playing') this.threats.update(dt, input);
     } else {
       this.player.setIntent(0, 0);
     }
@@ -193,12 +212,45 @@ export class GameScene implements Scene {
     const vs = gridVecToScreen(this.player.vx, this.player.vy);
     this.camera.update(dt, ps.x, ps.y - 10, vs.x, vs.y);
     this.fx.update(dt);
+    this.updateAttackFx(dt);
 
     if (!this.endNotified && this.rules.state !== 'playing' && this.rules.endedFor > 1.1) {
       this.endNotified = true;
       if (this.rules.state === 'complete') this.hooks.onComplete?.(this);
       else this.hooks.onGameOver?.(this);
     }
+  }
+
+  /** Sepia palette shift + glitch bursts on the world while the zone is under attack. */
+  private updateAttackFx(dt: number): void {
+    const target = this.threats.director.intensity(this.map.health());
+    const rate = target > this.attackFx ? 2.5 : 0.8;
+    this.attackFx += (target - this.attackFx) * Math.min(1, rate * dt);
+    if (this.attackFx < 0.005 && target === 0) this.attackFx = 0;
+    if (this.burst > 0) this.burst -= dt;
+    else if (this.attackFx > 0 && Math.random() < 0.006 + 0.02 * this.attackFx) this.burst = 0.08 + Math.random() * 0.15;
+    const f = this.attackFilter;
+    f.time = this.time;
+    f.sepia = Math.min(0.9, this.attackFx * 0.95);
+    f.scanlines = this.attackFx * 0.35;
+    f.glitch = this.burst > 0 ? 0.35 + this.attackFx * 0.5 : 0;
+    f.rgb = this.burst > 0 ? 2 + this.attackFx * 2 : this.attackFx > 0.5 ? 1 : 0;
+    f.flash = 0;
+    if (!this.active) return;
+    const want = this.attackFx > 0;
+    const has = this.worldRoot.filters?.length === 1 && this.worldRoot.filters[0] === f;
+    if (want && !has) this.worldRoot.filters = [f];
+    else if (!want && has) this.worldRoot.filters = [];
+    const pug = this.threats.pug;
+    const hint =
+      pug && pug.active
+        ? this.game.input.usingTouch
+          ? 'BARK AT BAGNASKIZ!'
+          : 'BARK (J) AT BAGNASKIZ!'
+        : this.map.health() < this.threats.director.threshold
+          ? 'PEE TO HEAL THE ZONE!'
+          : null;
+    this.banner.update(dt, hint);
   }
 
   render(alpha: number, frameDt: number): void {
@@ -231,9 +283,31 @@ export class GameScene implements Scene {
       const v = visible[k]!.view;
       if (v.zIndex !== k) v.zIndex = k;
     }
+    this.drawMagnetFields();
     this.controls.update();
     this.controls.setPeeCharges(this.rules.bladder.charges, this.rules.bladder.max, this.rules.bladder.regenFraction);
+    this.controls.setBarkReady(this.threats.barkReadiness);
     this.hud.update(this.hudState(), frameDt);
+  }
+
+  /** Pulsing rings converging on nearby balls: shows the magnet pull area. */
+  private drawMagnetFields(): void {
+    const g = this.magnetG;
+    g.clear();
+    for (const b of this.threats.balls) {
+      const d = Math.hypot(b.gx - this.player.gx, b.gy - this.player.gy);
+      if (d > BALL.MAGNET_RADIUS * 1.8 || b.age > BALL.LIFETIME) continue;
+      const c = gridToScreen(b.gx, b.gy);
+      for (let k = 0; k < 2; k++) {
+        const u = 1 - ((this.time * 0.8 + k * 0.5) % 1);
+        const r = BALL.MAGNET_RADIUS * u;
+        g.ellipse(Math.round(c.x), Math.round(c.y), r * 16 * Math.SQRT2, r * 8 * Math.SQRT2).stroke({
+          width: 1,
+          color: 0xdcf23a,
+          alpha: 0.55 * (1 - u) + 0.1,
+        });
+      }
+    }
   }
 
   private hudState() {
@@ -248,6 +322,19 @@ export class GameScene implements Scene {
     for (const poop of this.rules.poops) {
       const d = rel(poop.gx, poop.gy);
       if (!poop.cleaned) radar.push({ dx: d.x, dy: d.y, color: 0x8a5422 });
+    }
+    for (const c of this.threats.cats) {
+      const d = rel(c.gx, c.gy);
+      radar.push({ dx: d.x, dy: d.y, color: 0x3ff0ff, size: 3 });
+    }
+    for (const b of this.threats.balls) {
+      const d = rel(b.gx, b.gy);
+      radar.push({ dx: d.x, dy: d.y, color: 0xffe23a, size: 2 });
+    }
+    const pug = this.threats.pug;
+    if (pug) {
+      const d = rel(pug.gx, pug.gy);
+      radar.push({ dx: d.x, dy: d.y, color: 0xff7a1f, size: 4, blink: true });
     }
     const exit = rel(this.map.exit.x, this.map.exit.y);
     return {
@@ -284,6 +371,10 @@ export class GameScene implements Scene {
       state: this.rules.state,
       stats: { ...st, time: +st.time.toFixed(1) },
       treatsLeft: this.rules.treats.length,
+      attack: this.threats.director.state,
+      pug: this.threats.pug ? { state: this.threats.pug.state, hits: this.threats.pug.hits } : null,
+      cats: this.threats.cats.length,
+      balls: this.threats.balls.length,
     };
   }
 

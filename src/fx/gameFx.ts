@@ -5,10 +5,21 @@ import { FX } from '../config';
 import { spriteName } from '../assets/manifest';
 import type { Zampano } from '../entities/zampano';
 import type { Camera } from '../iso/camera';
-import { dirToScreenVector, gridToScreen } from '../iso/projection';
+import { BARK } from '../config';
+import { DIRS8, dirToGridVector, dirToScreenVector, gridToScreen, type Dir8 } from '../iso/projection';
 import { C } from '../ui/retro';
 import { Particles } from './particles';
 import { Popups } from './popups';
+
+interface Wave {
+  sprite: Sprite;
+  ox: number;
+  oy: number;
+  dx: number;
+  dy: number;
+  t: number;
+  life: number;
+}
 
 interface Ring {
   x: number;
@@ -31,6 +42,7 @@ export class GameFx {
   readonly particles = new Particles();
   readonly popups = new Popups();
   private readonly rings: Ring[] = [];
+  private readonly waves: Wave[] = [];
   private readonly ringG = new Graphics();
   private readonly bubble: Sprite;
   private time = 0;
@@ -126,6 +138,67 @@ export class GameFx {
       const p = at(e.x, e.y, 36);
       this.popups.text('PEE REFILL!', p.x, p.y, { color: C.yellow, glow: 'self' }, 1, -14);
     });
+    events.on('bark', (e) => {
+      const dir = e.dir as Dir8;
+      const g = dirToGridVector(dir);
+      const start = at(e.x + g.x * 0.5, e.y + g.y * 0.5, 12);
+      const end = at(e.x + g.x * BARK.RANGE, e.y + g.y * BARK.RANGE, 12);
+      const tex = textures.get(spriteName('wave', DIRS8.indexOf(dir)));
+      for (let k = 0; k < 3; k++) {
+        const sprite = new Sprite(tex);
+        sprite.tint = k === 1 ? 0x3ff0ff : 0xffffff;
+        sprite.visible = false;
+        this.above.addChild(sprite);
+        this.waves.push({ sprite, ox: start.x, oy: start.y, dx: end.x - start.x, dy: end.y - start.y, t: -k * 0.07, life: BARK.RANGE / BARK.WAVE_SPEED + 0.12 });
+      }
+      const p = at(e.x, e.y, 40);
+      this.popups.text('WOOF!', p.x, p.y, { color: C.white, glow: C.cyan, glowAlpha: 0.5 }, 0.5, -30);
+      this.camera.shake(FX.SHAKE_BARK);
+    });
+    events.on('barkHit', (e) => {
+      const g = at(e.x, e.y, 18);
+      this.particles.burst(g.x, g.y, {
+        count: 10,
+        textures: ['sparkle', 'cross'],
+        colors: [0xffffff, 0x3ff0ff, 0xffe23a],
+        speed: [40, 80],
+        life: [0.3, 0.6],
+        drag: 4,
+      });
+      this.popups.text(`HIT ${e.hits}/3`, g.x, g.y - 18, { color: C.cyan, glow: 'self' }, 0.8, -16);
+      this.camera.shake(FX.SHAKE_HIT);
+    });
+    events.on('cat', (e) => {
+      const g = at(e.x, e.y, 12);
+      this.particles.burst(g.x, g.y, {
+        count: 8,
+        textures: ['coin'],
+        colors: [0xffffff],
+        speed: [40, 80],
+        life: [0.5, 0.8],
+        gravity: 160,
+        angle: [-Math.PI * 0.9, -Math.PI * 0.1],
+        fade: true,
+      });
+      this.popups.text(`+${e.coins} COINS`, g.x, g.y - 28, { color: C.yellow, glow: 'self' }, 1.1, -12);
+    });
+    events.on('fetch', (e) => {
+      const p = at(e.x, e.y, 30);
+      this.popups.icon('ball', p.x, p.y, 3, 1.1, -10);
+      this.popups.text(`DISTRACTED! +${e.penalty}s`, p.x, p.y - 22, { color: C.orange, glow: 'self' }, 1.4, -10);
+    });
+    events.on('ballSpawn', (e) => {
+      const g = at(e.x, e.y, 6);
+      this.particles.burst(g.x, g.y, { count: 6, textures: ['sparkle'], colors: [0xdcf23a, 0xffffff], speed: [20, 40], life: [0.3, 0.6], drag: 3 });
+    });
+    events.on('bump', (e) => {
+      const p = at(e.x, e.y, 36);
+      this.popups.text('OUCH!', p.x, p.y, { color: C.red, glow: 'self' }, 0.8, -16);
+      this.camera.shake(FX.SHAKE_HURT);
+    });
+    events.on('attackStart', () => {
+      this.camera.shake(FX.SHAKE_HURT);
+    });
     events.on('lifeLost', (e) => {
       const p = at(e.x, e.y, 38);
       this.popups.text(e.lives > 0 ? 'STARVING! -1' : 'STARVED!', p.x, p.y, { color: C.red, glow: 'self', scale: 1 }, 1.4, -10);
@@ -151,6 +224,22 @@ export class GameFx {
         gravity: 260,
         angle: [Math.PI * 0.3, Math.PI * 0.7],
       });
+    }
+    // Bark sound waves `)))` travelling in the facing direction.
+    for (let k = this.waves.length - 1; k >= 0; k--) {
+      const w = this.waves[k]!;
+      w.t += dt;
+      if (w.t >= w.life) {
+        w.sprite.destroy();
+        this.waves.splice(k, 1);
+        continue;
+      }
+      if (w.t < 0) continue;
+      const u = w.t / w.life;
+      w.sprite.visible = true;
+      w.sprite.position.set(Math.round(w.ox + w.dx * u), Math.round(w.oy + w.dy * u));
+      w.sprite.scale.set(u < 0.5 ? 1 : 2);
+      w.sprite.alpha = u < 0.75 ? 1 : 0.5;
     }
     // Rings: iso ellipses expanding to the cleaned radius (grid circle → screen ellipse).
     const g = this.ringG;

@@ -103,3 +103,26 @@ Short entries, newest milestone at the bottom. Anything that deviates from or ex
   accumulate across runs (also on game over) for the future shop.
 - **Auto-pause** on `visibilitychange` (hidden) and window `blur`. Esc / MENU toggle pause.
 - Scene changes clear queued input so the key that confirmed a menu can't also trigger a pee.
+
+## M4 — Threats and bonuses
+
+- **Cats** sit until Zampanò is within 5 tiles, then flee: every 0.18 s they score 16 directions
+  (moving away + momentum + open space ahead − blocked tiles) — simple, cheap, and they slide
+  around trees. Cats run faster than Zampanò walks but slower than he runs; barking at a cat
+  startles it (it freezes and hops for 0.8 s), which is the trick to catch one. +5 coins, +250.
+- **Balls**: pull strength falls off with distance; walking can't escape near the ball, running
+  can. Touching it starts a 2 s uncontrolled fetch run, −8 hunger and +5 s on the timer.
+  A pulsing ring converging on the ball shows the magnet area.
+- **Spawns** are timed per level (`spawns.cats/balls`: first, interval range, max) and placed
+  4–8 tiles from Zampanò, preferably *ahead* on the walk (closer to the exit).
+- **Under attack** (`AttackDirector`, pure logic): starts when health < 95 % (cooldown 25 s) or once
+  at 55 % of the walk (scripted, level metadata). Ends only when Bagnaskiz has fled **and** health
+  is back above the threshold (+0.4 % hysteresis); until then the HUD says "PEE TO HEAL THE ZONE!".
+  Effect intensity = 0.35 + deficit / 8 % (capped at 1): sepia/brown palette shift, scanlines and
+  random glitch bursts on the world layer only (HUD stays readable).
+- **Bagnaskiz** retargets every 2.5 s to the cleanest spot near Zampanò (sampled), stamping a
+  pollution trail every 0.22 s. Bumping into Zampanò knocks him back and costs 6 hunger. Barks hit
+  when the wave reaches him (range 2.8 tiles, ±43° cone in the facing direction); 3 hits → he flees
+  (+400) and fades out.
+- The bark sound wave is drawn as three `)` arcs (ground-plane arcs projected to the iso view)
+  travelling along the facing direction.

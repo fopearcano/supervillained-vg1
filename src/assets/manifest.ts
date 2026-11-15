@@ -110,7 +110,7 @@ export const SPRITES = {
   exitFlag: { key: 'exitFlag', w: 26, h: 40, anchorX: 6, anchorY: 38, variants: 1 },
   // Items
   treat: { key: 'treat', w: 13, h: 8, anchorX: 6, anchorY: 7, variants: 1 },
-  ball: { key: 'ball', w: 7, h: 7, anchorX: 3, anchorY: 6, variants: 1 },
+  ball: { key: 'ball', w: 9, h: 9, anchorX: 4, anchorY: 8, variants: 1 },
   poop: { key: 'poop', w: 10, h: 9, anchorX: 5, anchorY: 8, variants: 1 },
   coin: { key: 'coin', w: 7, h: 7, anchorX: 3, anchorY: 3, variants: 1 },
   // Shadows
