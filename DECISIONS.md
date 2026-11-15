@@ -152,3 +152,19 @@ Short entries, newest milestone at the bottom. Anything that deviates from or ex
   `tests/balance.test.ts` runs a bot through Level 1 to keep these numbers honest.
 - Bagnaskiz trail slightly thinner (radius 0.95, every 0.25 s): one attack now costs about one star
   if left alone instead of two.
+
+## M6 — Android
+
+- **Capacitor 8** (`@capacitor/core`, `@capacitor/android`, dev `@capacitor/cli`): the official,
+  minimal way to ship the Vite build as an APK; no Capacitor plugins are used.
+- `appId` is `com.zampano.supervillained` (placeholder: change it before publishing anywhere).
+- **Portrait lock** in the manifest; **immersive fullscreen** and **keep screen on** in
+  `MainActivity.java` with AndroidX `WindowInsetsControllerCompat` (bars reappear with a swipe).
+  The display cutout is left in its default mode so the HUD never sits under a camera hole.
+- **Back button** without the `@capacitor/app` plugin: an `OnBackPressedCallback` in
+  `MainActivity` fires a `svback` window event; the game toggles the pause menu (ignored on title
+  and result screens, so Back never kills a run by accident).
+- **Icons and splash**: generated pixel-art Zampanò face (legacy, round and adaptive icons, black
+  splash screens) by `scripts/gen-android-assets.mjs`, a dependency-free PNG writer.
+- Verified in the dev container: `assembleDebug` succeeds with JDK 21 + SDK platform 36
+  (≈4 MB APK, portrait, assets and font bundled).

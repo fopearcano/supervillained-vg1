@@ -37,6 +37,8 @@ async function boot(): Promise<void> {
   const params = new URLSearchParams(location.search);
   const level = levelByNumber(Number(params.get('level') ?? 1)) ?? levelByNumber(1)!;
   const flow = new Flow(game);
+  // Android hardware back button (dispatched by MainActivity.java).
+  window.addEventListener('svback', () => flow.back());
   if (params.get('debug') === 'sprites') {
     game.start(new SpriteViewerScene(game, (params.get('char') ?? 'zampano') as CharacterKey));
   } else {

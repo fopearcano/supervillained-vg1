@@ -129,6 +129,13 @@ export class Flow {
     this.game.audio.setDuck(scene.threats.director.state === 'attack' ? 0.45 : 1);
   }
 
+  /** Android back button: pause / resume during play; ignored elsewhere. */
+  back(): void {
+    const top = this.game.scenes.top;
+    if (top instanceof PauseScene) this.resume();
+    else if (top === this.gameScene) this.pause();
+  }
+
   /** Called when the app goes to the background. */
   autoPause(): void {
     this.pause();

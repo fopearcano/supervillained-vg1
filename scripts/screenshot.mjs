@@ -8,7 +8,7 @@
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
-import { chromium } from 'playwright';
+import { chromium, devices } from 'playwright';
 
 const PORT = 5199;
 const OUT = 'docs/screens';
@@ -281,6 +281,26 @@ const SCENARIOS = {
     await page.screenshot({ path: `${OUT}/m5-marking.png` });
     console.log('m5', JSON.stringify(await page.evaluate(() => { const d = window.__sv.scene().debugState(); return { score: d.stats.score, marks: d.stats.marks, audio: window.__sv.game.audio.ready }; })));
     await page.close();
+  },
+
+  /** M6: the app on a phone-sized screen (Pixel 7 emulation): title and gameplay. */
+  async m6(browser) {
+    const ctx = await browser.newContext({ ...devices['Pixel 7'] });
+    const page = await ctx.newPage();
+    page.on('pageerror', (e) => console.log(`[page error] ${e.message}`));
+    await page.goto(`http://127.0.0.1:${PORT}/`);
+    await page.waitForFunction(() => window.__sv && window.__sv.scene(), null, { timeout: 30000 });
+    await wait(1300);
+    await page.screenshot({ path: `${OUT}/m6-phone-title.png` });
+    await page.touchscreen.tap(200, 500);
+    await wait(1300);
+    await page.touchscreen.tap(200, 500);
+    await wait(600);
+    await page.evaluate(() => window.__sv.flow.back());
+    await wait(400);
+    await page.screenshot({ path: `${OUT}/m6-phone-back-pause.png` });
+    console.log('top after back:', await page.evaluate(() => window.__sv.top().constructor.name), 'view', await page.evaluate(() => [window.__sv.game.width, window.__sv.game.height, window.__sv.game.view.scale]));
+    await ctx.close();
   },
 
   /** M1: the floating touch joystick (mouse-driven pointer events). */
