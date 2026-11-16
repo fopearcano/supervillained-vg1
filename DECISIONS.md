@@ -297,3 +297,7 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
   parameter is clamped, its timers use the real step length, and its tuning lives in
   `STORY.PILOT`; the Meraviglia book builds each line's text once; scene titles in the level list
   keep a complete last word when shortened.
+- **Title screen**: SUPERVILLAINED is the logo, as big as fits (one line at double or triple size
+  on wide screens; SUPER / VILLAINED stacked at double size on ~200-px phones), with CRUSADER as
+  the edition title under it (the story menu reads "SUPERVILLAINED: CRUSADER"). The footer reads
+  SUPERVOID EDITIONS, dimmed, at the pixel font's smallest crisp size.

@@ -45,12 +45,13 @@ const big = (text: string, color: string, scale: number, extra: Partial<Construc
 
 /** Title card over the blurred level. */
 export class TitleScene extends Overlay {
-  private readonly title = big('SUPERVILLAINED', '#d4ff3a', 1, { letterSpacing: 2 });
-  private readonly level: PixelText;
-  private readonly zone: PixelText;
+  private readonly title = big('SUPERVILLAINED', '#d4ff3a', 2, { align: 'center', lineGap: 4 });
+  /** Edition title under the logo. */
+  private readonly edition: PixelText;
   private readonly best: PixelText;
   private readonly menu: Menu;
-  private readonly footer = new PixelText('A ZAMPANO ADVENTURE', { color: '#9aa4c0', shadow: '#000000' }).setOrigin(0.5, 1);
+  /** Publisher line: the smallest crisp size of the pixel font (scale 1), dimmed. */
+  private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: '#6a7290', letterSpacing: 1 }).setOrigin(0.5, 1);
 
   constructor(
     game: Game,
@@ -58,8 +59,7 @@ export class TitleScene extends Overlay {
     actions: { story: () => void; arcade: () => void },
   ) {
     super(game, 0.15);
-    this.level = big('THE DREAM', C.hotPink, 2, { outline: '#ffffff', glow: C.hotPink, glowAlpha: 0.5 });
-    this.zone = big('OF THE CROSS', C.green, 1, { outline: '#06300a' });
+    this.edition = big('CRUSADER', C.hotPink, 1, { letterSpacing: 6, glow: C.hotPink, glowAlpha: 0.5 });
     const rec: LevelRecord | null = bestFor(level.id);
     const coins = loadCoins();
     this.best = new PixelText(rec ? `ARCADE BEST ${formatScore(rec.score)}   COINS ${coins}` : `COINS ${coins}`, {
@@ -76,16 +76,20 @@ export class TitleScene extends Overlay {
       20,
       8,
     );
-    this.root.addChild(this.title, this.level, this.zone, this.best, this.menu.root, this.footer);
+    this.root.addChild(this.title, this.edition, this.best, this.menu.root, this.footer);
   }
 
   protected layout(): void {
     const { w, h } = this;
-    const titleScale = w >= 14 * 16 + 8 ? 2 : 1;
-    this.title.setStyle({ scale: titleScale, letterSpacing: titleScale === 2 ? 0 : 2 });
-    this.title.position.set(Math.round(w / 2), Math.round(h * 0.24));
-    this.level.position.set(Math.round(w / 2), Math.round(h * 0.24 + 28));
-    this.zone.position.set(Math.round(w / 2), Math.round(h * 0.24 + 48));
+    // As big as fits: one line at scale 3 or 2 (letters may sit 1 px closer), else
+    // SUPER / VILLAINED stacked at scale 2 or 3 (phones are about 200 px wide).
+    const fits = (scale: number, letters: number, spacing: number) => letters * (8 * scale + spacing) - spacing <= w - 8;
+    const oneLine = [3, 2].flatMap((sc) => [0, -1].map((sp) => ({ sc, sp }))).find((o) => fits(o.sc, 14, o.sp));
+    if (oneLine) this.title.setText('SUPERVILLAINED').setStyle({ scale: oneLine.sc, letterSpacing: oneLine.sp });
+    else this.title.setText('SUPER\nVILLAINED').setStyle({ scale: fits(3, 9, 0) ? 3 : 2, letterSpacing: 0 });
+    const top = Math.round(h * 0.24);
+    this.title.position.set(Math.round(w / 2), top);
+    this.edition.position.set(Math.round(w / 2), top + this.title.textHeight / 2 + 14);
     this.menu.layout(w / 2, Math.round(h * 0.52));
     this.best.position.set(Math.round(w / 2), Math.round(h * 0.52 + this.menu.height + 12));
     this.footer.position.set(Math.round(w / 2), h - 6);
@@ -96,8 +100,8 @@ export class TitleScene extends Overlay {
     // Glitchy entrance: jitter for the first moments.
     const jitter = this.time < 0.9 ? Math.round((Math.random() * 2 - 1) * 4 * (1 - this.time / 0.9)) : 0;
     this.title.x = Math.round(this.w / 2) + jitter;
-    this.level.x = Math.round(this.w / 2) - jitter;
-    this.zone.visible = this.time > 0.25;
+    this.edition.x = Math.round(this.w / 2) - jitter;
+    this.edition.visible = this.time > 0.25;
     this.menu.root.visible = this.time > 0.5;
     if (this.time > 0.6) this.menu.update(dt, this.game.input);
   }

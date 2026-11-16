@@ -80,7 +80,7 @@ export class StoryMenuScene implements Scene {
   readonly pausesBelow = true;
   private readonly bg = new Graphics();
   private readonly title = new PixelText('THE DREAM OF THE CROSS', { color: C.yellow, outline: '#120818', glow: 'self', glowAlpha: 0.3 }).setOrigin(0.5, 0);
-  private readonly sub = new PixelText('SUPERVILLAINED - STORY', { color: '#9aa4c0', shadow: '#000000' }).setOrigin(0.5, 0);
+  private readonly sub = new PixelText('SUPERVILLAINED: CRUSADER', { color: '#9aa4c0', shadow: '#000000' }).setOrigin(0.5, 0);
   private readonly menu: Menu;
   private readonly meters = new PixelText('', { color: C.white, shadow: '#000000', align: 'center', lineGap: 3 }).setOrigin(0.5, 0);
   private time = 0;
