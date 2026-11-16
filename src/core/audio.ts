@@ -1,9 +1,10 @@
 import { AUDIO } from '../config';
-import { SOUNDS, renderMusic, type SoundName } from '../fx/sounds';
+import { SOUNDS, renderMedievalMusic, renderMusic, type SoundName } from '../fx/sounds';
 import type { Settings } from './settings';
 import { renderSound } from './synth';
 
 const SFX_RATE = 22050;
+export type MusicTrack = 'chip' | 'medieval';
 const MUSIC_RATE = 22050;
 
 /**
@@ -18,7 +19,8 @@ export class AudioEngine {
   private music: GainNode | null = null;
   private readonly buffers = new Map<SoundName, AudioBuffer>();
   private readonly lastPlayed = new Map<SoundName, number>();
-  private musicBuffer: AudioBuffer | null = null;
+  private readonly musicBuffers = new Map<MusicTrack, AudioBuffer>();
+  private track: MusicTrack = 'chip';
   private musicSource: AudioBufferSourceNode | null = null;
   private wantMusic = false;
   private duck = 1;
@@ -97,7 +99,8 @@ export class AudioEngine {
 
   startMusic(): void {
     this.wantMusic = true;
-    this.ensureMusicPlaying();
+    if (this.ctx && !this.musicBuffers.has(this.track)) this.prepareMusic();
+    else this.ensureMusicPlaying();
   }
 
   stopMusic(): void {
@@ -117,21 +120,35 @@ export class AudioEngine {
     if (this.music && this.ctx) this.music.gain.setTargetAtTime(AUDIO.MUSIC_VOLUME * amount, this.ctx.currentTime, 0.15);
   }
 
+  /** Switches the music loop ('chip' for the Greenzone, 'medieval' for the dream). */
+  setTrack(track: MusicTrack): void {
+    if (track === this.track) return;
+    this.track = track;
+    if (this.musicSource) {
+      this.stopMusic();
+      this.wantMusic = true;
+      this.prepareMusic();
+    }
+  }
+
   private prepareMusic(): void {
     const ctx = this.ctx;
-    if (!ctx || this.musicBuffer) return;
-    const data = renderMusic(MUSIC_RATE);
-    const buf = ctx.createBuffer(1, data.length, MUSIC_RATE);
-    buf.copyToChannel(data as Float32Array<ArrayBuffer>, 0);
-    this.musicBuffer = buf;
+    if (!ctx) return;
+    if (!this.musicBuffers.has(this.track)) {
+      const data = this.track === 'medieval' ? renderMedievalMusic(MUSIC_RATE) : renderMusic(MUSIC_RATE);
+      const buf = ctx.createBuffer(1, data.length, MUSIC_RATE);
+      buf.copyToChannel(data as Float32Array<ArrayBuffer>, 0);
+      this.musicBuffers.set(this.track, buf);
+    }
     this.ensureMusicPlaying();
   }
 
   private ensureMusicPlaying(): void {
     const ctx = this.ctx;
-    if (!ctx || !this.music || !this.musicBuffer || !this.wantMusic || this.musicSource) return;
+    const buffer = this.musicBuffers.get(this.track);
+    if (!ctx || !this.music || !buffer || !this.wantMusic || this.musicSource) return;
     const src = ctx.createBufferSource();
-    src.buffer = this.musicBuffer;
+    src.buffer = buffer;
     src.loop = true;
     src.connect(this.music);
     src.start();

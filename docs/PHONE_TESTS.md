@@ -40,3 +40,34 @@ Or install the debug APK (see README → Android).
   stays on, launcher icon is Zampanò's face.
 - Hardware Back during play opens the pause menu, Back again resumes. Home → return: paused.
 - Check 60 fps feel while running through the forest edges and during the attack effect.
+
+## VG1 — Story mode
+- Title → STORY → BEGIN THE DREAM. Level card, then each sub-level card ("what happens" +
+  source). Tap advances dialogue (a first tap finishes the typewriter). MENU pauses: resume,
+  restart, skip, Meraviglia book, sound, quit.
+- **1.1** pastel Jerusalem in armour, walk to the city: it never gets closer; the slap wakes him.
+  **1.2** pick up the memory shards falling from the Professor's sentences (they unlock levels in
+  the story menu). **1.3** cross the lawn unseen (cones turn red when they see you; bushes hide you)
+  or pay the toll. **1.4** every option is wrong. **1.5** the rag cross.
+- **2.x** dark wood (evade the beasts), falcon chase + flying stag, the preacher (BARK = preach,
+  spends Commozione), Fortune's wheel.
+- **3.1** wonder hunt (LOOK at sparkles; MARVEL popups fill the book). **3.3** weeping rhythm.
+  **3.4** stealth: listen at the barons' tent for 6 s without being seen.
+- **4.1** parade rhythm, **4.2** calm rescue, **4.3–4.5** black holes (purple cards, one value each).
+- **5.2** ladders rehearsal, **5.4** the letter (pick euphemisms), **6.1** catapult (tap at the right
+  power), **6.2** put the rumour in order, **6.4** thirst march: the lake moves away when you get
+  close.
+- **7.3 the vanguard (key test)**: walk at the usurper with the joystick at *walking* tilt. Full
+  tilt = "DO NOT CHARGE", pulling back = "DO NOT TURN BACK", standing still also drains the NERVE
+  bar; if it empties the line breaks and you restart. Sbrimbrulon and the count walk beside you.
+- **7.4** sightseeing, then a fire spreads: run to the far corner. **7.5** sneak past a flailing
+  emperor (no running). **7.6** walk in, speak, walk out — running restarts you. **7.7** mash to hold
+  Confusione back (you are meant to lose), then follow him through the hole.
+- **7.8 decides the ending**: BARK three times at Jack to make him let go (THE KNIGHT ending), or
+  walk on to the pile (THE ALPHA-DOG). Then JERUSALEM / LOADING… never loads.
+- **8.1** scrambled controls in a shattered dream with a hound behind you; they settle near the
+  end. **8.2** place the relics (one per marvel) and the altar. **8.3** the lawn vanguard without
+  armour → YOU HAVE BEEN SUPERVILLAINED. **8.4** the right answer is greyed out. Then the
+  Professor, the ending card, THE END.
+- Close the app mid-level and reopen: STORY → CONTINUE resumes at the first unfinished sub-level.
+- Medieval music in the dream, chip music in the Greenzone levels and the arcade.

@@ -1,7 +1,10 @@
 import { packAtlas, subTexture, textures, tryLoadTexture, type AtlasEntry } from '../core/assets';
 import { DIRS8, TW } from '../iso/projection';
 import type { Palette } from '../world/level';
-import { BAGNASKIZ_SPEC, CAT_SPEC, ZAMPANO_SPEC, drawCritter, drawShadow, poseFor, type CritterSpec } from './placeholders/critters';
+import type { TextureSource } from 'pixi.js';
+import { drawCritter, drawShadow, poseFor } from './placeholders/critters';
+import { CAST_SPECS } from './placeholders/cast';
+import { drawSpecial, drawStoryProp, drawStoryTile } from './placeholders/storyArt';
 import * as items from './placeholders/items';
 import * as props from './placeholders/props';
 import * as tiles from './placeholders/tiles';
@@ -24,11 +27,41 @@ import {
  * placeholders for everything else.
  */
 
-const CRITTER_SPECS: Record<string, CritterSpec> = {
-  zampano: ZAMPANO_SPEC,
-  bagnaskiz: BAGNASKIZ_SPEC,
-  cat: CAT_SPEC,
-};
+/** Characters generated at boot; the story cast is generated on demand (ensureCharacters). */
+const BOOT_CHARACTERS = ['zampano', 'bagnaskiz', 'cat'];
+const builtCharacters = new Set<string>();
+
+function characterEntries(def: CharacterDef): AtlasEntry[] {
+  const spec = CAST_SPECS[def.key]!;
+  const entries: AtlasEntry[] = [];
+  for (const [anim, ad] of Object.entries(def.anims) as Array<[AnimName, { frames: number }]>) {
+    for (const dir of DIRS8) {
+      for (let f = 0; f < ad.frames; f++) {
+        entries.push({
+          name: textureName(def.key, anim, dir, f),
+          image: drawCritter(spec, dir, poseFor(anim, f)),
+          anchorX: def.anchorX,
+          anchorY: def.anchorY,
+        });
+      }
+    }
+  }
+  return entries;
+}
+
+/** Makes sure the given characters have textures (loads their sheet or generates placeholders). */
+export async function ensureCharacters(keys: Iterable<string>): Promise<void> {
+  const entries: AtlasEntry[] = [];
+  for (const key of keys) {
+    if (builtCharacters.has(key)) continue;
+    const def = (CHARACTERS as Record<string, CharacterDef>)[key];
+    if (!def) continue;
+    builtCharacters.add(key);
+    if (def.sheet && (await loadCharacterSheet(def))) continue;
+    entries.push(...characterEntries(def));
+  }
+  if (entries.length) packAtlas(entries, textures, 'cast');
+}
 
 function sprite(def: SpriteDef, variant: number, image: PixelBuffer): AtlasEntry {
   return { name: spriteName(def.key as SpriteKey, variant), image, anchorX: def.anchorX, anchorY: def.anchorY };
@@ -37,21 +70,11 @@ function sprite(def: SpriteDef, variant: number, image: PixelBuffer): AtlasEntry
 /** Palette-independent textures: characters, items, FX, HUD icons. */
 export async function buildGlobalTextures(): Promise<void> {
   const entries: AtlasEntry[] = [];
-  for (const def of Object.values(CHARACTERS) as CharacterDef[]) {
+  for (const key of BOOT_CHARACTERS) {
+    const def = (CHARACTERS as Record<string, CharacterDef>)[key]!;
+    builtCharacters.add(key);
     if (def.sheet && (await loadCharacterSheet(def))) continue;
-    const spec = CRITTER_SPECS[def.key]!;
-    for (const [anim, ad] of Object.entries(def.anims) as Array<[AnimName, { frames: number }]>) {
-      for (const dir of DIRS8) {
-        for (let f = 0; f < ad.frames; f++) {
-          entries.push({
-            name: textureName(def.key, anim, dir, f),
-            image: drawCritter(spec, dir, poseFor(anim, f)),
-            anchorX: def.anchorX,
-            anchorY: def.anchorY,
-          });
-        }
-      }
-    }
+    entries.push(...characterEntries(def));
   }
   const S = SPRITES;
   const gen: Array<[SpriteDef, (v: number) => PixelBuffer]> = [
@@ -75,6 +98,9 @@ export async function buildGlobalTextures(): Promise<void> {
     [S.peeIcon, () => items.drawPeeIcon()],
     [S.barkIcon, () => items.drawBarkIcon()],
     [S.drop, (v) => items.drawDrop(v)],
+    ...(['legs', 'fortune', 'falcon', 'stag', 'shard', 'relic', 'banner', 'flame', 'professorFace', 'bee', 'tear', 'mask', 'halo'] as const).map(
+      (k) => [S[k], (v: number) => drawSpecial(k, v)] as [SpriteDef, (v: number) => PixelBuffer],
+    ),
     [S.pole, () => props.drawPole()],
     [S.fountain, () => props.drawFountain()],
     [S.exitFlag, () => props.drawExitFlag()],
@@ -87,8 +113,32 @@ export async function buildGlobalTextures(): Promise<void> {
 }
 
 let builtPalette = '';
+/** Atlases of the last two palettes: older ones are destroyed (their scenes are gone). */
+const paletteAtlases: TextureSource[][] = [];
 
-/** Zone-specific textures: ground tiles and vegetation, colored by the level palette. */
+const STORY_TILES = ['floor', 'stone', 'sand', 'snow', 'deep', 'dock', 'carpet', 'wallBase'] as const;
+const STORY_PROPS = [
+  'column',
+  'desk',
+  'shelf',
+  'house',
+  'tent',
+  'galley',
+  'rock',
+  'statue',
+  'crate',
+  'palm',
+  'altar',
+  'stall',
+  'throne',
+  'vine',
+  'gate',
+  'bones',
+  'table',
+  'wallBlock',
+] as const;
+
+/** Zone-specific textures: ground tiles and props, colored by the level palette. */
 export function buildLevelTextures(pal: Palette): void {
   const key = JSON.stringify(pal);
   if (key === builtPalette) return;
@@ -107,7 +157,16 @@ export function buildLevelTextures(pal: Palette): void {
   for (let v = 0; v < S.tree.variants; v++) entries.push(sprite(S.tree, v, props.drawTree(pal, v)));
   for (let v = 0; v < S.forestTree.variants; v++) entries.push(sprite(S.forestTree, v, props.drawForestTree(pal, v)));
   for (let v = 0; v < S.bush.variants; v++) entries.push(sprite(S.bush, v, props.drawBush(pal, v)));
-  packAtlas(entries, textures, 'level');
+  for (const kind of STORY_TILES) {
+    const variants = kind === 'deep' ? 2 : kind === 'wallBase' ? 1 : 3;
+    for (let v = 0; v < variants; v++) tile(`${kind}_${v}`, drawStoryTile(pal, kind, v));
+  }
+  for (const kind of STORY_PROPS) {
+    const def = S[kind];
+    for (let v = 0; v < def.variants; v++) entries.push(sprite(def, v, drawStoryProp(pal, kind, v)));
+  }
+  paletteAtlases.push(packAtlas(entries, textures, 'level'));
+  while (paletteAtlases.length > 2) for (const src of paletteAtlases.shift()!) src.destroy();
 }
 
 async function loadCharacterSheet(def: CharacterDef): Promise<boolean> {

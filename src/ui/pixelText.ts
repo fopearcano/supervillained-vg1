@@ -128,7 +128,8 @@ export class PixelText extends Sprite {
     canvas.width = 1;
     canvas.height = 1;
     const source = new CanvasSource({ resource: canvas });
-    super(new Texture({ source }));
+    // dynamic: the Sprite must refresh its quad whenever the canvas (and so the frame) resizes.
+    super(new Texture({ source, dynamic: true }));
     this.canvas = canvas;
     this.source = source;
     this.st = { ...DEFAULT_TEXT_STYLE, ...style };
@@ -185,13 +186,20 @@ export class PixelText extends Sprite {
     this.pad = pad;
     this.textWidth = bodyW;
     this.textHeight = bodyH;
-    const w = Math.max(1, bodyW + pad * 2);
-    const h = Math.max(1, bodyH + pad * 2);
+    // Canvas sizes are rounded up so growing text (typewriter) rarely reallocates the texture.
+    const w = Math.max(16, Math.ceil((bodyW + pad * 2) / 16) * 16);
+    const h = Math.max(8, Math.ceil((bodyH + pad * 2) / 8) * 8);
 
-    if (this.canvas.width !== w || this.canvas.height !== h) this.source.resize(w, h);
+    // PixiJS uploads on the 'resize' event, before CanvasSource resizes the canvas element. A
+    // resize that grows one side and shrinks the other would upload the stale canvas into a
+    // smaller texture (GL "offset overflows texture dimensions"), so grow first, then shrink.
+    const cw = this.canvas.width;
+    const chh = this.canvas.height;
+    if (cw < w || chh < h) this.source.resize(Math.max(cw, w), Math.max(chh, h));
+    if (this.canvas.width > w * 2 || this.canvas.height > h * 2) this.source.resize(w, h);
     const ctx = this.canvas.getContext('2d')!;
     ctx.imageSmoothingEnabled = false;
-    ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Glyph positions.
     const placed: Array<{ g: Glyph; x: number; y: number }> = [];

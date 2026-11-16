@@ -141,3 +141,51 @@ export function renderMusic(sampleRate: number): Float32Array {
   for (let k = 0; k < out.length; k++) out[k] = Math.tanh(out[k]! * 1.1);
   return out;
 }
+
+/**
+ * Medieval loop for the dream (D dorian): a recorder-like lead over a drone fifth and a tabor.
+ * Estampie-ish, 6/8 feel, 8 bars.
+ */
+export function renderMedievalMusic(sampleRate: number): Float32Array {
+  const bpm = 104;
+  const beat = 60 / bpm / 2; // eighth notes, 6 per bar
+  const bars = 8;
+  const out = new Float32Array(Math.ceil(bars * 6 * beat * sampleRate));
+  const lead = [
+    'D5 E5 F5 E5 D5 A4',
+    'C5 D5 E5 D5 C5 A4',
+    'D5 F5 G5 A5 G5 F5',
+    'E5 D5 C5 D5 - -',
+    'A5 G5 F5 G5 A5 C6',
+    'B5 A5 G5 A5 F5 E5',
+    'D5 E5 F5 G5 E5 C5',
+    'D5 - A4 D5 - -',
+  ];
+  for (let bar = 0; bar < bars; bar++) {
+    lead[bar]!.split(' ').forEach((n, i) => {
+      if (n === '-') return;
+      const at = (bar * 6 + i) * beat;
+      renderVoice(
+        { wave: 'triangle', freq: noteFreq(n), attack: 0.02, sustain: beat * 0.7, decay: beat * 0.25, volume: 0.2, vibratoRate: 5, vibratoDepth: 0.012 },
+        sampleRate,
+        out,
+        Math.floor(at * sampleRate),
+      );
+    });
+    // Drone: D3 + A3, re-struck each bar.
+    for (const n of ['D3', 'A3']) {
+      renderVoice({ wave: 'saw', freq: noteFreq(n), attack: 0.08, sustain: beat * 5.2, decay: beat * 0.6, volume: 0.05, lowpass: 0.08 }, sampleRate, out, Math.floor(bar * 6 * beat * sampleRate));
+    }
+    // Tabor: strong on 1 and 4, light on 6.
+    for (const [i, v] of [
+      [0, 0.32],
+      [3, 0.24],
+      [5, 0.1],
+    ] as const) {
+      renderVoice({ wave: 'sine', freq: 120, freqEnd: 60, attack: 0.002, sustain: 0.02, decay: 0.09, volume: v }, sampleRate, out, Math.floor((bar * 6 + i) * beat * sampleRate));
+      renderVoice({ wave: 'noise', freq: 2400, attack: 0.001, sustain: 0.01, decay: 0.04, volume: v * 0.25 }, sampleRate, out, Math.floor((bar * 6 + i) * beat * sampleRate), bar * 6 + i + 3);
+    }
+  }
+  for (let k = 0; k < out.length; k++) out[k] = Math.tanh(out[k]! * 1.1);
+  return out;
+}

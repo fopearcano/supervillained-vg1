@@ -2,16 +2,13 @@ import { Container, Graphics, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import { Emitter, type GameEvents } from '../core/events';
 import type { Game } from '../core/game';
-import { hash2 } from '../core/rng';
 import type { Scene } from '../core/scene';
-import { BALL, OCCLUSION } from '../config';
-import { buildLevelTextures } from '../assets/build';
+import { BALL } from '../config';
 import { PropEntity } from '../entities/prop';
-import { Zampano } from '../entities/zampano';
+import type { Zampano } from '../entities/zampano';
 import type { Entity } from '../entities/entity';
 import { GameFx } from '../fx/gameFx';
-import { Camera } from '../iso/camera';
-import { compareDepth, occludes, rectsOverlap, type Rect } from '../iso/depth';
+import type { Camera } from '../iso/camera';
 import { gridToScreen, gridVecToScreen } from '../iso/projection';
 import { Rules } from '../systems/rules';
 import { Threats } from '../systems/threats';
@@ -21,9 +18,9 @@ import { Hud, type RadarDot } from '../ui/hud';
 import { PixelText } from '../ui/pixelText';
 import { TouchControls } from '../ui/touchControls';
 import { loadLevel, type LevelDef } from '../world/level';
-import { GameMap } from '../world/map';
-import { MapRenderer } from '../world/mapRenderer';
+import type { GameMap } from '../world/map';
 import { Ground } from '../world/tiles';
+import { World } from '../world/world';
 
 /** Callbacks the scene flow (title → briefing → game → end) plugs in. */
 export interface GameSceneHooks {
@@ -36,16 +33,8 @@ export interface GameSceneHooks {
 export class GameScene implements Scene {
   readonly root = new Container();
   readonly pausesBelow = true;
-  readonly worldRoot = new Container();
-  readonly decalLayer = new Container();
-  readonly objectLayer = new Container();
-  readonly fxLayer = new Container();
+  readonly world: World;
   readonly uiLayer = new Container();
-  readonly map: GameMap;
-  readonly mapRenderer: MapRenderer;
-  readonly camera = new Camera();
-  readonly player: Zampano;
-  readonly entities: Entity[] = [];
   readonly events = new Emitter<GameEvents>();
   readonly rules: Rules;
   readonly threats: Threats;
@@ -70,42 +59,23 @@ export class GameScene implements Scene {
     readonly game: Game,
     readonly levelDef: LevelDef,
   ) {
-    const level = loadLevel(levelDef);
-    buildLevelTextures(levelDef.palette);
-    this.map = new GameMap(level);
-    this.mapRenderer = new MapRenderer(this.map);
-    this.objectLayer.sortableChildren = true;
-    this.worldRoot.addChild(this.mapRenderer.root, this.decalLayer, this.objectLayer, this.fxLayer);
-    this.root.addChild(this.worldRoot, this.uiLayer);
-
-    // Props from the level + decorative forest along the border.
-    for (const p of this.map.props) {
-      const variants = p.kind === 'tree' ? 3 : p.kind === 'bush' ? 2 : 1;
-      const v = Math.floor(hash2(p.i, p.j, 3) * variants);
-      const e = new PropEntity(p.kind, v, p.x, p.y, p, p.kind !== 'fountain');
-      if (p.kind === 'bush') e.depthBias = 0.1;
-      this.addEntity(e);
-    }
-    this.spawnForest();
+    this.world = new World(loadLevel(levelDef), levelDef.palette);
+    this.root.addChild(this.world.root, this.uiLayer);
 
     // Exit: flag + glowing ring + label.
     const ex = this.map.exit;
     this.exitRing = new Sprite(textures.get('exitRing_0'));
     const ep = gridToScreen(this.map.exitTile.i, this.map.exitTile.j);
     this.exitRing.position.set(ep.x, ep.y);
-    this.decalLayer.addChild(this.exitRing);
+    this.world.decalLayer.addChild(this.exitRing);
     this.addEntity(new PropEntity('exitFlag', 0, ex.x + 0.25, ex.y - 0.25, null, true));
     this.exitLabel = new PixelText('EXIT', { color: '#fff36a', outline: '#000000', glow: 'self' }).setOrigin(0.5, 1);
-    this.fxLayer.addChild(this.exitLabel);
-
-    this.player = new Zampano(this.map.start.x, this.map.start.y);
-    this.player.face('N');
-    this.addEntity(this.player);
+    this.world.fxLayer.addChild(this.exitLabel);
 
     this.rules = new Rules(this, levelDef);
     this.threats = new Threats(this, this.rules, levelDef);
     this.fx = new GameFx(this.events, this.player, this.camera, () => this.rules.poopWarning);
-    this.decalLayer.addChild(this.fx.below, this.magnetG);
+    this.world.decalLayer.addChild(this.fx.below, this.magnetG);
     this.fx.terrainAt = (x, y) => {
       const i = Math.floor(x);
       const j = Math.floor(y);
@@ -113,9 +83,8 @@ export class GameScene implements Scene {
       if (this.map.propAt(i, j)?.kind === 'bush') return 'bush';
       return this.map.groundAt(i, j) === Ground.TallGrass ? 'tall' : 'ground';
     };
-    this.fxLayer.addChild(this.fx.above);
+    this.world.fxLayer.addChild(this.fx.above);
 
-    this.camera.bounds = this.walkableBounds(4);
     this.hud = new Hud(game.input);
     this.controls = new TouchControls(game.input);
     this.uiLayer.addChild(this.controls.root, this.hud.root, this.banner.root);
@@ -131,61 +100,33 @@ export class GameScene implements Scene {
     this.events.on('barkHit', () => (this.burst = Math.max(this.burst, 0.15)));
   }
 
+  // Delegates kept for the rules, threats and automation scripts.
+  get worldRoot(): Container {
+    return this.world.root;
+  }
+  get map(): GameMap {
+    return this.world.map;
+  }
+  get player(): Zampano {
+    return this.world.player;
+  }
+  get camera(): Camera {
+    return this.world.camera;
+  }
+  get entities(): Entity[] {
+    return this.world.entities;
+  }
+
   addEntity(e: Entity): void {
-    this.entities.push(e);
-    this.objectLayer.addChild(e.view);
+    this.world.addEntity(e);
   }
 
   removeEntity(e: Entity): void {
-    const i = this.entities.indexOf(e);
-    if (i >= 0) this.entities.splice(i, 1);
-    e.destroy();
-  }
-
-  /** Screen-space bounds of the walkable area, grown by `marginTiles`. */
-  private walkableBounds(marginTiles: number): Rect {
-    let x0 = Infinity;
-    let y0 = Infinity;
-    let x1 = -Infinity;
-    let y1 = -Infinity;
-    const m = this.map;
-    for (let j = 0; j < m.height; j++) {
-      for (let i = 0; i < m.width; i++) {
-        if (!m.isWalkable(i, j)) continue;
-        const c = gridToScreen(i + 0.5, j + 0.5);
-        x0 = Math.min(x0, c.x);
-        x1 = Math.max(x1, c.x);
-        y0 = Math.min(y0, c.y);
-        y1 = Math.max(y1, c.y);
-      }
-    }
-    const mx = marginTiles * 16;
-    const my = marginTiles * 8;
-    const b = this.mapRenderer.bounds;
-    const x = Math.max(b.x, x0 - mx);
-    const y = Math.max(b.y, y0 - my - 40);
-    return { x, y, w: Math.min(b.x + b.w, x1 + mx) - x, h: Math.min(b.y + b.h, y1 + my + 40) - y };
-  }
-
-  /** Decorative trees on forest tiles near the playable area (and a few deeper ones). */
-  private spawnForest(): void {
-    const m = this.map;
-    for (let j = 0; j < m.height; j++) {
-      for (let i = 0; i < m.width; i++) {
-        if (m.groundAt(i, j) !== Ground.Forest) continue;
-        let near = false;
-        for (let b = -2; b <= 2 && !near; b++) for (let a = -2; a <= 2 && !near; a++) if (m.isWalkable(i + a, j + b)) near = true;
-        const h = hash2(i, j, 21);
-        if ((near && h < 0.42) || (!near && h < 0.05)) {
-          this.addEntity(new PropEntity('forestTree', hash2(i, j, 22) < 0.5 ? 0 : 1, i + 0.5, j + 0.5, null, true));
-        }
-      }
-    }
+    this.world.removeEntity(e);
   }
 
   enter(): void {
-    const s = gridToScreen(this.player.gx, this.player.gy);
-    this.camera.snapTo(s.x, s.y);
+    this.world.snapCamera();
     this.setControlsEnabled(this.active);
   }
 
@@ -204,7 +145,7 @@ export class GameScene implements Scene {
 
   update(dt: number): void {
     this.time += dt;
-    for (const e of this.entities) e.savePrev();
+    this.world.beginStep();
     const input = this.game.input;
     if (this.active) {
       if (input.consume('menu') && this.rules.state === 'playing') this.hooks.onMenu?.(this);
@@ -213,11 +154,7 @@ export class GameScene implements Scene {
     } else {
       this.player.setIntent(0, 0);
     }
-    for (const e of this.entities) if (e !== this.player) e.update(dt);
-    this.map.update(dt);
-    const ps = gridToScreen(this.player.gx, this.player.gy);
-    const vs = gridVecToScreen(this.player.vx, this.player.vy);
-    this.camera.update(dt, ps.x, ps.y - 10, vs.x, vs.y);
+    this.world.endStep(dt);
     this.fx.update(dt);
     this.updateAttackFx(dt);
 
@@ -261,35 +198,10 @@ export class GameScene implements Scene {
   }
 
   render(alpha: number, frameDt: number): void {
-    const origin = this.camera.viewOrigin(alpha);
-    this.worldRoot.position.set(-origin.x, -origin.y);
-    const view: Rect = { x: origin.x, y: origin.y, w: this.camera.viewW, h: this.camera.viewH };
-    this.mapRenderer.update(frameDt, view);
+    this.world.render(alpha, frameDt);
     this.exitRing.alpha = 0.5 + 0.5 * Math.sin(this.time * 5);
     const lp = gridToScreen(this.map.exit.x, this.map.exit.y);
     this.exitLabel.position.set(Math.round(lp.x), Math.round(lp.y - 44 + Math.sin(this.time * 3) * 2));
-
-    // Cull, depth-sort and fade occluders.
-    const cullView: Rect = { x: view.x - 24, y: view.y - 24, w: view.w + 48, h: view.h + 72 };
-    const visible: Entity[] = [];
-    const playerRect = this.player.screenRect();
-    for (const e of this.entities) {
-      const r = e.screenRect();
-      const on = rectsOverlap(r, cullView);
-      e.view.visible = on;
-      if (!on) continue;
-      visible.push(e);
-      if (e.fadeable) {
-        e.fadeTarget = occludes(e, r, this.player, playerRect) ? OCCLUSION.FADED_ALPHA : 1;
-        e.fade += (e.fadeTarget - e.fade) * Math.min(1, frameDt * OCCLUSION.FADE_RATE);
-      }
-      e.sync(alpha);
-    }
-    visible.sort(compareDepth);
-    for (let k = 0; k < visible.length; k++) {
-      const v = visible[k]!.view;
-      if (v.zIndex !== k) v.zIndex = k;
-    }
     this.drawMagnetFields();
     this.controls.update();
     this.controls.setPeeCharges(this.rules.bladder.charges, this.rules.bladder.max, this.rules.bladder.regenFraction);
@@ -387,8 +299,6 @@ export class GameScene implements Scene {
 
   /** Debug/test helper: teleport Zampanò. */
   teleport(gx: number, gy: number): void {
-    this.player.setPosition(gx, gy);
-    const s = gridToScreen(gx, gy);
-    this.camera.snapTo(s.x, s.y);
+    this.world.teleport(gx, gy);
   }
 }

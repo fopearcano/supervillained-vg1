@@ -35,6 +35,19 @@ export interface CritterSpec {
   fluffy?: boolean;
   /** Tabby stripes. */
   stripes?: string;
+  /** Headwear / accessory drawn on the head. */
+  hat?: 'crown' | 'cap' | 'mitre' | 'turban' | 'hood' | 'helm' | 'veil' | 'bow' | 'bearEars';
+  hatColor?: string;
+  /** Coat marks. */
+  marks?: 'scars' | 'patches' | 'spots';
+  markColor?: string;
+  /** Costume on the body: a rag cross sewn on the coat, or a tabard with a cross. */
+  costume?: 'cross' | 'tabard';
+  costumeColor?: string;
+  /** Eye style. */
+  eyes?: 'big' | 'sleepy' | 'blind';
+  /** Shih-tzu topknot tie color. */
+  topknot?: string;
 }
 
 export const ZAMPANO_SPEC: CritterSpec = {
@@ -317,6 +330,46 @@ export function drawCritter(spec: CritterSpec, dir: Dir8, pose: Pose): PixelBuff
         pb.setIfOpaque(x + 1, y + 1, S);
       }
     }
+    drawBodyExtras(at, rx, ry);
+  };
+
+  const drawBodyExtras = (at: (t: number) => Pt, rx: number, ry: number) => {
+    if (spec.marks) {
+      const M = rgba(spec.markColor ?? c.deep);
+      const mid = at(0.45);
+      if (spec.marks === 'patches') {
+        pb.ellipse(mid.x - fx * 2 - 1, mid.y - ry * 0.4, 3.2, 2.2, M);
+      } else if (spec.marks === 'spots') {
+        for (const [dx, dy] of [
+          [-3, -2],
+          [2, -3],
+          [0, 1],
+          [4, 0],
+          [-4, 1],
+        ] as const)
+          pb.setIfOpaque(Math.round(mid.x + dx), Math.round(mid.y + dy), M), pb.setIfOpaque(Math.round(mid.x + dx + 1), Math.round(mid.y + dy), M);
+      } else {
+        // Scars: short pink slashes.
+        const S = rgba(spec.markColor ?? '#ff9aa8');
+        pb.line(Math.round(mid.x - 3), Math.round(mid.y - 3), Math.round(mid.x), Math.round(mid.y), S);
+        pb.line(Math.round(mid.x + 2), Math.round(mid.y - 2), Math.round(mid.x + 4), Math.round(mid.y + 1), S);
+      }
+    }
+    if (spec.costume) {
+      const mid = at(0.5);
+      const cy = Math.round(mid.y - ry * 0.15);
+      const cx = Math.round(mid.x - fx * 1.5);
+      if (spec.costume === 'tabard') {
+        const T = rgba(spec.costumeColor ?? '#f4f4f8');
+        for (let y = -Math.round(ry * 0.6); y <= Math.round(ry * 0.5); y++)
+          for (let x = -Math.round(rx * 0.75); x <= Math.round(rx * 0.75); x++) pb.setIfOpaque(cx + x, cy + y, T);
+      }
+      const R = rgba('#d42424');
+      for (let k = -2; k <= 2; k++) {
+        pb.setIfOpaque(cx + k, cy, R);
+        pb.setIfOpaque(cx, cy + k, R);
+      }
+    }
   };
 
   const drawTail = () => {
@@ -389,6 +442,84 @@ export function drawCritter(spec: CritterSpec, dir: Dir8, pose: Pose): PixelBuff
     }
     drawEars(true);
     drawFace();
+    drawHat(hrx, hry);
+  };
+
+  const drawHat = (hrx: number, hry: number) => {
+    if (spec.topknot) {
+      const K = rgba(spec.topknot);
+      pb.disc(head.x - fx * 0.5, head.y - hry - 0.5, 1.8, rgba(c.base));
+      pb.rect(Math.round(head.x - fx * 0.5) - 1, Math.round(head.y - hry + 0.5), 3, 1, K);
+    }
+    if (!spec.hat) return;
+    const H = rgba(spec.hatColor ?? '#e8c048');
+    const top = head.y - hry;
+    const hx = head.x - fx * 0.4;
+    switch (spec.hat) {
+      case 'crown': {
+        pb.rect(Math.round(hx - 4), Math.round(top), 9, 2, H);
+        for (const dx of [-4, 0, 4]) pb.rect(Math.round(hx + dx), Math.round(top - 2), 1, 2, H);
+        pb.set(Math.round(hx), Math.round(top + 0.5), rgba('#e02040'));
+        break;
+      }
+      case 'cap': {
+        // Venetian ducal cap (corno): rounded with a raised back peak.
+        pb.ellipse(hx, top + 1, hrx * 0.8, 2.6, H);
+        pb.disc(hx - fx * 2.5, top - 1.5, 2.2, H);
+        pb.rect(Math.round(hx - hrx * 0.8), Math.round(top + 2), Math.round(hrx * 1.6), 1, rgba('#ffffff'));
+        break;
+      }
+      case 'mitre': {
+        for (let y = 0; y < 8; y++) {
+          const half = Math.max(1, 3.5 - y * 0.35);
+          for (let x = -half; x <= half; x++) pb.set(Math.round(hx + x), Math.round(top + 1 - y), y % 4 === 2 ? rgba('#e8c048') : H);
+        }
+        break;
+      }
+      case 'turban': {
+        pb.ellipse(hx, top + 0.5, hrx * 0.9, 3.4, H);
+        pb.ellipse(hx - 0.5, top - 0.5, hrx * 0.6, 2.2, rgba('#ffffff'));
+        pb.set(Math.round(hx), Math.round(top + 1), rgba('#e02040'));
+        break;
+      }
+      case 'hood': {
+        pb.ellipse(head.x - fx * 1.2, head.y - hry * 0.35, hrx + 1.2, hry * 0.8, H);
+        if (!facingAway) pb.ellipse(head.x + fx * 1.5, head.y + 0.8, hrx * 0.7, hry * 0.6, rgba(c.base));
+        drawFace();
+        break;
+      }
+      case 'helm': {
+        pb.ellipse(hx, top + 2.5, hrx * 0.95, hry * 0.6, H);
+        pb.ellipse(hx - 1, top + 1.5, hrx * 0.6, hry * 0.3, rgba('#e4ecf4'));
+        if (!facingAway) pb.rect(Math.round(head.x + fx * hrx * 0.4), Math.round(top + 2), 1, 5, rgba('#5a6070'));
+        break;
+      }
+      case 'veil': {
+        pb.ellipse(head.x - fx * 2, head.y - hry * 0.3, hrx + 1, hry * 0.7, H);
+        pb.ellipse(head.x - fx * 4, head.y + 3, hrx * 0.7, hry * 0.9, H);
+        if (!facingAway) {
+          pb.ellipse(head.x + fx * 1.5, head.y + 0.8, hrx * 0.7, hry * 0.6, rgba(c.base));
+          drawFace();
+        }
+        break;
+      }
+      case 'bow': {
+        const bx = head.x + (fx >= 0 ? -1 : 1) * hrx * 0.5;
+        pb.disc(bx - 2, top + 1, 1.8, H);
+        pb.disc(bx + 2, top + 1, 1.8, H);
+        pb.set(Math.round(bx), Math.round(top + 1), rgba('#ffffff'));
+        break;
+      }
+      case 'bearEars': {
+        pb.ellipse(head.x - fx, head.y - hry * 0.2, hrx + 1.5, hry * 0.9, H);
+        for (const side of [-1, 1]) pb.disc(head.x + side * hrx * 0.7, top, 2.2, H);
+        if (!facingAway) {
+          pb.ellipse(head.x + fx * 1.5, head.y + 1, hrx * 0.65, hry * 0.55, rgba(c.base));
+          drawFace();
+        }
+        break;
+      }
+    }
   };
 
   const drawFace = () => {
@@ -409,6 +540,14 @@ export function drawCritter(spec: CritterSpec, dir: Dir8, pose: Pose): PixelBuff
           pb.set(X + 1, Y - 1, EYE);
           pb.set(X - 1, Y + 1, EYE);
           pb.set(X, Y, EYE);
+        } else if (spec.eyes === 'blind') {
+          pb.rect(X, Y, 2, 2, rgba('#dce8f0'));
+          pb.set(X + 1, Y + 1, rgba('#9aa8b8'));
+        } else if (spec.eyes === 'sleepy') {
+          pb.rect(X, Y + 1, 2, 1, EYE);
+        } else if (spec.eyes === 'big') {
+          pb.rect(X, Y - 1, 2, 3, EYE);
+          pb.set(X, Y - 1, rgba('#ffffff'));
         } else {
           pb.rect(X, Y, 2, 2, EYE);
           if (spec.ears === 'pug') pb.set(X, Y, rgba('#ffffff'));

@@ -43,9 +43,9 @@ const PAD = 1;
 
 /**
  * Shelf-packs entries into one or more ATLAS_SIZE² pages and registers a texture per entry.
- * Returns the number of pages created.
+ * Returns the created texture sources (so a caller can destroy them later).
  */
-export function packAtlas(entries: AtlasEntry[], registry: TextureRegistry, label: string): number {
+export function packAtlas(entries: AtlasEntry[], registry: TextureRegistry, label: string): TextureSource[] {
   const sorted = [...entries].sort((a, b) => b.image.h - a.image.h || b.image.w - a.image.w);
   type Placed = { e: AtlasEntry; x: number; y: number; page: number };
   const placed: Placed[] = [];
@@ -74,6 +74,7 @@ export function packAtlas(entries: AtlasEntry[], registry: TextureRegistry, labe
     shelfH = Math.max(shelfH, h);
     pageHeights[page] = Math.max(pageHeights[page]!, y + h + PAD);
   }
+  const sources: TextureSource[] = [];
   for (let p = 0; p <= page; p++) {
     const h = nextPow2(pageHeights[p]!);
     const buf = new PixelBuffer(ATLAS_SIZE, h);
@@ -81,6 +82,7 @@ export function packAtlas(entries: AtlasEntry[], registry: TextureRegistry, labe
     for (const q of onPage) buf.blit(q.e.image, q.x, q.y);
     const source = TextureSource.from(buf.toCanvas());
     source.label = `${label}-${p}`;
+    sources.push(source);
     for (const q of onPage) {
       const tex = new Texture({
         source,
@@ -91,7 +93,7 @@ export function packAtlas(entries: AtlasEntry[], registry: TextureRegistry, labe
       registry.set(q.e.name, tex);
     }
   }
-  return page + 1;
+  return sources;
 }
 
 function nextPow2(v: number): number {

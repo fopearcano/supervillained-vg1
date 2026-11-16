@@ -7,6 +7,7 @@ import type { LevelDef } from '../world/level';
 import { bindGameAudio } from '../fx/gameAudio';
 import { GameScene } from './gameScene';
 import { BriefingScene, GameOverScene, LevelEndScene, PauseScene, TitleScene, type LevelResult } from './overlays';
+import { StoryFlow } from '../story/storyFlow';
 
 /**
  * Scene flow: Title → Briefing → Game ⇄ Pause → Level End / Game Over → …
@@ -16,8 +17,10 @@ export class Flow {
   private gameScene: GameScene | null = null;
   private level: LevelDef = LEVELS[0]!;
   private readonly blur = new BlurFilter({ strength: 3, quality: 2, resolution: 1 });
+  readonly story: StoryFlow;
 
   constructor(private readonly game: Game) {
+    this.story = new StoryFlow(game, () => this.glitch(() => this.toTitle()));
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.autoPause();
     });
@@ -38,7 +41,13 @@ export class Flow {
     this.game.scenes.replaceAll(scene);
     scene.setControlsEnabled(false);
     scene.controls.root.visible = false;
-    this.game.scenes.push(new TitleScene(this.game, this.level, () => this.toBriefing()));
+    this.game.audio.setTrack('chip');
+    this.game.scenes.push(
+      new TitleScene(this.game, this.level, {
+        story: () => this.glitch(() => this.story.openMenu()),
+        arcade: () => this.toBriefing(),
+      }),
+    );
     this.glitch(null, 0.7, 1);
   }
 
@@ -66,7 +75,7 @@ export class Flow {
   }
 
   /** Glitch transition with its sound. */
-  private glitch(mid: (() => void) | null, duration?: number, flash?: number): void {
+  glitch(mid: (() => void) | null, duration?: number, flash?: number): void {
     this.game.audio.play('glitch');
     this.game.transition.play(mid, duration, flash);
   }
@@ -131,6 +140,7 @@ export class Flow {
 
   /** Android back button: pause / resume during play; ignored elsewhere. */
   back(): void {
+    if (this.story.back()) return;
     const top = this.game.scenes.top;
     if (top instanceof PauseScene) this.resume();
     else if (top === this.gameScene) this.pause();
@@ -138,6 +148,11 @@ export class Flow {
 
   /** Called when the app goes to the background. */
   autoPause(): void {
+    const s = this.story.active;
+    if (s) {
+      s.requestMenu();
+      return;
+    }
     this.pause();
   }
 

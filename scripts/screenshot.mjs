@@ -52,7 +52,118 @@ async function holdKeys(page, keys, ms) {
   for (const k of keys) await page.keyboard.up(k);
 }
 
+/** Advances dialogue/cards by pressing Space `n` times. */
+async function advance(page, n = 1, gap = 350) {
+  for (let k = 0; k < n; k++) {
+    await page.keyboard.press('Space');
+    await wait(gap);
+  }
+}
+
+async function storyState(page) {
+  return page.evaluate(() => window.__sv.top().debugState?.() ?? window.__sv.top().constructor.name);
+}
+
+
+/** Skips story steps (StoryScene.debugSkip) until the current step is `kind`. */
+async function skipTo(page, kind, nth = 1) {
+  let seen = 0;
+  for (let k = 0; k < 60; k++) {
+    const st = await page.evaluate(() => window.__sv.top().debugState?.() ?? null);
+    if (!st) return null;
+    if (st.step === kind && ++seen >= nth) return st;
+    await page.evaluate(() => window.__sv.top().debugSkip());
+    await wait(140);
+  }
+  return null;
+}
+
+/** Steers the touch joystick toward a grid point at walking pace for `ms`. */
+async function joystickWalk(page, marker, ms) {
+  const goal = await page.evaluate((m) => window.__sv.top().marker(m), marker);
+  const cx = 110;
+  const cy = 640;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  for (let t = 0; t < ms; t += 400) {
+    const p = await page.evaluate(() => window.__sv.top().debugState().player);
+    const dx = goal.x - p.gx;
+    const dy = goal.y - p.gy;
+    const sx = dx - dy;
+    const sy = (dx + dy) / 2;
+    const l = Math.hypot(sx, sy) || 1;
+    await page.mouse.move(cx + (sx / l) * 25, cy + (sy / l) * 25, { steps: 2 });
+    await wait(400);
+  }
+  await page.mouse.up();
+}
+
 const SCENARIOS = {
+  /** C2: 7.3 the vanguard (pace walk with the nerve meter) and 8.3 "YOU HAVE BEEN SUPERVILLAINED". */
+  async story7(browser) {
+    const page = await openGame(browser, '?story=7.3');
+    await page.evaluate(() => localStorage.clear());
+    await skipTo(page, 'WalkStep');
+    await joystickWalk(page, '1', 5200);
+    await page.screenshot({ path: `${OUT}/c7-vanguard.png` });
+    await joystickWalk(page, '1', 6000);
+    await wait(500);
+    await page.screenshot({ path: `${OUT}/c7-usurper-turns.png` });
+    await page.evaluate(() => window.__sv.flow.story.debugPlay('8.3'));
+    await wait(400);
+    await skipTo(page, 'WalkStep');
+    await page.evaluate(() => {
+      const s = window.__sv.top();
+      const m = s.marker('4');
+      s.player.setPosition(m.x + 1, m.y + 1);
+    });
+    await wait(600);
+    // Skip to the title card (the last card before the final line).
+    for (let k = 0; k < 30; k++) {
+      const st = await page.evaluate(() => window.__sv.top().debugState());
+      if (st.step === 'CardStep' && st.queue === 1) break;
+      await page.evaluate(() => window.__sv.top().debugSkip());
+      await wait(200);
+    }
+    await wait(1300);
+    await page.screenshot({ path: `${OUT}/c8-supervillained.png` });
+    await page.close();
+  },
+
+  /** C3: the choice wheel (8.4, wrapped options + the locked right answer) and the story menu. */
+  async storymenu(browser) {
+    const page = await openGame(browser, '?story=8.4');
+    await skipTo(page, 'AskStep');
+    await wait(1200);
+    await page.screenshot({ path: `${OUT}/c8-no-answer.png` });
+    await page.evaluate(() => window.__sv.flow.story.openMenu());
+    await wait(900);
+    await page.screenshot({ path: `${OUT}/c-story-menu.png` });
+    await page.close();
+  },
+
+  /** C1: Level 1 of the story (1.1 dream → slap → lawn). */
+  async story1(browser) {
+    const page = await openGame(browser, '?story=1.1');
+    await wait(900);
+    await page.screenshot({ path: `${OUT}/c1-jerusalem.png` });
+    await wait(1600);
+    await advance(page, 2);
+    await page.keyboard.down('KeyW');
+    await wait(2500);
+    await page.screenshot({ path: `${OUT}/c1-walk.png` });
+    await wait(6500);
+    await page.keyboard.up('KeyW');
+    console.log('after walk', JSON.stringify(await storyState(page)));
+    await wait(700);
+    await page.screenshot({ path: `${OUT}/c1-slap.png` });
+    await wait(3600);
+    await advance(page, 1);
+    await page.screenshot({ path: `${OUT}/c1-lawn.png` });
+    console.log('end', JSON.stringify(await storyState(page)));
+    await page.close();
+  },
+
   /** Sprite sheets of every character (debug viewer). */
   async sprites(browser) {
     for (const c of ['zampano', 'bagnaskiz', 'cat']) {

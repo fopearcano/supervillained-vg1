@@ -1,8 +1,12 @@
 # CLAUDE.md — SUPERVILLAINED
 
-2D isometric arcade game (browser + Android via Capacitor), **no game engine**. Zampanò, a Maltese
-dog, walks through a park: eat treats, pee to clean, avoid pollution, bark at the bully pug.
-Spec: `SPEC.md`. Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`.
+2D isometric game (browser + Android via Capacitor), **no game engine**. Two modes:
+- **ARCADE: GREEN ZONE** (`SPEC.md`): Zampanò, a Maltese dog, walks through a park: eat treats,
+  pee to clean, avoid pollution, bark at the bully pug.
+- **STORY** (the VG1 design PDF, "Supervillained — VG1 implemented"): an 8-level, 42-sub-level
+  campaign — a Fourth-Crusade dream with dialogue, dream walks, mini-games and two endings.
+
+Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`.
 
 ## Commands
 
@@ -14,11 +18,16 @@ npm run typecheck
 npm test             # Vitest (pure logic)
 npm run screens      # Playwright verification screenshots → docs/screens/ (all scenarios)
 npm run screens -- m1 joystick   # selected scenarios (see scripts/screenshot.mjs)
+npm run smoke        # plays every story sub-level start to finish (fails on errors / missing textures)
+npm run smoke -- 7.3 8.1         # selected sub-levels
 npm run android:apk  # web build + cap sync + Gradle debug APK (needs JDK 21 + Android SDK 36)
 ```
 
-Debug URLs: `?skip=game` (straight into gameplay), `?debug=sprites&char=zampano|bagnaskiz|cat`.
-`window.__sv` exposes the game for automation (`__sv.scene()` = top scene).
+Debug URLs: `?skip=game` (straight into gameplay), `?story=7.3` (straight into a story
+sub-level), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
+`window.__sv` exposes the game for automation (`__sv.scene()` = top scene, `__sv.top()`,
+`__sv.storyIds()`, `__sv.flow.story.debugPlay(id)`; a `StoryScene` has `debugState()`,
+`debugSkip()`, `marker(m)`).
 
 ## Architecture (src/)
 
@@ -39,7 +48,21 @@ Debug URLs: `?skip=game` (straight into gameplay), `?debug=sprites&char=zampano|
 - `systems/` — gameplay rules as small, mostly pure classes (unit-tested).
 - `ui/` — `pixelFont.ts` + `pixelText.ts` (crisp bitmap text with glow/outline), HUD, touch controls.
 - `fx/` — particles, popups, screen effects, glitch filter.
-- `scenes/` — Title, Briefing, Game, Pause, LevelEnd, GameOver, sprite viewer.
+- `scenes/` — Title (STORY / ARCADE), Briefing, Game, Pause, LevelEnd, GameOver, sprite viewer.
+- `world/world.ts` — the shared isometric stage (map + renderer + layers + camera + entities),
+  used by the arcade `GameScene` and by story stages.
+- `campaign/` — the VG1 campaign as data: `state.ts` (meters, flags, book, unlocks, ending; pure,
+  tested), `titles.ts`, `home.ts` (8.2 marvel → object at home), `chapters/ch1..ch8.ts` (one file
+  per level: sub-levels with `happens`, `source`, optional `blackHole`, and a `script()` that
+  returns `Step[]`), `chapters/helpers.ts`.
+- `story/` — the story engine: `step.ts` (Step interface), `steps.ts` (script vocabulary: say, ask,
+  card, stage, move, walk, mini, branch, fx, blackHoleIn/Out…), `walk.ts` (dream walk: reach,
+  pickups, sight cones, pace/nerve, thirst, scramble, fire), `minigames/`, `storyScene.ts` (runs a
+  script over a World stage), `ui.ts` (dialogue box + choice wheel, cards, story HUD with meters),
+  `screens.ts` (story menu, cards, pause, Meraviglia book), `storyFlow.ts` (menu → cards → sub-level
+  → Professor aside → ending; saves progress), `maps.ts` (story stages + palettes/themes).
+- `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
+  sight cones, hostile contact).
 - `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims), `build.ts` (load PNGs or generate
   placeholders), `placeholders/*` (procedural pixel art), `fonts/`.
 - `android/` — Capacitor project (committed). Custom bits: `MainActivity.java` (immersive
@@ -58,5 +81,8 @@ Debug URLs: `?skip=game` (straight into gameplay), `?debug=sprites&char=zampano|
 - Everything visible in the world goes through the depth-sorted `objectLayer` (props, characters,
   items). Ground decals live in the map renderer / decal layer.
 - No new runtime dependencies without a note in `DECISIONS.md`. No CDN resources (offline).
-- Game text in English, uppercase pixel font.
+- Game text in English, uppercase pixel font. Story text is written uppercase in the scripts
+  (values are stored in mixed case and uppercased for display).
+- Story maps: digits are markers used by scripts (`'1'`, `ctx.marker('1')`); `S` is the start.
+  A missing marker throws — run `npm run smoke` after editing maps or scripts.
 - After each milestone: `npm run build`, `npm test`, `npm run screens`, look at the PNGs, commit.

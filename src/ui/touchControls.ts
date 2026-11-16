@@ -31,15 +31,18 @@ export class TouchControls {
   private maxCharges = 3;
   private regenFrac = 0;
   private barkReady = 1;
+  private peeLabel!: PixelText;
+  private barkLabel!: PixelText;
+  private peeVisible = true;
 
   constructor(private readonly input: Input) {
     const peeIcon = new Sprite(textures.get(spriteName('peeIcon')));
-    const peeLabel = new PixelText('PEE', { color: '#ffe23a', shadow: '#000000' }).setOrigin(0.5, 0);
+    const peeLabel = (this.peeLabel = new PixelText('PEE', { color: '#ffe23a', shadow: '#000000' }).setOrigin(0.5, 0));
     peeLabel.y = 6;
     peeIcon.y = -3;
     this.peeBtn.addChild(this.peeG, peeIcon, peeLabel, this.regen);
     const barkIcon = new Sprite(textures.get(spriteName('barkIcon')));
-    const barkLabel = new PixelText('BARK', { color: '#3ff0ff', shadow: '#000000' }).setOrigin(0.5, 0);
+    const barkLabel = (this.barkLabel = new PixelText('BARK', { color: '#3ff0ff', shadow: '#000000' }).setOrigin(0.5, 0));
     barkLabel.y = 7;
     barkIcon.y = -4;
     this.barkBtn.addChild(this.barkG, barkIcon, barkLabel);
@@ -69,9 +72,19 @@ export class TouchControls {
     this.root.visible = on;
     for (const id of ['pee', 'bark']) {
       const b = this.input.buttons.get(id);
-      if (b) b.enabled = on;
+      if (b) b.enabled = on && (id !== 'pee' || this.peeVisible);
     }
     this.input.joystickEnabled = on;
+  }
+
+  /** Story mode: hide PEE, relabel the action button (BARK / TALK / SERMON / LOOK...). */
+  configure(opts: { pee: boolean; action: string }): void {
+    this.peeVisible = opts.pee;
+    this.peeBtn.visible = opts.pee;
+    const b = this.input.buttons.get('pee');
+    if (b) b.enabled = opts.pee && this.root.visible;
+    this.barkLabel.setText(opts.action);
+    this.peeLabel.setText('PEE');
   }
 
   setPeeCharges(charges: number, max: number, regenFrac: number): void {

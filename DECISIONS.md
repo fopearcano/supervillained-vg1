@@ -168,3 +168,77 @@ Short entries, newest milestone at the bottom. Anything that deviates from or ex
   splash screens) by `scripts/gen-android-assets.mjs`, a dependency-free PNG writer.
 - Verified in the dev container: `assembleDebug` succeeds with JDK 21 + SDK platform 36
   (≈4 MB APK, portrait, assets and font bundled).
+
+## VG1 — The story campaign (from "Supervillained — VG1 implemented")
+
+The PDF is a narrative design (8 levels, 42 sub-levels, characters, systems, sources). It says
+itself that it "is not a playable build"; this phase turns it into one, on the same engine.
+
+- **Two modes**: the title menu now offers **STORY** (the VG1 campaign, "The dream of the cross")
+  and **ARCADE: GREEN ZONE** (the original SPEC level, unchanged and still tested by m1–m6).
+- **Shared world**: the arcade `GameScene` was refactored around `world/world.ts` (map, map
+  renderer, depth-sorted layers, camera, entities). Story stages use the same class, so movement,
+  collision, occlusion, camera and art are identical in both modes.
+- **Stages are ASCII maps** (`story/maps.ts`, 19 maps) parsed by the same parser with two options:
+  `base` (ground under props/markers) and `requireExit: false`. Legend extensions: grounds `_` floor,
+  `:` stone, `-` sand, `*` snow, `~` deep water (solid), `%` wall (solid), `^` dock, `+` carpet;
+  props `C` column, `D` desk, `K` shelf, `H` house, `N` tent, `G` galley, `R` rock, `U` statue,
+  `X` crate, `Y` palm, `A` altar, `M` stall, `O` throne, `V` vine, `Q` gate, `Z` bones, `L` table;
+  digits `0–9` are script markers. Each map names a **theme** (palette swatches per ground/prop).
+- **Look**: "pastel for the Jerusalem dreams, full colour for the Greek world" — each theme is a
+  palette; level atlases are rebuilt per palette and the last two are kept (memory on phones).
+- **Scripts are data**: a sub-level is an array of `Step`s (`story/steps.ts`: `say`, `ask`, `card`,
+  `stage`, `move`, `walk`, `mini`, `branch`, `blackHoleIn/Out`, …) run by `StoryScene`. Steps can
+  `interrupt` (caught by a guard, nerve broken) and `insert` (branches, runtime-built walks).
+  Scripts are rebuilt on every play (closures hold per-run state).
+- **Dream walk** (`story/walk.ts`): one configurable step covers reach / collect / wonder hunt /
+  stealth (sight cones with line of sight; bushes hide) / chase / **pace** (7.3 and 8.3: a nerve
+  meter replaces health; full stick = "do not charge", moving back = "do not turn back", standing
+  still drains too; Supervillain full = "unshakeable", drains at 40 %) / **thirst** (6.4: the lake
+  recedes whenever you get close) / **scramble** (8.1: controls rotate, then settle near the goal)
+  / **fire** (7.4: spreading flames that push you back).
+- **Mini-games** (`story/minigames/`): rhythm (3.3 weeping, 4.1 parade), ladders (5.2 rehearsal,
+  7.2 real assault), calm rescue (4.2), toy catapult (6.1), tug of war meant to be lost (7.7),
+  euphemism letter (5.4), rumour ordering (6.2). They hide the stage and draw their own screen.
+- **Systems as rules** (`campaign/state.ts`, unit-tested): meters Commozione 20, Supervillain 10,
+  Grace 70, Standing 50 (max 100). "An unmoved Zampanò cannot act": the preacher's sermon (2.3)
+  spends Commozione. Forms: breaking a rule (dice, Friday meat) costs Grace even when absolved.
+  Dissent costs Standing, never the level. The **Meraviglia book** (pause menu / story menu)
+  lists meters, values, marvels, items, shards and the "remembered" line of each dream scene.
+- **Unlocking**: level 1 is always open; a level opens when the previous one is complete *or* when
+  its memory shard was picked up in the Professor's study (1.2). Progress is saved after every
+  sub-level (localStorage key `story`).
+- **Costumes**: plain → rag cross (1.5) → knight (2.5); the dream stages dress him with the best
+  unlocked one, Greenzone stages (1.x, 8.x) in his own fur ("armour is costume").
+- **Ending**: decided at 7.8 by doing, not by a menu — bark three times at Jack to enforce the oath
+  ("no woman touched") or walk on to the common pile. `flags.oath === 'enforced'` → THE KNIGHT
+  (Bagnaskiz turns in 8.3 and ends in the rest home); otherwise THE ALPHA-DOG (he steps aside and
+  smiles: the offer stands). Both end with "YOU HAVE BEEN SUPERVILLAINED" and the 8.4 scene.
+- **"The goal not reached"**: after 7.8 a JERUSALEM / LOADING… card never loads; 8.3 opens with the
+  PDF's "We were going to Jerusalem … It was pastel." exchange.
+- **Comradeship carries over**: not laughing at the wake (6.6) changes Confusione's line and adds
+  Supervillain at the breach (7.7).
+- **8.2**: each marvel in the book becomes an object at home (`campaign/home.ts`, e.g. the
+  Hippodrome → "THE RUG (IT IS A RACETRACK)"); up to six are placed by hand, the rest are counted.
+- **8.4**: the 1.4 dialogue wheel returns with one right option ("NOBODY. I WANTED YOU TO THINK
+  SO."), shown locked — he still fails to pick it.
+- **Interpretations where the PDF leaves a choice**: black holes 7.5 has no named value, so it
+  gives "A dream embraces nothing"; 8.3 gives "Resistance" (board: the ending as "resistenza");
+  7.3 and 7.8 give "Physical courage" and "Kept oaths" from the "being a knight" table. The
+  optional Jack race ("honour against craft") is not implemented. Marvel and home-object names
+  are short paraphrases of Clari's catalogue as quoted by the PDF; no outside history was added.
+- **Characters**: all cast members are generated placeholders on the same quadruped drawer
+  (hats, marks, costumes, eyes, topknots), built lazily on first use (`ensureCharacters`); a
+  dialogue portrait for a speaker who is not on stage is generated on demand.
+- **Music**: a second synthesized loop, `medieval` (modal melody over a drone), for the dream;
+  `chip` stays for the Greenzone. No audio files, still offline.
+- **Text**: notices and world popups now wrap to the screen width; choice rows grow with their
+  wrapped labels; cards double their size only when every line fits 12 glyphs.
+- **Bug fix (all modes)**: PixiJS uploads a `CanvasSource` on `resize` *before* resizing the canvas
+  element, so a text that grew in one dimension and shrank in the other uploaded a stale canvas
+  into a smaller texture ("GL_INVALID_VALUE: offset overflows"). `PixelText` now grows first and
+  shrinks in a second call.
+- **Testing**: `tests/campaign.test.ts` (state rules, 8 levels / 42 sub-levels numbering, every
+  script builds, every map parses, every awarded marvel has a home object) and
+  `npm run smoke`, a Playwright run that plays every sub-level start to finish by skipping steps
+  (`StoryScene.debugSkip`) and fails on page errors, missing textures or GL errors.

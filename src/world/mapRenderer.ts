@@ -32,6 +32,7 @@ export class MapRenderer {
   private readonly base: (Sprite | null)[];
   private readonly overlays = new Map<number, TileOverlay>();
   private readonly water: Sprite[] = [];
+  private readonly deep: Sprite[] = [];
   private waterTime = 0;
   /** Map bounds in screen space. */
   readonly bounds: Rect;
@@ -116,6 +117,30 @@ export class MapRenderer {
       case Ground.Forest:
         name = `forest_${Math.floor(h * TILE_VARIANTS.forest)}`;
         break;
+      case Ground.Floor:
+        name = `floor_${Math.floor(h * 3)}`;
+        break;
+      case Ground.Stone:
+        name = `stone_${Math.floor(h * 3)}`;
+        break;
+      case Ground.Sand:
+        name = `sand_${Math.floor(h * 3)}`;
+        break;
+      case Ground.Snow:
+        name = `snow_${Math.floor(h * 3)}`;
+        break;
+      case Ground.Deep:
+        name = 'deep_0';
+        break;
+      case Ground.Dock:
+        name = `dock_${Math.floor(h * 3)}`;
+        break;
+      case Ground.Carpet:
+        name = `carpet_${Math.floor(h * 3)}`;
+        break;
+      case Ground.Wall:
+        name = 'wallBase_0';
+        break;
       default:
         return null;
     }
@@ -123,6 +148,7 @@ export class MapRenderer {
     const p = gridToScreen(i, j);
     s.position.set(p.x, p.y);
     if (g === Ground.Water) this.water.push(s);
+    if (g === Ground.Deep) this.deep.push(s);
     return s;
   }
 
@@ -136,6 +162,8 @@ export class MapRenderer {
     const wf = Math.floor(this.waterTime / 0.6) % 2;
     const wt = textures.get(`water_${wf}`);
     for (const s of this.water) if (s.texture !== wt) s.texture = wt;
+    const dt2 = textures.get(`deep_${Math.floor(this.waterTime / 0.8) % 2}`);
+    for (const s of this.deep) if (s.texture !== dt2) s.texture = dt2;
 
     if (this.map.changed.size) {
       for (const k of this.map.changed) this.refreshTile(k);

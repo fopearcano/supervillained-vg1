@@ -34,6 +34,29 @@ W/SW/NW may simply be mirrored copies of E/SE/NE.
 | `bagnaskiz`| 40 × 40    | (20, 36)    | idle 2, walk 4, run 4, bark 2, hurt 2                              |
 | `cat`      | 28 × 28    | (14, 25)    | idle 2, walk 4, run 4                                              |
 
+### Story cast
+
+The story mode adds 31 characters (`CAST_KEYS` in `src/assets/manifest.ts`), all 40 × 40,
+anchor (20, 36), animations **idle 2, walk 4, run 4, bark 2, hurt 2** (same sheet layout as below,
+5 animations × 8 directions = 40 rows):
+
+| key | role in the VG1 design |
+|-----|------------------------|
+| `zampanoCross`, `zampanoKnight` | Zampanò with the rag cross (1.5) / in armour (2.5 onwards) |
+| `sbrimbrulon` | Shih-tzu; Pierre d'Amiens in 7.3 |
+| `jack`, `watson`, `santina`, `confusione` | the band and friends (Jack the absent general / looter, Watson the sailor, Santina the purple-born princess, Confusione as Aleaume) |
+| `bagnaskizMarshal`, `bagnaskizEmperor` | Bagnaskiz's masks: Villehardouin, then the usurpers |
+| `doge`, `king`, `emir`, `legate`, `cellarer`, `preacher`, `stranger`, `marquis`, `prince`, `burgher`, `lady`, `greek`, `knight`, `varangian`, `clerkA`, `clerkB` | supporting cast |
+| `crowdA`, `crowdB`, `crowdC` | crowds (pilgrims, Venetians) |
+| `bear`, `leopard`, `hound` | the band as the three beasts of 2.1 (the hound is also the dream that chases him in 8.1) |
+
+They are generated on first use, so a replacement sheet is loaded the same way (`sheet:` in the
+manifest). Preview any of them with `?debug=sprites&char=<key>`. Dialogue portraits use frame
+`idle_S_0`; the Professor's portrait is the single sprite `professorFace`.
+
+Non-animal figures are single sprites: `legs` (the Professor under the desk), `fortune`,
+`falcon`, `stag`.
+
 The **anchor** is the ground contact point, centered between the paws (the shadow is drawn there,
 the sprite is depth-sorted by it). Frame counts and fps live in the manifest — change them freely,
 the game reads them from there.
@@ -71,7 +94,11 @@ Then in `manifest.ts`: `zampano: { …, sheet: 'sprites/zampano.png' }`.
 
 `SPRITES` in the manifest: props (`tree`, `forestTree`, `bush`, `pole`, `fountain`, `exitFlag`),
 items (`treat`, `ball`, `poop`, `coin`), shadows, popups (`rainbow`, `thought`), particles and HUD
-icons. Each has `w × h`, an anchor and a number of `variants`. To replace one, add
+icons. Story props: `column`, `desk`, `shelf`, `house`, `tent`, `galley`, `rock`, `statue`, `crate`,
+`palm`, `altar`, `stall`, `throne`, `vine`, `gate`, `bones`, `table`; story items/FX: `shard`,
+`relic`, `tear`, `flame`, `sparkle`, `professorFace`. Story props are drawn per theme palette
+(like ground tiles), so a file replacement should be neutral or one per theme. Each has `w × h`,
+an anchor and a number of `variants`. To replace one, add
 `file: 'sprites/tree.png'` — a horizontal strip with the variants side by side.
 
 Texture names: `${key}_${variant}` (e.g. `tree_2`); characters: `${key}_${anim}_${dir}_${frame}`
@@ -83,9 +110,12 @@ Tiles are 32 × 16 diamonds (2:1), anchored at the top vertex. They are generate
 level `palette` (`grass_0..3`, `tallGrass_0..2` (32 × 21, blades poke 5 px above), `path_<mask>_<v>`
 (16 edge masks: bit 1 = top-right neighbor is not path, 2 = bottom-right, 4 = bottom-left,
 8 = top-left), `water_0..1`, `forest_0..2`, pollution overlay `dirt_0..3`, `fresh_0`, `exitRing_0`).
-Replacing tiles follows the same principle (register a texture under the same name); a file-based
+Story grounds add `floor`, `stone`, `sand`, `snow`, `deep` (animated), `wall`, `dock`, `carpet`, colored
+per theme (`story/maps.ts`). Replacing tiles follows the same principle (register a texture under the same name); a file-based
 tile set is not wired yet because tiles are palette-driven per zone.
 
 ## Sounds
 
-All sound effects are synthesized at runtime (WebAudio); there are no audio files.
+All sound effects are synthesized at runtime (WebAudio); there are no audio files. There are two
+music loops: `chip` (Greenzone, arcade) and `medieval` (the dream), both rendered by
+`src/fx/sounds.ts`.

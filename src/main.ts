@@ -1,5 +1,5 @@
 import { Application, TextureSource } from 'pixi.js';
-import { buildGlobalTextures } from './assets/build';
+import { buildGlobalTextures, ensureCharacters } from './assets/build';
 import { Game } from './core/game';
 import { levelByNumber } from './levels';
 import { Flow } from './scenes/flow';
@@ -7,6 +7,7 @@ import { SpriteViewerScene } from './scenes/spriteViewerScene';
 import type { CharacterKey } from './assets/manifest';
 import { loadPixelFont } from './ui/pixelFont';
 import { dirFromGridVector } from './iso/projection';
+import { CHAPTERS } from './campaign/chapters';
 
 async function boot(): Promise<void> {
   // Pixel-perfect: every texture is sampled with nearest-neighbor.
@@ -40,10 +41,14 @@ async function boot(): Promise<void> {
   // Android hardware back button (dispatched by MainActivity.java).
   window.addEventListener('svback', () => flow.back());
   if (params.get('debug') === 'sprites') {
-    game.start(new SpriteViewerScene(game, (params.get('char') ?? 'zampano') as CharacterKey));
+    const key = (params.get('char') ?? 'zampano') as CharacterKey;
+    await ensureCharacters([key]);
+    game.start(new SpriteViewerScene(game, key));
   } else {
     game.loop.start();
+    const sub = params.get('story');
     if (params.get('skip') === 'game') flow.play(level.number);
+    else if (sub) flow.story.debugPlay(sub);
     else flow.toTitle(level.number);
   }
 
@@ -51,8 +56,9 @@ async function boot(): Promise<void> {
   (window as unknown as { __sv: unknown }).__sv = {
     game,
     flow,
-    scene: () => flow.current ?? game.scenes.top,
+    scene: () => (params.get('story') ? game.scenes.top : (flow.current ?? game.scenes.top)),
     top: () => game.scenes.top,
+    storyIds: () => CHAPTERS.flatMap((c) => c.subLevels.map((s) => s.id)),
     step: (n: number) => game.loop.stepNow(n),
     faceToward: (x: number, y: number) => {
       const s = flow.current;

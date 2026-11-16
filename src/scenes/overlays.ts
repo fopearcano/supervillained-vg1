@@ -49,37 +49,45 @@ export class TitleScene extends Overlay {
   private readonly level: PixelText;
   private readonly zone: PixelText;
   private readonly best: PixelText;
-  private readonly prompt: PixelText;
+  private readonly menu: Menu;
   private readonly footer = new PixelText('A ZAMPANO ADVENTURE', { color: '#9aa4c0', shadow: '#000000' }).setOrigin(0.5, 1);
 
   constructor(
     game: Game,
     level: LevelDef,
-    private readonly onStart: () => void,
+    actions: { story: () => void; arcade: () => void },
   ) {
     super(game, 0.15);
-    this.level = big(`Level ${level.number}`, C.hotPink, 3, { outline: '#ffffff', glow: C.hotPink, glowAlpha: 0.5 });
-    this.zone = big(level.zoneName, C.green, 2, { outline: '#06300a' });
+    this.level = big('THE DREAM', C.hotPink, 2, { outline: '#ffffff', glow: C.hotPink, glowAlpha: 0.5 });
+    this.zone = big('OF THE CROSS', C.green, 1, { outline: '#06300a' });
     const rec: LevelRecord | null = bestFor(level.id);
     const coins = loadCoins();
-    this.best = new PixelText(
-      rec ? `BEST ${formatScore(rec.score)}  ${'*'.repeat(Math.floor(rec.stars))}\nCOINS ${coins}` : `COINS ${coins}`,
-      { color: C.cyan, shadow: '#000000', align: 'center', lineGap: 4 },
-    ).setOrigin(0.5, 0);
-    const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    this.prompt = big(touch ? 'TAP TO START' : 'PRESS SPACE', C.yellow, 1, { outline: '#000000' });
-    this.root.addChild(this.title, this.level, this.zone, this.best, this.prompt, this.footer);
+    this.best = new PixelText(rec ? `ARCADE BEST ${formatScore(rec.score)}   COINS ${coins}` : `COINS ${coins}`, {
+      color: C.cyan,
+      shadow: '#000000',
+      align: 'center',
+    }).setOrigin(0.5, 0);
+    this.menu = new Menu(
+      [
+        { label: 'STORY', action: actions.story, color: C.yellow },
+        { label: `ARCADE: ${level.zoneName.toUpperCase()}`, action: actions.arcade, color: C.green },
+      ],
+      170,
+      20,
+      8,
+    );
+    this.root.addChild(this.title, this.level, this.zone, this.best, this.menu.root, this.footer);
   }
 
   protected layout(): void {
     const { w, h } = this;
     const titleScale = w >= 14 * 16 + 8 ? 2 : 1;
     this.title.setStyle({ scale: titleScale, letterSpacing: titleScale === 2 ? 0 : 2 });
-    this.title.position.set(Math.round(w / 2), Math.round(h * 0.26));
-    this.level.position.set(Math.round(w / 2), Math.round(h * 0.26 + 34));
-    this.zone.position.set(Math.round(w / 2), Math.round(h * 0.26 + 66));
-    this.best.position.set(Math.round(w / 2), Math.round(h * 0.56));
-    this.prompt.position.set(Math.round(w / 2), Math.round(h * 0.74));
+    this.title.position.set(Math.round(w / 2), Math.round(h * 0.24));
+    this.level.position.set(Math.round(w / 2), Math.round(h * 0.24 + 28));
+    this.zone.position.set(Math.round(w / 2), Math.round(h * 0.24 + 48));
+    this.menu.layout(w / 2, Math.round(h * 0.52));
+    this.best.position.set(Math.round(w / 2), Math.round(h * 0.52 + this.menu.height + 12));
     this.footer.position.set(Math.round(w / 2), h - 6);
   }
 
@@ -90,10 +98,8 @@ export class TitleScene extends Overlay {
     this.title.x = Math.round(this.w / 2) + jitter;
     this.level.x = Math.round(this.w / 2) - jitter;
     this.zone.visible = this.time > 0.25;
-    this.prompt.visible = this.time > 0.8 && Math.floor(this.time * 2.5) % 2 === 0;
-    const input = this.game.input;
-    const taps = input.consumeTaps();
-    if (this.time > 0.4 && (taps.length || input.consume('confirm') || input.consume('pee'))) this.onStart();
+    this.menu.root.visible = this.time > 0.5;
+    if (this.time > 0.6) this.menu.update(dt, this.game.input);
   }
 }
 

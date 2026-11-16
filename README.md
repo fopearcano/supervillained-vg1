@@ -8,6 +8,17 @@ renderer — no game engine.
 > AS TOO MANY POOPS CAN ENDANGER THE ENVIRONMENT OF THE ZONE YOU ARE PLAYING IN. CATS MEAN MONEY.
 > DON'T GET DISTRACTED BY THE BALLS.
 
+Two modes, chosen on the title screen:
+
+- **STORY — The dream of the cross**: the campaign from the design document *Supervillained — VG1
+  implemented*. Under the Professor's desk Zampanò dreams the Fourth Crusade: 8 levels, 42
+  sub-levels (Greenzone, On the edge of dreams, Venice, The sea, Zara, The long winter,
+  Constantinople, Back to Greenzone), dialogue with choices, dream walks (stealth, wonder hunts,
+  a nerve meter, thirst, fire, scrambled controls), mini-games, black holes into other crusades,
+  the Meraviglia book, and two endings decided by what he does at the sack of Constantinople.
+  Progress is saved after every sub-level.
+- **ARCADE — Green Zone**: the original level from `SPEC.md`.
+
 ## Run it
 
 ```bash
@@ -26,6 +37,9 @@ Open the printed `Local` URL on the computer, or the `Network` URL on a phone on
 | Pee    | PEE button | Space |
 | Bark   | BARK button | J or X |
 | Menu   | MENU (top right) | Esc |
+| Story: next line / choose | tap the line / tap an option | Space or Enter / arrows + Space |
+
+In the story the right button changes name with the scene (LOOK, SNIFF, BARK, PLACE…).
 
 ## Play on a phone (browser)
 
@@ -77,6 +91,7 @@ Placeholder icons/splash screens are regenerated with `npm run android:icons`.
 npm run build      # typecheck + production build (dist/)
 npm test           # unit tests (Vitest)
 npm run screens    # Playwright screenshots into docs/screens/
+npm run smoke      # plays every story sub-level start to finish
 ```
 
 See `CLAUDE.md` for the architecture, `ASSETS.md` to replace the placeholder art, and

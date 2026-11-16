@@ -1,6 +1,8 @@
 import { Ground, LEGEND, type PropKind } from './tiles';
 
 /** Colors used by the code-generated tile/prop textures of a zone. */
+export type Swatch = [base: string, dark: string, light: string];
+
 export interface Palette {
   grass: [base: string, dark: string, light: string];
   tallGrass: [base: string, dark: string, light: string];
@@ -10,6 +12,17 @@ export interface Palette {
   foliage: [dark: string, mid: string, light: string];
   pollution: [base: string, dark: string, light: string];
   flowers: string[];
+  /** Story themes (optional; sensible defaults are used when missing). */
+  floor?: Swatch;
+  stone?: Swatch;
+  sand?: Swatch;
+  snow?: Swatch;
+  deep?: Swatch;
+  wall?: Swatch;
+  roof?: Swatch;
+  cloth?: Swatch;
+  dock?: Swatch;
+  carpet?: Swatch;
 }
 
 export interface SpawnSettings {
@@ -71,7 +84,8 @@ export interface PropPlacement {
 
 /** Engine-facing, format-independent level description (what any loader must produce). */
 export interface LevelData {
-  def: LevelDef;
+  /** The arcade level definition (absent for story maps). */
+  def?: LevelDef;
   width: number;
   height: number;
   /** Row-major ground types, index = j * width + i (j = gy row, i = gx column). */
@@ -79,6 +93,15 @@ export interface LevelData {
   props: PropPlacement[];
   start: { i: number; j: number };
   exit: { i: number; j: number };
+  /** Digit markers ('0'..'9') used by story scripts. */
+  markers: Record<string, { i: number; j: number }>;
+}
+
+export interface ParseOptions {
+  /** Ground symbol used under props, markers, S and E (default '.'). */
+  base?: string;
+  /** Require an exit 'E' (default true). Without it, the exit is the start. */
+  requireExit?: boolean;
 }
 
 export class LevelFormatError extends Error {}
@@ -87,7 +110,11 @@ export class LevelFormatError extends Error {}
  * Parses an ASCII map. Rows are gy (top to bottom), columns are gx (left to right).
  * Shorter rows are padded with void.
  */
-export function parseAsciiMap(rows: readonly string[]): Omit<LevelData, 'def'> {
+export function parseAsciiMap(rows: readonly string[], opts: ParseOptions = {}): Omit<LevelData, 'def'> {
+  const baseEntry = LEGEND[opts.base ?? '.'];
+  if (!baseEntry || baseEntry.ground === 'base') throw new LevelFormatError(`Bad base ground '${opts.base}'`);
+  const baseGround = baseEntry.ground;
+  const markers: Record<string, { i: number; j: number }> = {};
   const height = rows.length;
   if (height === 0) throw new LevelFormatError('Empty map');
   const width = Math.max(...rows.map((r) => r.length));
@@ -100,9 +127,14 @@ export function parseAsciiMap(rows: readonly string[]): Omit<LevelData, 'def'> {
     const row = rows[j]!;
     for (let i = 0; i < width; i++) {
       const ch = i < row.length ? row[i]! : ' ';
+      if (ch >= '0' && ch <= '9') {
+        ground[j * width + i] = baseGround;
+        markers[ch] = { i, j };
+        continue;
+      }
       const entry = LEGEND[ch];
       if (!entry) throw new LevelFormatError(`Unknown map symbol '${ch}' at row ${j}, column ${i}`);
-      ground[j * width + i] = entry.ground;
+      ground[j * width + i] = entry.ground === 'base' ? baseGround : entry.ground;
       if (entry.prop) props.push({ kind: entry.prop, i, j });
       if (entry.marker === 'start') {
         if (start) throw new LevelFormatError(`Duplicate start 'S' at row ${j}, column ${i}`);
@@ -114,8 +146,8 @@ export function parseAsciiMap(rows: readonly string[]): Omit<LevelData, 'def'> {
     }
   }
   if (!start) throw new LevelFormatError("Map has no start 'S'");
-  if (!exit) throw new LevelFormatError("Map has no exit 'E'");
-  return { width, height, ground, props, start, exit };
+  if (!exit && opts.requireExit !== false) throw new LevelFormatError("Map has no exit 'E'");
+  return { width, height, ground, props, start, exit: exit ?? { ...start }, markers };
 }
 
 /**

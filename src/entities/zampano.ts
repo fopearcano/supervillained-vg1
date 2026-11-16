@@ -1,6 +1,6 @@
 import { Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
-import { spriteName, type AnimName } from '../assets/manifest';
+import { spriteName, type AnimName, type CharacterKey } from '../assets/manifest';
 import { PLAYER } from '../config';
 import { dirFromGridVector, dirToGridVector, screenDirToGrid, type Dir8 } from '../iso/projection';
 import type { GameMap } from '../world/map';
@@ -43,7 +43,7 @@ const TERRAIN_SPEED: Partial<Record<Ground, number>> = {
 const BUSH_SPEED = 0.7;
 
 export class Zampano extends Entity {
-  readonly animator = new CharacterAnimator('zampano');
+  readonly animator: CharacterAnimator;
   readonly shadow: Sprite;
   /** Grid-space velocity (tiles/s). */
   vx = 0;
@@ -60,6 +60,10 @@ export class Zampano extends Entity {
   knockX = 0;
   knockY = 0;
   invulnerable = 0;
+  /** Story: movement speed multiplier (bogs, thirst...). */
+  speedMul = 1;
+  /** Story: walking pace only (nerve scenes). */
+  noRun = false;
   /** Squash & stretch spring (positive = stretched tall). */
   private squash = 0;
   private squashVel = 0;
@@ -70,13 +74,19 @@ export class Zampano extends Entity {
   /** Seconds since the last real movement (for idle sniffing). */
   private idleTime = 0;
 
-  constructor(gx: number, gy: number) {
+  constructor(gx: number, gy: number, skin: CharacterKey = 'zampano') {
     super();
+    this.animator = new CharacterAnimator(skin);
     this.shadow = new Sprite(textures.get(spriteName('shadow')));
     this.shadow.alpha = 0.9;
     this.view.addChild(this.shadow, this.animator.sprite);
     this.setPosition(gx, gy);
     this.bounds = { x: -15, y: -32, w: 30, h: 35 };
+  }
+
+  /** Swaps the costume (plain, rag cross, knight). */
+  setSkin(skin: CharacterKey): void {
+    this.animator.key = skin;
   }
 
   get controllable(): boolean {
@@ -134,8 +144,8 @@ export class Zampano extends Entity {
       const mag = Math.min(1, Math.hypot(this.intentX, this.intentY));
       if (mag > 0.01) {
         const dir = screenDirToGrid(this.intentX, this.intentY);
-        this.running = mag >= PLAYER.RUN_THRESHOLD;
-        const speed = this.running ? PLAYER.RUN_SPEED : PLAYER.WALK_SPEED * Math.min(1, mag / 0.55);
+        this.running = mag >= PLAYER.RUN_THRESHOLD && !this.noRun;
+        const speed = (this.running ? PLAYER.RUN_SPEED : PLAYER.WALK_SPEED * Math.min(1, mag / 0.55)) * this.speedMul;
         const terrain = this.terrainFactor(map);
         tx = dir.x * speed * terrain;
         ty = dir.y * speed * terrain;

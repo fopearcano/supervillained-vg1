@@ -26,6 +26,7 @@ describe('ASCII level parser', () => {
 
   it('requires exactly one start and one exit', () => {
     expect(() => parseAsciiMap(['...E'])).toThrow(LevelFormatError);
+    expect(parseAsciiMap(['S..'], { requireExit: false }).exit).toEqual({ i: 0, j: 0 });
     expect(() => parseAsciiMap(['S..'])).toThrow(LevelFormatError);
     expect(() => parseAsciiMap(['SSE'])).toThrow(/Duplicate start/);
   });

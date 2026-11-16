@@ -72,7 +72,7 @@ export class CharacterAnimator {
   /** Playback speed multiplier. */
   speed = 1;
 
-  constructor(readonly key: CharacterKey) {
+  constructor(public key: CharacterKey) {
     this.sprite = new Sprite(textures.get(textureName(key, 'idle', 'S', 0)));
     this.sprite.roundPixels = true;
   }
