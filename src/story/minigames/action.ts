@@ -5,6 +5,8 @@ import { textureName } from '../../assets/manifest';
 import { dreamSkin } from '../../campaign/state';
 import { PixelText } from '../../ui/pixelText';
 import { C, frameRect, hex, retroBox } from '../../ui/retro';
+import { STORY } from '../../config';
+import type { Autopilot } from '../autopilot';
 import type { StoryScene } from '../storyScene';
 import { MiniGame, type MiniResult } from './miniGame';
 
@@ -41,6 +43,7 @@ export class LaddersGame extends MiniGame {
   private hitT = 0;
   private axeLane = 0;
   private axeT = 0;
+  private climbT = 0;
 
   constructor(
     private readonly rungs: number,
@@ -92,21 +95,24 @@ export class LaddersGame extends MiniGame {
     }
     if (input.consume('left')) this.lane = Math.max(0, this.lane - 1);
     if (input.consume('right')) this.lane = Math.min(2, this.lane + 1);
-    if (climb && this.hitT <= 0 && this.slide <= 0) {
+    this.climbT -= dt;
+    if (climb && this.hitT <= 0 && this.slide <= 0 && this.climbT <= 0) {
+      this.climbT = STORY.LADDERS.CLIMB_GAP;
       this.rung++;
       ctx.game.audio.play('click', { volume: 0.4, rate: 1 + (this.rung % 4) * 0.1 });
     }
     if (this.slide > 0) {
       this.slide -= dt;
-      this.rung = Math.max(0, this.rung - dt * 10);
+      this.rung = Math.max(0, this.rung - dt * STORY.LADDERS.SLIDE_RATE);
     }
     this.hitT -= dt;
 
     // Falling things
     this.spawnT -= dt;
     if (this.spawnT <= 0) {
-      this.spawnT = (this.hard ? 0.75 : 1.2) * (0.7 + Math.random() * 0.6);
-      this.falling.push({ lane: Math.floor(Math.random() * 3), y: -20, kind: this.hard && Math.random() < 0.35 ? 'pitch' : 'stone', warn: 0.6 });
+      const Lc = STORY.LADDERS;
+      this.spawnT = (this.hard ? Lc.SPAWN_HARD : Lc.SPAWN) * (0.7 + Math.random() * 0.6);
+      this.falling.push({ lane: Math.floor(Math.random() * 3), y: -20, kind: this.hard && Math.random() < Lc.PITCH_CHANCE ? 'pitch' : 'stone', warn: Lc.WARN });
     }
     const heroY = this.rungY(this.rung);
     for (let k = this.falling.length - 1; k >= 0; k--) {
@@ -115,10 +121,10 @@ export class LaddersGame extends MiniGame {
         f.warn -= dt;
         continue;
       }
-      f.y += dt * (f.kind === 'pitch' ? 150 : 190);
+      f.y += dt * (f.kind === 'pitch' ? STORY.LADDERS.PITCH_SPEED : STORY.LADDERS.STONE_SPEED);
       if (f.lane === this.lane && Math.abs(f.y - (heroY - 14)) < 12 && this.hitT <= 0) {
-        this.hitT = 0.8;
-        this.slide = 0.35;
+        this.hitT = STORY.LADDERS.HIT_TIME;
+        this.slide = STORY.LADDERS.SLIDE_TIME;
         ctx.game.audio.play('hurt');
         ctx.notice(f.kind === 'pitch' ? 'PITCH!' : 'STONE!', C.red);
         this.falling.splice(k, 1);
@@ -131,15 +137,15 @@ export class LaddersGame extends MiniGame {
     if (this.hard) {
       this.axeT -= dt;
       if (this.axeT <= 0) {
-        this.axeT = 1.6;
+        this.axeT = STORY.LADDERS.AXE_EVERY;
         this.axeLane = Math.floor(Math.random() * 3);
       }
       this.axemen.forEach((s, k) => {
         const l = k === 0 ? this.axeLane : (this.axeLane + 2) % 3;
         s.position.set(this.laneX(l), top - 4);
         if (l === this.lane && this.rung > this.rungs - 2 && this.hitT <= 0) {
-          this.hitT = 1;
-          this.slide = 0.5;
+          this.hitT = STORY.LADDERS.AXE_HIT_TIME;
+          this.slide = STORY.LADDERS.AXE_SLIDE_TIME;
           ctx.game.audio.play('hit');
           ctx.notice('AXE-MEN HOLD THE PARAPET', C.red);
         }
@@ -194,6 +200,24 @@ export class LaddersGame extends MiniGame {
   private heroSkin(ctx: StoryScene): string {
     return dreamSkin(ctx.state);
   }
+
+  /** Autopilot: climb at a human tapping rate, dodge to a clear ladder, wait out the axe-men. */
+  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    const heroY = this.rungY(this.rung);
+    const threat = (lane: number) =>
+      this.falling.some((f) => f.lane === lane && (f.warn > 0 || (f.y < heroY && f.y > heroY - 150)));
+    const axeLanes = this.hard && this.rung > this.rungs - 3 ? [this.axeLane, (this.axeLane + 2) % 3] : [];
+    const bad = (lane: number) => threat(lane) || axeLanes.includes(lane);
+    if (bad(this.lane)) {
+      const options = [this.lane - 1, this.lane + 1].filter((l) => l >= 0 && l <= 2 && !bad(l));
+      const far = [0, 1, 2].filter((l) => !bad(l));
+      const goal = options[0] ?? far[0];
+      if (goal !== undefined && p.tick('ladder-move', 0.12 + (1 - p.policy.skill) * 0.25)) p.press(ctx, goal < this.lane ? 'left' : 'right');
+      if (axeLanes.includes(this.lane)) return; // never climb into an axe
+    }
+    const rate = STORY.PILOT.LADDER_TAPS * (0.6 + 0.4 * p.policy.skill);
+    if (p.tick('ladder-climb', 1 / rate)) p.press(ctx, 'up');
+  }
 }
 
 // ---------------------------------------------------------------------------- tug of war
@@ -226,8 +250,9 @@ export class TugGame extends MiniGame {
     let pulls = ctx.game.input.consumeTaps().length;
     if (act(ctx)) pulls++;
     // He pulls harder and harder: the player cannot win.
-    const force = 0.08 + this.time * 0.05;
-    this.pos += force * dt - pulls * 0.035;
+    const T = STORY.TUG;
+    const force = T.BASE + this.time * T.GROW;
+    this.pos += force * dt - pulls * T.PULL;
     this.pos = Math.max(-0.3, Math.min(1, this.pos));
     if (pulls) ctx.game.audio.play('click', { volume: 0.4 });
     const g = this.g;
@@ -247,6 +272,11 @@ export class TugGame extends MiniGame {
     this.hero.texture = textures.get(textureName('zampanoKnight', 'run', 'E', Math.floor(this.time * 8) % 4));
     this.friend.texture = textures.get(textureName('confusione', 'run', 'E', Math.floor(this.time * 10) % 4));
     return this.pos >= 1 ? 'lost' : 'running';
+  }
+
+  /** Autopilot: mash as fast as a person can (it is still meant to be lost). */
+  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    p.every(ctx, 'tug', 1 / STORY.PILOT.TUG_TAPS, 'confirm');
   }
 }
 
@@ -272,11 +302,12 @@ export class CalmGame extends MiniGame {
   update(dt: number, ctx: StoryScene): MiniResult {
     const input = ctx.game.input;
     const panicked = input.consumeTaps().length > 0 || act(ctx) || input.consume('up') || input.consume('down') || input.consume('left') || input.consume('right') || Math.hypot(input.move.x, input.move.y) > 0.1;
+    const K = STORY.CALM;
     if (panicked) {
-      this.calm = Math.max(0, this.calm - 0.25);
-      this.panicT = 0.8;
+      this.calm = Math.max(0, this.calm - K.PANIC_COST);
+      this.panicT = K.PANIC_TIME;
       ctx.notice('PANIC! HE DRIFTS AWAY', C.red);
-    } else this.calm = Math.min(1, this.calm + dt * 0.14);
+    } else this.calm = Math.min(1, this.calm + dt * K.RATE);
     this.panicT -= dt;
     const watson = ctx.actors.get('watson');
     if (watson && this.panicT > 0) watson.gx -= dt * 0.6;
@@ -291,6 +322,11 @@ export class CalmGame extends MiniGame {
     this.label.position.set(Math.round(w / 2), h - 124);
     return this.calm >= 1 ? 'won' : 'running';
   }
+
+  /** Autopilot: a nervous player taps once early on, then manages to do nothing. */
+  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    if (this.time > 1 && this.time < 1.05 && p.random() > p.policy.skill) p.press(ctx, 'confirm');
+  }
 }
 
 // ---------------------------------------------------------------------------- catapult
@@ -300,7 +336,7 @@ export class CatapultGame extends MiniGame {
   private readonly g = new Graphics();
   private readonly label = new PixelText('TAP TO FIRE', { color: C.yellow, shadow: '#000000' }).setOrigin(0.5);
   private glasses = [true, true, true, true, true];
-  private shots = 4;
+  private shots: number = STORY.CATAPULT.SHOTS;
   private shot: { x: number; y: number; vx: number; vy: number } | null = null;
   private power = 0;
   private broken = 0;
@@ -322,18 +358,17 @@ export class CatapultGame extends MiniGame {
     const ground = h * 0.62;
     const tableX = w * 0.55;
     if (!this.shot && this.shots > 0) {
-      this.power = (Math.sin(this.time * 3) + 1) / 2;
+      this.power = (Math.sin(this.time * STORY.CATAPULT.OSC) + 1) / 2;
       const fired = ctx.game.input.consumeTaps().length > 0 || act(ctx);
       if (fired) {
         this.shots--;
-        const p = 0.35 + this.power * 0.75;
-        this.shot = { x: 30, y: ground - 14, vx: 150 * p, vy: -170 * p };
+        this.shot = this.launch(this.power, ground);
         ctx.game.audio.play('ball');
       }
     }
     if (this.shot) {
       const s = this.shot;
-      s.vy += 260 * dt;
+      s.vy += STORY.CATAPULT.GRAVITY * dt;
       s.x += s.vx * dt;
       s.y += s.vy * dt;
       const tableTop = ground - 26;
@@ -373,10 +408,53 @@ export class CatapultGame extends MiniGame {
     retroBox(g, 6, 70, w - 12, 18, C.yellow, C.red, 0.4);
     this.label.setText(`SHOTS ${this.shots}  GLASSES ${this.broken}/5`);
     this.label.position.set(Math.round(w / 2), 79);
-    if (this.shots === 0 && !this.shot) {
+    // Out of shots, or nothing left to break.
+    if ((this.shots === 0 || this.broken === this.glasses.length) && !this.shot) {
       this.end += dt;
       if (this.end > 0.8) return this.broken >= 1 ? 'won' : 'lost';
     }
     return 'running';
+  }
+
+  private launch(power: number, ground: number): { x: number; y: number; vx: number; vy: number } {
+    const K = STORY.CATAPULT;
+    const p = K.MIN_POWER + power * K.POWER_RANGE;
+    return { x: 30, y: ground - 14, vx: K.VX * p, vy: -K.VY * p };
+  }
+
+  /** Index of the glass a shot at `power` would break, or -1 (same physics as update). */
+  private wouldHit(power: number): number {
+    const ground = this.h * 0.62;
+    const tableX = this.w * 0.55;
+    const tableTop = ground - 26;
+    const s = this.launch(power, ground);
+    const dt = 1 / 60;
+    for (let n = 0; n < 600; n++) {
+      s.vy += STORY.CATAPULT.GRAVITY * dt;
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+      for (let k = 0; k < this.glasses.length; k++) {
+        const gx = tableX + 8 + k * 12;
+        if (this.glasses[k] && Math.abs(s.x - gx) < 6 && s.y > tableTop - 12 && s.y < tableTop) return k;
+      }
+      if (s.y > ground || s.x > this.w) return -1;
+    }
+    return -1;
+  }
+
+  /** Autopilot: fire when the power bar would hit a glass, reacting a little late. */
+  private fireAt = -1;
+  private aimT = 0;
+  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    if (this.shot || this.shots <= 0) return;
+    this.aimT += _dt;
+    // Fire when a shot would hit; after a full swing of the bar with no chance, fire anyway.
+    const chance = this.aimT > (2 * Math.PI) / STORY.CATAPULT.OSC || this.wouldHit(this.power) >= 0;
+    if (this.fireAt < 0 && chance) this.fireAt = this.time + Math.abs(p.gauss(0.02 + (1 - p.policy.skill) * 0.08));
+    if (this.fireAt >= 0 && this.time >= this.fireAt) {
+      this.fireAt = -1;
+      this.aimT = 0;
+      p.press(ctx, 'confirm');
+    }
   }
 }

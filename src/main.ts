@@ -8,6 +8,7 @@ import type { CharacterKey } from './assets/manifest';
 import { loadPixelFont } from './ui/pixelFont';
 import { dirFromGridVector } from './iso/projection';
 import { CHAPTERS } from './campaign/chapters';
+import { DEFAULT_POLICY } from './story/autopilot';
 
 async function boot(): Promise<void> {
   // Pixel-perfect: every texture is sampled with nearest-neighbor.
@@ -47,6 +48,15 @@ async function boot(): Promise<void> {
   } else {
     game.loop.start();
     const sub = params.get('story');
+    // ?auto=1 plays the story by itself (optional &skill=0.7&ending=knight|alpha&choice=first|last|random).
+    if (params.get('auto')) {
+      flow.story.autopilot = {
+        ...DEFAULT_POLICY,
+        skill: Number(params.get('skill') ?? DEFAULT_POLICY.skill),
+        ending: params.get('ending') === 'alpha' ? 'alpha' : 'knight',
+        choice: (['first', 'last', 'random'] as const).find((c) => c === params.get('choice')) ?? 'first',
+      };
+    }
     if (params.get('skip') === 'game') flow.play(level.number);
     else if (sub) flow.story.debugPlay(sub);
     else flow.toTitle(level.number);

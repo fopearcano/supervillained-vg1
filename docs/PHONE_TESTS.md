@@ -71,3 +71,22 @@ Or install the debug APK (see README → Android).
   Professor, the ending card, THE END.
 - Close the app mid-level and reopen: STORY → CONTINUE resumes at the first unfinished sub-level.
 - Medieval music in the dream, chip music in the Greenzone levels and the arcade.
+
+## Playability and systems pass
+- At the start of each dream scene a grey notice says "-2 COMMOZIONE: THE FEELING FADES". Looking
+  at marvels and weeping on the beat fill it again.
+- Big actions show their cost ("(-10 COMMOZIONE)"). With too little the option is grey with
+  "TOO UNMOVED: NEEDS 10 COMMOZIONE" — try 4.4 (atone), 5.1 (speak up), 6.5, 6.6, 7.6. At 7.8 each
+  bark at Jack costs 5.
+- 7.3: with Standing below 45 the count of Saint-Pol keeps his distance; above 65 Flanders comes
+  back beside you. The nerve bar drains less with more companions. 8.3: Watson crosses the lawn to
+  you only with Standing 60+.
+- 8.2: the altar card depends on Grace (glows / crooked / chew toys); the ending card has a Grace
+  line and a Standing line.
+- Ladders (5.2, 7.2) are longer now: tapping faster than about 8 per second does not help.
+- 2.1: CHECKPOINT notices; being caught sends you back to the last one.
+- Pause → TEXT: NORMAL/FAST/INSTANT/SLOW changes the dialogue speed (kept after restarting the app).
+- Story menu → a level → its scene list: finished scenes in cyan can be replayed; the card says
+  REPLAY and your meters/book do not change afterwards.
+- Book (pause → MERAVIGLIA BOOK): icons per section, AT HOME first, no heading alone at the bottom
+  of a page.

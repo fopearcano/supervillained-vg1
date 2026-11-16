@@ -1,6 +1,7 @@
 import { CatapultGame, RumourGame, mini } from '../../story/minigames';
 import { ask, blackHoleIn, blackHoleOut, call, card, fx, say, stage } from '../../story/steps';
 import { walk } from '../../story/walk';
+import { STORY } from '../../config';
 import { CHAPTER_TITLES } from '../titles';
 import type { ChapterDef } from '../types';
 
@@ -130,7 +131,7 @@ export const CH6: ChapterDef = {
           { label: 'PERHAPS LATER.', then: [say('king', 'LATER IS NEVER.')] },
         ]),
         ask('king', 'WILL YOU SERVE ME? NAME YOUR PRICE.', [
-          { label: 'UNPAID. IF YOU PROMISE NOT TO LOSE YOUR TEMPER FOR SIX MONTHS.', effects: { supervillain: 10 } },
+          { label: 'UNPAID. IF YOU PROMISE NOT TO LOSE YOUR TEMPER FOR SIX MONTHS.', cost: STORY.COST.GESTURE, effects: { supervillain: 10 } },
           { label: 'A FAIR SALARY.', then: [say('king', 'SPOKEN LIKE A MERCHANT.')] },
         ]),
         say('king', 'HA! HA HA! DONE.'),
@@ -154,7 +155,7 @@ export const CH6: ChapterDef = {
         say('knight', 'SHE HAS A MILL. AND A DOG.'),
         ask('confusione', '(CONFUSIONE IS LOOKING AT YOU.)', [
           { label: '(LAUGH)', effects: { standing: 5, flags: { comradeship: false } }, then: [say('knight', 'HE LAUGHS! HE IS ONE OF US.')] },
-          { label: '(DO NOT LAUGH. SIT BY THE BODY.)', effects: { supervillain: 10, flags: { comradeship: true }, value: 'Comradeship' }, then: [say('confusione', 'I WILL REMEMBER THAT.')] },
+          { label: '(DO NOT LAUGH. SIT BY THE BODY.)', cost: STORY.COST.VIGIL, effects: { supervillain: 10, flags: { comradeship: true }, value: 'Comradeship' }, then: [say('confusione', 'I WILL REMEMBER THAT.')] },
         ]),
         say('zampano', 'THERE WAS A WIDOW, AND SHE HAD A MILL.', { remembered: true }),
       ],

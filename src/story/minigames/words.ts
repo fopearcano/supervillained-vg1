@@ -1,6 +1,8 @@
 import { Graphics } from 'pixi.js';
 import { PixelText } from '../../ui/pixelText';
 import { C, frameRect, hex } from '../../ui/retro';
+import { STORY } from '../../config';
+import type { Autopilot } from '../autopilot';
 import type { StoryScene } from '../storyScene';
 import { MiniGame, type MiniResult } from './miniGame';
 
@@ -155,6 +157,14 @@ export class LetterGame extends MiniGame {
     this.answer.position.set(16, 200);
     return 'running';
   }
+
+  /** Autopilot: change one word, then seal, send and accept. */
+  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    if (!p.tick('letter', 0.8)) return;
+    const word = this.buttons.find((b) => b.id === 'slot0');
+    if (this.phase === 'write' && this.picks[0] === 0 && word) p.tap(ctx, word.x + word.w / 2, word.y + word.h / 2);
+    else p.press(ctx, 'confirm');
+  }
 }
 
 // ---------------------------------------------------------------------------- rumour
@@ -212,7 +222,7 @@ export class RumourGame extends WordGame {
     const { w, h } = this;
     this.arriveT -= dt;
     if (this.arrived < RUMOUR.length && this.arriveT <= 0) {
-      this.arriveT = 1.2;
+      this.arriveT = STORY.RUMOUR.ARRIVE_EVERY;
       this.arrived++;
       ctx.game.audio.play('click');
       this.rebuild();
@@ -240,5 +250,14 @@ export class RumourGame extends WordGame {
     this.body.setStyle({ maxWidth: w - 32 });
     this.body.position.set(16, 84);
     return this.placed.length === RUMOUR.length ? 'won' : 'running';
+  }
+
+  /** Autopilot: read for a moment, then tap the piece that comes next (sometimes the wrong one). */
+  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    if (!p.tick('rumour', 0.9 - p.policy.skill * 0.4)) return;
+    const right = this.buttons.find((b) => b.id === String(this.placed.length));
+    const wrong = this.buttons.find((b) => b.id !== String(this.placed.length));
+    const b = wrong && p.random() > 0.75 + 0.25 * p.policy.skill ? wrong : right;
+    if (b) p.tap(ctx, b.x + b.w / 2, b.y + b.h / 2);
   }
 }

@@ -2,7 +2,8 @@ import { LaddersGame, TugGame, mini } from '../../story/minigames';
 import { ask, blackHoleIn, blackHoleOut, branch, call, card, fx, move, say, sound, stage } from '../../story/steps';
 import { walk } from '../../story/walk';
 import { C } from '../../ui/retro';
-import { dreamSkin } from '../state';
+import { companions, dreamSkin, spend } from '../state';
+import { STORY } from '../../config';
 import { CHAPTER_TITLES } from '../titles';
 import type { StoryScene } from '../../story/storyScene';
 import type { ChapterDef } from '../types';
@@ -43,9 +44,9 @@ export const CH7: ChapterDef = {
           objective: 'WONDER HUNT: LOOK AT THE CITY (AND LET IT LOOK AT YOU)',
           action: 'LOOK',
           pickups: [
-            { at: '7', kind: 'marvel', label: 'THE GREAT WALLS', text: 'TOWER AFTER TOWER, AS FAR AS THE SEA', effects: { marvel: 'THE GREAT WALLS', commozione: 4 } },
-            { at: '3', kind: 'marvel', label: 'THE CITY OF ROOFS', text: 'EVERY ROOF IS FULL OF PEOPLE STARING', effects: { marvel: 'THE CITY OF ROOFS', commozione: 4 } },
-            { at: '4', kind: 'marvel', label: 'THE GOLDEN DOMES', text: 'THEY SHINE EVEN WHEN THE SUN DOES NOT', effects: { marvel: 'THE GOLDEN DOMES', commozione: 4 } },
+            { at: '7', kind: 'marvel', label: 'THE GREAT WALLS', text: 'TOWER AFTER TOWER, AS FAR AS THE SEA', effects: { marvel: 'THE GREAT WALLS', commozione: 3 } },
+            { at: '3', kind: 'marvel', label: 'THE CITY OF ROOFS', text: 'EVERY ROOF IS FULL OF PEOPLE STARING', effects: { marvel: 'THE CITY OF ROOFS', commozione: 3 } },
+            { at: '4', kind: 'marvel', label: 'THE GOLDEN DOMES', text: 'THEY SHINE EVEN WHEN THE SUN DOES NOT', effects: { marvel: 'THE GOLDEN DOMES', commozione: 3 } },
           ],
           onAction: (ctx) => ctx.say('OOOH.', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
         }),
@@ -73,7 +74,7 @@ export const CH7: ChapterDef = {
           say('doge', 'I AM OLD AND BLIND. GIVE ME THE BANNER OF SAINT MARK AND PUT ME ASHORE.'),
           say('doge', 'WHOEVER DOES NOT FOLLOW ME, I WILL HAVE HANGED. NICELY.'),
           card('FIRST ASSAULT', 'LADDERS FROM THE GALLEYS. AS IN FILMS AND VIDEO GAMES.', { color: C.orange, seconds: 2 }),
-          mini(() => new LaddersGame(16, true, skin), { won: { supervillain: 8, standing: 5 }, lost: { standing: -3 }, retryOnLoss: true }),
+          mini(() => new LaddersGame(30, true, skin), { won: { supervillain: 8, standing: 5 }, lost: { standing: -3 }, retryOnLoss: true }),
           say('zampano', 'THERE WAS A LADDER, AND THE TOP WAS AN AXE.', { remembered: true }),
         ];
       },
@@ -103,13 +104,16 @@ export const CH7: ChapterDef = {
           say('sbrimbrulon', 'WE WILL NOT TURN BACK AT ALL. WE GO ON. AT A WALK.'),
           say('sbrimbrulon', 'YOU ARE IN THE SECOND RANK, ZAMPANO. SAME PACE AS ME. NOT FASTER. NOT SLOWER.'),
           call((ctx) => {
+            // Standing decides who walks beside him; each companion steadies his nerve.
+            const who = companions(ctx.state, 'vanguard');
             ctx.actor('sbrim').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.2, speed: 2.4, side: -0.9 });
-            ctx.actor('stpol').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.4, speed: 2.4, side: 0.9 });
+            if (who.includes('stpol')) ctx.actor('stpol').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.4, speed: 2.4, side: 0.9 });
+            else ctx.notice('THE COUNT OF SAINT-POL KEEPS HIS DISTANCE (STANDING TOO LOW)', C.orange);
           }),
           walk({
             objective: 'HOLD THE PACE: DO NOT CHARGE, DO NOT TURN BACK',
             goal: { reach: '1', radius: 1.2 },
-            pace: { pressure: 0.035 },
+            pace: { pressure: 0.035, companions: ['sbrim', 'stpol', 'flanders'] },
             onUpdate: (ctx, w) => {
               const p = ctx.player;
               const goal = ctx.marker('1');
@@ -122,8 +126,12 @@ export const CH7: ChapterDef = {
                 }
               };
               once('shout', 0.15, () => ctx.say('THEY ARE SHOUTING!', ctx.marker('8'), C.red));
-              once('count', 0.35, () => ctx.notice('A COUNT IS SHAMED INTO RIDING BACK TO THE FRONT', C.cyan));
-              once('flanders', 0.36, () => ctx.actor('flanders').setBehavior({ kind: 'follow', target: p, distance: 2.6, speed: 2.4 }));
+              once('flanders', 0.35, () => {
+                if (companions(ctx.state, 'vanguard').includes('flanders')) {
+                  ctx.notice('A COUNT IS SHAMED INTO RIDING BACK TO THE FRONT', C.cyan);
+                  ctx.actor('flanders').setBehavior({ kind: 'follow', target: p, distance: 1.6, speed: 3, side: 0 });
+                } else ctx.notice('FLANDERS STAYS BACK IN THE CAMP', C.orange);
+              });
               once('angels', 0.6, () => {
                 ctx.say('THEY LOOK LIKE ANGELS!', ctx.marker('5'), C.hotPink);
                 ctx.say('LIKE ANGELS!', ctx.marker('6'), C.hotPink);
@@ -162,9 +170,9 @@ export const CH7: ChapterDef = {
           objective: 'SIGHTSEEING: PALACES, CHURCHES AND RELICS',
           action: 'LOOK',
           pickups: [
-            { at: '5', kind: 'marvel', label: 'THE GOLDEN PALACE', text: 'FIVE HUNDRED HALLS, ALL IN GOLD MOSAIC', effects: { marvel: 'THE GOLDEN PALACE', commozione: 4 } },
-            { at: '6', kind: 'relic', label: 'THE CHAPEL OF RELICS', text: 'MORE RELICS THAN THERE ARE SAINTS', effects: { marvel: 'THE CHAPEL OF RELICS', commozione: 4 } },
-            { at: '8', kind: 'marvel', label: 'THE CHURCH OF THE APOSTLES', text: 'NOBODY COULD TELL ITS RICHES', effects: { marvel: 'THE CHURCH OF THE APOSTLES', commozione: 4 } },
+            { at: '5', kind: 'marvel', label: 'THE GOLDEN PALACE', text: 'FIVE HUNDRED HALLS, ALL IN GOLD MOSAIC', effects: { marvel: 'THE GOLDEN PALACE', commozione: 3 } },
+            { at: '6', kind: 'relic', label: 'THE CHAPEL OF RELICS', text: 'MORE RELICS THAN THERE ARE SAINTS', effects: { marvel: 'THE CHAPEL OF RELICS', commozione: 3 } },
+            { at: '8', kind: 'marvel', label: 'THE CHURCH OF THE APOSTLES', text: 'NOBODY COULD TELL ITS RICHES', effects: { marvel: 'THE CHURCH OF THE APOSTLES', commozione: 3 } },
           ],
           onAction: (ctx) => ctx.say('OOOH.', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
         }),
@@ -230,7 +238,7 @@ export const CH7: ChapterDef = {
           walk({ objective: 'GO IN ARMED. DO NOT RUN', goal: { reach: '7', radius: 1 }, onUpdate: (ctx) => runCheck(ctx) }),
           ask('prince', 'WHAT DO YOU WANT, BARBARIAN?', [
             { label: 'PAY WHAT YOU SWORE, OR WE ARE NO LONGER FRIENDS.', effects: { supervillain: 6, standing: 4 } },
-            { label: 'WE DEFY YOU. FROM NOW ON, DO YOUR WORST.', effects: { supervillain: 8 } },
+            { label: 'WE DEFY YOU. FROM NOW ON, DO YOUR WORST.', cost: STORY.COST.DEFY, effects: { supervillain: 8 } },
             { label: '(TREMBLE QUIETLY)', locked: 'ENVOYS DO NOT TREMBLE' },
           ]),
           say('prince', '...'),
@@ -318,8 +326,20 @@ export const CH7: ChapterDef = {
             objective: 'ENFORCE THE OATH (BARK AT JACK) OR LOOK AWAY (GO TO THE PILE)',
             action: 'BARK',
             goal: { reach: '8', label: 'THE PILE' },
+            pilot: (ctx, _w, p) => {
+              const jack = ctx.actors.get('jack');
+              if (p.policy.ending !== 'knight' || !jack || ctx.state.flags.oath === 'enforced') return null;
+              const d = Math.hypot(jack.gx - ctx.player.gx, jack.gy - ctx.player.gy);
+              return { target: { x: jack.gx, y: jack.gy }, act: d < 1.7, hold: d < 1.2 };
+            },
             onAction: (ctx, w) => {
               if (!near(ctx, 'jack', 1.9)) return bark(ctx);
+              if (!spend(ctx.state, 'commozione', STORY.COST.OATH_BARK)) {
+                ctx.notice(`TOO UNMOVED TO ACT: NEEDS ${STORY.COST.OATH_BARK} COMMOZIONE`, C.red);
+                ctx.game.audio.play('empty');
+                return;
+              }
+              ctx.notice(`-${STORY.COST.OATH_BARK} COMMOZIONE`, C.red);
               barks++;
               bark(ctx, barks < 3 ? 'LET HER GO!' : 'SO HELP ME GOD!');
               ctx.shake(2);

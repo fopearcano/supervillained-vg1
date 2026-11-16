@@ -142,6 +142,63 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** P: a campaign in progress: sub-level picker, the book with icons, a costly choice, the pause menu. */
+  async progress(browser) {
+    const state = {
+      version: 1,
+      completed: ['1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '2.2', '2.3', '2.4', '2.5', '3.1', '3.2', '3.3', '3.4', '4.1', '4.2', '4.3'],
+      meters: { commozione: 6, supervillain: 30, grace: 75, standing: 50 },
+      flags: {},
+      book: {
+        marvels: ['THE DROMONS', 'THE HORSE TRANSPORTS', 'THE GALLEYS', 'THE COLUMNS OF SAN MARCO', 'THE FLEET LEAVING VENICE'],
+        items: ['A FRESCO FOR THE CHAPEL AT HOME'],
+        values: ['Pilgrims, not martyrs'],
+        remembered: ['THERE WAS A SHIP, MAN, AND IT WAS SINGING.'],
+        shards: ['LEVEL 2: ON THE EDGE OF DREAMS'],
+      },
+      abilities: ['cross', 'knight', 'sermon'],
+      coins: 0,
+    };
+    const page = await openGame(browser, '');
+    await page.evaluate((st) => localStorage.setItem('supervillained:story', JSON.stringify(st)), state);
+    await page.evaluate(() => window.__sv.flow.story.openMenu());
+    await wait(700);
+    await page.screenshot({ path: `${OUT}/p-story-menu.png` });
+    // Story menu → level 4 (CONTINUE, 1, 2, 3, 4): the sub-level picker.
+    for (let k = 0; k < 4; k++) {
+      await page.keyboard.press('ArrowDown');
+      await wait(80);
+    }
+    await page.keyboard.press('Enter');
+    await wait(1400);
+    await page.screenshot({ path: `${OUT}/p-chapter.png` });
+    // 4.4 with little Commozione: the costly choice is locked.
+    await page.evaluate(() => window.__sv.flow.story.debugPlay('4.4'));
+    await wait(300);
+    await skipTo(page, 'AskStep', 2);
+    await wait(1500);
+    await page.screenshot({ path: `${OUT}/p-costly-choice.png` });
+    await page.keyboard.press('Escape');
+    await wait(500);
+    await page.screenshot({ path: `${OUT}/p-pause.png` });
+    // Pause: RESUME, RESTART, SKIP, BOOK.
+    for (let k = 0; k < 3; k++) {
+      await page.keyboard.press('ArrowDown');
+      await wait(80);
+    }
+    await page.keyboard.press('Enter');
+    await wait(600);
+    await page.screenshot({ path: `${OUT}/p-book.png` });
+    await page.keyboard.press('Enter');
+    await wait(400);
+    await page.screenshot({ path: `${OUT}/p-book-2.png` });
+    // The ending card with the Grace and Standing lines.
+    await page.evaluate(() => window.__sv.flow.story.showEnding());
+    await wait(800);
+    await page.screenshot({ path: `${OUT}/p-ending.png` });
+    await page.close();
+  },
+
   /** C1: Level 1 of the story (1.1 dream → slap → lawn). */
   async story1(browser) {
     const page = await openGame(browser, '?story=1.1');

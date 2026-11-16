@@ -2,9 +2,9 @@ import { Container, Graphics, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import type { Game } from '../core/game';
 import type { Scene } from '../core/scene';
-import { spriteName } from '../assets/manifest';
+import { spriteName, type SpriteKey } from '../assets/manifest';
 import type { CampaignState } from '../campaign/state';
-import type { ChapterDef } from '../campaign/types';
+import type { ChapterDef, SubLevelDef } from '../campaign/types';
 import { Menu, type MenuItem } from '../ui/menu';
 import { PixelText, type Span } from '../ui/pixelText';
 import { C, retroBox } from '../ui/retro';
@@ -132,6 +132,57 @@ export class StoryMenuScene implements Scene {
   }
 }
 
+/** One level's sub-levels: replay any finished scene, or go on with the next one. */
+export class StoryChapterScene implements Scene {
+  readonly root = new Container();
+  readonly pausesBelow = true;
+  private readonly bg = new Graphics();
+  private readonly title: PixelText;
+  private readonly note = new PixelText('REPLAYS DO NOT CHANGE THE CAMPAIGN', { color: '#9aa4c0', shadow: '#000000', align: 'center' }).setOrigin(0.5, 0);
+  private readonly menu: Menu;
+  private time = 0;
+
+  constructor(
+    private readonly game: Game,
+    state: CampaignState,
+    ch: ChapterDef,
+    private readonly actions: { play: (sub: SubLevelDef) => void; back: () => void },
+  ) {
+    this.title = new PixelText(`LEVEL ${ch.number}\n${ch.title.toUpperCase()}`, { color: C.yellow, outline: '#120818', glow: 'self', glowAlpha: 0.3, align: 'center', lineGap: 4 }).setOrigin(0.5, 0);
+    const firstOpen = ch.subLevels.findIndex((s) => !state.completed.includes(s.id));
+    const items: MenuItem[] = ch.subLevels.map((sub, k) => {
+      const done = state.completed.includes(sub.id);
+      const open = done || k === firstOpen;
+      // Fit the 200-px row: cut at a word boundary and mark the cut.
+      let label = `${sub.id} ${sub.title.toUpperCase()}`;
+      if (label.length > 24) label = label.slice(0, 22).replace(/\s+\S*$/, '') + '..';
+      return {
+        label: open ? label : `${sub.id} ? ? ?`,
+        action: () => (open ? actions.play(sub) : this.game.audio.play('empty')),
+        color: !open ? '#5a5a6a' : done ? C.cyan : C.yellow,
+      };
+    });
+    items.push({ label: 'BACK', action: actions.back, color: C.white });
+    this.menu = new Menu(items, 200, 14, 3);
+    this.root.addChild(this.bg, this.title, this.note, this.menu.root);
+  }
+
+  resize(w: number, h: number): void {
+    this.bg.clear().rect(0, 0, w, h).fill(0x140a24);
+    this.title.position.set(Math.round(w / 2), 12);
+    this.note.setStyle({ maxWidth: w - 16 });
+    this.note.position.set(Math.round(w / 2), 42);
+    this.menu.layout(w / 2, 42 + this.note.textHeight + 10);
+  }
+
+  update(dt: number): void {
+    this.time += dt;
+    const input = this.game.input;
+    if (input.consume('menu') || input.consume('back')) return this.actions.back();
+    if (this.time > 0.3) this.menu.update(dt, input);
+  }
+}
+
 /** Story pause menu. */
 export class StoryPauseScene implements Scene {
   readonly root = new Container();
@@ -143,7 +194,17 @@ export class StoryPauseScene implements Scene {
 
   constructor(
     private readonly game: Game,
-    private readonly actions: { resume: () => void; restart: () => void; book: () => void; sound: () => void; muted: () => boolean; skip: () => void; menu: () => void },
+    private readonly actions: {
+      resume: () => void;
+      restart: () => void;
+      book: () => void;
+      sound: () => void;
+      muted: () => boolean;
+      textSpeed: () => void;
+      textSpeedLabel: () => string;
+      skip: () => void;
+      menu: () => void;
+    },
   ) {
     this.menu = new Menu(
       [
@@ -155,6 +216,14 @@ export class StoryPauseScene implements Scene {
           label: () => (actions.muted() ? 'SOUND: OFF' : 'SOUND: ON'),
           action: () => {
             actions.sound();
+            this.menu.refreshLabels();
+          },
+          color: C.cyan,
+        },
+        {
+          label: () => `TEXT: ${actions.textSpeedLabel()}`,
+          action: () => {
+            actions.textSpeed();
             this.menu.refreshLabels();
           },
           color: C.cyan,
@@ -189,15 +258,23 @@ export class StoryPauseScene implements Scene {
 }
 
 /** The Meraviglia book: meters, values, marvels, things brought home, remembered lines. */
+interface BookRow {
+  text: string;
+  head?: boolean;
+  icon?: SpriteKey;
+}
+
 export class BookScene implements Scene {
   readonly root = new Container();
   readonly pausesBelow = true;
   private readonly bg = new Graphics();
   private readonly title = new PixelText('MERAVIGLIA', { color: C.yellow, scale: 2, outline: '#3a2410', glow: 'self', glowAlpha: 0.25 }).setOrigin(0.5, 0);
-  private readonly body = new PixelText('', { color: '#3a2410', lineGap: 3 });
+  private readonly pageRoot = new Container();
   private readonly foot = new PixelText('', { color: '#6a4a20' }).setOrigin(0.5, 0);
-  private pages: Span[][] = [];
+  private rows: BookRow[] = [];
+  private pages: BookRow[][] = [];
   private page = 0;
+  private w = 216;
   private h = 400;
   private time = 0;
 
@@ -206,68 +283,101 @@ export class BookScene implements Scene {
     private readonly state: CampaignState,
     private readonly onClose: () => void,
   ) {
-    this.root.addChild(this.bg, this.title, this.body, this.foot);
+    this.root.addChild(this.bg, this.title, this.pageRoot, this.foot);
   }
 
   private build(): void {
     const s = this.state;
-    const lines: Span[][] = [];
-    const head = (t: string) => lines.push([{ text: t, color: '#8a2a10' }]);
-    const item = (t: string) => lines.push([{ text: `- ${t}` }]);
-    head('THE METERS');
-    item(`COMMOZIONE ${s.meters.commozione}`);
-    item(`SUPERVILLAIN ${s.meters.supervillain}${s.meters.supervillain >= 100 ? ' (FULL)' : ''}`);
-    item(`GRACE ${s.meters.grace}`);
-    item(`STANDING ${s.meters.standing}`);
-    lines.push([{ text: '' }]);
-    head('VALUES LEARNED');
-    if (!s.book.values.length) item('NONE YET');
-    for (const v of s.book.values) item(v.toUpperCase());
-    lines.push([{ text: '' }]);
-    head('MARVELS SEEN');
-    if (!s.book.marvels.length) item('NONE YET');
-    for (const v of s.book.marvels) item(v.toUpperCase());
-    lines.push([{ text: '' }]);
-    head('BROUGHT HOME');
-    if (!s.book.items.length) item('NOTHING YET');
-    for (const v of s.book.items) item(v.toUpperCase());
-    lines.push([{ text: '' }]);
-    head('MEMORY SHARDS');
-    if (!s.book.shards.length) item('NONE YET');
-    for (const v of s.book.shards) item(v.toUpperCase());
-    lines.push([{ text: '' }]);
-    head('REMEMBERED (IT MADE NO SENSE)');
-    if (!s.book.remembered.length) item('NOTHING YET');
-    for (const v of s.book.remembered) item(`"${v.toUpperCase()}"`);
-    const per = Math.max(6, Math.floor((this.h - 80) / 11));
+    const rows: BookRow[] = [];
+    const section = (head: string, list: string[], icon: SpriteKey, empty = 'NONE YET', fmt = (v: string) => v.toUpperCase()) => {
+      rows.push({ text: head, head: true });
+      if (!list.length) rows.push({ text: empty });
+      for (const v of list) rows.push({ text: fmt(v), icon });
+      rows.push({ text: '' });
+    };
+    rows.push({ text: 'THE METERS', head: true });
+    rows.push({ text: `COMMOZIONE ${s.meters.commozione}`, icon: 'tear' });
+    rows.push({ text: `SUPERVILLAIN ${s.meters.supervillain}${s.meters.supervillain >= 100 ? ' (FULL)' : ''}`, icon: 'tri' });
+    rows.push({ text: `GRACE ${s.meters.grace}`, icon: 'cross' });
+    rows.push({ text: `STANDING ${s.meters.standing}`, icon: 'coin' });
+    rows.push({ text: '' });
+    section('AT HOME (BROUGHT BACK)', s.book.items, 'relic', 'NOTHING YET');
+    section('MARVELS SEEN', s.book.marvels, 'sparkle');
+    section('VALUES LEARNED', s.book.values, 'cross');
+    section('MEMORY SHARDS', s.book.shards, 'shard');
+    section('REMEMBERED (IT MADE NO SENSE)', s.book.remembered, 'thought', 'NOTHING YET', (v) => `"${v.toUpperCase()}"`);
+    this.rows = rows;
+  }
+
+  /** Splits rows into pages by their real (wrapped) height. */
+  private paginate(): void {
     this.pages = [];
-    for (let k = 0; k < lines.length; k += per) {
-      const chunk = lines.slice(k, k + per);
-      const spans: Span[] = [];
-      chunk.forEach((l, i) => {
-        spans.push(...l);
-        if (i < chunk.length - 1) spans.push({ text: '\n' });
-      });
-      this.pages.push(spans);
+    const avail = this.h - 70;
+    let cur: BookRow[] = [];
+    let used = 0;
+    for (const r of this.rows) {
+      const hgt = this.rowHeight(r);
+      if (used + hgt > avail && cur.length) {
+        // Never leave a heading alone at the bottom of a page.
+        const carry = cur[cur.length - 1]!.head ? [cur.pop()!] : [];
+        this.pages.push(cur);
+        cur = carry;
+        used = carry.reduce((a, c) => a + this.rowHeight(c), 0);
+        if (!r.text) continue;
+      }
+      cur.push(r);
+      used += hgt;
     }
+    if (cur.length) this.pages.push(cur);
     this.page = Math.min(this.page, this.pages.length - 1);
   }
 
+  private makeText(r: BookRow): PixelText {
+    return new PixelText(r.text, { color: r.head ? '#8a2a10' : '#3a2410', maxWidth: this.w - (r.icon ? 40 : 24), lineGap: 2 });
+  }
+
+  private rowHeight(r: BookRow): number {
+    if (!r.text) return 6;
+    const t = this.makeText(r);
+    const hgt = Math.max(r.icon ? 12 : 0, t.textHeight) + 4;
+    t.destroy();
+    return hgt;
+  }
+
   private show(): void {
-    this.body.setText(this.pages[this.page] ?? []);
+    for (const c of this.pageRoot.removeChildren()) c.destroy();
+    let y = 40;
+    for (const r of this.pages[this.page] ?? []) {
+      if (!r.text) {
+        y += 6;
+        continue;
+      }
+      const t = this.makeText(r);
+      let x = 12;
+      if (r.icon) {
+        const icon = new Sprite(textures.get(spriteName(r.icon)));
+        icon.anchor.set(0.5);
+        icon.position.set(18, y + 4);
+        this.pageRoot.addChild(icon);
+        x = 28;
+      }
+      t.position.set(x, y);
+      this.pageRoot.addChild(t);
+      y += Math.max(r.icon ? 12 : 0, t.textHeight) + 4;
+    }
     this.foot.setText(`PAGE ${this.page + 1}/${this.pages.length}  TAP: NEXT`);
   }
 
   resize(w: number, h: number): void {
+    this.w = w;
     this.h = h;
     this.bg.clear().rect(0, 0, w, h).fill(0x1a0e06);
     this.bg.rect(4, 4, w - 8, h - 8).fill(0xf0dcb0);
     this.bg.rect(4, 4, w - 8, 2).fill(0xc8a060);
     this.title.position.set(Math.round(w / 2), 10);
-    this.body.position.set(12, 40);
-    this.body.setStyle({ maxWidth: w - 24 });
     this.foot.position.set(Math.round(w / 2), h - 18);
     this.build();
+    this.paginate();
     this.show();
   }
 

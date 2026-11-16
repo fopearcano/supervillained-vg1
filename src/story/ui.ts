@@ -1,5 +1,6 @@
 import { Container, Graphics, Sprite, Texture } from 'pixi.js';
 import { ensureCharacters } from '../assets/build';
+import { STORY } from '../config';
 import { textures } from '../core/assets';
 import type { Input } from '../core/input';
 import { spriteName, textureName, CHARACTERS, type CharacterKey } from '../assets/manifest';
@@ -68,6 +69,8 @@ export class DialogueBox {
   private time = 0;
   selected = 0;
   private keyboard = false;
+  /** Typewriter speed in characters per second (text-speed setting). */
+  cps: number = STORY.TEXT_CPS.normal;
 
   constructor() {
     this.root.addChild(this.bg, this.portrait, this.name, this.text, this.more, this.choices);
@@ -218,7 +221,7 @@ export class DialogueBox {
   update(dt: number): void {
     this.time += dt;
     if (this.shown < this.full.length) {
-      this.shown = Math.min(this.full.length, this.shown + dt * 45);
+      this.shown = Math.min(this.full.length, this.shown + dt * this.cps);
       this.text.setText(this.full.slice(0, Math.floor(this.shown)));
     }
     this.more.visible = !this.typing && !this.choiceRows.length && Math.floor(this.time * 3) % 2 === 0;

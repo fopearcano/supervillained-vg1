@@ -20,19 +20,23 @@ npm run screens      # Playwright verification screenshots → docs/screens/ (al
 npm run screens -- m1 joystick   # selected scenarios (see scripts/screenshot.mjs)
 npm run smoke        # plays every story sub-level start to finish (fails on errors / missing textures)
 npm run smoke -- 7.3 8.1         # selected sub-levels
+npm run playtest     # the autopilot plays the whole campaign for real → report (fails if a sub-level can't be won)
+npm run playtest -- --skill 0.4 --ending alpha --choice random --from 5.1 --out docs/PLAYTEST.md
 npm run android:apk  # web build + cap sync + Gradle debug APK (needs JDK 21 + Android SDK 36)
 ```
 
 Debug URLs: `?skip=game` (straight into gameplay), `?story=7.3` (straight into a story
-sub-level), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
+sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
 `window.__sv` exposes the game for automation (`__sv.scene()` = top scene, `__sv.top()`,
 `__sv.storyIds()`, `__sv.flow.story.debugPlay(id)`; a `StoryScene` has `debugState()`,
 `debugSkip()`, `marker(m)`).
 
 ## Architecture (src/)
 
-- `config.ts` — **every tuning number** (speeds, timers, radii, scores, thresholds). Never hardcode
-  gameplay numbers elsewhere.
+- `config.ts` — **every tuning number** (speeds, timers, radii, scores, thresholds; `STORY` for the
+  campaign: walks, mini-games, Commozione costs, companion thresholds, Grace tiers, text speeds,
+  autopilot). Never hardcode gameplay numbers elsewhere (per-scene values in chapter scripts are
+  level data).
 - `core/` — `game.ts` (services: renderer, input, scenes, loop, resize), `loop.ts` (fixed 60 Hz
   step + interpolation), `input.ts` (keyboard, floating joystick, touch buttons, taps),
   `scene.ts` (scene stack), `display.ts` (logical resolution + integer scale), `assets.ts`
@@ -59,8 +63,10 @@ sub-level), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
   card, stage, move, walk, mini, branch, fx, blackHoleIn/Out…), `walk.ts` (dream walk: reach,
   pickups, sight cones, pace/nerve, thirst, scramble, fire), `minigames/`, `storyScene.ts` (runs a
   script over a World stage), `ui.ts` (dialogue box + choice wheel, cards, story HUD with meters),
-  `screens.ts` (story menu, cards, pause, Meraviglia book), `storyFlow.ts` (menu → cards → sub-level
-  → Professor aside → ending; saves progress), `maps.ts` (story stages + palettes/themes).
+  `screens.ts` (story menu, level's sub-level list, cards, pause, Meraviglia book), `storyFlow.ts`
+  (menu → cards → sub-level → Professor aside → ending; saves progress; replays on a copy),
+  `maps.ts` (story stages + palettes/themes), `autopilot.ts` (automated player: steps and
+  mini-games implement an optional `pilot()` that drives the real inputs).
 - `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
   sight cones, hostile contact).
 - `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims), `build.ts` (load PNGs or generate
@@ -85,4 +91,9 @@ sub-level), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
   (values are stored in mixed case and uppercased for display).
 - Story maps: digits are markers used by scripts (`'1'`, `ctx.marker('1')`); `S` is the start.
   A missing marker throws — run `npm run smoke` after editing maps or scripts.
+- Meter rules live in `campaign/state.ts` (pure, tested): `fadeCommozione`, `companions`,
+  `graceTier`, `endingNotes`, `ending`. Choices that are big actions take `cost` (Commozione).
+- A new walk objective the autopilot can't infer from `goal`/`pickups` gets a `pilot` hint in the
+  `walk()` definition; a new mini-game gets a `pilot()` strategy. After gameplay changes run
+  `npm run playtest` and read the report.
 - After each milestone: `npm run build`, `npm test`, `npm run screens`, look at the PNGs, commit.

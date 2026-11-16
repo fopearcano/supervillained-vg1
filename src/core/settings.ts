@@ -3,9 +3,14 @@ import { storage } from './storage';
 
 /** Persistent player settings and records (localStorage, guarded). */
 
+export type TextSpeed = 'slow' | 'normal' | 'fast' | 'instant';
+export const TEXT_SPEEDS: readonly TextSpeed[] = ['slow', 'normal', 'fast', 'instant'];
+
 export interface Settings {
   muted: boolean;
   volume: number;
+  /** Story dialogue typewriter speed. */
+  textSpeed: TextSpeed;
 }
 
 export interface LevelRecord {
@@ -19,6 +24,7 @@ export function loadSettings(): Settings {
   return {
     muted: typeof s.muted === 'boolean' ? s.muted : false,
     volume: typeof s.volume === 'number' ? Math.max(0, Math.min(1, s.volume)) : AUDIO.DEFAULT_VOLUME,
+    textSpeed: TEXT_SPEEDS.includes(s.textSpeed as TextSpeed) ? (s.textSpeed as TextSpeed) : 'normal',
   };
 }
 

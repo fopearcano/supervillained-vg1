@@ -1,6 +1,7 @@
 import { CalmGame, mini, parade } from '../../story/minigames';
 import { ask, blackHoleIn, blackHoleOut, call, card, fx, say, stage } from '../../story/steps';
 import { walk } from '../../story/walk';
+import { STORY } from '../../config';
 import { C } from '../../ui/retro';
 import { CHAPTER_TITLES } from '../titles';
 import type { ChapterDef } from '../types';
@@ -96,7 +97,7 @@ export const CH4: ChapterDef = {
         say('legate', 'IT WAS AN ACCIDENT. GOD CANNOT MIND.'),
         say('emir', 'HE CANNOT MIND. EAT.'),
         ask('legate', 'WELL?', [
-          { label: 'I WILL FAST ON BREAD AND WATER ANYWAY.', effects: { grace: 20, flags: { atoned: true } }, then: [say('legate', 'NOBODY ASKED YOU TO.')] },
+          { label: 'I WILL FAST ON BREAD AND WATER ANYWAY.', cost: STORY.COST.ATONE, effects: { grace: 20, flags: { atoned: true } }, then: [say('legate', 'NOBODY ASKED YOU TO.')] },
           { label: 'IF GOD CANNOT MIND, I CANNOT MIND.', then: [say('burgher', 'IT IS STILL FRIDAY.')] },
         ]),
         say('zampano', 'THERE WAS A FRIDAY, AND IT WAS STARING AT ME.', { remembered: true }),

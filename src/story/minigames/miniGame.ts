@@ -1,5 +1,6 @@
 import { Container } from 'pixi.js';
 import type { Effects } from '../../campaign/state';
+import type { Autopilot } from '../autopilot';
 import type { Step, StepStatus } from '../step';
 import type { StoryScene } from '../storyScene';
 
@@ -29,6 +30,8 @@ export abstract class MiniGame {
 
   abstract start(ctx: StoryScene): void;
   abstract update(dt: number, ctx: StoryScene): MiniResult;
+  /** Autopilot strategy: press the inputs a decent player would (see story/autopilot.ts). */
+  pilot?(dt: number, ctx: StoryScene, p: Autopilot): void;
 
   destroy(): void {
     this.root.destroy({ children: true });
@@ -55,7 +58,9 @@ class MiniGameStep implements Step {
     g.time += dt;
     const r = g.update(dt, ctx);
     if (r === 'running') return 'running';
+    ctx.metrics.minis.push(`${this.game!.constructor.name}:${r}`);
     if (r === 'lost' && this.opts.retryOnLoss) {
+      ctx.metrics.miniRetries++;
       this.stop(ctx);
       this.start(ctx);
       return 'running';
@@ -65,6 +70,9 @@ class MiniGameStep implements Step {
     const more = this.opts.onEnd?.(r, ctx);
     if (more) ctx.insert(more);
     return 'done';
+  }
+  pilot(dt: number, ctx: StoryScene, p: Autopilot): void {
+    this.game?.pilot?.(dt, ctx, p);
   }
   stop(ctx: StoryScene): void {
     ctx.stageLayer.visible = true;

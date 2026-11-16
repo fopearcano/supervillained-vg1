@@ -1,5 +1,7 @@
 import { ensureCharacters } from '../assets/build';
-import type { CampaignState, Effects } from '../campaign/state';
+import { canSpend, spend, type CampaignState, type Effects } from '../campaign/state';
+import { STORY } from '../config';
+import type { Autopilot } from './autopilot';
 import type { Actor, Behavior, Point, Who } from '../entities/actor';
 import type { Dir8 } from '../iso/projection';
 import { C } from '../ui/retro';
@@ -45,6 +47,9 @@ class SayStep implements Step {
   stop(ctx: StoryScene): void {
     ctx.dialogue.hide();
   }
+  pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    p.every(ctx, 'say', STORY.PILOT.CONFIRM_EVERY, 'confirm');
+  }
 }
 
 /** A dialogue line. `remembered`: the one line per scene that makes no sense (goes in the book). */
@@ -66,11 +71,25 @@ export interface Option {
   then?: Step[];
   /** 8.4: when picked, Zampanò says this other thing instead. */
   saysInstead?: string;
+  /** Commozione this action spends. Without enough, the option is locked: an unmoved Zampanò cannot act. */
+  cost?: number;
+}
+
+/** Label and lock state of an option given the current Commozione. */
+export function optionView(o: Option, state: CampaignState): { label: string; locked?: string } {
+  if (o.locked) return { label: o.label, locked: o.locked };
+  if (!o.cost) return { label: o.label };
+  return canSpend(state, 'commozione', o.cost)
+    ? { label: `${o.label}  (-${o.cost} COMMOZIONE)` }
+    : { label: o.label, locked: `TOO UNMOVED: NEEDS ${o.cost} COMMOZIONE` };
 }
 
 class AskStep implements Step {
   private phase: 'typing' | 'choosing' = 'typing';
   private t = 0;
+  private views: Array<{ label: string; locked?: string }> = [];
+  /** Autopilot's pick, applied on the next update. */
+  private forced = -1;
   constructor(
     private readonly speaker: string,
     private readonly prompt: string,
@@ -90,18 +109,28 @@ class AskStep implements Step {
       if (ctx.dialogue.typing && tapped(ctx, 0.15, this.t)) ctx.dialogue.finish();
       if (!ctx.dialogue.typing && this.t > 0.3) {
         this.phase = 'choosing';
-        ctx.dialogue.setChoices(this.options.map((o) => ({ label: o.label, locked: o.locked })));
+        this.views = this.options.map((o) => optionView(o, ctx.state));
+        // Never a dead end: if every option is out of reach, the costly ones open up.
+        if (this.views.every((v) => v.locked)) this.views = this.options.map((o) => ({ label: o.label, locked: o.locked }));
+        ctx.dialogue.setChoices(this.views);
       }
       return 'running';
     }
-    const pick = ctx.dialogue.updateChoices(ctx.game.input);
+    let pick = ctx.dialogue.updateChoices(ctx.game.input);
+    if (this.forced >= 0) {
+      pick = this.forced;
+      this.forced = -1;
+    }
     if (pick < 0) return 'running';
     const o = this.options[pick]!;
     ctx.game.audio.play('click');
-    if (o.locked) {
-      ctx.notice(o.locked, C.red);
+    const lock = this.views[pick]?.locked;
+    if (lock) {
+      ctx.notice(lock, C.red);
       return 'running';
     }
+    if (o.cost && spend(ctx.state, 'commozione', o.cost)) ctx.notice(`-${o.cost} COMMOZIONE`, C.red);
+    ctx.metrics.choices.push(o.label);
     if (o.effects) ctx.apply(o.effects);
     const follow: Step[] = [];
     follow.push(say('zampano', o.saysInstead ?? o.label));
@@ -111,6 +140,15 @@ class AskStep implements Step {
   }
   stop(ctx: StoryScene): void {
     ctx.dialogue.hide();
+  }
+  pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    if (this.phase === 'typing') {
+      p.every(ctx, 'say', STORY.PILOT.CONFIRM_EVERY, 'confirm');
+      return;
+    }
+    if (this.forced >= 0 || !p.tick('ask', 0.4)) return;
+    const open = this.views.map((v, k) => (v.locked ? -1 : k)).filter((k) => k >= 0);
+    if (open.length) this.forced = open[p.pickFor(this.prompt, open.length)]!;
   }
 }
 
@@ -140,6 +178,9 @@ class CardStep implements Step {
   }
   stop(ctx: StoryScene): void {
     ctx.cards.hide();
+  }
+  pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    if (this.t > 0.45) p.every(ctx, 'card', STORY.PILOT.CONFIRM_EVERY, 'confirm');
   }
 }
 

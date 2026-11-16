@@ -1,6 +1,7 @@
 import { LaddersGame, LetterGame, mini } from '../../story/minigames';
 import { ask, call, card, fx, say, stage } from '../../story/steps';
 import { dreamSkin } from '../state';
+import { STORY } from '../../config';
 import { C } from '../../ui/retro';
 import { CHAPTER_TITLES } from '../titles';
 import type { ChapterDef } from '../types';
@@ -35,7 +36,7 @@ export const CH5: ChapterDef = {
         say('marshal', 'THE ENTERPRISE MUST NOT FAIL. WHOEVER OBJECTS IS A TRAITOR.'),
         say('legate', 'THE POPE WOULD AGREE. IF HE KNEW.'),
         ask('marshal', 'WELL, LITTLE KNIGHT? WHICH SIDE?', [
-          { label: 'WE DID NOT COME FOR THIS.', effects: { standing: -15, supervillain: 5, flags: { dissent: true } }, then: [say('marshal', 'TRAITOR. EVERYONE HEARD IT. (IT COSTS YOU STANDING, NOT THE LEVEL.)')] },
+          { label: 'WE DID NOT COME FOR THIS.', cost: STORY.COST.SPEAK_UP, effects: { standing: -15, supervillain: 5, flags: { dissent: true } }, then: [say('marshal', 'TRAITOR. EVERYONE HEARD IT. (IT COSTS YOU STANDING, NOT THE LEVEL.)')] },
           { label: 'THE ENTERPRISE MUST NOT FAIL.', effects: { standing: 5 }, then: [say('marshal', 'GOOD DOG.')] },
           { label: 'WHERE ARE THE TURKS?', then: [say('doge', 'FIRST ZARA.')] },
         ]),
@@ -60,7 +61,7 @@ export const CH5: ChapterDef = {
           stage('zara', [], { at: '4' }),
           call((ctx) => (skin = dreamSkin(ctx.state))),
           card('FIRST SIEGE', 'A SHORT REHEARSAL OF LADDERS AND WALLS', { color: C.yellow, seconds: 1.8 }),
-          mini(() => new LaddersGame(12, false, skin), { won: { supervillain: 4 } }),
+          mini(() => new LaddersGame(18, false, skin), { won: { supervillain: 4 } }),
           card('ZARA FALLS', 'IT IS SACKED. THE LOOT IS SHARED OUT.', { color: C.orange, seconds: 2.4 }),
           fx({ coins: 5 }),
           say('zampano', 'THERE WAS A WALL, AND IT WAS CHRISTIAN.', { remembered: true }),

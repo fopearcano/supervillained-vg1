@@ -242,3 +242,52 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
   script builds, every map parses, every awarded marvel has a home object) and
   `npm run smoke`, a Playwright run that plays every sub-level start to finish by skipping steps
   (`StoryScene.debugSkip`) and fails on page errors, missing textures or GL errors.
+
+## Playability and systems pass
+
+- **Autopilot** (`story/autopilot.ts`): an in-game player for automated playtests. It plays through
+  the same inputs a person uses (movement vector override and injected taps on `Input`, never by
+  calling game logic): confirm on dialogue, a policy for choices (first / last / random; a prompt
+  seen again gets the next option, so loops end), Dijkstra paths that avoid what guards can see
+  (it waits on a safe tile while a cone passes), hostile animals and fire, walking pace for pace
+  walks, scrambled-control compensation after a human-like reaction delay. Each mini-game has its
+  own strategy with `skill`-based error (rhythm timing noise and wrong gestures, tapping rate,
+  ladder dodges, catapult timing). Steps opt in with an optional `pilot()` method.
+- **`npm run playtest`** plays the whole campaign (1.1 → ending) at accelerated speed and writes a
+  report (`docs/PLAYTEST.md`): game seconds, restarts, times caught, nerve broken, mini-game
+  results and the meters after each sub-level. It fails if a sub-level cannot be finished.
+  `StoryScene.metrics` counts restarts for every player, not only the bot.
+- **What the first playtests showed**: everything was winnable, but Commozione reached 100 by 3.3
+  and stayed there, ladders took 4-5 s, and 2.1 (the beasts) was the only walk that kept
+  restarting. Fixes:
+  - **The feeling fades**: every dream sub-level (levels 2-7) starts with 2 less Commozione;
+    weeping gives 1 per correct beat, the weeping rounds 6, marvels 3 (5 in 7.8).
+  - **An unmoved Zampanò cannot act**: the big actions cost Commozione and are locked without it
+    ("TOO UNMOVED: NEEDS 10 COMMOZIONE"): atoning at the emir's table (8), speaking up at Zara
+    (10), serving the saint unpaid (10), the vigil at the wake (8), defying the emperors (10),
+    each bark at Jack at the sack (5; the 7.8 marvels refill exactly enough). A choice never
+    dead-ends: if every option is out of reach, the costly ones open.
+  - **Standing decides who walks beside him**: in 7.3 Sbrimbrulon always, the count of Saint-Pol
+    from Standing 45, Flanders (shamed back to the front) from 65; on the lawn in 8.3 Confusione
+    always, Sbrimbrulon from 35, Watson crosses over from 60. Each companion beside him removes
+    some of the pace pressure.
+  - **Grace shows**: the 8.2 altar glows (≥70), is crooked (≥40) or is made of chew toys, and
+    the ending card adds a Grace line and a Standing line.
+  - **Ladders**: 18 rungs (5.2) and 30 (7.2), stones every 0.55 s in the real assault, at most one
+    rung per 0.12 s however fast he taps.
+  - **2.1**: checkpoints after the first stretch and near the end; the bear and the hound are a
+    little slower.
+  - Result: two full runs (skill 0.7 / knight / first choices, and skill 0.4 / alpha / random
+    choices) finish all 42 sub-levels with at most one restart each; Commozione now moves
+    between roughly 10 and 60.
+- **Tuning moved to `config.ts`** (`STORY`): sight cones, pace, thirst, scramble, fire, rhythm,
+  weeping and parade, ladders, tug of war, calm, catapult, rumour, costs, companion thresholds,
+  Grace tiers, text speeds, autopilot. Per-scene numbers (a walk's pressure, a ladder's rungs)
+  stay in the chapter scripts, which are level data like the maps.
+- **Quality of life**: text speed (slow / normal / fast / instant) in the story pause menu, saved
+  with the settings; a level's sub-level list from the story menu, where any finished scene can
+  be replayed on a copy of the campaign (nothing is saved, the card says so); the Meraviglia book
+  pages by real text height, with an icon per section and an "AT HOME" section first.
+- **Bugs found on the way**: changing stage inside a sub-level destroyed the scene's own particle
+  and popup layers (crash at the next burst; it surfaced as soon as the bot played everything);
+  a catapult shot could break every glass with shots to spare and the game then waited forever.

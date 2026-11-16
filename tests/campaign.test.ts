@@ -2,7 +2,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CHAPTERS, findSubLevel } from '../src/campaign/chapters';
 import { homeObject, KNOWN_MARVELS } from '../src/campaign/home';
-import { applyEffects, canSpend, dreamSkin, ending, METER_MAX, newCampaign, spend, unshakeable } from '../src/campaign/state';
+import { applyEffects, canSpend, companions, dreamSkin, ending, endingNotes, fadeCommozione, graceTier, METER_MAX, newCampaign, spend, unshakeable } from '../src/campaign/state';
+import { STORY } from '../src/config';
+import { optionView } from '../src/story/steps';
 import { CHAPTER_TITLES, shardName } from '../src/campaign/titles';
 import { STORY_MAPS, THEMES } from '../src/story/maps';
 import { parseAsciiMap } from '../src/world/level';
@@ -46,6 +48,53 @@ describe('campaign state rules', () => {
     expect(unshakeable(s)).toBe(false);
     applyEffects(s, { supervillain: 200 });
     expect(unshakeable(s)).toBe(true);
+  });
+});
+
+describe('meters with consequences', () => {
+  it('fades Commozione only in the dream levels (2-7), never below zero', () => {
+    const s = newCampaign();
+    expect(fadeCommozione(s, 1)).toBe(0);
+    expect(fadeCommozione(s, 3)).toBe(STORY.COMMOZIONE_FADE);
+    expect(s.meters.commozione).toBe(20 - STORY.COMMOZIONE_FADE);
+    expect(fadeCommozione(s, 8)).toBe(0);
+    s.meters.commozione = 1;
+    expect(fadeCommozione(s, 5)).toBe(1);
+    expect(s.meters.commozione).toBe(0);
+  });
+
+  it('lets Standing decide who walks beside him', () => {
+    const s = newCampaign();
+    s.meters.standing = 20;
+    expect(companions(s, 'vanguard')).toEqual(['sbrim']);
+    expect(companions(s, 'lawn')).toEqual(['conf']);
+    s.meters.standing = STORY.FOLLOW.SAINT_POL;
+    expect(companions(s, 'vanguard')).toEqual(['sbrim', 'stpol']);
+    s.meters.standing = 100;
+    expect(companions(s, 'vanguard')).toEqual(['sbrim', 'stpol', 'flanders']);
+    expect(companions(s, 'lawn')).toEqual(['conf', 'sbrim', 'watson']);
+  });
+
+  it('shows Grace on the altar and in the ending', () => {
+    const s = newCampaign();
+    s.meters.grace = STORY.GRACE.HIGH;
+    expect(graceTier(s)).toBe('high');
+    s.meters.grace = STORY.GRACE.LOW;
+    expect(graceTier(s)).toBe('mid');
+    s.meters.grace = 0;
+    expect(graceTier(s)).toBe('low');
+    expect(endingNotes(s)[0]).toMatch(/CHEW TOYS/);
+    expect(endingNotes(s)).toHaveLength(2);
+  });
+
+  it('locks costly choices when he is unmoved, and shows the cost', () => {
+    const s = newCampaign();
+    s.meters.commozione = 5;
+    const o = { label: 'WE DEFY YOU.', cost: 10 };
+    expect(optionView(o, s)).toEqual({ label: 'WE DEFY YOU.', locked: 'TOO UNMOVED: NEEDS 10 COMMOZIONE' });
+    s.meters.commozione = 10;
+    expect(optionView(o, s)).toEqual({ label: 'WE DEFY YOU.  (-10 COMMOZIONE)' });
+    expect(optionView({ label: 'FREE' }, s)).toEqual({ label: 'FREE' });
   });
 });
 

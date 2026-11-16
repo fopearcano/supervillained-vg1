@@ -1,3 +1,4 @@
+import type { Autopilot } from './autopilot';
 import type { StoryScene } from './storyScene';
 
 export type StepStatus = 'running' | 'done';
@@ -13,6 +14,8 @@ export interface Step {
   stop?(ctx: StoryScene): void;
   /** Called when the step resumes after an interruption (see StoryScene.interrupt). */
   resume?(ctx: StoryScene): void;
+  /** Automated playtests: play this step through the inputs (see story/autopilot.ts). */
+  pilot?(dt: number, ctx: StoryScene, p: Autopilot): void;
 }
 
 /** Wraps a suspended step so it continues after the interrupting steps. */
@@ -26,5 +29,8 @@ export class ResumeStep implements Step {
   }
   stop(ctx: StoryScene): void {
     this.inner.stop?.(ctx);
+  }
+  pilot(dt: number, ctx: StoryScene, p: Autopilot): void {
+    this.inner.pilot?.(dt, ctx, p);
   }
 }

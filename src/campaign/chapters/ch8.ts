@@ -2,6 +2,8 @@ import { ask, branch, call, card, flash, fx, move, prof, say, shake, sound, stag
 import { walk, type Pickup } from '../../story/walk';
 import { C } from '../../ui/retro';
 import { homeObject } from '../home';
+import { companions, graceTier } from '../state';
+import { gridToScreen } from '../../iso/projection';
 import { CHAPTER_TITLES } from '../titles';
 import type { ChapterDef } from '../types';
 
@@ -100,6 +102,22 @@ export const CH8: ChapterDef = {
         }),
         walk({ objective: "SET UP A SMALL ALTAR BESIDE THE PROFESSOR'S CHAIR", goal: { reach: '4', label: 'ALTAR' } }),
         fx({ commozione: 10, flags: { altar: true } }),
+        // Grace shows on the altar.
+        call((ctx) => {
+          const tier = graceTier(ctx.state);
+          const [big, small, item] =
+            tier === 'high'
+              ? ['THE ALTAR GLOWS', 'HE KEPT THE FORMS, EVEN WHEN EVERYONE FORGAVE HIM', 'A SMALL ALTAR THAT GLOWS']
+              : tier === 'mid'
+                ? ['A SMALL ALTAR', 'A LITTLE CROOKED, LIKE HIM', 'A SMALL CROOKED ALTAR']
+                : ['AN ALTAR OF CHEW TOYS', 'IT WILL DO. GOD IS NOT FUSSY. THE BURGHER IS.', 'AN ALTAR OF CHEW TOYS'];
+          ctx.apply({ item, flags: { altarTier: tier } });
+          if (tier === 'high') {
+            const s = gridToScreen(ctx.marker('4').x, ctx.marker('4').y);
+            ctx.particles.burst(s.x, s.y - 14, { count: 24, textures: ['sparkle', 'pixel'], colors: [0xffffff, 0xffe23a], speed: [20, 60], life: [0.8, 1.6], drag: 2 });
+          }
+          ctx.insert([card(big, small, { color: tier === 'high' ? C.yellow : tier === 'mid' ? '#f0d8a0' : '#c8a070', seconds: 2.6 })]);
+        }),
         say('confusione', 'RELICS AND A STORY. THAT IS ALL CLARI BROUGHT BACK.'),
         say('zampano', 'THERE WAS A CHAPEL, AND IT WAS UNDER THE DESK.', { remembered: true }),
       ],
@@ -129,16 +147,22 @@ export const CH8: ChapterDef = {
           walk({
             objective: 'WALK AT THEM: NO CHARGE, NO TURNING BACK',
             goal: { reach: '4', radius: 1.6 },
-            pace: { pressure: 0.05 },
+            pace: { pressure: 0.05, companions: ['conf', 'sbrim', 'watson'] },
             onUpdate: (ctx) => {
               const g = ctx.marker('4');
               const s = ctx.marker('S');
               const done = 1 - Math.hypot(g.x - ctx.player.gx, g.y - ctx.player.gy) / (Math.hypot(g.x - s.x, g.y - s.y) || 1);
               if (!joined && done > 0.3) {
                 joined = true;
+                // Comradeship brings Confusione; Standing decides who else crosses the lawn to him.
+                const who = companions(ctx.state, 'lawn');
                 ctx.addActor('conf', 'confusione', { x: ctx.player.gx + 1.2, y: ctx.player.gy + 0.8 }, { kind: 'follow', target: ctx.player, distance: 1.2, speed: 2.4, side: 0.9 });
-                ctx.actor('sbrim').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.2, speed: 2.4, side: -0.9 });
-                ctx.notice('CONFUSIONE AND SBRIMBRULON FALL IN BESIDE HIM', C.green);
+                if (who.includes('sbrim')) ctx.actor('sbrim').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.2, speed: 2.4, side: -0.9 });
+                if (who.includes('watson')) ctx.actor('watson').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.8, speed: 2.6, side: 0 });
+                ctx.notice(
+                  who.includes('watson') ? 'CONFUSIONE, SBRIMBRULON AND EVEN WATSON FALL IN BESIDE HIM' : who.includes('sbrim') ? 'CONFUSIONE AND SBRIMBRULON FALL IN BESIDE HIM' : 'ONLY CONFUSIONE FALLS IN BESIDE HIM',
+                  C.green,
+                );
                 ctx.say('THERE WERE A LOT OF THEM, AND THEY WERE SHOUTING', ctx.marker('4'), C.orange);
               }
             },
@@ -151,7 +175,7 @@ export const CH8: ChapterDef = {
               card('BAGNASKIZ TURNS', 'AND GOES IN. NO TOOTH IS DRAWN.', { color: C.cyan, seconds: 2.2 }),
               call((ctx) => {
                 ctx.actor('jack').setBehavior({ kind: 'goto', to: ctx.marker('E'), speed: 2.4, run: true });
-                ctx.actor('watson').setBehavior({ kind: 'idle', face: 'player' });
+                if (!companions(ctx.state, 'lawn').includes('watson')) ctx.actor('watson').setBehavior({ kind: 'idle', face: 'player' });
               }),
               say('watson', 'MAN. HE TURNED.'),
             ],

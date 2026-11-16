@@ -1,7 +1,7 @@
 import { Container, Graphics } from 'pixi.js';
 import { ensureCharacters } from '../assets/build';
 import type { CharacterKey } from '../assets/manifest';
-import { applyEffects, dreamSkin, saveCampaign, type CampaignState, type Effects } from '../campaign/state';
+import { applyEffects, dreamSkin, fadeCommozione, saveCampaign, type CampaignState, type Effects } from '../campaign/state';
 import type { ChapterDef, SubLevelDef } from '../campaign/types';
 import type { Game } from '../core/game';
 import type { Scene } from '../core/scene';
@@ -15,6 +15,8 @@ import { TouchControls } from '../ui/touchControls';
 import { parseAsciiMap } from '../world/level';
 import { World } from '../world/world';
 import { STORY_MAPS, THEMES, type MapKey } from './maps';
+import { STORY } from '../config';
+import type { Autopilot } from './autopilot';
 import { ResumeStep, type Step } from './step';
 import { CardLayer, DialogueBox, StoryHud } from './ui';
 
@@ -63,6 +65,12 @@ export class StoryScene implements Scene {
   time = 0;
   /** Seconds the scene has been paused by a modal (used by steps for timers). */
   locked = false;
+  /** False for replays: nothing this scene changes is saved. */
+  persist = true;
+  /** Automated playtest driver (null in normal play). */
+  pilot: Autopilot | null = null;
+  /** Playtest counters: how often the player had to start a walk or mini-game again. */
+  readonly metrics = { restarts: 0, caught: 0, nerveBroken: 0, ran: 0, miniRetries: 0, minis: [] as string[], choices: [] as string[] };
 
   constructor(
     readonly game: Game,
@@ -84,12 +92,20 @@ export class StoryScene implements Scene {
 
   enter(): void {
     this.queue = this.sub.script();
+    // The feeling fades between dream scenes: wonder and weeping have to keep filling it.
+    const lost = fadeCommozione(this.state, this.chapter.number);
+    if (lost) {
+      if (this.persist) saveCampaign(this.state);
+      this.notice(`-${lost} COMMOZIONE: THE FEELING FADES`, '#9aa4c0', 2.5);
+    }
     this.next();
   }
 
   exit(): void {
     this.current?.stop?.(this);
     this.current = null;
+    this.worldFx.removeFromParent();
+    if (this.pilot) this.game.input.override = null;
     this.world?.destroy();
     this.world = null;
   }
@@ -142,6 +158,8 @@ export class StoryScene implements Scene {
 
   /** Builds the isometric stage from a story map. Zampanò wears his dream costume by default. */
   setStage(key: MapKey, opts: StageOptions = {}): World {
+    // The FX layers belong to the scene: take them out before the old world is destroyed.
+    this.worldFx.removeFromParent();
     this.world?.destroy();
     this.actors.clear();
     const def = STORY_MAPS[key];
@@ -246,7 +264,7 @@ export class StoryScene implements Scene {
   /** Applies campaign effects, shows what changed and saves. */
   apply(fx: Effects): void {
     const changes = applyEffects(this.state, fx);
-    saveCampaign(this.state);
+    if (this.persist) saveCampaign(this.state);
     changes.forEach((c, k) => this.notice(c.label, c.positive ? C.green : C.red, k * 0.25));
   }
 
@@ -284,7 +302,12 @@ export class StoryScene implements Scene {
       this.hooks.onMenu(this);
       return;
     }
+    this.dialogue.cps = STORY.TEXT_CPS[this.game.settings.textSpeed];
     this.world?.beginStep();
+    if (this.pilot) {
+      this.pilot.beginStep(dt, this);
+      this.current?.pilot?.(dt, this, this.pilot);
+    }
     if (this.current && this.current.update(dt, this) === 'done') this.next();
     if (this.world) {
       this.world.player.updateMovement(dt, this.world.map);
@@ -333,6 +356,9 @@ export class StoryScene implements Scene {
     const p = this.world?.player;
     return {
       sub: this.sub.id,
+      finished: this.finished,
+      time: +this.time.toFixed(2),
+      metrics: this.metrics,
       step: this.current?.constructor.name ?? null,
       queue: this.queue.length,
       player: p ? { gx: +p.gx.toFixed(2), gy: +p.gy.toFixed(2) } : null,

@@ -39,7 +39,9 @@ Open the printed `Local` URL on the computer, or the `Network` URL on a phone on
 | Menu   | MENU (top right) | Esc |
 | Story: next line / choose | tap the line / tap an option | Space or Enter / arrows + Space |
 
-In the story the right button changes name with the scene (LOOK, SNIFF, BARK, PLACE…).
+In the story the right button changes name with the scene (LOOK, SNIFF, BARK, PLACE…). The
+pause menu sets the text speed; the story menu opens each level's scene list, where any finished
+scene can be replayed without changing your campaign.
 
 ## Play on a phone (browser)
 
@@ -91,7 +93,8 @@ Placeholder icons/splash screens are regenerated with `npm run android:icons`.
 npm run build      # typecheck + production build (dist/)
 npm test           # unit tests (Vitest)
 npm run screens    # Playwright screenshots into docs/screens/
-npm run smoke      # plays every story sub-level start to finish
+npm run smoke      # runs every story script start to finish (skipping steps)
+npm run playtest   # the autopilot plays the whole campaign for real; report in docs/PLAYTEST.md
 ```
 
 See `CLAUDE.md` for the architecture, `ASSETS.md` to replace the placeholder art, and

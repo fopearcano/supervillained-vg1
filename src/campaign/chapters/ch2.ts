@@ -1,5 +1,6 @@
 import { gridToScreen } from '../../iso/projection';
 import { spend } from '../state';
+import { STORY } from '../../config';
 import { ask, behave, call, card, emote, flash, fx, prof, say, skin, sound, wait } from '../../story/steps';
 import { walk } from '../../story/walk';
 import { C } from '../../ui/retro';
@@ -29,12 +30,12 @@ export const CH2: ChapterDef = {
       script: () => [
         call((ctx) => {
           ctx.setStage('darkwood');
-          const bear = ctx.addActor('bear', 'bear', '2', { kind: 'chase', speed: 1.9, radius: 3.2, home: ctx.marker('2'), leash: 5 });
+          const bear = ctx.addActor('bear', 'bear', '2', { kind: 'chase', speed: 1.7, radius: 3.2, home: ctx.marker('2'), leash: 5 });
           bear.hostile = true;
           const leo = ctx.addActor('leopard', 'leopard', '3', patrol(ctx, ['3', '8', '3'], 2.6, 0.2));
           leo.hostile = true;
           leo.sight = { range: 3, halfAngle: 0.5 };
-          const hound = ctx.addActor('hound', 'hound', '4', { kind: 'chase', speed: 1.6, radius: 2.6, home: ctx.marker('4'), leash: 4 });
+          const hound = ctx.addActor('hound', 'hound', '4', { kind: 'chase', speed: 1.5, radius: 2.6, home: ctx.marker('4'), leash: 4 });
           hound.hostile = true;
         }),
         prof('"SO FULL OF SLEEP" AT THE START OF HIS JOURNEY. DANTE, YOU UNDERSTAND. NOT THE DOG.'),
@@ -43,6 +44,7 @@ export const CH2: ChapterDef = {
           goal: { reach: 'E' },
           caught: 'restart',
           caughtText: 'THE BEASTS BARRED THE PATH',
+          checkpoints: ['1', '5'],
           onAction: (ctx) => {
             bark(ctx, 'WOOF?');
             for (const a of ctx.actors.values()) a.emote('bark');
@@ -67,6 +69,10 @@ export const CH2: ChapterDef = {
           }),
           walk({
             objective: 'CATCH THE FALCON',
+            pilot: (ctx) => {
+              const f = ctx.actors.get('falcon');
+              return f ? { target: { x: f.gx, y: f.gy } } : null;
+            },
             onUpdate: (ctx, w) => {
               ctx.player.speedMul = Math.max(0.35, 1 - w.time / 30);
               if (w.time > 3 && Math.floor(w.time) % 6 === 0 && Math.random() < 0.02) ctx.notice('THE GROUND BOGS DOWN', '#8a6a40');
@@ -125,8 +131,18 @@ export const CH2: ChapterDef = {
             objective: 'SERMON BARK THE CROWD (0/5). IT SPENDS COMMOZIONE',
             action: 'SERMON',
             need: 5,
+            pilot: (ctx) => {
+              let best: { x: number; y: number } | null = null;
+              let bd = Infinity;
+              for (const [name, a] of ctx.actors) {
+                if (name === 'preacher' || moved.has(name)) continue;
+                const d = Math.hypot(a.gx - ctx.player.gx, a.gy - ctx.player.gy);
+                if (d < bd) [best, bd] = [{ x: a.gx, y: a.gy }, d];
+              }
+              return best ? { target: best, act: bd < 2.2, hold: bd < 1.6 } : null;
+            },
             onAction: (ctx) => {
-              if (!spend(ctx.state, 'commozione', 4)) {
+              if (!spend(ctx.state, 'commozione', STORY.COST.SERMON)) {
                 ctx.notice('UNMOVED: HE CANNOT ACT', C.red);
                 ctx.game.audio.play('empty');
                 return;
@@ -144,7 +160,7 @@ export const CH2: ChapterDef = {
             onUpdate: (ctx, w) => {
               w.collected = moved.size;
               ctx.hud.setObjective(`SERMON BARK THE CROWD (${moved.size}/5). IT SPENDS COMMOZIONE`);
-              if (ctx.state.meters.commozione < 4) ctx.apply({ commozione: 10 });
+              if (ctx.state.meters.commozione < STORY.COST.SERMON) ctx.apply({ commozione: 10 });
             },
           }),
           fx({ coins: 12 }),

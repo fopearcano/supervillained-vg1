@@ -3,6 +3,8 @@ import { textures } from '../../core/assets';
 import { spriteName } from '../../assets/manifest';
 import { PixelText } from '../../ui/pixelText';
 import { C, frameRect, hex, retroBox } from '../../ui/retro';
+import { STORY } from '../../config';
+import type { Autopilot } from '../autopilot';
 import type { StoryScene } from '../storyScene';
 import { MiniGame, type MiniResult } from './miniGame';
 
@@ -22,7 +24,7 @@ export interface RhythmOptions {
   need: number;
 }
 
-const WINDOW = 0.18;
+const WINDOW = STORY.RHYTHM.WINDOW;
 
 export class RhythmGame extends MiniGame {
   private readonly bg = new Graphics();
@@ -79,7 +81,25 @@ export class RhythmGame extends MiniGame {
 
   start(ctx: StoryScene): void {
     ctx.setControls(false);
-    this.time = -1.2;
+    this.time = -STORY.RHYTHM.START_DELAY;
+  }
+
+  /** Autopilot: one press per beat, with timing noise and the odd wrong gesture. */
+  private plan: Array<{ at: number; side: 0 | 1; done: boolean }> | null = null;
+  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    if (!this.plan) {
+      const sigma = 0.025 + (1 - p.policy.skill) * 0.12;
+      this.plan = this.layoutBeats.map((b, k) => {
+        const right = p.random() < 0.7 + 0.3 * p.policy.skill;
+        return { at: this.beatAt(k) + p.gauss(sigma), side: (right ? b.side : 1 - b.side) as 0 | 1, done: false };
+      });
+    }
+    for (const q of this.plan) {
+      if (q.done || this.time < q.at) continue;
+      q.done = true;
+      p.press(ctx, this.o.mode === 'single' ? 'confirm' : q.side === 0 ? 'left' : 'right');
+      break;
+    }
   }
 
   private beatAt(k: number): number {
@@ -95,7 +115,7 @@ export class RhythmGame extends MiniGame {
       const t = this.tears[this.hits % this.tears.length]!;
       t.visible = true;
       t.alpha = 1;
-      if (this.o.mode === 'choice') ctx.apply({ commozione: 2 });
+      if (this.o.mode === 'choice') ctx.apply({ commozione: STORY.WEEP_HIT });
     } else {
       this.feedbackText = this.o.mode === 'choice' ? 'TOO DRY' : 'OFF BEAT';
       ctx.game.audio.play('empty');
@@ -107,7 +127,7 @@ export class RhythmGame extends MiniGame {
     const input = ctx.game.input;
     const { w, h } = this;
     const lineY = h - 70;
-    const speed = 70; // px per second
+    const speed = STORY.RHYTHM.CUE_SPEED;
     // Metronome
     const beatIdx = Math.floor(this.time / this.beatTime);
     if (beatIdx >= 0 && beatIdx !== this.lastBeatSound && beatIdx < this.o.beats) {
@@ -174,9 +194,11 @@ export class RhythmGame extends MiniGame {
 export const WEEPING = ['KNEEL', 'WEEP', 'HONOUR', 'SHAME', 'VENGEANCE'];
 
 export function weeping(round: number): RhythmGame {
-  return new RhythmGame({ mode: 'choice', beats: 10, bpm: round === 1 ? 46 : 58, sequence: WEEPING, title: round === 1 ? 'THE ENVOYS WEEP' : 'THE DOGE TAKES THE CROSS', need: 6 });
+  const W = STORY.WEEPING;
+  return new RhythmGame({ mode: 'choice', beats: W.BEATS, bpm: round === 1 ? W.BPM_ROUND1 : W.BPM_ROUND2, sequence: WEEPING, title: round === 1 ? 'THE ENVOYS WEEP' : 'THE DOGE TAKES THE CROSS', need: W.NEED });
 }
 
 export function parade(): RhythmGame {
-  return new RhythmGame({ mode: 'single', beats: 12, bpm: 72, title: 'VENI CREATOR', need: 8 });
+  const P = STORY.PARADE;
+  return new RhythmGame({ mode: 'single', beats: P.BEATS, bpm: P.BPM, title: 'VENI CREATOR', need: P.NEED });
 }

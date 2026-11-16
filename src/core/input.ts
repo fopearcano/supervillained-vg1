@@ -99,10 +99,18 @@ export class Input {
     document.addEventListener('dblclick', prevent);
   }
 
+  /** Automation (story autopilot): when set, replaces keyboard and joystick movement. */
+  override: { x: number; y: number } | null = null;
+
   /** Called once per logic step. */
   update(dt: number): void {
     this.now += dt;
     for (const [a, t] of this.pending) if (this.now - t > INPUT.ACTION_TTL) this.pending.delete(a);
+    if (this.override) {
+      this.move.x = this.override.x;
+      this.move.y = this.override.y;
+      return;
+    }
     // Keyboard vector
     let kx = 0;
     let ky = 0;
@@ -154,6 +162,11 @@ export class Input {
 
   trigger(action: Action): void {
     this.pending.set(action, this.now);
+  }
+
+  /** Automation: a tap at a logical position, as if a finger pressed and released there. */
+  pushTap(x: number, y: number): void {
+    this.taps.push({ x, y });
   }
 
   setButton(b: Omit<VirtualButton, 'pressed'>): void {

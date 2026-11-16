@@ -36,11 +36,11 @@ export const CH3: ChapterDef = {
           objective: 'FIND AND NAME THE MARVELS (FILLS THE MERAVIGLIA BOOK)',
           action: 'LOOK',
           pickups: [
-            { at: '1', kind: 'marvel', label: 'THE DROMONS', text: 'GREAT ROUND SHIPS, TALLER THAN HOUSES', effects: { marvel: 'THE DROMONS', commozione: 4 } },
-            { at: '2', kind: 'marvel', label: 'THE HORSE TRANSPORTS', text: 'SHIPS WITH DOORS IN THE SIDE, FOR HORSES', effects: { marvel: 'THE HORSE TRANSPORTS', commozione: 4 } },
-            { at: '3', kind: 'marvel', label: 'THE GALLEYS', text: 'FIFTY OF THEM, ALL OARS AND BANNERS', effects: { marvel: 'THE GALLEYS', commozione: 4 } },
-            { at: '4', kind: 'marvel', label: 'THE COLUMNS OF SAN MARCO', text: 'THE LION ON ONE, THE SAINT ON THE OTHER', effects: { marvel: 'THE COLUMNS OF SAN MARCO', commozione: 4 } },
-            { at: '5', kind: 'marvel', label: 'THE FOUNTAIN', text: 'WATER THAT IS NOT SEA, IN THE MIDDLE OF THE SEA', effects: { marvel: 'THE FOUNTAIN OF VENICE', commozione: 4 } },
+            { at: '1', kind: 'marvel', label: 'THE DROMONS', text: 'GREAT ROUND SHIPS, TALLER THAN HOUSES', effects: { marvel: 'THE DROMONS', commozione: 3 } },
+            { at: '2', kind: 'marvel', label: 'THE HORSE TRANSPORTS', text: 'SHIPS WITH DOORS IN THE SIDE, FOR HORSES', effects: { marvel: 'THE HORSE TRANSPORTS', commozione: 3 } },
+            { at: '3', kind: 'marvel', label: 'THE GALLEYS', text: 'FIFTY OF THEM, ALL OARS AND BANNERS', effects: { marvel: 'THE GALLEYS', commozione: 3 } },
+            { at: '4', kind: 'marvel', label: 'THE COLUMNS OF SAN MARCO', text: 'THE LION ON ONE, THE SAINT ON THE OTHER', effects: { marvel: 'THE COLUMNS OF SAN MARCO', commozione: 3 } },
+            { at: '5', kind: 'marvel', label: 'THE FOUNTAIN', text: 'WATER THAT IS NOT SEA, IN THE MIDDLE OF THE SEA', effects: { marvel: 'THE FOUNTAIN OF VENICE', commozione: 3 } },
           ],
           onAction: (ctx) => ctx.say('OOOH.', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
         }),
@@ -80,10 +80,10 @@ export const CH3: ChapterDef = {
           ['8', '6', '9'].forEach((m, k) => ctx.addActor(`v${k}`, (['crowdA', 'crowdB', 'crowdC'] as const)[k], m, { kind: 'idle', face: 'player' }));
         }),
         say('voice', 'FEELING MAKES ACTION. TEARS FIRST, THE DECISION AFTER.'),
-        mini(() => weeping(1), { won: { commozione: 10 }, lost: { commozione: 3 } }),
+        mini(() => weeping(1), { won: { commozione: 6 }, lost: { commozione: 2 } }),
         card('YES! YES!', 'TEN THOUSAND VENETIANS WEEP BACK AND SHOUT', { color: C.cyan, seconds: 2.2 }),
         say('doge', 'I AM OLD AND BLIND. I WILL TAKE THE CROSS. SOMEBODY HAS TO STEER.'),
-        mini(() => weeping(2), { won: { commozione: 10, flags: { weptWell: true } }, lost: { commozione: 3 } }),
+        mini(() => weeping(2), { won: { commozione: 6, flags: { weptWell: true } }, lost: { commozione: 2 } }),
         say('zampano', 'I WAS WEEPING VERY WELL.', { remembered: true }),
       ],
     },
@@ -107,6 +107,7 @@ export const CH3: ChapterDef = {
           walk({
             objective: "LISTEN AT THE BARONS' TENT UNSEEN",
             caught: 'restart',
+            pilot: (ctx) => ({ target: ctx.marker('9'), hold: true }),
             caughtText: 'A GUARD SAW YOU',
             onUpdate: (ctx, w, dt) => {
               const t = ctx.marker('9');

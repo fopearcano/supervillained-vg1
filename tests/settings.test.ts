@@ -45,10 +45,16 @@ describe('settings, records and coins', () => {
     (globalThis as { localStorage?: unknown }).localStorage = new MemoryStorage();
   });
 
-  it('persists mute and volume', () => {
+  it('persists mute, volume and text speed', () => {
     expect(loadSettings().muted).toBe(false);
-    saveSettings({ muted: true, volume: 0.3 });
-    expect(loadSettings()).toEqual({ muted: true, volume: 0.3 });
+    expect(loadSettings().textSpeed).toBe('normal');
+    saveSettings({ muted: true, volume: 0.3, textSpeed: 'fast' });
+    expect(loadSettings()).toEqual({ muted: true, volume: 0.3, textSpeed: 'fast' });
+  });
+
+  it('falls back to normal text speed for unknown values', () => {
+    localStorage.setItem('supervillained:settings', JSON.stringify({ textSpeed: 'warp' }));
+    expect(loadSettings().textSpeed).toBe('normal');
   });
 
   it('keeps the best score, best stars and best time', () => {

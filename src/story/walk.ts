@@ -2,12 +2,14 @@ import { Container, Graphics, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import { spriteName, type SpriteKey } from '../assets/manifest';
 import { unshakeable, type Effects } from '../campaign/state';
+import { STORY } from '../config';
 import { Entity } from '../entities/entity';
 import type { Actor, Point } from '../entities/actor';
 import { gridToScreen } from '../iso/projection';
 import { C } from '../ui/retro';
 import type { GameMap } from '../world/map';
 import { card, call } from './steps';
+import type { Autopilot } from './autopilot';
 import type { Step, StepStatus } from './step';
 import type { StoryScene } from './storyScene';
 
@@ -31,6 +33,17 @@ export interface PaceDef {
   forward?: Point;
   /** Extra nerve drain per second (shouting crowds, arrows...). */
   pressure?: number;
+  /** Actors who, walking beside him, steady his nerve (each removes some pressure). */
+  companions?: string[];
+}
+
+/** What the autopilot should do in a walk with a custom objective. */
+export interface PilotHint {
+  target?: Point;
+  /** Press the action button now. */
+  act?: boolean;
+  /** Stay put at the target (listening, waiting). */
+  hold?: boolean;
 }
 
 export interface WalkState {
@@ -69,6 +82,10 @@ export interface WalkDef {
   speed?: number;
   /** Zampanò can't run (walking pace only). */
   noRun?: boolean;
+  /** Passing near one of these moves the restart point there (long walks with chasers). */
+  checkpoints?: Array<string | Point>;
+  /** Autopilot advice for objectives it cannot infer from goal and pickups. */
+  pilot?: (ctx: StoryScene, w: WalkState, p: Autopilot) => PilotHint | null;
 }
 
 const PICKUP_SPRITE: Record<Pickup['kind'], SpriteKey | null> = {
@@ -135,7 +152,7 @@ export function canSee(map: GameMap, a: Actor, x: number, y: number): boolean {
   const cos = (dx * a.facing.x + dy * a.facing.y) / (d || 1);
   if (d > 0.8 && cos < Math.cos(a.sight.halfAngle)) return false;
   const here = map.propAt(Math.floor(x), Math.floor(y));
-  if (here && here.kind === 'bush' && d > 1.2) return false;
+  if (here && here.kind === 'bush' && d > STORY.BUSH_HIDE) return false;
   return lineOfSight(map, a.gx, a.gy, x, y);
 }
 
@@ -157,6 +174,7 @@ class WalkStep implements Step {
   private fire = new Map<number, Sprite>();
   private fireT = 0;
   private fireOn = false;
+  private passed = new Set<string>();
 
   constructor(private readonly def: WalkDef) {}
 
@@ -198,6 +216,7 @@ class WalkStep implements Step {
 
   /** Back to the start of the walk (after being caught). */
   private reset(ctx: StoryScene): void {
+    ctx.metrics.restarts++;
     ctx.player.setPosition(this.start0.x, this.start0.y);
     ctx.world!.snapCamera();
     for (const a of ctx.actors.values()) a.alert = 0;
@@ -235,7 +254,7 @@ class WalkStep implements Step {
     // Pickups
     for (let k = this.pickups.length - 1; k >= 0; k--) {
       const e = this.pickups[k]!;
-      if (Math.hypot(e.gx - p.gx, e.gy - p.gy) > 0.7) continue;
+      if (Math.hypot(e.gx - p.gx, e.gy - p.gy) > STORY.PICKUP_RADIUS) continue;
       this.pickups.splice(k, 1);
       world.removeEntity(e);
       w.collected++;
@@ -249,6 +268,15 @@ class WalkStep implements Step {
       if (d.text) ctx.interrupt([card(d.label ?? '', d.text, { color: C.yellow, seconds: 3.2, dim: 0.35 })]);
     }
 
+    for (const c of this.def.checkpoints ?? []) {
+      const at = ctx.marker(c);
+      const key = `${at.x},${at.y}`;
+      if (this.passed.has(key) || Math.hypot(at.x - p.gx, at.y - p.gy) > 1.2) continue;
+      this.passed.add(key);
+      this.start0 = { x: at.x, y: at.y };
+      ctx.notice('CHECKPOINT', C.green);
+      ctx.game.audio.play('star');
+    }
     this.updateDetection(dt, ctx);
     if (this.def.pace) this.updatePace(dt, ctx);
     if (this.def.thirst) this.updateThirst(dt, ctx);
@@ -258,7 +286,7 @@ class WalkStep implements Step {
 
     // Completion
     const need = this.def.need ?? (this.goal ? 0 : (this.def.pickups?.length ?? 0));
-    const reached = !this.goal || Math.hypot(this.goal.x - p.gx, this.goal.y - p.gy) < (this.def.goal?.radius ?? 0.8);
+    const reached = !this.goal || Math.hypot(this.goal.x - p.gx, this.goal.y - p.gy) < (this.def.goal?.radius ?? STORY.GOAL_RADIUS);
     const survived = this.def.survive === undefined || w.time >= this.def.survive;
     const counted = need === 0 ? true : w.collected >= need;
     if (w.complete || (reached && survived && counted && (this.goal || need > 0 || this.def.survive !== undefined))) return 'done';
@@ -272,10 +300,10 @@ class WalkStep implements Step {
     let caught = false;
     this.cones.clear();
     for (const a of ctx.actors.values()) {
-      if (a.hostile && Math.hypot(a.gx - p.gx, a.gy - p.gy) < 0.6) caught = true;
+      if (a.hostile && Math.hypot(a.gx - p.gx, a.gy - p.gy) < STORY.HOSTILE_TOUCH) caught = true;
       if (!a.sight) continue;
       const seen = canSee(world.map, a, p.gx, p.gy);
-      a.alert = Math.max(0, Math.min(1, a.alert + (seen ? dt * 2.2 : -dt * 1.2)));
+      a.alert = Math.max(0, Math.min(1, a.alert + (seen ? dt * STORY.ALERT_GAIN : -dt * STORY.ALERT_DECAY)));
       if (a.alert >= 1) caught = true;
       this.drawCone(a);
     }
@@ -284,6 +312,7 @@ class WalkStep implements Step {
       ctx.game.audio.play('hurt');
       ctx.shake(3);
       for (const a of ctx.actors.values()) a.alert = 0;
+      ctx.metrics.caught++;
       if (this.def.caught === 'restart') ctx.interrupt([card(text, 'BACK TO WHERE YOU STARTED', { color: C.red, seconds: 1.6 }), call(() => this.reset(ctx))]);
       else ctx.interrupt(this.def.caught(ctx, this.w));
     }
@@ -312,28 +341,34 @@ class WalkStep implements Step {
     const mag = Math.hypot(input.move.x, input.move.y);
     const v = Math.hypot(p.vx, p.vy);
     const fwd = v > 0.2 ? (p.vx * this.forward.x + p.vy * this.forward.y) / v : 0;
-    let delta = 0.06;
+    const P = STORY.PACE;
+    let delta: number = P.GAIN;
     let warn: string | null = null;
-    if (mag >= 0.95) {
-      delta = -0.35;
+    if (mag >= P.CHARGE_MAG) {
+      delta = P.CHARGE;
       warn = 'DO NOT CHARGE!';
-    } else if (v > 0.3 && fwd < -0.3) {
-      delta = -0.6;
+    } else if (v > 0.3 && fwd < P.BACK_DOT) {
+      delta = P.TURN_BACK;
       warn = 'DO NOT TURN BACK!';
-    } else if (v < 0.25) {
-      delta = -0.12;
+    } else if (v < P.STILL_SPEED) {
+      delta = P.STILL;
       warn = 'KEEP THE PACE';
     }
-    delta -= this.def.pace!.pressure ?? 0;
-    if (delta < 0 && unshakeable(ctx.state)) delta *= 0.4;
+    const beside = (this.def.pace!.companions ?? []).filter((n) => {
+      const a = ctx.actors.get(n);
+      return a && Math.hypot(a.gx - p.gx, a.gy - p.gy) < 3;
+    }).length;
+    delta -= Math.max(0, (this.def.pace!.pressure ?? 0) - beside * P.COMPANION_RELIEF);
+    if (delta < 0 && unshakeable(ctx.state)) delta *= P.UNSHAKEABLE;
     w.nerve = Math.max(0, Math.min(1, w.nerve + delta * dt));
     this.warnT -= dt;
     if (warn && this.warnT <= 0) {
-      this.warnT = 1.4;
+      this.warnT = P.WARN_EVERY;
       ctx.notice(warn, C.orange);
     }
     ctx.hud.setMode({ label: unshakeable(ctx.state) ? 'NERVE (UNSHAKEABLE)' : 'NERVE', value: w.nerve, color: 0xff7a1f });
     if (w.nerve <= 0) {
+      ctx.metrics.nerveBroken++;
       ctx.interrupt([card('THE LINE BROKE', 'HOLD THE PACE: NO CHARGE, NO TURNING BACK', { color: C.red, seconds: 2.2 }), call(() => this.reset(ctx))]);
     }
   }
@@ -343,15 +378,16 @@ class WalkStep implements Step {
     const w = this.w;
     const p = ctx.player;
     w.thirst = Math.max(0, w.thirst - t.drain * dt);
-    p.speedMul = (this.def.speed ?? 1) * (0.55 + 0.45 * w.thirst);
+    const T = STORY.THIRST;
+    p.speedMul = (this.def.speed ?? 1) * (T.MIN_SPEED + (1 - T.MIN_SPEED) * w.thirst);
     ctx.hud.setMode({ label: 'THIRST', value: w.thirst, color: 0x5ac8ff });
     const m = this.mirage!;
     // The lake is always one hill away.
-    if (Math.hypot(m.x - p.gx, m.y - p.gy) < 3.5) {
+    if (Math.hypot(m.x - p.gx, m.y - p.gy) < T.MIRAGE_NEAR) {
       const dir = this.goal ? { x: this.goal.x - m.x, y: this.goal.y - m.y } : { x: -1, y: -1 };
       const l = Math.hypot(dir.x, dir.y) || 1;
-      m.x += (dir.x / l) * 3.5;
-      m.y += (dir.y / l) * 3.5;
+      m.x += (dir.x / l) * T.MIRAGE_JUMP;
+      m.y += (dir.y / l) * T.MIRAGE_JUMP;
       ctx.notice('THE LAKE MOVED', C.cyan);
     }
   }
@@ -362,7 +398,7 @@ class WalkStep implements Step {
     if (this.goal) {
       const total = Math.hypot(this.goal.x - this.start0.x, this.goal.y - this.start0.y) || 1;
       const left = Math.hypot(this.goal.x - p.gx, this.goal.y - p.gy);
-      if (left / total < 0.3) {
+      if (left / total < STORY.SCRAMBLE.SETTLE_AT) {
         this.scrambleSettled = true;
         this.scrambleAngle = 0;
         ctx.notice('THE CONTROLS SETTLE', C.green);
@@ -371,7 +407,7 @@ class WalkStep implements Step {
     }
     this.scrambleT -= dt;
     if (this.scrambleT <= 0) {
-      this.scrambleT = 2.6;
+      this.scrambleT = STORY.SCRAMBLE.EVERY;
       const options = [Math.PI / 2, Math.PI, -Math.PI / 2, Math.PI * 0.75];
       this.scrambleAngle = options[Math.floor(Math.random() * options.length)]!;
       ctx.notice('THE CONTROLS SCRAMBLE', '#b070ff');
@@ -396,7 +432,7 @@ class WalkStep implements Step {
     if (this.fireT <= 0) {
       this.fireT = f.spread;
       const burning = [...this.fire.keys()];
-      for (let n = 0; n < 3 && burning.length; n++) {
+      for (let n = 0; n < STORY.FIRE.PER_TICK && burning.length; n++) {
         const k = burning[Math.floor(Math.random() * burning.length)]!;
         const i = k % map.width;
         const j = (k - i) / map.width;
@@ -413,8 +449,8 @@ class WalkStep implements Step {
     const p = ctx.player;
     const here = map.index(Math.floor(p.gx), Math.floor(p.gy));
     if (this.fire.has(here) && p.state !== 'hurt') {
-      p.knockback(this.start0.x - p.gx, this.start0.y - p.gy, 6);
-      p.startAction('hurt', 0.4);
+      p.knockback(this.start0.x - p.gx, this.start0.y - p.gy, STORY.FIRE.KNOCKBACK);
+      p.startAction('hurt', STORY.FIRE.HURT_TIME);
       ctx.notice('HOT!', C.red);
       ctx.game.audio.play('hurt');
     }
@@ -473,6 +509,41 @@ class WalkStep implements Step {
         if (Math.floor(ctx.time * 3) % 3 !== 0) this.arrow.poly([tip.x, tip.y, l.x, l.y, rr.x, rr.y]).fill(0xfff36a);
       }
     }
+  }
+
+  /** Autopilot: reach pickups and the goal, keep out of sight, away from hostiles and fire. */
+  pilot(_dt: number, ctx: StoryScene, pl: Autopilot): void {
+    const world = ctx.world;
+    if (!world) return;
+    const p = ctx.player;
+    const hint = this.def.pilot?.(ctx, this.w, pl) ?? null;
+    if (hint?.act) pl.every(ctx, 'walk-act', 0.35, 'bark');
+    let target: Point | null = hint?.target ?? null;
+    if (!target && this.pickups.length) {
+      let best = this.pickups[0]!;
+      for (const e of this.pickups) if (Math.hypot(e.gx - p.gx, e.gy - p.gy) < Math.hypot(best.gx - p.gx, best.gy - p.gy)) best = e;
+      target = { x: best.gx, y: best.gy };
+    }
+    if (!target && this.goal) target = this.goal;
+    if (!target) return;
+    if (hint?.hold && Math.hypot(target.x - p.gx, target.y - p.gy) < 0.6) return;
+    const map = world.map;
+    const guards = [...ctx.actors.values()].filter((a) => a.sight);
+    const hostiles = [...ctx.actors.values()].filter((a) => a.hostile);
+    const fire = this.fire;
+    const danger = (i: number, j: number): number => {
+      if (fire.has(map.index(i, j))) return Infinity;
+      let d = 0;
+      for (const n of [map.index(i + 1, j), map.index(i - 1, j), map.index(i, j + 1), map.index(i, j - 1)]) if (fire.has(n)) d += 6;
+      for (const h of hostiles) {
+        const r = Math.hypot(h.gx - (i + 0.5), h.gy - (j + 0.5));
+        if (r < 2.2) d += (2.2 - r) * 25;
+      }
+      for (const g of guards) if (canSee(map, g, i + 0.5, j + 0.5)) d += 40;
+      return d;
+    };
+    const run = !this.def.pace && !this.def.noRun && (hostiles.length > 0 || this.fireOn);
+    pl.navigate(ctx, target, { run, danger, scramble: this.scrambleAngle, cautious: guards.length > 0, arrive: hint?.hold ? 0.5 : 0.3 });
   }
 
   stop(ctx: StoryScene): void {

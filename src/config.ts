@@ -256,3 +256,72 @@ export const AUDIO = {
   MUSIC_VOLUME: 0.32,
   SFX_VOLUME: 0.9,
 } as const;
+
+/** Story mode (the VG1 campaign): dream walks, mini-games, meters, dialogue. */
+export const STORY = {
+  /** Dialogue typewriter, characters per second, per text-speed setting. */
+  TEXT_CPS: { slow: 24, normal: 45, fast: 90, instant: 10000 },
+  PICKUP_RADIUS: 0.7,
+  /** Reach goals count as reached within this radius (tiles) unless a walk sets its own. */
+  GOAL_RADIUS: 0.8,
+  /** Sight cones: alert gained per second while seen, lost per second while hidden. */
+  ALERT_GAIN: 2.2,
+  ALERT_DECAY: 1.2,
+  /** A hostile actor this close catches Zampanò. */
+  HOSTILE_TOUCH: 0.6,
+  /** Bushes hide him from guards farther than this. */
+  BUSH_HIDE: 1.2,
+  PACE: {
+    GAIN: 0.06,
+    CHARGE: -0.35,
+    TURN_BACK: -0.6,
+    STILL: -0.12,
+    /** Stick magnitude that counts as charging. */
+    CHARGE_MAG: 0.95,
+    STILL_SPEED: 0.25,
+    BACK_DOT: -0.3,
+    /** Drain multiplier when Supervillain is full. */
+    UNSHAKEABLE: 0.4,
+    /** Pressure removed per companion walking beside him. */
+    COMPANION_RELIEF: 0.012,
+    WARN_EVERY: 1.4,
+  },
+  THIRST: { MIN_SPEED: 0.55, MIRAGE_NEAR: 3.5, MIRAGE_JUMP: 3.5 },
+  SCRAMBLE: { EVERY: 2.6, SETTLE_AT: 0.3 },
+  FIRE: { PER_TICK: 3, KNOCKBACK: 6, HURT_TIME: 0.4 },
+  RHYTHM: { WINDOW: 0.18, CUE_SPEED: 70, START_DELAY: 1.2 },
+  WEEPING: { BEATS: 10, BPM_ROUND1: 46, BPM_ROUND2: 58, NEED: 6 },
+  PARADE: { BEATS: 12, BPM: 72, NEED: 8 },
+  LADDERS: {
+    SPAWN: 1.2,
+    SPAWN_HARD: 0.55,
+    /** Fastest climbing: one rung per this many seconds, however fast he taps. */
+    CLIMB_GAP: 0.12,
+    PITCH_CHANCE: 0.35,
+    STONE_SPEED: 190,
+    PITCH_SPEED: 150,
+    WARN: 0.6,
+    HIT_TIME: 0.8,
+    SLIDE_TIME: 0.35,
+    SLIDE_RATE: 10,
+    AXE_EVERY: 1.6,
+    AXE_HIT_TIME: 1,
+    AXE_SLIDE_TIME: 0.5,
+  },
+  TUG: { BASE: 0.08, GROW: 0.05, PULL: 0.035 },
+  CALM: { RATE: 0.14, PANIC_COST: 0.25, PANIC_TIME: 0.8 },
+  CATAPULT: { SHOTS: 4, GRAVITY: 260, VX: 150, VY: 170, MIN_POWER: 0.35, POWER_RANGE: 0.75, OSC: 3 },
+  RUMOUR: { ARRIVE_EVERY: 1.2 },
+  /** The feeling fades: Commozione lost at the start of every dream sub-level (levels 2-7). */
+  COMMOZIONE_FADE: 2,
+  /** Commozione per correct weeping beat. */
+  WEEP_HIT: 1,
+  /** Commozione spent by the big actions ("an unmoved Zampanò cannot act"). */
+  COST: { SERMON: 4, SPEAK_UP: 10, GESTURE: 10, ATONE: 8, VIGIL: 8, DEFY: 10, OATH_BARK: 5 },
+  /** Standing needed for each companion to fall in beside him (7.3, 8.3). */
+  FOLLOW: { SAINT_POL: 45, FLANDERS: 65, SBRIMBRULON_LAWN: 35, WATSON_LAWN: 60 },
+  /** Grace tiers (8.2 altar, ending). */
+  GRACE: { HIGH: 70, LOW: 40 },
+  /** Autopilot (automated playtests). */
+  PILOT: { WALK_MAG: 0.7, RUN_MAG: 1, CONFIRM_EVERY: 0.22, STUCK_TIME: 2.5, LADDER_TAPS: 6, TUG_TAPS: 8 },
+} as const;

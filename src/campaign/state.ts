@@ -1,3 +1,4 @@
+import { STORY } from '../config';
 import { storage } from '../core/storage';
 
 /**
@@ -159,6 +160,54 @@ export function dreamSkin(state: CampaignState): 'zampano' | 'zampanoCross' | 'z
   if (state.abilities.includes('knight')) return 'zampanoKnight';
   if (state.abilities.includes('cross')) return 'zampanoCross';
   return 'zampano';
+}
+
+/**
+ * The feeling fades: every dream sub-level (levels 2 to 7) starts with a little less Commozione,
+ * so wonder and weeping must keep filling it. Returns the amount actually lost.
+ */
+export function fadeCommozione(state: CampaignState, chapter: number): number {
+  if (chapter < 2 || chapter > 7) return 0;
+  const before = state.meters.commozione;
+  state.meters.commozione = Math.max(0, before - STORY.COMMOZIONE_FADE);
+  return before - state.meters.commozione;
+}
+
+/** Who falls in beside him when he walks at the enemy (7.3) or at the band (8.3). Standing decides. */
+export function companions(state: CampaignState, scene: 'vanguard' | 'lawn'): string[] {
+  const s = state.meters.standing;
+  const F = STORY.FOLLOW;
+  if (scene === 'vanguard') return ['sbrim', ...(s >= F.SAINT_POL ? ['stpol'] : []), ...(s >= F.FLANDERS ? ['flanders'] : [])];
+  return ['conf', ...(s >= F.SBRIMBRULON_LAWN ? ['sbrim'] : []), ...(s >= F.WATSON_LAWN ? ['watson'] : [])];
+}
+
+/** Grace, as the 8.2 altar and the ending show it. */
+export type GraceTier = 'high' | 'mid' | 'low';
+export function graceTier(state: CampaignState): GraceTier {
+  const g = state.meters.grace;
+  return g >= STORY.GRACE.HIGH ? 'high' : g >= STORY.GRACE.LOW ? 'mid' : 'low';
+}
+
+/** Extra ending lines from Grace and Standing. */
+export function endingNotes(state: CampaignState): string[] {
+  const out: string[] = [];
+  const tier = graceTier(state);
+  out.push(
+    tier === 'high'
+      ? 'HE KEPT THE FORMS, EVEN WHEN EVERY AUTHORITY FORGAVE HIM. THE ALTAR UNDER THE DESK STILL GLOWS.'
+      : tier === 'mid'
+        ? 'HE KEPT MOST OF THE FORMS. THE ALTAR UNDER THE DESK IS A LITTLE CROOKED, LIKE HIM.'
+        : 'HE BROKE THE FORMS AND NOBODY MINDED, EXCEPT THE BURGHER. THE ALTAR IS MADE OF CHEW TOYS.',
+  );
+  const st = state.meters.standing;
+  out.push(
+    st >= STORY.FOLLOW.WATSON_LAWN
+      ? 'THE CAMP REMEMBERS HIM FONDLY. EVEN WATSON CROSSED THE LAWN TO STAND WITH HIM.'
+      : st >= STORY.FOLLOW.SBRIMBRULON_LAWN
+        ? 'THE CAMP REMEMBERS HIM, MORE OR LESS.'
+        : 'THE CAMP CALLED HIM A TRAITOR. HE WALKED ON ANYWAY.',
+  );
+  return out;
 }
 
 const KEY = 'story';
