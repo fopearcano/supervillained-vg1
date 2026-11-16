@@ -6,6 +6,7 @@ import type { Scene } from '../core/scene';
 import { formatScore, formatTime, type LevelStats } from '../systems/scoring';
 import { Menu, type MenuItem } from '../ui/menu';
 import { PixelText, type Span } from '../ui/pixelText';
+import { logoTexture, logoWidth, type LogoStyle } from '../ui/logo';
 import { C, retroBox } from '../ui/retro';
 import { spriteName } from '../assets/manifest';
 import type { LevelDef } from '../world/level';
@@ -43,9 +44,14 @@ abstract class Overlay implements Scene {
 const big = (text: string, color: string, scale: number, extra: Partial<ConstructorParameters<typeof PixelText>[1]> = {}) =>
   new PixelText(text, { color, scale, outline: '#120818', glow: 'self', glowAlpha: 0.3, ...extra }).setOrigin(0.5, 0.5);
 
+const LOGO_TEXT = 'SUPERVILLAINED';
+const LOGO_STYLE: LogoStyle = { colors: ['#f2ffb0', '#d4ff3a', '#9ccc1a'], outline: '#120818', shadow: '#2a4a08', glow: '#d4ff3a' };
+
 /** Title card over the blurred level. */
 export class TitleScene extends Overlay {
-  private readonly title = big('SUPERVILLAINED', '#d4ff3a', 2, { align: 'center', lineGap: 4 });
+  /** The logo: always one line (see ui/logo.ts). */
+  private readonly title = new Sprite();
+  private titleScale = 0;
   /** Edition title under the logo. */
   private readonly edition: PixelText;
   private readonly best: PixelText;
@@ -81,15 +87,16 @@ export class TitleScene extends Overlay {
 
   protected layout(): void {
     const { w, h } = this;
-    // As big as fits: one line at scale 3 or 2 (letters may sit 1 px closer), else
-    // SUPER / VILLAINED stacked at scale 2 or 3 (phones are about 200 px wide).
-    const fits = (scale: number, letters: number, spacing: number) => letters * (8 * scale + spacing) - spacing <= w - 8;
-    const oneLine = [3, 2].flatMap((sc) => [0, -1].map((sp) => ({ sc, sp }))).find((o) => fits(o.sc, 14, o.sp));
-    if (oneLine) this.title.setText('SUPERVILLAINED').setStyle({ scale: oneLine.sc, letterSpacing: oneLine.sp });
-    else this.title.setText('SUPER\nVILLAINED').setStyle({ scale: fits(3, 9, 0) ? 3 : 2, letterSpacing: 0 });
+    // One line, as big as fits: triple size on wide screens, double on phones (186 px).
+    const scale = [4, 3, 2, 1].find((sc) => logoWidth(LOGO_TEXT) * sc + 8 <= w) ?? 1;
+    if (scale !== this.titleScale) {
+      this.titleScale = scale;
+      this.title.texture = logoTexture(LOGO_TEXT, scale, LOGO_STYLE);
+      this.title.anchor.set(0.5);
+    }
     const top = Math.round(h * 0.24);
     this.title.position.set(Math.round(w / 2), top);
-    this.edition.position.set(Math.round(w / 2), top + this.title.textHeight / 2 + 14);
+    this.edition.position.set(Math.round(w / 2), Math.round(top + this.title.height / 2 + 10));
     this.menu.layout(w / 2, Math.round(h * 0.52));
     this.best.position.set(Math.round(w / 2), Math.round(h * 0.52 + this.menu.height + 12));
     this.footer.position.set(Math.round(w / 2), h - 6);
