@@ -136,12 +136,13 @@ export class StoryFlow {
     );
   }
 
-  private startSub(ch: ChapterDef, sub: SubLevelDef): void {
+  private startSub(ch: ChapterDef, sub: SubLevelDef, restart = false): void {
     const scene = new StoryScene(this.game, this.replaying ? structuredClone(this.state) : this.state, ch, sub, {
       onFinished: () => this.finishSub(ch, sub),
       onMenu: () => this.pause(ch, sub),
     });
     scene.persist = !this.replaying;
+    scene.fade = !restart;
     if (this.autopilot) scene.pilot = new Autopilot({ ...this.autopilot, seed: (this.autopilot.seed ?? 1) + this.log.length });
     this.game.scenes.replaceAll(scene);
   }
@@ -223,7 +224,7 @@ export class StoryFlow {
     this.game.scenes.push(
       new StoryPauseScene(this.game, {
         resume,
-        restart: () => this.glitch(() => this.startSub(ch, sub)),
+        restart: () => this.glitch(() => this.startSub(ch, sub, true)),
         skip: () => this.glitch(() => this.finishSub(ch, sub)),
         book: () => this.game.scenes.push(new BookScene(this.game, this.state, () => this.game.scenes.pop())),
         sound: () => {

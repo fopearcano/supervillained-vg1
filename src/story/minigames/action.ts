@@ -205,7 +205,7 @@ export class LaddersGame extends MiniGame {
   override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
     const heroY = this.rungY(this.rung);
     const threat = (lane: number) =>
-      this.falling.some((f) => f.lane === lane && (f.warn > 0 || (f.y < heroY && f.y > heroY - 150)));
+      this.falling.some((f) => f.lane === lane && (f.warn > 0 || (f.y < heroY && f.y > heroY - STORY.PILOT.LADDER_LOOKAHEAD)));
     const axeLanes = this.hard && this.rung > this.rungs - 3 ? [this.axeLane, (this.axeLane + 2) % 3] : [];
     const bad = (lane: number) => threat(lane) || axeLanes.includes(lane);
     if (bad(this.lane)) {

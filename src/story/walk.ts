@@ -354,9 +354,10 @@ class WalkStep implements Step {
       delta = P.STILL;
       warn = 'KEEP THE PACE';
     }
+    // Only companions who fell in (following him) steady his nerve, not bystanders on the path.
     const beside = (this.def.pace!.companions ?? []).filter((n) => {
       const a = ctx.actors.get(n);
-      return a && Math.hypot(a.gx - p.gx, a.gy - p.gy) < 3;
+      return a && a.behavior.kind === 'follow' && a.behavior.target === p && Math.hypot(a.gx - p.gx, a.gy - p.gy) < STORY.PACE.COMPANION_RANGE;
     }).length;
     delta -= Math.max(0, (this.def.pace!.pressure ?? 0) - beside * P.COMPANION_RELIEF);
     if (delta < 0 && unshakeable(ctx.state)) delta *= P.UNSHAKEABLE;
@@ -531,15 +532,16 @@ class WalkStep implements Step {
     const guards = [...ctx.actors.values()].filter((a) => a.sight);
     const hostiles = [...ctx.actors.values()].filter((a) => a.hostile);
     const fire = this.fire;
+    const D = STORY.PILOT.DANGER;
     const danger = (i: number, j: number): number => {
       if (fire.has(map.index(i, j))) return Infinity;
       let d = 0;
-      for (const n of [map.index(i + 1, j), map.index(i - 1, j), map.index(i, j + 1), map.index(i, j - 1)]) if (fire.has(n)) d += 6;
+      for (const n of [map.index(i + 1, j), map.index(i - 1, j), map.index(i, j + 1), map.index(i, j - 1)]) if (fire.has(n)) d += D.NEAR_FIRE;
       for (const h of hostiles) {
         const r = Math.hypot(h.gx - (i + 0.5), h.gy - (j + 0.5));
-        if (r < 2.2) d += (2.2 - r) * 25;
+        if (r < D.HOSTILE_RADIUS) d += (D.HOSTILE_RADIUS - r) * D.HOSTILE_COST;
       }
-      for (const g of guards) if (canSee(map, g, i + 0.5, j + 0.5)) d += 40;
+      for (const g of guards) if (canSee(map, g, i + 0.5, j + 0.5)) d += D.SEEN;
       return d;
     };
     const run = !this.def.pace && !this.def.noRun && (hostiles.length > 0 || this.fireOn);

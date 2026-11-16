@@ -282,8 +282,9 @@ export const STORY = {
     BACK_DOT: -0.3,
     /** Drain multiplier when Supervillain is full. */
     UNSHAKEABLE: 0.4,
-    /** Pressure removed per companion walking beside him. */
+    /** Pressure removed per companion walking beside him (within COMPANION_RANGE tiles). */
     COMPANION_RELIEF: 0.012,
+    COMPANION_RANGE: 3,
     WARN_EVERY: 1.4,
   },
   THIRST: { MIN_SPEED: 0.55, MIRAGE_NEAR: 3.5, MIRAGE_JUMP: 3.5 },
@@ -323,5 +324,19 @@ export const STORY = {
   /** Grace tiers (8.2 altar, ending). */
   GRACE: { HIGH: 70, LOW: 40 },
   /** Autopilot (automated playtests). */
-  PILOT: { WALK_MAG: 0.7, RUN_MAG: 1, CONFIRM_EVERY: 0.22, STUCK_TIME: 2.5, LADDER_TAPS: 6, TUG_TAPS: 8 },
+  PILOT: {
+    WALK_MAG: 0.7,
+    RUN_MAG: 1,
+    CONFIRM_EVERY: 0.22,
+    STUCK_TIME: 2.5,
+    STUCK_DIST: 0.3,
+    JITTER_TIME: 0.6,
+    REPATH: 0.25,
+    LADDER_TAPS: 6,
+    /** Falling things within this many px above him count as a threat. */
+    LADDER_LOOKAHEAD: 150,
+    TUG_TAPS: 8,
+    /** Path costs: near a hostile, seen by a guard, next to fire. */
+    DANGER: { HOSTILE_RADIUS: 2.2, HOSTILE_COST: 25, SEEN: 40, NEAR_FIRE: 6 },
+  },
 } as const;

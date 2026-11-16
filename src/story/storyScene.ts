@@ -67,6 +67,8 @@ export class StoryScene implements Scene {
   locked = false;
   /** False for replays: nothing this scene changes is saved. */
   persist = true;
+  /** False when the scene is restarted from the pause menu: the feeling already faded once. */
+  fade = true;
   /** Automated playtest driver (null in normal play). */
   pilot: Autopilot | null = null;
   /** Playtest counters: how often the player had to start a walk or mini-game again. */
@@ -93,7 +95,7 @@ export class StoryScene implements Scene {
   enter(): void {
     this.queue = this.sub.script();
     // The feeling fades between dream scenes: wonder and weeping have to keep filling it.
-    const lost = fadeCommozione(this.state, this.chapter.number);
+    const lost = this.fade ? fadeCommozione(this.state, this.chapter.number) : 0;
     if (lost) {
       if (this.persist) saveCampaign(this.state);
       this.notice(`-${lost} COMMOZIONE: THE FEELING FADES`, '#9aa4c0', 2.5);

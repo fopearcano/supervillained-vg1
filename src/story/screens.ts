@@ -155,7 +155,10 @@ export class StoryChapterScene implements Scene {
       const open = done || k === firstOpen;
       // Fit the 200-px row: cut at a word boundary and mark the cut.
       let label = `${sub.id} ${sub.title.toUpperCase()}`;
-      if (label.length > 24) label = label.slice(0, 22).replace(/\s+\S*$/, '') + '..';
+      if (label.length > 24) {
+        const cut = label.slice(0, 22);
+        label = (label[22] === ' ' ? cut : cut.replace(/\s+\S*$/, '')).trimEnd() + '..';
+      }
       return {
         label: open ? label : `${sub.id} ? ? ?`,
         action: () => (open ? actions.play(sub) : this.game.audio.play('empty')),
@@ -273,6 +276,8 @@ export class BookScene implements Scene {
   private readonly foot = new PixelText('', { color: '#6a4a20' }).setOrigin(0.5, 0);
   private rows: BookRow[] = [];
   private pages: BookRow[][] = [];
+  /** One text per row, built once per layout and reused for paging and drawing. */
+  private texts = new Map<BookRow, PixelText>();
   private page = 0;
   private w = 216;
   private h = 400;
@@ -332,27 +337,40 @@ export class BookScene implements Scene {
     this.page = Math.min(this.page, this.pages.length - 1);
   }
 
-  private makeText(r: BookRow): PixelText {
-    return new PixelText(r.text, { color: r.head ? '#8a2a10' : '#3a2410', maxWidth: this.w - (r.icon ? 40 : 24), lineGap: 2 });
+  private textFor(r: BookRow): PixelText {
+    let t = this.texts.get(r);
+    if (!t) {
+      t = new PixelText(r.text, { color: r.head ? '#8a2a10' : '#3a2410', maxWidth: this.w - (r.icon ? 40 : 24), lineGap: 2 });
+      this.texts.set(r, t);
+    }
+    return t;
   }
 
   private rowHeight(r: BookRow): number {
     if (!r.text) return 6;
-    const t = this.makeText(r);
-    const hgt = Math.max(r.icon ? 12 : 0, t.textHeight) + 4;
-    t.destroy();
-    return hgt;
+    return Math.max(r.icon ? 12 : 0, this.textFor(r).textHeight) + 4;
+  }
+
+  exit(): void {
+    this.clearTexts();
+  }
+
+  private clearTexts(): void {
+    this.pageRoot.removeChildren();
+    for (const t of this.texts.values()) t.destroy();
+    this.texts.clear();
   }
 
   private show(): void {
-    for (const c of this.pageRoot.removeChildren()) c.destroy();
+    // Texts are owned by `texts`; icons are made per page.
+    for (const c of this.pageRoot.removeChildren()) if (!(c instanceof PixelText)) c.destroy();
     let y = 40;
     for (const r of this.pages[this.page] ?? []) {
       if (!r.text) {
         y += 6;
         continue;
       }
-      const t = this.makeText(r);
+      const t = this.textFor(r);
       let x = 12;
       if (r.icon) {
         const icon = new Sprite(textures.get(spriteName(r.icon)));
@@ -363,7 +381,7 @@ export class BookScene implements Scene {
       }
       t.position.set(x, y);
       this.pageRoot.addChild(t);
-      y += Math.max(r.icon ? 12 : 0, t.textHeight) + 4;
+      y += this.rowHeight(r);
     }
     this.foot.setText(`PAGE ${this.page + 1}/${this.pages.length}  TAP: NEXT`);
   }
@@ -376,6 +394,7 @@ export class BookScene implements Scene {
     this.bg.rect(4, 4, w - 8, 2).fill(0xc8a060);
     this.title.position.set(Math.round(w / 2), 10);
     this.foot.position.set(Math.round(w / 2), h - 18);
+    this.clearTexts();
     this.build();
     this.paginate();
     this.show();

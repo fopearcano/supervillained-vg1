@@ -291,3 +291,9 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
 - **Bugs found on the way**: changing stage inside a sub-level destroyed the scene's own particle
   and popup layers (crash at the next burst; it surfaced as soon as the bot played everything);
   a catapult shot could break every glass with shots to spare and the game then waited forever.
+- **Review fixes**: RESTART SCENE no longer fades Commozione a second time (only a fresh visit
+  does); only companions who actually fell in beside him (following him) ease the pace pressure,
+  not bystanders on the path who stayed back for lack of Standing; the autopilot's `skill` URL
+  parameter is clamped, its timers use the real step length, and its tuning lives in
+  `STORY.PILOT`; the Meraviglia book builds each line's text once; scene titles in the level list
+  keep a complete last word when shortened.

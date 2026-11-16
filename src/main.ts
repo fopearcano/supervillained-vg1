@@ -52,7 +52,10 @@ async function boot(): Promise<void> {
     if (params.get('auto')) {
       flow.story.autopilot = {
         ...DEFAULT_POLICY,
-        skill: Number(params.get('skill') ?? DEFAULT_POLICY.skill),
+        skill: (() => {
+          const k = Number(params.get('skill') ?? DEFAULT_POLICY.skill);
+          return Number.isFinite(k) ? Math.max(0, Math.min(1, k)) : DEFAULT_POLICY.skill;
+        })(),
         ending: params.get('ending') === 'alpha' ? 'alpha' : 'knight',
         choice: (['first', 'last', 'random'] as const).find((c) => c === params.get('choice')) ?? 'first',
       };

@@ -61,6 +61,8 @@ export class Autopilot {
   private seenAngle = 0;
   private angleChangedAt = 0;
   private clock = 0;
+  /** Length of the current logic step (set by beginStep). */
+  private dt = 1 / 60;
 
   constructor(readonly policy: PilotPolicy = DEFAULT_POLICY) {
     // Spread small seeds (1, 2, 3...) over the whole state space, then warm up.
@@ -88,6 +90,7 @@ export class Autopilot {
   /** Called by StoryScene before the current step updates. */
   beginStep(dt: number, ctx: StoryScene): void {
     this.clock += dt;
+    this.dt = dt;
     for (const [k, t] of this.timers) this.timers.set(k, t - dt);
     ctx.game.input.override = { x: 0, y: 0 };
   }
@@ -165,29 +168,29 @@ export class Autopilot {
     const mag = o.run ? STORY.PILOT.RUN_MAG : STORY.PILOT.WALK_MAG;
     // Stuck: wiggle for a moment.
     if (this.jitterT > 0) {
-      this.jitterT -= 1 / 60;
+      this.jitterT -= this.dt;
       this.stick(ctx, this.jitter.x, this.jitter.y, mag, o.scramble ?? 0);
       return false;
     }
-    this.stuckT += 1 / 60;
+    this.stuckT += this.dt;
     if (this.stuckT > STORY.PILOT.STUCK_TIME) {
       const moved = Math.hypot(p.gx - this.stuckFrom.x, p.gy - this.stuckFrom.y);
       this.stuckT = 0;
       this.stuckFrom = { x: p.gx, y: p.gy };
-      if (moved < 0.3) {
+      if (moved < STORY.PILOT.STUCK_DIST) {
         const a = this.random() * Math.PI * 2;
         this.jitter = { x: Math.cos(a), y: Math.sin(a) };
-        this.jitterT = 0.6;
+        this.jitterT = STORY.PILOT.JITTER_TIME;
         this.path = [];
       }
     }
     const ti = Math.floor(target.x);
     const tj = Math.floor(target.y);
     const key = `${ti},${tj}`;
-    this.repathT -= 1 / 60;
+    this.repathT -= this.dt;
     if (key !== this.pathTarget || this.repathT <= 0 || !this.path.length) {
       this.pathTarget = key;
-      this.repathT = 0.25;
+      this.repathT = STORY.PILOT.REPATH;
       this.path = this.findPath(ctx, Math.floor(p.gx), Math.floor(p.gy), ti, tj, o.danger);
     }
     // Next waypoint: the first path tile whose center is not under us.
