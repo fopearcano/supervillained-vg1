@@ -114,11 +114,31 @@ Story grounds add `floor`, `stone`, `sand`, `snow`, `deep` (animated), `wall`, `
 per theme (`story/maps.ts`). Replacing tiles follows the same principle (register a texture under the same name); a file-based
 tile set is not wired yet because tiles are palette-driven per zone.
 
-## Sounds
+## Sounds and music
 
-All sound effects are synthesized at runtime (WebAudio); there are no audio files. There are two
-music loops: `chip` (Greenzone, arcade) and `medieval` (the dream), both rendered by
-`src/fx/sounds.ts`.
+Recorded audio lives in `assets/` (uploaded to `main`) and is bundled with the build, so it works
+offline. Each file is wired in `src/fx/audioFiles.ts`:
+
+| File | Plays when |
+|------|-----------|
+| `music/intro-music.mp3` | title screen, briefing, story menu |
+| `music/greenzone-music.mp3` | arcade gameplay; story levels 1 and 8 (Greenzone) |
+| `sounds/dog-bark.mp3` | Zampanò barks (arcade and story) |
+| `sounds/food-collect.mp3` | a treat is eaten (TREATS +1); story pickups |
+| `sounds/poos.mp3` | a poop (POOPS +1) |
+| `sounds/pees-drop.mp3` | a pee (PEES +1); a marking adds a short chime |
+| `sounds/pees-collect.wav` | pee charges refilled at a puddle or fountain |
+| `sounds/water.mp3` | stepping into a puddle |
+| `sounds/cat-meow.mp3` + `sounds/cash-after-cat.mp3` | a cat caught: the meow, then the cash; the cash also plays for coins |
+| `sounds/ball.mp3` | a magnet ball appears |
+| `sounds/alarm-greenzone-under-attack.mp3` | GREEN ZONE UNDER ATTACK starts |
+| `sounds/siren.mp3` | loops (quieter) while the attack lasts; the fire in Constantinople (7.4) |
+| `sounds/laser-eyes.mp3` | Bagnaskiz knocks Zampanò |
+
+Leading silence is skipped automatically, and per-file loudness trims are in `config.ts`
+(`AUDIO.FILE_GAIN`). To replace a sound, overwrite the file with the same name (mp3 or wav). The
+dream levels (2 to 7) keep the synthesized medieval loop, and interface sounds (clicks, glitch
+transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
 
 ## App icon and logo
 

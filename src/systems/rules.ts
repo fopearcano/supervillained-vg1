@@ -45,6 +45,8 @@ export class Rules {
   private readonly pees: ActivePee[] = [];
   /** Props already marked: the marking bonus is paid once per tree/pole/bush. */
   private readonly marked = new Set<number>();
+  /** Was Zampanò standing in water on the previous step (for the splash event). */
+  private inWater = false;
   state: RunState = 'playing';
   /** Extra per-step hooks (threat systems). */
   readonly hooks: Array<(dt: number) => void> = [];
@@ -184,8 +186,10 @@ export class Rules {
 
   private checkDrink(): void {
     const { player, map } = this.world;
-    if (!player.controllable || !this.bladder.canDrink) return;
     const onWater = map.isWaterAt(player.gx, player.gy);
+    if (onWater && !this.inWater) this.world.events.emit('splash', { x: player.gx, y: player.gy });
+    this.inWater = onWater;
+    if (!player.controllable || !this.bladder.canDrink) return;
     const fountain = onWater ? null : map.nearestProp(player.gx, player.gy, PLAYER.DRINK_DISTANCE, (p) => p.kind === 'fountain');
     if (!onWater && !fountain) return;
     if (this.bladder.drink()) {

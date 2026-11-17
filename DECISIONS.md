@@ -310,3 +310,16 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
   `scripts/gen-android-assets.mjs`, still dependency-free (a small PNG decoder and an
   area-average resize). The whole shape is always visible: it fits the square icon, the circle of
   the round icon and the adaptive icon's safe zone.
+- **Recorded music and sounds** (uploaded to `assets/` on `main`) replace the synthesized ones they
+  correspond to, and the old chiptune loop is removed (table in `ASSETS.md`). This departs from the
+  SPEC's "zero mandatory assets": the files ship in the repo, so the game still runs offline right
+  after cloning. Sound effects are decoded once into buffers (leading silence skipped); the two
+  music tracks are streamed through an `<audio>` element routed into WebAudio (decoding the 4-minute
+  track whole would take ~80 MB on a phone), so mute, volume and ducking still apply; music pauses
+  in the background. Readings where the file name left a choice: `pees-drop` is the pee itself and
+  `pees-collect` the refill at water ("collect" like `food-collect`); `water` is stepping into a
+  puddle; `siren` loops under the "under attack" alarm until the attack ends (and is the fire alarm
+  in 7.4); `laser-eyes` is Bagnaskiz's hit on Zampanò. There was no file for the dream, so levels
+  2-7 keep the synthesized medieval loop. Capacitor already lets media play without a fresh tap,
+  so music changes work inside the app.
+

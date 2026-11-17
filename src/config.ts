@@ -253,8 +253,20 @@ export const FX = {
 
 export const AUDIO = {
   DEFAULT_VOLUME: 0.7,
+  /** Synthesized music (the dream's medieval loop). */
   MUSIC_VOLUME: 0.32,
+  /** Recorded music (intro, Green Zone). */
+  MUSIC_FILE_VOLUME: 0.55,
   SFX_VOLUME: 0.9,
+  /** Per-file loudness trims for the recorded sounds (1 = as recorded). */
+  FILE_GAIN: { coin: 2.4, laser: 1.3, poop: 1.2, meow: 1.1, siren: 0.6 } as Partial<Record<string, number>>,
+  /** Leading silence below this level is skipped so a sound starts with the action. */
+  TRIM_LEVEL: 0.01,
+  /** The cash after a caught cat starts this many seconds after the meow. */
+  CASH_DELAY: 0.35,
+  /** The siren starts after the "under attack" alarm, quieter, and loops until the attack ends. */
+  SIREN_DELAY: 3.9,
+  SIREN_VOLUME: 0.45,
 } as const;
 
 /** Story mode (the VG1 campaign): dream walks, mini-games, meters, dialogue. */

@@ -49,7 +49,8 @@ export class StoryFlow {
   openMenu(): void {
     this.replaying = false;
     this.state = loadCampaign();
-    this.game.audio.setTrack('medieval');
+    this.game.audio.setTrack('intro');
+    this.game.audio.setDuck(1);
     this.game.audio.startMusic();
     this.game.scenes.replaceAll(
       new StoryMenuScene(this.game, this.state, CHAPTERS, {
@@ -262,10 +263,12 @@ export class StoryFlow {
 
   /** Debug / automation: `?story=3.2` jumps straight into a sub-level. */
   debugPlay(id: string): void {
-    this.game.audio.setTrack('medieval');
     for (const ch of CHAPTERS) {
       const sub = ch.subLevels.find((s) => s.id === id);
-      if (sub) return this.startSub(ch, sub);
+      if (!sub) continue;
+      this.game.audio.setTrack(ch.music);
+      this.game.audio.startMusic();
+      return this.startSub(ch, sub);
     }
     this.openMenu();
   }

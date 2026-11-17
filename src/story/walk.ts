@@ -426,7 +426,7 @@ class WalkStep implements Step {
       const at = ctx.marker(f.from);
       this.ignite(ctx, Math.floor(at.x), Math.floor(at.y));
       ctx.interrupt([card('FIRE!', 'A FIRE EATS A GREAT PART OF THE CITY. RUN!', { color: C.orange, seconds: 2 })]);
-      ctx.game.audio.play('alarm');
+      ctx.game.audio.play('siren');
       return;
     }
     this.fireT -= dt;

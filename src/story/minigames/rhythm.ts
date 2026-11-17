@@ -111,7 +111,7 @@ export class RhythmGame extends MiniGame {
     if (ok) {
       this.hits++;
       this.feedbackText = this.o.mode === 'choice' ? 'THEY WEEP BACK!' : 'ON THE BEAT!';
-      ctx.game.audio.play(this.o.mode === 'choice' ? 'drink' : 'treat');
+      ctx.game.audio.play(this.o.mode === 'choice' ? 'star' : 'treat');
       const t = this.tears[this.hits % this.tears.length]!;
       t.visible = true;
       t.alpha = 1;

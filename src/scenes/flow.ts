@@ -8,6 +8,7 @@ import { bindGameAudio } from '../fx/gameAudio';
 import { GameScene } from './gameScene';
 import { BriefingScene, GameOverScene, LevelEndScene, PauseScene, TitleScene, type LevelResult } from './overlays';
 import { StoryFlow } from '../story/storyFlow';
+import { AUDIO } from '../config';
 
 /**
  * Scene flow: Title → Briefing → Game ⇄ Pause → Level End / Game Over → …
@@ -41,7 +42,10 @@ export class Flow {
     this.game.scenes.replaceAll(scene);
     scene.setControlsEnabled(false);
     scene.controls.root.visible = false;
-    this.game.audio.setTrack('chip');
+    // Intro music on the title screen (it starts with the first tap: browser autoplay rules).
+    this.game.audio.setTrack('intro');
+    this.game.audio.setDuck(1);
+    this.game.audio.startMusic();
     this.game.scenes.push(
       new TitleScene(this.game, this.level, {
         story: () => this.glitch(() => this.story.openMenu()),
@@ -70,6 +74,7 @@ export class Flow {
     scene.active = true;
     scene.controls.root.visible = true;
     scene.setControlsEnabled(true);
+    this.game.audio.setTrack('greenzone');
     this.game.audio.setDuck(1);
     this.game.audio.startMusic();
   }
@@ -105,6 +110,7 @@ export class Flow {
     this.game.input.joystick.active = false;
     this.game.audio.play('click');
     this.game.audio.setDuck(0.4);
+    this.game.audio.stopLoop('siren');
     this.game.scenes.push(
       new PauseScene(this.game, {
         resume: () => this.resume(),
@@ -135,7 +141,9 @@ export class Flow {
     this.popOverlays();
     scene.setControlsEnabled(true);
     this.game.audio.play('click');
-    this.game.audio.setDuck(scene.threats.director.state === 'attack' ? 0.45 : 1);
+    const attack = scene.threats.director.state === 'attack';
+    this.game.audio.setDuck(attack ? 0.45 : 1);
+    if (attack) this.game.audio.loop('siren', { volume: AUDIO.SIREN_VOLUME });
   }
 
   /** Android back button: pause / resume during play; ignored elsewhere. */
@@ -199,6 +207,8 @@ export class Flow {
   }
 
   private newGameScene(): GameScene {
+    // A new run (title, retry, restart) never inherits the previous run's siren.
+    this.game.audio.stopAllLoops();
     const scene = new GameScene(this.game, this.level);
     bindGameAudio(scene.events, this.game.audio);
     scene.hooks = {

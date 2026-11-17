@@ -37,6 +37,8 @@ export interface GameEvents extends Record<string, unknown> {
   peeEmpty: At;
   poopCleaned: At & { score: number };
   drink: At;
+  /** Zampanò steps into a puddle. */
+  splash: At;
   lifeLost: At & { lives: number };
   gameOver: At;
   levelComplete: At;

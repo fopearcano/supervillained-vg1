@@ -17,7 +17,7 @@ export const CH8: ChapterDef = {
   intro: 'HE COMES HOME WITH RELICS AND NERVE, AND USES THE NERVE.',
   cast: 'EVERYONE AS THEMSELVES AGAIN',
   theme: 'greenzone',
-  music: 'chip',
+  music: 'greenzone',
   professor: {
     after: 'SG',
     text: 'HE MADE ONLY ONE MISTAKE. THE NEXT DAY HE WENT AND TOLD EVERYBODY. WHICH IS HOW I HEARD IT, AND NOW SO HAVE YOU.',

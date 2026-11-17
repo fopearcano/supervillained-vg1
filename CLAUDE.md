@@ -71,6 +71,9 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   sight cones, hostile contact).
 - `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims), `build.ts` (load PNGs or generate
   placeholders), `placeholders/*` (procedural pixel art), `fonts/`.
+- Repo-root `assets/music` and `assets/sounds` — recorded audio, wired in `src/fx/audioFiles.ts`
+  (table in `ASSETS.md`); `core/audio.ts` plays them (sfx decoded, music streamed) alongside the
+  synthesized sounds of `fx/sounds.ts`.
 - `android/` — Capacitor project (committed). Custom bits: `MainActivity.java` (immersive
   fullscreen, keep-screen-on, back button → `svback` window event), portrait lock in
   `AndroidManifest.xml`, fullscreen themes in `res/values/styles.xml`, icons/splash generated from

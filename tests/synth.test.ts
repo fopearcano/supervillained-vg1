@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { noteFreq, renderSound, soundDuration } from '../src/core/synth';
-import { SOUNDS, renderMusic } from '../src/fx/sounds';
+import { SOUNDS, renderMedievalMusic } from '../src/fx/sounds';
 
 describe('synth', () => {
   it('converts notes to frequencies', () => {
@@ -27,12 +27,12 @@ describe('synth', () => {
   });
 
   it('is deterministic', () => {
-    expect(renderSound(SOUNDS.bark, 22050)).toEqual(renderSound(SOUNDS.bark, 22050));
+    expect(renderSound(SOUNDS.jingle, 22050)).toEqual(renderSound(SOUNDS.jingle, 22050));
   });
 
-  it('renders the music loop (8 bars at 132 bpm)', () => {
-    const data = renderMusic(8000);
-    expect(data.length / 8000).toBeCloseTo((8 * 4 * 60) / 132, 1);
-    expect(data.every((v) => Number.isFinite(v) && Math.abs(v) <= 1)).toBe(true);
+  it('renders the dream music loop (8 bars of 6 eighths at 104 bpm)', () => {
+    const data = renderMedievalMusic(8000);
+    expect(data.length / 8000).toBeCloseTo((8 * 6 * 60) / 104 / 2, 1);
+    expect(data.every((v: number) => Number.isFinite(v) && Math.abs(v) <= 1)).toBe(true);
   });
 });
