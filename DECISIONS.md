@@ -391,4 +391,8 @@ longer bullied in the Green Zone.
   phone's back button on the title also quits.
 - The autopilot does not play the walk (it marks 1.0 as done and goes on); the screenshot
   scenarios m1–m6 play it, now starting from NEW GAME.
+- **Music follows what the player is doing**: the intro music plays on every screen meant for
+  reading (title, cards, briefing, score, the Professor, the ending); a level's own music (Green
+  Zone or medieval) starts only when the play starts. Each track resumes where it was paused
+  instead of restarting from the top.
 

@@ -153,8 +153,8 @@ export class Flow {
     scene.active = false;
     this.game.scenes.replaceAll(scene);
     scene.setControlsEnabled(false);
-    this.game.audio.setTrack('greenzone');
-    this.game.audio.startMusic();
+    // Reading the rules: intro music. The Green Zone music starts with the walk (startPlaying).
+    this.reading();
     this.game.scenes.push(new BriefingScene(this.game, () => this.startPlaying()));
   }
 
@@ -168,6 +168,13 @@ export class Flow {
     scene.controls.root.visible = true;
     scene.setControlsEnabled(true);
     this.game.audio.setTrack('greenzone');
+    this.game.audio.setDuck(1);
+    this.game.audio.startMusic();
+  }
+
+  /** Intro music while the player reads (title, briefing, score). */
+  private reading(): void {
+    this.game.audio.setTrack('intro');
     this.game.audio.setDuck(1);
     this.game.audio.startMusic();
   }
@@ -284,6 +291,7 @@ export class Flow {
       nextLabel: 'CONTINUE',
     };
     scene.setControlsEnabled(false);
+    this.reading();
     const end = new LevelEndScene(this.game, this.level, result, {
       next: () => {
         this.storyDone = null;

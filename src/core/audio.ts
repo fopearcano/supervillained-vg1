@@ -254,7 +254,8 @@ export class AudioEngine {
       ctx.createMediaElementSource(el).connect(this.music);
       this.elements.set(this.track, el);
     }
-    el.currentTime = 0;
+    // Each track picks up where it was paused: switching between the intro (reading screens) and
+    // the level's music does not restart either from the top.
     this.playingElement = el;
     const playing = el;
     void el.play().catch(() => {

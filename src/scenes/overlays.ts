@@ -80,8 +80,8 @@ export class TitleScene extends Overlay {
     }).setOrigin(0.5, 0);
     this.menu = new Menu(
       [
-        { label: 'NEW GAME', action: actions.newGame, color: C.yellow },
-        { label: 'CONTINUE', action: () => (canContinue ? actions.cont() : this.game.audio.play('empty')), color: canContinue ? C.green : '#5a5a6a' },
+        { label: 'NEW GAME', action: actions.newGame, color: C.red },
+        { label: 'CONTINUE', action: () => (canContinue ? actions.cont() : this.game.audio.play('empty')), color: canContinue ? C.yellow : '#5a5a6a' },
         { label: 'OPTIONS', action: actions.options, color: C.cyan },
         { label: 'QUIT', action: actions.quit, color: C.pink },
       ],

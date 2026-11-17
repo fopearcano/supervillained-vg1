@@ -132,10 +132,16 @@ export class StoryFlow {
     );
   }
 
-  private showSub(ch: ChapterDef, sub: SubLevelDef, withChapterCard: boolean): void {
-    this.game.audio.setTrack(ch.music);
+  /** Intro music while the player reads the cards; the level's own music plays in the scene. */
+  private reading(): void {
+    this.game.audio.setTrack('intro');
+    this.game.audio.setDuck(1);
     this.game.audio.startMusic();
+  }
+
+  private showSub(ch: ChapterDef, sub: SubLevelDef, withChapterCard: boolean): void {
     if (this.autopilot) return this.startSub(ch, sub);
+    this.reading();
     const subCard = () =>
       this.game.scenes.replaceAll(
         new StoryCardScene(
@@ -176,6 +182,9 @@ export class StoryFlow {
       }
       return this.playGreenZone(sub.greenZone, () => this.finishSub(ch, sub));
     }
+    this.game.audio.setTrack(ch.music);
+    this.game.audio.setDuck(1);
+    this.game.audio.startMusic();
     const scene = new StoryScene(this.game, this.replaying ? structuredClone(this.state) : this.state, ch, sub, {
       onFinished: () => this.finishSub(ch, sub),
       onMenu: () => this.pause(ch, sub),
@@ -205,6 +214,7 @@ export class StoryFlow {
       return this.glitch(() => (nextCh ? this.showSub(nextCh, nextCh.subLevels[0]!, true) : this.showEnding()));
     }
     // End of the level: the Professor's aside.
+    this.reading();
     this.glitch(() =>
       this.game.scenes.replaceAll(
         new StoryCardScene(
@@ -226,6 +236,7 @@ export class StoryFlow {
   }
 
   private showEnding(): void {
+    this.reading();
     const e = ending(this.state);
     if (this.autopilot) this.log.push({ id: 'ending', time: 0, metrics: null, meters: { ...this.state.meters }, ending: e });
     const lines =

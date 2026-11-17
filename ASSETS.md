@@ -122,8 +122,8 @@ offline. Each file is wired in `src/fx/audioFiles.ts`:
 
 | File | Plays when |
 |------|-----------|
-| `music/intro-music.mp3` | title screen, briefing, story menu |
-| `music/greenzone-music.mp3` | arcade gameplay; story levels 1 and 8 (Greenzone) |
+| `music/intro-music.mp3` | every reading screen: title, options, level and scene cards, the walk's briefing and score, the Professor's asides, the ending |
+| `music/greenzone-music.mp3` | only while playing in the Green Zone: the 1.0 walk and the scenes of levels 1 and 8 |
 | `sounds/dog-bark.mp3` | Zampanò barks (arcade and story) |
 | `sounds/food-collect.mp3` | a treat is eaten (TREATS +1); story pickups |
 | `sounds/poos.mp3` | a poop (POOPS +1) |
