@@ -45,8 +45,8 @@ export const CAMERA = {
 } as const;
 
 export const PLAYER = {
-  WALK_SPEED: 2.8,
-  RUN_SPEED: 4.8,
+  WALK_SPEED: 3.4,
+  RUN_SPEED: 5.8,
   ACCEL: 16,
   DECEL: 20,
   /** Collision radius in tiles. */
@@ -105,9 +105,9 @@ export const HUNGER = {
   MAX: 100,
   START: 100,
   /** Drain per second by activity (scaled with PLAYER speeds: the same hunger per tile walked). */
-  DRAIN_IDLE: 1.15,
-  DRAIN_WALK: 1.9,
-  DRAIN_RUN: 2.9,
+  DRAIN_IDLE: 1.4,
+  DRAIN_WALK: 2.3,
+  DRAIN_RUN: 3.5,
   /** Hunger restored after losing a life. */
   REFILL_ON_LIFE_LOST: 50,
   /** Hunger below which the bar blinks. */
@@ -207,7 +207,7 @@ export const CAT = {
 export const BALL = {
   MAGNET_RADIUS: 3.6,
   /** Max pull speed (tiles/s) at the ball: beats walking near the ball, not running. */
-  MAGNET_STRENGTH: 4.1,
+  MAGNET_STRENGTH: 5,
   GRAB_RADIUS: 0.45,
   LIFETIME: 22,
   FETCH_TIME: 2,
