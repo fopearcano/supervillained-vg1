@@ -21,7 +21,7 @@ import {
 import { StoryFlow } from '../story/storyFlow';
 import { BookScene } from '../story/screens';
 import { AUDIO } from '../config';
-import { GlitchFilter } from '../fx/glitchFilter';
+import { TitleGlitchFilter } from '../fx/titleGlitchFilter';
 import { quitApp } from '../core/native';
 
 /**
@@ -59,7 +59,7 @@ export class Flow {
     this.level = LEVELS[0]!;
     const scene = this.newGameScene();
     scene.active = false;
-    const glitch = new GlitchFilter();
+    const glitch = new TitleGlitchFilter();
     scene.worldRoot.filters = [this.blur, glitch];
     scene.hud.root.visible = false;
     this.game.scenes.replaceAll(scene);

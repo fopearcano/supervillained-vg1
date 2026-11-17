@@ -398,7 +398,10 @@ longer bullied in the Green Zone.
 - **Title page**: the SUPERVILLAINED logo and CRUSADER sit at the top; Zampanò's portrait
   (`assets/starting-page-images`) over the buttons, 1/3 of the screen wide; the "You've been
   supervillained" logo under them with a pulsing pale halo (an additive glow disappears on the
-  bright green); the blurred Green Zone behind glitches in bursts (the "under attack" filter).
+  bright green); the blurred Green Zone behind glitches in flickering bursts with its own, mostly vertical
+  filter (`fx/titleGlitchFilter.ts`: columns tearing up and down, a vertical RGB split, rolling,
+  tall corrupted blocks, sweeping vertical bars and scanlines, a few horizontal tears). The stack
+  is lowered into most of the free space above SUPERVOID EDITIONS (`TITLE.LOWER`).
   The pictures are scaled in the browser (step-by-step halving, crisp alpha) to the logical
   resolution, so they match the pixel art at any screen size.
 

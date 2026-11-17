@@ -1,6 +1,6 @@
 import { BlurFilter, Container, Graphics, Sprite } from 'pixi.js';
 import { TITLE } from '../config';
-import type { GlitchFilter } from '../fx/glitchFilter';
+import type { TitleGlitchFilter } from '../fx/titleGlitchFilter';
 import { loadTitleArt, titleTexture, type TitleArt } from '../ui/titleArt';
 import { textures } from '../core/assets';
 import type { Game } from '../core/game';
@@ -56,8 +56,8 @@ export interface TitleActions {
   quit: () => void;
   /** Where Continue goes ("LEVEL 3: 3.2 ..."), or null when there is no saved story. */
   continueLabel: string | null;
-  /** The background's glitch filter, animated by the title (bursts of slices and RGB split). */
-  glitch?: GlitchFilter;
+  /** The background's glitch filter, animated by the title (mostly vertical bursts). */
+  glitch?: TitleGlitchFilter;
 }
 
 /**
@@ -132,35 +132,47 @@ export class TitleScene extends Overlay {
       this.title.anchor.set(0.5);
     }
     const cx = Math.round(w / 2);
-    // From the top: the title, CRUSADER, the portrait, the buttons, where CONTINUE goes, the logo.
-    const top = Math.max(18, Math.round(h * 0.07));
-    this.title.position.set(cx, top);
-    const editionY = Math.round(top + this.title.height / 2 + 10);
-    this.edition.position.set(cx, editionY);
-    let y = editionY + 12;
+    // The stack, from the top: the title, CRUSADER, the portrait, the buttons, where CONTINUE goes,
+    // the logo. Laid out from y = 0, then lowered into most of the free space above the footer.
+    const halfTitle = Math.round(this.title.height / 2);
+    let y = halfTitle + Math.round(this.title.height / 2) + 10;
+    const editionY = y;
+    y += 12;
+    let dogY = y;
     if (this.art) {
       this.dog.texture = titleTexture(this.art.dog, Math.round(w * TITLE.DOG_WIDTH));
-      this.dog.position.set(cx, y);
-      y += this.dog.height + 8;
+      dogY = y;
+      y += this.dog.height + 6;
     }
-    this.menu.layout(w / 2, y);
-    y += this.menu.height + 6;
-    this.best.position.set(cx, y);
-    y += (this.actions.continueLabel ? this.best.textHeight : 0) + 8;
-    this.footer.position.set(cx, h - 6);
+    const menuY = y;
+    y += this.menu.height + 5;
+    const bestY = y;
+    y += (this.actions.continueLabel ? this.best.textHeight : 0) + 6;
+    const logoY = y;
+    const bottom = h - 16;
     if (this.art) {
-      // As wide as LOGO_WIDTH allows, but never down into SUPERVOID EDITIONS.
-      const room = h - 16 - y;
+      // LOGO_WIDTH wide, but never down into SUPERVOID EDITIONS.
       const a = this.art.logo;
+      const top0 = Math.max(18, halfTitle + 4);
+      const room = bottom - (top0 - halfTitle) - logoY;
       const lw = Math.max(40, Math.min(Math.round(w * TITLE.LOGO_WIDTH), Math.floor((room * a.naturalWidth) / a.naturalHeight)));
       const tex = titleTexture(a, lw);
       this.svLogo.texture = tex;
       this.svGlow.texture = tex;
-      this.svLogo.position.set(cx, y);
-      this.svGlow.position.set(cx, y);
-      this.svGlow.scale.set(TITLE.GLOW_SCALE);
-      this.svGlow.position.set(cx, Math.round(y - (this.svGlow.height - this.svLogo.height) / 2));
+      y += this.svLogo.height;
     }
+    const top0 = Math.max(18, halfTitle + 4);
+    const free = Math.max(0, bottom - (top0 - halfTitle) - y);
+    const off = top0 + Math.round(free * TITLE.LOWER);
+    this.title.position.set(cx, off);
+    this.edition.position.set(cx, off + editionY - halfTitle);
+    this.dog.position.set(cx, off + dogY - halfTitle);
+    this.menu.layout(w / 2, off + menuY - halfTitle);
+    this.best.position.set(cx, off + bestY - halfTitle);
+    this.svLogo.position.set(cx, off + logoY - halfTitle);
+    this.svGlow.scale.set(TITLE.GLOW_SCALE);
+    this.svGlow.position.set(cx, Math.round(off + logoY - halfTitle - (this.svGlow.height - this.svLogo.height) / 2));
+    this.footer.position.set(cx, h - 6);
   }
 
   override update(dt: number): void {
@@ -179,7 +191,7 @@ export class TitleScene extends Overlay {
     if (this.time > 0.6) this.menu.update(dt, this.game.input);
   }
 
-  /** The background glitches now and then: sliced, RGB-split, with faint scanlines in between. */
+  /** The background glitches now and then, mostly vertically, with a faint flicker in between. */
   private animateGlitch(dt: number): void {
     const f = this.actions.glitch;
     if (!f) return;
@@ -191,12 +203,9 @@ export class TitleScene extends Overlay {
       this.burstLeft = rnd(TITLE.GLITCH_TIME);
     }
     this.burstLeft -= dt;
-    const on = this.burstLeft > 0;
-    f.glitch = on ? TITLE.GLITCH_SLICES : 0;
-    f.rgb = on ? TITLE.GLITCH_RGB : TITLE.GLITCH_IDLE_RGB;
-    f.scanlines = 0.18;
-    f.sepia = 0;
-    f.flash = 0;
+    // A burst flickers: its strength jumps around while it lasts.
+    f.burst = this.burstLeft > 0 ? rnd(TITLE.GLITCH_BURST) : 0;
+    f.idle = TITLE.GLITCH_IDLE;
   }
 }
 

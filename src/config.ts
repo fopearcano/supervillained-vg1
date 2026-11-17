@@ -81,22 +81,23 @@ export const ENERGY = {
 /** The title page (title art in assets/starting-page-images). */
 export const TITLE = {
   /** Zampanò's portrait over the buttons, as a fraction of the screen width. */
-  DOG_WIDTH: 1 / 3,
+  DOG_WIDTH: 0.46,
   /** The "You've been supervillained" logo under the buttons, as a fraction of the screen width. */
-  LOGO_WIDTH: 0.62,
+  LOGO_WIDTH: 0.5,
+  /** Share of the free space below the stack moved above it (lowers everything toward the footer). */
+  LOWER: 0.75,
   /** Glow behind the logo: alpha pulse (min, max) and its speed. */
   GLOW_ALPHA: [0.55, 1],
   GLOW_SPEED: 2.4,
   /** Glow size (scale of the blurred copy) and blur strength. */
   GLOW_SCALE: 1.1,
   GLOW_BLUR: 6,
-  /** Glitch burst strength: slice displacement and RGB split (with a faint split in between). */
-  GLITCH_SLICES: 0.9,
-  GLITCH_RGB: 4,
-  GLITCH_IDLE_RGB: 0.6,
+  /** Background glitch (mostly vertical): flickering burst strength [min, max], faint level in between. */
+  GLITCH_BURST: [0.45, 1],
+  GLITCH_IDLE: 0.45,
   /** Background glitch: a burst every [min, max] seconds, lasting [min, max] seconds. */
-  GLITCH_EVERY: [1.2, 3.4],
-  GLITCH_TIME: [0.08, 0.3],
+  GLITCH_EVERY: [0.9, 2.8],
+  GLITCH_TIME: [0.12, 0.45],
 } as const;
 
 export const INPUT = {
