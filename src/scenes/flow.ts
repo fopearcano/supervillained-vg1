@@ -21,6 +21,7 @@ import {
 import { StoryFlow } from '../story/storyFlow';
 import { BookScene } from '../story/screens';
 import { AUDIO } from '../config';
+import { GlitchFilter } from '../fx/glitchFilter';
 import { quitApp } from '../core/native';
 
 /**
@@ -58,7 +59,8 @@ export class Flow {
     this.level = LEVELS[0]!;
     const scene = this.newGameScene();
     scene.active = false;
-    scene.worldRoot.filters = [this.blur];
+    const glitch = new GlitchFilter();
+    scene.worldRoot.filters = [this.blur, glitch];
     scene.hud.root.visible = false;
     this.game.scenes.replaceAll(scene);
     scene.setControlsEnabled(false);
@@ -75,6 +77,7 @@ export class Flow {
         options: () => this.openOptions(),
         quit: () => this.quit(),
         continueLabel: this.story.hasProgress() ? (this.story.nextLabel() ?? 'THE STORY IS FINISHED: REPLAY ANY LEVEL') : null,
+        glitch,
       }),
     );
     this.glitch(null, 0.7, 1);

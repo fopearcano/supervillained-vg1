@@ -141,6 +141,14 @@ Leading silence is skipped automatically, and per-file loudness trims are in `co
 dream levels (2 to 7) keep the synthesized medieval loop, and interface sounds (clicks, glitch
 transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
 
+## Title page art
+
+`assets/starting-page-images/` holds the two pictures of the title page (`src/ui/titleArt.ts`):
+`Retro-16-Bit Ivory Dog Sprite-3-4-front.png` (Zampanò over the buttons, 1/3 of the screen wide)
+and `Youve_Been_Supervillained_Logo.png` (under the buttons, with a pulsing glow). They are scaled
+down in the browser to the exact size each screen needs, so replacing a file (same name, PNG with
+transparency) is all it takes. Sizes and the glow/glitch tuning are in `config.ts` (`TITLE`).
+
 ## App icon and logo
 
 `branding/` holds the logo: `logo-source.webp` (the original), `logo.png` (the shape on pure white,

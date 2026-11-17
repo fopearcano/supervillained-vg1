@@ -395,4 +395,10 @@ longer bullied in the Green Zone.
   reading (title, cards, briefing, score, the Professor, the ending); a level's own music (Green
   Zone or medieval) starts only when the play starts. Each track resumes where it was paused
   instead of restarting from the top.
+- **Title page**: the SUPERVILLAINED logo and CRUSADER sit at the top; Zampanò's portrait
+  (`assets/starting-page-images`) over the buttons, 1/3 of the screen wide; the "You've been
+  supervillained" logo under them with a pulsing pale halo (an additive glow disappears on the
+  bright green); the blurred Green Zone behind glitches in bursts (the "under attack" filter).
+  The pictures are scaled in the browser (step-by-step halving, crisp alpha) to the logical
+  resolution, so they match the pixel art at any screen size.
 

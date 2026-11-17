@@ -1,4 +1,7 @@
-import { Container, Graphics, Sprite } from 'pixi.js';
+import { BlurFilter, Container, Graphics, Sprite } from 'pixi.js';
+import { TITLE } from '../config';
+import type { GlitchFilter } from '../fx/glitchFilter';
+import { loadTitleArt, titleTexture, type TitleArt } from '../ui/titleArt';
 import { textures } from '../core/assets';
 import type { Game } from '../core/game';
 import type { Scene } from '../core/scene';
@@ -53,10 +56,24 @@ export interface TitleActions {
   quit: () => void;
   /** Where Continue goes ("LEVEL 3: 3.2 ..."), or null when there is no saved story. */
   continueLabel: string | null;
+  /** The background's glitch filter, animated by the title (bursts of slices and RGB split). */
+  glitch?: GlitchFilter;
 }
 
-/** Title card over the blurred Green Zone: NEW GAME, CONTINUE, OPTIONS, QUIT. */
+/**
+ * Title page over the blurred, glitching Green Zone: the SUPERVILLAINED logo and CRUSADER at the
+ * top, Zampanò's portrait, NEW GAME / CONTINUE / OPTIONS / QUIT, the glowing "You've been
+ * supervillained" logo under the buttons, SUPERVOID EDITIONS at the bottom.
+ */
 export class TitleScene extends Overlay {
+  /** Zampanò's portrait (title art) over the buttons. */
+  private readonly dog = new Sprite();
+  /** "You've been supervillained" under the buttons, with a pulsing glow behind it. */
+  private readonly svLogo = new Sprite();
+  private readonly svGlow = new Sprite();
+  private art: TitleArt | null = null;
+  private burstLeft = 0;
+  private nextBurst = 1;
   /** The logo: always one line (see ui/logo.ts). */
   private readonly title = new Sprite();
   private titleScale = 0;
@@ -68,7 +85,10 @@ export class TitleScene extends Overlay {
   /** Publisher line: the smallest crisp size of the pixel font (scale 1), dimmed. */
   private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: '#8ad4ff', letterSpacing: 1 }).setOrigin(0.5, 1);
 
-  constructor(game: Game, actions: TitleActions) {
+  constructor(
+    game: Game,
+    private readonly actions: TitleActions,
+  ) {
     super(game, 0.15);
     this.edition = big('CRUSADER', C.hotPink, 1, { letterSpacing: 6, glow: C.hotPink, glowAlpha: 0.5 });
     const canContinue = actions.continueLabel !== null;
@@ -91,7 +111,15 @@ export class TitleScene extends Overlay {
       6,
     );
     if (canContinue) this.menu.selected = 1;
-    this.root.addChild(this.title, this.edition, this.best, this.menu.root, this.footer);
+    for (const s of [this.dog, this.svLogo, this.svGlow]) s.anchor.set(0.5, 0);
+    // A pale halo (normal blending: an additive glow vanishes on the bright green behind it).
+    this.svGlow.tint = 0xfff3a0;
+    this.svGlow.filters = [new BlurFilter({ strength: TITLE.GLOW_BLUR, quality: 3, resolution: 1 })];
+    this.root.addChild(this.title, this.edition, this.dog, this.best, this.menu.root, this.svGlow, this.svLogo, this.footer);
+    void loadTitleArt().then((art) => {
+      this.art = art;
+      this.layout();
+    });
   }
 
   protected layout(): void {
@@ -103,12 +131,36 @@ export class TitleScene extends Overlay {
       this.title.texture = logoTexture(LOGO_TEXT, scale, LOGO_STYLE);
       this.title.anchor.set(0.5);
     }
-    const top = Math.round(h * 0.24);
-    this.title.position.set(Math.round(w / 2), top);
-    this.edition.position.set(Math.round(w / 2), Math.round(top + this.title.height / 2 + 10));
-    this.menu.layout(w / 2, Math.round(h * 0.52));
-    this.best.position.set(Math.round(w / 2), Math.round(h * 0.52 + this.menu.height + 12));
-    this.footer.position.set(Math.round(w / 2), h - 6);
+    const cx = Math.round(w / 2);
+    // From the top: the title, CRUSADER, the portrait, the buttons, where CONTINUE goes, the logo.
+    const top = Math.max(18, Math.round(h * 0.07));
+    this.title.position.set(cx, top);
+    const editionY = Math.round(top + this.title.height / 2 + 10);
+    this.edition.position.set(cx, editionY);
+    let y = editionY + 12;
+    if (this.art) {
+      this.dog.texture = titleTexture(this.art.dog, Math.round(w * TITLE.DOG_WIDTH));
+      this.dog.position.set(cx, y);
+      y += this.dog.height + 8;
+    }
+    this.menu.layout(w / 2, y);
+    y += this.menu.height + 6;
+    this.best.position.set(cx, y);
+    y += (this.actions.continueLabel ? this.best.textHeight : 0) + 8;
+    this.footer.position.set(cx, h - 6);
+    if (this.art) {
+      // As wide as LOGO_WIDTH allows, but never down into SUPERVOID EDITIONS.
+      const room = h - 16 - y;
+      const a = this.art.logo;
+      const lw = Math.max(40, Math.min(Math.round(w * TITLE.LOGO_WIDTH), Math.floor((room * a.naturalWidth) / a.naturalHeight)));
+      const tex = titleTexture(a, lw);
+      this.svLogo.texture = tex;
+      this.svGlow.texture = tex;
+      this.svLogo.position.set(cx, y);
+      this.svGlow.position.set(cx, y);
+      this.svGlow.scale.set(TITLE.GLOW_SCALE);
+      this.svGlow.position.set(cx, Math.round(y - (this.svGlow.height - this.svLogo.height) / 2));
+    }
   }
 
   override update(dt: number): void {
@@ -118,8 +170,33 @@ export class TitleScene extends Overlay {
     this.title.x = Math.round(this.w / 2) + jitter;
     this.edition.x = Math.round(this.w / 2) - jitter;
     this.edition.visible = this.time > 0.25;
+    this.dog.visible = this.time > 0.35;
     this.menu.root.visible = this.time > 0.5;
+    this.svLogo.visible = this.svGlow.visible = this.time > 0.65;
+    const [ga, gb] = TITLE.GLOW_ALPHA;
+    this.svGlow.alpha = ga + (gb - ga) * (0.5 + 0.5 * Math.sin(this.time * TITLE.GLOW_SPEED));
+    this.animateGlitch(dt);
     if (this.time > 0.6) this.menu.update(dt, this.game.input);
+  }
+
+  /** The background glitches now and then: sliced, RGB-split, with faint scanlines in between. */
+  private animateGlitch(dt: number): void {
+    const f = this.actions.glitch;
+    if (!f) return;
+    const rnd = (r: readonly number[]) => r[0]! + Math.random() * (r[1]! - r[0]!);
+    f.time = this.time;
+    this.nextBurst -= dt;
+    if (this.nextBurst <= 0) {
+      this.nextBurst = rnd(TITLE.GLITCH_EVERY);
+      this.burstLeft = rnd(TITLE.GLITCH_TIME);
+    }
+    this.burstLeft -= dt;
+    const on = this.burstLeft > 0;
+    f.glitch = on ? TITLE.GLITCH_SLICES : 0;
+    f.rgb = on ? TITLE.GLITCH_RGB : TITLE.GLITCH_IDLE_RGB;
+    f.scanlines = 0.18;
+    f.sepia = 0;
+    f.flash = 0;
   }
 }
 

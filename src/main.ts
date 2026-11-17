@@ -6,6 +6,7 @@ import { Flow } from './scenes/flow';
 import { SpriteViewerScene } from './scenes/spriteViewerScene';
 import type { CharacterKey } from './assets/manifest';
 import { loadPixelFont } from './ui/pixelFont';
+import { loadTitleArt } from './ui/titleArt';
 import { dirFromGridVector } from './iso/projection';
 import { CHAPTERS } from './campaign/chapters';
 import { DEFAULT_POLICY } from './story/autopilot';
@@ -33,6 +34,7 @@ async function boot(): Promise<void> {
   app.ticker?.stop();
   await loadPixelFont();
   await buildGlobalTextures();
+  await loadTitleArt();
   const game = new Game(app, canvas);
   document.getElementById('boot')?.remove();
 
