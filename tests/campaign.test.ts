@@ -2,10 +2,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CHAPTERS, findSubLevel } from '../src/campaign/chapters';
 import { homeObject, KNOWN_MARVELS } from '../src/campaign/home';
-import { applyEffects, canSpend, companions, dreamSkin, ending, endingNotes, fadeCommozione, graceTier, METER_MAX, newCampaign, spend, unshakeable } from '../src/campaign/state';
+import { applyEffects, canSpend, dreamSkin, ending, endingNotes, fadeCommozione, graceTier, METER_MAX, newCampaign, spend, unshakeable } from '../src/campaign/state';
 import { STORY } from '../src/config';
 import { optionView } from '../src/story/steps';
-import { CHAPTER_TITLES, shardName } from '../src/campaign/titles';
+import { CHAPTER_TITLES } from '../src/campaign/titles';
 import { STORY_MAPS, THEMES } from '../src/story/maps';
 import { parseAsciiMap } from '../src/world/level';
 
@@ -63,16 +63,14 @@ describe('meters with consequences', () => {
     expect(s.meters.commozione).toBe(0);
   });
 
-  it('lets Standing decide who walks beside him', () => {
+  it('lets Standing decide how the camp remembers him', () => {
     const s = newCampaign();
     s.meters.standing = 20;
-    expect(companions(s, 'vanguard')).toEqual(['sbrim']);
-    expect(companions(s, 'lawn')).toEqual(['conf']);
-    s.meters.standing = STORY.FOLLOW.SAINT_POL;
-    expect(companions(s, 'vanguard')).toEqual(['sbrim', 'stpol']);
+    expect(endingNotes(s)[1]).toMatch(/MARSHAL REMEMBERS/);
+    s.meters.standing = STORY.STANDING.FAIR;
+    expect(endingNotes(s)[1]).toMatch(/MORE OR LESS/);
     s.meters.standing = 100;
-    expect(companions(s, 'vanguard')).toEqual(['sbrim', 'stpol', 'flanders']);
-    expect(companions(s, 'lawn')).toEqual(['conf', 'sbrim', 'watson']);
+    expect(endingNotes(s)[1]).toMatch(/FONDLY/);
   });
 
   it('shows Grace on the altar and in the ending', () => {
@@ -102,7 +100,8 @@ describe('VG1 campaign data', () => {
   it('has the eight levels in order with their titles', () => {
     expect(CHAPTERS.map((c) => c.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(CHAPTERS.map((c) => c.title)).toEqual([...CHAPTER_TITLES]);
-    expect(shardName(7)).toBe('LEVEL 7: CONSTANTINOPLE');
+    expect(CHAPTER_TITLES[0]).toBe('The Greenzone');
+    expect(CHAPTER_TITLES[7]).toBe('Back to the Greenzone');
   });
 
   it('numbers sub-levels n.1, n.2 ... with unique ids (42 in all)', () => {

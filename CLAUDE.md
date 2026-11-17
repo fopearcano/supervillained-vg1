@@ -3,8 +3,10 @@
 2D isometric game (browser + Android via Capacitor), **no game engine**. Two modes:
 - **ARCADE: GREEN ZONE** (`SPEC.md`): Zampanò, a Maltese dog, walks through a park: eat treats,
   pee to clean, avoid pollution, bark at the bully pug.
-- **STORY** (the VG1 design PDF, "Supervillained — VG1 implemented"): an 8-level, 42-sub-level
-  campaign — a Fourth-Crusade dream with dialogue, dream walks, mini-games and two endings.
+- **STORY** (the VG1 design PDFs: "Supervillained — VG1 implemented", then the level design
+  revision "Supervillained VG1 — Levels implementation 2", which wins where they differ): an
+  8-level, 42-sub-level campaign — a Fourth-Crusade dream with dialogue, dream walks, mini-games
+  and two endings.
 
 Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`.
 
@@ -22,6 +24,7 @@ npm run smoke        # plays every story sub-level start to finish (fails on err
 npm run smoke -- 7.3 8.1         # selected sub-levels
 npm run playtest     # the autopilot plays the whole campaign for real → report (fails if a sub-level can't be won)
 npm run playtest -- --skill 0.4 --ending alpha --choice random --from 5.1 --out docs/PLAYTEST.md
+npm run playtest -- --from 3.1 --to 3.4          # one level
 npm run android:apk  # web build + cap sync + Gradle debug APK (needs JDK 21 + Android SDK 36)
 ```
 
@@ -58,14 +61,16 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
 - `campaign/` — the VG1 campaign as data: `state.ts` (meters, flags, book, unlocks, ending; pure,
   tested), `titles.ts`, `home.ts` (8.2 marvel → object at home), `chapters/ch1..ch8.ts` (one file
   per level: sub-levels with `happens`, `source`, optional `blackHole`, and a `script()` that
-  returns `Step[]`), `chapters/helpers.ts`.
+  returns `Step[]`), `chapters/helpers.ts` (`followLeader`, `lullWalk`, `placeObject`,
+  `sounder`, `walkableNear`).
 - `story/` — the story engine: `step.ts` (Step interface), `steps.ts` (script vocabulary: say, ask,
   card, stage, move, walk, mini, branch, fx, blackHoleIn/Out…), `walk.ts` (dream walk: reach,
   pickups, sight cones, pace/nerve, thirst, scramble, fire), `minigames/`, `storyScene.ts` (runs a
   script over a World stage), `ui.ts` (dialogue box + choice wheel, cards, story HUD with meters),
   `screens.ts` (story menu, level's sub-level list, cards, pause, Meraviglia book), `storyFlow.ts`
   (menu → cards → sub-level → Professor aside → ending; saves progress; replays on a copy),
-  `maps.ts` (story stages + palettes/themes), `autopilot.ts` (automated player: steps and
+  `maps.ts` (story stages + palettes/themes), `carry.ts` (what he carries, shown over his head),
+  `autopilot.ts` (automated player: steps and
   mini-games implement an optional `pilot()` that drives the real inputs).
 - `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
   sight cones, hostile contact).
@@ -95,8 +100,10 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   (values are stored in mixed case and uppercased for display).
 - Story maps: digits are markers used by scripts (`'1'`, `ctx.marker('1')`); `S` is the start.
   A missing marker throws — run `npm run smoke` after editing maps or scripts.
-- Meter rules live in `campaign/state.ts` (pure, tested): `fadeCommozione`, `companions`,
-  `graceTier`, `endingNotes`, `ending`. Choices that are big actions take `cost` (Commozione).
+- Meter rules live in `campaign/state.ts` (pure, tested): `fadeCommozione`, `graceTier`,
+  `endingNotes`, `ending`. Choices that are big actions take `cost` (Commozione).
+- Scripted characters walk in straight lines (no pathfinding): give `followLeader` paths whose
+  segments stay on walkable ground, and test a level with `npm run playtest -- --from 3.1 --to 3.4`.
 - A new walk objective the autopilot can't infer from `goal`/`pickups` gets a `pilot` hint in the
   `walk()` definition; a new mini-game gets a `pilot()` strategy. After gameplay changes run
   `npm run playtest` and read the report.

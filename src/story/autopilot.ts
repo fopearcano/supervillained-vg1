@@ -18,7 +18,7 @@ export interface PilotPolicy {
   choice: 'first' | 'last' | 'random';
   /** 0 = clumsy, 1 = perfect. */
   skill: number;
-  /** 7.8: enforce the oath (knight) or look away (alpha). */
+  /** 7.8: call the oath in a lull (knight) or stand silent while Niketas calls it (alpha). */
   ending: 'knight' | 'alpha';
   seed?: number;
 }

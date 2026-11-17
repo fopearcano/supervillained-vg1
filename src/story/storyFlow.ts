@@ -1,5 +1,4 @@
 import { CHAPTERS } from '../campaign/chapters';
-import { shardName } from '../campaign/titles';
 import { ending, endingNotes, isComplete, loadCampaign, markComplete, resetCampaign, saveCampaign, type CampaignState } from '../campaign/state';
 import type { ChapterDef, SubLevelDef } from '../campaign/types';
 import type { Game } from '../core/game';
@@ -67,15 +66,11 @@ export class StoryFlow {
     );
   }
 
-  /**
-   * Level 1 is always open. A later level opens when the previous one is complete, or when its
-   * memory shard was picked up in the Professor's study (1.2: "each one unlocks a later sub-level").
-   */
+  /** Level 1 is always open; a later level opens when the previous one is complete. */
   unlocked(ch: ChapterDef): boolean {
     if (ch.number === 1) return true;
     const prev = CHAPTERS.find((c) => c.number === ch.number - 1);
-    if (prev && prev.subLevels.every((s) => isComplete(this.state, s.id))) return true;
-    return this.state.book.shards.includes(shardName(ch.number)) && isComplete(this.state, '1.2');
+    return !!prev && prev.subLevels.every((s) => isComplete(this.state, s.id));
   }
 
   private continueStory(): void {
@@ -192,14 +187,14 @@ export class StoryFlow {
     if (this.autopilot) this.log.push({ id: 'ending', time: 0, metrics: null, meters: { ...this.state.meters }, ending: e });
     const lines =
       e === 'knight'
-        ? 'HE KEPT THE OATH AT THE SACK. ON THE LAWN, BAGNASKIZ TURNED; HE ENDS IN THE REST HOME. ZAMPANO DID NOT CHANGE: HE FOUND OUT HE WAS A KNIGHT ALL ALONG, AND TOO THICK-HEADED TO BE STOPPED.'
-        : 'HE LOOKED AWAY AT THE SACK. ON THE LAWN, BAGNASKIZ STEPPED ASIDE AND SMILED: THE ALPHA-DOG OFFER IS STILL ON THE TABLE. ZAMPANO WALKED ON ANYWAY, TOO THICK-HEADED TO BE STOPPED.';
+        ? 'IN A LULL IN THE LOOTING HE CALLED THE PILGRIMS TO THEIR OATH, IN HIS OWN WORDS, AND AT THE DESK HE READ THEM BACK IN HIS OWN VOICE. ON THE LAWN BAGNASKIZ STEPPED ASIDE AND THE LANE STAYED OPEN. ZAMPANO DID NOT CHANGE: HE FOUND OUT HE WAS A KNIGHT ALL ALONG, AND TOO THICK-HEADED TO BE STOPPED.'
+        : 'HE STOOD SILENT WHILE NIKETAS CALLED THE PILGRIMS TO THEIR OATH. AT THE DESK HE READ THE LINE IN ITS OWNER\'S VOICE AND SAID SO. ON THE LAWN BAGNASKIZ STEPPED ASIDE ANYWAY, AND THE LANE STAYED OPEN. THE GIRL IS WITH HER FAMILY EITHER WAY; WHAT DIFFERS IS THE STORY HE CAN HONESTLY TELL.';
     this.game.scenes.replaceAll(
       new StoryCardScene(
         this.game,
         0x000000,
         [
-          { text: e === 'knight' ? 'THE KNIGHT' : 'THE ALPHA-DOG', color: e === 'knight' ? C.cyan : C.orange, scale: 2, gap: 14 },
+          { text: e === 'knight' ? 'THE KNIGHT' : 'THE WITNESS', color: e === 'knight' ? C.cyan : '#c8a0ff', scale: 2, gap: 14 },
           { text: lines, color: C.white, align: 'justify', gap: 10 },
           { text: endingNotes(this.state).join(' '), color: '#c8c0e0', align: 'justify', gap: 14 },
           { text: `VALUES: ${this.state.book.values.length}  MARVELS: ${this.state.book.marvels.length}`, color: C.yellow, gap: 6 },

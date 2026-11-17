@@ -6,6 +6,7 @@
  *
  *   npm run playtest
  *   npm run playtest -- --skill 0.4 --ending alpha --choice random --from 5.1 --out docs/PLAYTEST.md
+ *   npm run playtest -- --from 1.1 --to 1.5     (one level; no ending expected)
  */
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
@@ -24,6 +25,7 @@ const SKILL = Number(args.skill ?? 0.7);
 const ENDING = args.ending === 'alpha' ? 'alpha' : 'knight';
 const CHOICE = ['first', 'last', 'random'].includes(args.choice) ? args.choice : 'first';
 const FROM = args.from ?? '1.1';
+const TO = args.to ?? '';
 const OUT = args.out ?? '';
 const MAX_SUB_SECONDS = Number(args.max ?? 420);
 const PORT = 5196;
@@ -69,16 +71,16 @@ try {
   let last = '';
   for (;;) {
     const st = await page.evaluate(
-      ({ steps, max }) => {
+      ({ steps, max, to }) => {
         const sv = window.__sv;
         sv.step(steps);
         const top = sv.top();
         const d = top.debugState ? top.debugState() : null;
         if (d && d.time > max && !d.finished) sv.flow.story.debugSkipCurrent();
         const log = sv.flow.story.log;
-        return { now: d ? `${d.sub} ${d.time}s ${d.step}` : top.constructor.name, done: log.some((e) => e.id === 'ending'), n: log.length };
+        return { now: d ? `${d.sub} ${d.time}s ${d.step}` : top.constructor.name, done: log.some((e) => e.id === 'ending' || (to && e.id === to)), n: log.length };
       },
-      { steps: STEPS, max: MAX_SUB_SECONDS },
+      { steps: STEPS, max: MAX_SUB_SECONDS, to: TO },
     );
     if (st.now !== last) {
       last = st.now;
@@ -126,7 +128,7 @@ try {
   console.log(report);
   if (errors.length) console.log('Page errors:\n' + [...new Set(errors)].slice(0, 20).join('\n'));
   if (OUT) writeFileSync(OUT, report);
-  if (fails || errors.length || !ending) code = 1;
+  if (fails || errors.length || (!ending && !TO)) code = 1;
 } catch (err) {
   console.error(err);
   code = 1;

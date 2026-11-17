@@ -95,8 +95,9 @@ Then in `manifest.ts`: `zampano: { …, sheet: 'sprites/zampano.png' }`.
 `SPRITES` in the manifest: props (`tree`, `forestTree`, `bush`, `pole`, `fountain`, `exitFlag`),
 items (`treat`, `ball`, `poop`, `coin`), shadows, popups (`rainbow`, `thought`), particles and HUD
 icons. Story props: `column`, `desk`, `shelf`, `house`, `tent`, `galley`, `rock`, `statue`, `crate`,
-`palm`, `altar`, `stall`, `throne`, `vine`, `gate`, `bones`, `table`; story items/FX: `shard`,
-`relic`, `tear`, `flame`, `sparkle`, `professorFace`. Story props are drawn per theme palette
+`palm`, `altar`, `stall`, `throne`, `vine`, `gate`, `wicket` (a garden gate, map letter `J`), `bones`,
+`table`; story items/FX: `shard`, `relic`, `bowl` (the water bowl on the lawn), `tear`, `flame`,
+`sparkle`, `professorFace`. Story props are drawn per theme palette
 (like ground tiles), so a file replacement should be neutral or one per theme. Each has `w × h`,
 an anchor and a number of `variants`. To replace one, add
 `file: 'sprites/tree.png'` — a horizontal strip with the variants side by side.

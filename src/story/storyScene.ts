@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js';
+import { ColorMatrixFilter, Container, Graphics } from 'pixi.js';
 import { ensureCharacters } from '../assets/build';
 import type { CharacterKey } from '../assets/manifest';
 import { applyEffects, dreamSkin, fadeCommozione, saveCampaign, type CampaignState, type Effects } from '../campaign/state';
@@ -31,7 +31,7 @@ export interface StageOptions {
   /** Forces a costume (e.g. the armour of the 1.1 dream). */
   skinKey?: 'zampano' | 'zampanoCross' | 'zampanoKnight';
   /** Where Zampanò starts (marker); default S. */
-  at?: string;
+  at?: string | Point;
   face?: Dir8;
 }
 
@@ -162,6 +162,9 @@ export class StoryScene implements Scene {
   setStage(key: MapKey, opts: StageOptions = {}): World {
     // The FX layers belong to the scene: take them out before the old world is destroyed.
     this.worldFx.removeFromParent();
+    this.bleach = 0;
+    this.visor = 0;
+    this.fog = 0;
     this.world?.destroy();
     this.actors.clear();
     const def = STORY_MAPS[key];
@@ -293,6 +296,26 @@ export class StoryScene implements Scene {
   private flashColor = 0xffffff;
   private flashAlpha = 0;
 
+  /** 1.1: the helmet slipping over his eyes (0 = up, 1 = down to a slit). */
+  visor = 0;
+  /** 7.4: smoke (0 = clear, 1 = only a small circle around Zampanò is visible). */
+  fog = 0;
+  /**
+   * 6.4: the desert bleaching the drawing (0 = normal colour, 1 = grey; negative = more saturated,
+   * 7.1's city). The fx layer keeps its colour.
+   */
+  set bleach(v: number) {
+    if (!this.world) return;
+    if (Math.abs(v) <= 0.001) {
+      for (const l of [this.world.mapRenderer.root, this.world.decalLayer, this.world.objectLayer]) l.filters = [];
+      return;
+    }
+    this.bleachFilter.reset();
+    this.bleachFilter.saturate(-Math.max(-1, Math.min(1, v)), false);
+    for (const l of [this.world.mapRenderer.root, this.world.decalLayer, this.world.objectLayer]) if (l.filters?.[0] !== this.bleachFilter) l.filters = [this.bleachFilter];
+  }
+  private readonly bleachFilter = new ColorMatrixFilter();
+
   shake(amount: number): void {
     this.world?.camera.shake(amount);
   }
@@ -348,6 +371,19 @@ export class StoryScene implements Scene {
     this.hud.update(frameDt, this.state);
     const g = this.overlayG;
     g.clear();
+    if (this.fog > 0.01 && this.world) {
+      const p = this.uiLayer.toLocal(this.player.view.getGlobalPosition());
+      const r = Math.max(this.w, this.h) * (1 - this.fog) + 34 * this.fog;
+      g.rect(0, 0, this.w, this.h).fill({ color: 0x2a2228, alpha: 0.92 }).circle(p.x, p.y - 12, r).cut();
+    }
+    if (this.visor > 0.01) {
+      // The helmet comes down from the top, the cheek-pieces up from the bottom: a slit is left.
+      const top = Math.round((this.h / 2) * this.visor);
+      const bottom = Math.round((this.h / 2) * this.visor * 0.82);
+      g.rect(0, 0, this.w, top).fill({ color: 0x14161c });
+      g.rect(0, this.h - bottom, this.w, bottom).fill({ color: 0x14161c });
+      g.rect(0, top - 2, this.w, 2).fill({ color: 0x8a94a8 });
+    }
     if (this.flashAlpha > 0) g.rect(0, 0, this.w, this.h).fill({ color: this.flashColor, alpha: this.flashAlpha });
   }
 

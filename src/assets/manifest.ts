@@ -220,6 +220,8 @@ export const SPRITES = {
   throne: { key: 'throne', w: 28, h: 40, anchorX: 14, anchorY: 34, variants: 1 },
   vine: { key: 'vine', w: 26, h: 24, anchorX: 13, anchorY: 20, variants: 1 },
   gate: { key: 'gate', w: 64, h: 66, anchorX: 32, anchorY: 58, variants: 1 },
+  /** A garden gate in a hedge (the neighborhood). */
+  wicket: { key: 'wicket', w: 30, h: 24, anchorX: 15, anchorY: 20, variants: 1 },
   bones: { key: 'bones', w: 22, h: 10, anchorX: 11, anchorY: 6, variants: 1 },
   table: { key: 'table', w: 40, h: 24, anchorX: 20, anchorY: 16, variants: 1 },
   wallBlock: { key: 'wallBlock', w: 32, h: 40, anchorX: 16, anchorY: 32, variants: 2 },
@@ -230,6 +232,8 @@ export const SPRITES = {
   stag: { key: 'stag', w: 48, h: 46, anchorX: 24, anchorY: 42, variants: 1 },
   shard: { key: 'shard', w: 9, h: 13, anchorX: 4, anchorY: 12, variants: 1 },
   relic: { key: 'relic', w: 12, h: 12, anchorX: 6, anchorY: 11, variants: 1 },
+  /** The water bowl on the common lawn (1.3, 8.3). */
+  bowl: { key: 'bowl', w: 14, h: 8, anchorX: 7, anchorY: 6, variants: 1 },
   banner: { key: 'banner', w: 12, h: 26, anchorX: 2, anchorY: 25, variants: 2 },
   flame: { key: 'flame', w: 16, h: 22, anchorX: 8, anchorY: 20, variants: 3 },
   professorFace: { key: 'professorFace', w: 24, h: 24, anchorX: 0, anchorY: 0, variants: 1 },

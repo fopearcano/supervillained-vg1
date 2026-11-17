@@ -1,20 +1,28 @@
-import { ask, branch, call, card, flash, fx, move, prof, say, shake, sound, stage } from '../../story/steps';
-import { walk, type Pickup } from '../../story/walk';
-import { C } from '../../ui/retro';
-import { homeObject } from '../home';
-import { companions, graceTier } from '../state';
+import type { Point } from '../../entities/actor';
+import type { PropEntity } from '../../entities/prop';
 import { gridToScreen } from '../../iso/projection';
+import { carry, dropCarried } from '../../story/carry';
+import { ask, branch, call, card, flash, fx, move, prof, say, shake, sound, wait } from '../../story/steps';
+import type { StoryScene } from '../../story/storyScene';
+import { walk } from '../../story/walk';
+import { C } from '../../ui/retro';
+import { graceTier } from '../state';
 import { CHAPTER_TITLES } from '../titles';
 import type { ChapterDef } from '../types';
+import { distTo, placeObject, sounder } from './helpers';
 
-/** Spots in the study where the relics go (8.2). */
-const HOME_SPOTS = ['1', '2', '3', '5', '6', '7'];
+const SHIP_MARVELS = ['THE DROMONS', 'THE HORSE TRANSPORTS', 'THE GALLEYS', 'THE FLEET LEAVING VENICE'];
+const CITY_MARVELS = ['THE GREAT WALLS', 'THE CITY OF ROOFS', 'THE GOLDEN DOMES', 'THE GOLDEN PALACE', 'THE GREAT CHURCH', 'THE HIPPODROME', 'THE STATUES', 'THE CHAPEL OF RELICS'];
 
-/** Level 8 — Back to Greenzone. "He comes home with relics and nerve, and uses the nerve." */
+/**
+ * Level 8 — Back to the Greenzone (Homeland · the return walk). The armor comes off under the
+ * Professor's desk. Through the open door Zampanò can see the bowl exactly where Watson left it.
+ */
 export const CH8: ChapterDef = {
   number: 8,
   title: CHAPTER_TITLES[7],
-  intro: 'HE COMES HOME WITH RELICS AND NERVE, AND USES THE NERVE.',
+  menuTitle: 'Back to Greenzone',
+  intro: "THE ARMOR COMES OFF UNDER THE PROFESSOR'S DESK. THROUGH THE OPEN DOOR ZAMPANO CAN SEE THE BOWL EXACTLY WHERE WATSON LEFT IT.",
   cast: 'EVERYONE AS THEMSELVES AGAIN',
   theme: 'greenzone',
   music: 'greenzone',
@@ -26,48 +34,47 @@ export const CH8: ChapterDef = {
     {
       id: '8.1',
       title: 'Falling to pieces',
-      happens: 'THE DREAM BREAKS UP. HE RUNS THROUGH SPLINTERS OF EVERY LEVEL WHILE A VOICE ASKS WHETHER HE LIVED ALL THIS OR DREAMT IT. FAMILIAR THINGS LOOK FOREIGN.',
-      source: 'BOARD: "FINALE: CADERE IN PEZZI, FRANTUMARSI, FRANTUMARE IL PENSIERO". WALTHER VON DER VOGELWEIDE ASKING WHETHER HE DREAMT HIS LIFE (SG).',
+      happens:
+        'THE HELM, THE PARAPET AND THE PURPLE CUSHION BREAK INTO SCRAPS. FOLLOW THE KNOCKING FROM THE GALLEY AND THE SMELL OF THE CUSHION TO THE FAMILIAR CHAIR LEG. MOVEMENT STEADIES AS THE STUDY FLOOR RETURNS. JERUSALEM, ALWAYS ONE STEP AWAY IN THE FIRST DREAM, NEVER COMES INTO REACH.',
+      source: 'BOARD: THE FINAL SHATTERING (11:55:10). BARBERO, IL SOGNO NEL MEDIOEVO: WALTHER\'S RETURN.',
       script: () => {
-        const heard = new Set<string>();
-        const lines: Array<[string, string]> = [
-          ['1', 'DID I LIVE ALL THIS?'],
-          ['2', 'OR DID I DREAM IT?'],
-          ['3', 'THE FIELDS I KNEW ARE CLEARED'],
-          ['4', 'THE FRIENDS I KNEW ARE SLOW'],
-          ['5', 'EVERYTHING FAMILIAR LOOKS FOREIGN'],
-          ['6', 'ALAS, WHERE HAVE ALL MY YEARS GONE?'],
-        ];
+        const knock = sounder('KNOCK.', C.yellow, 1.3);
+        let smellT = 0;
+        let jerusalem: Point = { x: 7.5, y: 24.5 };
+        let jT = 0;
+        const smell = (ctx: StoryScene, dt: number) => {
+          smellT -= dt;
+          if (smellT > 0) return;
+          smellT = 0.5;
+          const at = ctx.marker('5');
+          const s = gridToScreen(at.x, at.y);
+          ctx.particles.burst(s.x, s.y - 6, { count: 5, textures: ['pixel'], colors: [0xa050e0, 0x7a2ab0], speed: [8, 20], life: [0.8, 1.4], drag: 2 });
+        };
         return [
-          call((ctx) => {
-            ctx.setStage('shattered');
-            ctx.addActor('w', 'watson', '1', { kind: 'idle', face: 'player' });
-            ctx.addActor('d', 'doge', '2', { kind: 'idle', face: 'player' });
-            ctx.addActor('k', 'king', '3', { kind: 'idle', face: 'player' });
-            ctx.addActor('e', 'emir', '4', { kind: 'idle', face: 'player' });
-            ctx.addActor('s', 'santina', '6', { kind: 'idle', face: 'player' });
-            const h = ctx.addActor('shadow', 'hound', { x: ctx.marker('S').x, y: ctx.marker('S').y + 0.9 }, { kind: 'chase', speed: 1.55, radius: 40 });
-            h.hostile = true;
-          }),
+          call((ctx) => ctx.setStage('shattered')),
           sound('glitch'),
-          card('FALLING TO PIECES', 'THE DREAM BREAKS UP', { color: '#b070ff', seconds: 1.8, flash: true }),
+          card('FALLING TO PIECES', 'THE HELM, THE PARAPET AND THE PURPLE CUSHION BREAK INTO SCRAPS', { color: '#b070ff', seconds: 2.2, flash: true }),
           walk({
-            objective: 'RUN THROUGH THE SPLINTERS. THE CONTROLS WILL SETTLE',
-            goal: { reach: 'E' },
+            objective: 'FOLLOW THE KNOCKING AND THE SMELL OF THE CUSHION',
+            goal: { reach: 'E', label: 'THE CHAIR LEG' },
             scramble: true,
-            caught: 'restart',
-            caughtText: 'THE DREAM CAUGHT UP',
-            onUpdate: (ctx) => {
-              for (const [m, text] of lines) {
-                if (heard.has(m)) continue;
-                const p = ctx.marker(m);
-                if (Math.hypot(p.x - ctx.player.gx, p.y - ctx.player.gy) < 2.6) {
-                  heard.add(m);
-                  ctx.say(text, { x: p.x, y: p.y }, C.cyan);
-                }
+            onUpdate: (ctx, _w, dt) => {
+              const p = ctx.player;
+              knock(ctx, p.gy > 18 ? ctx.marker('2') : ctx.marker('4'), dt);
+              smell(ctx, dt);
+              // Jerusalem: always one step away, never in reach.
+              jT -= dt;
+              if (distTo(ctx, jerusalem) < 2.2) {
+                jerusalem = { x: p.gx < 8 ? 10.5 : 5.5, y: Math.max(4.5, p.gy - 4) };
+                ctx.notice('JERUSALEM MOVES ONE STEP AWAY', '#f6c0e0');
+              }
+              if (jT <= 0) {
+                jT = 1.6;
+                ctx.say('JERUSALEM', jerusalem, '#f6c0e0');
               }
             },
           }),
+          card('THE STUDY FLOOR', 'MOVEMENT STEADIES. THE CHAIR LEG.', { color: '#f0d8a0', seconds: 2 }),
           say('voice', 'THERE WAS A DOG, AND HE WAS WAKING UP.', { remembered: true }),
         ];
       },
@@ -75,8 +82,9 @@ export const CH8: ChapterDef = {
     {
       id: '8.2',
       title: 'Relics for the parish',
-      happens: "HE WAKES UNDER THE DESK. SOMETHING CAME BACK WITH HIM: THE RAG CROSS AND A RELIC. HE SETS UP A SMALL ALTAR BESIDE THE PROFESSOR'S CHAIR.",
-      source: 'CLARI BACK IN PICARDY WITH RELICS FOR HIS CHURCH (4C). JOINVILLE BUILDING AN ALTAR AFTER DREAMING THE KING HAPPY IN HIS CHAPEL (SG).',
+      happens:
+        'PLACE THE RAG CROSS AND A RELIC BY THE CHAIR. FROM THE PAGES COLLECTED IN MERAVIGLIA, FURNISH THE LITTLE ALTAR WITH A PAPER SHIP, A PICTURE OF THE FLOATING SAILOR OR A DRAWING OF THE CITY. READ THE OATH ENTRY ALOUD: CONFUSIONE HEARS EITHER ZAMPANO\'S OWN WORDS OR HIS ADMISSION THAT SOMEBODY ELSE SPOKE. THEN THE CAT HOLDS OPEN THE DOOR.',
+      source: "BARBERO, LA QUARTA CROCIATA: CLARI'S RELICS. IL SOGNO NEL MEDIOEVO: JOINVILLE'S CHAPEL.",
       script: () => [
         call((ctx) => {
           ctx.setStage('study', { skin: 'plain', at: '0', face: 'SE' });
@@ -84,23 +92,33 @@ export const CH8: ChapterDef = {
           ctx.addActor('conf', 'confusione', '5', { kind: 'idle', face: 'player' });
         }),
         shake(2),
-        card('UNDER THE DESK', 'HE WAKES. SOMETHING CAME BACK WITH HIM.', { color: '#f0d8a0', seconds: 2 }),
+        card('UNDER THE DESK', 'THE ARMOR COMES OFF. SOMETHING CAME BACK WITH HIM.', { color: '#f0d8a0', seconds: 2 }),
+        carry('THE RAG CROSS'),
+        walk({ objective: 'PLACE THE RAG CROSS BY THE CHAIR', goal: { reach: '4', label: 'THE CHAIR' } }),
+        dropCarried(),
         fx({ item: 'THE RAG CROSS' }),
+        walk({ objective: 'FETCH THE RELIC', pickups: [{ at: '7', kind: 'relic', label: 'A RELIC' }] }),
+        carry('A RELIC'),
+        walk({ objective: 'PLACE THE RELIC BY THE CHAIR', goal: { reach: '4', label: 'THE CHAIR' } }),
+        dropCarried(),
+        call((ctx) => placeObject(ctx, 'relic', { x: ctx.marker('4').x - 0.4, y: ctx.marker('4').y })),
         fx({ item: 'A RELIC' }),
         prof('...AND CLARI WENT HOME TO PICARDY WITH RELICS FOR HIS CHURCH. THAT IS ALL HE BROUGHT BACK.'),
         call((ctx) => {
-          const marvels = ctx.state.book.marvels;
-          const pickups: Pickup[] = HOME_SPOTS.slice(0, Math.max(1, Math.min(HOME_SPOTS.length, marvels.length))).map((m, k) => {
-            const thing = marvels[k] ? homeObject(marvels[k]!) : 'A SHELL FROM THE SEA THAT WAS NOT THERE';
-            return { at: m, kind: 'relic', label: thing, text: marvels[k] ? `IT WAS ${marvels[k]}` : '', effects: { item: thing } };
-          });
-          const rest = Math.max(0, marvels.length - pickups.length);
+          const b = ctx.state.book;
+          const ship = b.marvels.some((m) => SHIP_MARVELS.includes(m));
+          const sailor = b.items.includes('A LITTLE PICTURE OF THE RESCUE');
+          const city = b.marvels.some((m) => CITY_MARVELS.includes(m));
+          // Never a dead end: with an empty book, a paper ship can always be folded.
+          const anyShip = ship || (!sailor && !city);
           ctx.insert([
-            walk({ objective: 'PLACE THE RELICS: EACH MARVEL BECOMES AN OBJECT AT HOME', pickups }),
-            ...(rest > 0 ? [card(`AND ${rest} MORE`, 'ON EVERY SHELF IN THE HOUSE', { color: C.yellow, seconds: 1.8 })] : []),
+            ask('confusione', 'MERAVIGLIA IS FULL OF PAGES. WHAT GOES ON THE LITTLE ALTAR?', [
+              { label: 'A PAPER SHIP.', locked: anyShip ? undefined : 'NO SHIP IN MERAVIGLIA', effects: { item: 'A PAPER SHIP ON THE ALTAR', flags: { altarPiece: 'ship' } } },
+              { label: 'A PICTURE OF THE FLOATING SAILOR.', locked: sailor ? undefined : 'NO PICTURE OF THE RESCUE', effects: { item: 'A PICTURE OF THE FLOATING SAILOR', flags: { altarPiece: 'sailor' } } },
+              { label: 'A DRAWING OF THE CITY.', locked: city ? undefined : 'NO CITY IN MERAVIGLIA', effects: { item: 'A DRAWING OF THE CITY', flags: { altarPiece: 'city' } } },
+            ]),
           ]);
         }),
-        walk({ objective: "SET UP A SMALL ALTAR BESIDE THE PROFESSOR'S CHAIR", goal: { reach: '4', label: 'ALTAR' } }),
         fx({ commozione: 10, flags: { altar: true } }),
         // Grace shows on the altar.
         call((ctx) => {
@@ -118,104 +136,147 @@ export const CH8: ChapterDef = {
           }
           ctx.insert([card(big, small, { color: tier === 'high' ? C.yellow : tier === 'mid' ? '#f0d8a0' : '#c8a070', seconds: 2.6 })]);
         }),
-        say('confusione', 'RELICS AND A STORY. THAT IS ALL CLARI BROUGHT BACK.'),
+        say('confusione', 'NOW READ THE OATH ENTRY. ALOUD.'),
+        branch(
+          (s) => s.flags.oath === 'enforced',
+          [say('zampano', '"NO WOMAN TOUCHED! YOU SWORE!"'), say('zampano', 'I SAID THAT. IN THE LULL.'), say('confusione', 'YOUR OWN WORDS. I HEARD THEM AT THE TIME.')],
+          [
+            say('zampano', '"YOU SWORE AN OATH! LET HER GO!"'),
+            say('zampano', '...THAT WAS NIKETAS. I SAID NOTHING. SOMEBODY ELSE SPOKE.'),
+            say('confusione', 'THEN THAT IS THE STORY. TELL IT THAT WAY.'),
+          ],
+        ),
+        call((ctx) => ctx.actor('conf').setBehavior({ kind: 'goto', to: ctx.marker('S'), speed: 1.6 })),
+        wait(1.2),
+        card('THE DOOR', 'THE CAT HOLDS IT OPEN', { color: C.green, seconds: 1.8 }),
         say('zampano', 'THERE WAS A CHAPEL, AND IT WAS UNDER THE DESK.', { remembered: true }),
       ],
     },
     {
       id: '8.3',
       title: 'The vanguard of the lawn',
-      happens: 'BAGNASKIZ, JACK AND WATSON HOLD THE GREEN AGAIN. ZAMPANO WALKS AT THEM: NO CHARGE, NO TURNING BACK. CONFUSIONE AND SBRIMBRULON FALL IN BESIDE HIM. BAGNASKIZ TURNS.',
-      source: 'THE VANGUARD REPLAYED (4C). JOINVILLE AND THE COUNT OF SOISSONS HOLDING A LITTLE BRIDGE, TWO AGAINST A YELLING CROWD (JV). BOARD: THE ENDING AS "RESISTENZA".',
+      happens:
+        'WALK FROM THE STUDY TO THE BOWL BY THE DIRECT PATH. BAGNASKIZ REQUESTS A PAW, JACK STARTS THE IMITATION, WATSON LEANS IN TO TAKE THE BOWL. KEEP PACE AS SBRIMBRULON AND CONFUSIONE FALL IN BESIDE ZAMPANO; IF HE FLINCHES, THEY WAIT FOR HIM. BAGNASKIZ STEPS ASIDE. ZAMPANO DRINKS AND LEAVES THE BOWL WHERE THE NEXT DOG CAN REACH IT. THE LANE STAYS OPEN.',
+      source: 'BOARD: THE TITLE CARD (11:52:06). BARBERO, JOINVILLE E SAN LUIGI: SOISSONS AND THE LITTLE BRIDGE.',
       script: () => {
-        let joined = false;
+        let bowl: PropEntity | null = null;
+        let flinchT = 0;
+        const beside = (ctx: StoryScene, waitUp: boolean) => {
+          const p = ctx.player;
+          for (const [n, side] of [['sbrim', -0.9], ['conf', 0.9]] as const) {
+            const a = ctx.actor(n);
+            if (waitUp) a.setBehavior({ kind: 'idle', face: 'player' });
+            else if (a.behavior.kind !== 'follow') a.setBehavior({ kind: 'follow', target: p, distance: 1, speed: 3.6, side });
+          }
+        };
         return [
           call((ctx) => {
-            ctx.setStage('lawn', { skin: 'plain' });
-            ctx.addActor('bag', 'bagnaskiz', '4', { kind: 'idle', face: 'player' });
-            ctx.addActor('jack', 'jack', '6', { kind: 'idle', face: 'player' });
-            ctx.addActor('watson', 'watson', '3', { kind: 'idle', face: 'player' });
-            ctx.addActor('sbrim', 'sbrimbrulon', { x: ctx.player.gx - 1, y: ctx.player.gy + 0.2 }, { kind: 'idle', face: 'N' });
+            ctx.setStage('neighborhood', { skin: 'plain', at: 'S', face: 'E' });
+            bowl = placeObject(ctx, 'bowl', { x: 14.6, y: 2.4 });
+            ctx.addActor('bag', 'bagnaskiz', { x: 13.5, y: 3.4 }, { kind: 'idle', face: 'player' });
+            ctx.addActor('jack', 'jack', { x: 12.5, y: 2.4 }, { kind: 'idle', face: 'player' });
+            ctx.addActor('watson', 'watson', { x: 15.3, y: 2.6 }, { kind: 'idle', face: 'W' });
+            ctx.addActor('sbrim', 'sbrimbrulon', { x: 3.4, y: 4.4 }, { kind: 'idle', face: 'E' });
+            ctx.addActor('conf', 'confusione', { x: 3.4, y: 2.4 }, { kind: 'idle', face: 'E' });
           }),
-          say('zampano', 'WE WERE GOING TO JERUSALEM.'),
-          say('sbrimbrulon', 'WE WERE.'),
-          say('zampano', 'IS THIS IT?'),
-          say('sbrimbrulon', 'THIS IS THE LAWN.'),
-          say('zampano', 'IT WAS PASTEL.'),
-          say('bagnaskiz', 'SIGNOR VILLANO. THE LAWN HAS A TOLL. YOU KNOW THE TOLL.'),
-          card('NO ARMOUR', 'THE MECHANIC OF 7.3, FOR REAL', { color: C.cyan, seconds: 1.8 }),
+          say('voice', 'THROUGH THE OPEN DOOR, THE BOWL. EXACTLY WHERE WATSON LEFT IT.'),
+          say('bagnaskiz', 'SIGNOR VILLANO. THE PAW. YOU KNOW THE TOLL.'),
+          say('jack', '(OFFERING A PAW, VERY SLOWLY) PAAARDON...'),
+          say('watson', '(LEANING IN TO TAKE THE BOWL) OOPS, MAN...'),
+          call((ctx) => beside(ctx, false)),
+          card('THE DIRECT PATH', 'NO ARMOUR. AT A WALK.', { color: C.cyan, seconds: 1.6 }),
           walk({
-            objective: 'WALK AT THEM: NO CHARGE, NO TURNING BACK',
-            goal: { reach: '4', radius: 1.6 },
-            pace: { pressure: 0.05, companions: ['conf', 'sbrim', 'watson'] },
-            onUpdate: (ctx) => {
-              const g = ctx.marker('4');
-              const s = ctx.marker('S');
-              const done = 1 - Math.hypot(g.x - ctx.player.gx, g.y - ctx.player.gy) / (Math.hypot(g.x - s.x, g.y - s.y) || 1);
-              if (!joined && done > 0.3) {
-                joined = true;
-                // Comradeship brings Confusione; Standing decides who else crosses the lawn to him.
-                const who = companions(ctx.state, 'lawn');
-                ctx.addActor('conf', 'confusione', { x: ctx.player.gx + 1.2, y: ctx.player.gy + 0.8 }, { kind: 'follow', target: ctx.player, distance: 1.2, speed: 2.4, side: 0.9 });
-                if (who.includes('sbrim')) ctx.actor('sbrim').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.2, speed: 2.4, side: -0.9 });
-                if (who.includes('watson')) ctx.actor('watson').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.8, speed: 2.6, side: 0 });
-                ctx.notice(
-                  who.includes('watson') ? 'CONFUSIONE, SBRIMBRULON AND EVEN WATSON FALL IN BESIDE HIM' : who.includes('sbrim') ? 'CONFUSIONE AND SBRIMBRULON FALL IN BESIDE HIM' : 'ONLY CONFUSIONE FALLS IN BESIDE HIM',
-                  C.green,
-                );
-                ctx.say('THERE WERE A LOT OF THEM, AND THEY WERE SHOUTING', ctx.marker('4'), C.orange);
+            objective: 'WALK TO THE BOWL BY THE DIRECT PATH. KEEP PACE',
+            goal: { reach: { x: 12.4, y: 3.5 }, label: 'THE BOWL' },
+            noRun: true,
+            onUpdate: (ctx, w, dt) => {
+              const p = ctx.player;
+              // A flinch (stopping, or stepping back) and the friends wait for him.
+              const flinch = Math.hypot(p.vx, p.vy) < 0.25 || p.vx < -0.3;
+              flinchT = flinch ? flinchT + dt : 0;
+              if (flinchT > 0.6 && !w.data.waiting) {
+                w.data.waiting = true;
+                beside(ctx, true);
+                ctx.notice('HE FLINCHES. THEY WAIT FOR HIM', C.orange);
+              } else if (!flinch && w.data.waiting) {
+                w.data.waiting = false;
+                beside(ctx, false);
+              }
+              if (!w.data.said && p.gx > 7.5) {
+                w.data.said = true;
+                ctx.notice('SBRIMBRULON AND CONFUSIONE FALL IN BESIDE HIM', C.green);
               }
             },
           }),
-          branch(
-            (s) => s.flags.oath === 'enforced',
-            [
-              call((ctx) => ctx.actor('bag').setBehavior({ kind: 'goto', to: ctx.marker('E'), speed: 1.6 })),
-              say('bagnaskiz', '...'),
-              card('BAGNASKIZ TURNS', 'AND GOES IN. NO TOOTH IS DRAWN.', { color: C.cyan, seconds: 2.2 }),
-              call((ctx) => {
-                ctx.actor('jack').setBehavior({ kind: 'goto', to: ctx.marker('E'), speed: 2.4, run: true });
-                if (!companions(ctx.state, 'lawn').includes('watson')) ctx.actor('watson').setBehavior({ kind: 'idle', face: 'player' });
-              }),
-              say('watson', 'MAN. HE TURNED.'),
-            ],
-            [
-              call((ctx) => ctx.actor('bag').setBehavior({ kind: 'goto', to: ctx.marker('7'), speed: 1.2 })),
-              say('bagnaskiz', 'PASS, THEN. THE ALPHA-DOG OFFER IS STILL ON THE TABLE. (HE SMILES.)'),
-              say('watson', 'MAN. HE STEPPED ASIDE.'),
-            ],
-          ),
+          call((ctx) => ctx.actor('bag').setBehavior({ kind: 'goto', to: { x: 14.5, y: 4.6 }, speed: 1.4 })),
+          say('bagnaskiz', '...'),
+          card('BAGNASKIZ STEPS ASIDE', 'NO TOOTH IS DRAWN', { color: C.cyan, seconds: 2 }),
+          say('watson', 'MAN. HE STEPPED ASIDE.'),
+          walk({
+            objective: 'DRINK. THEN LEAVE THE BOWL WHERE THE NEXT DOG CAN REACH IT',
+            action: 'DRINK',
+            pilot: (ctx) => (bowl ? { target: { x: bowl.gx - 0.6, y: bowl.gy + 0.6 }, hold: true, act: distTo(ctx, { x: bowl.gx, y: bowl.gy }) < 1.4 } : null),
+            onAction: (ctx, w) => {
+              if (!bowl || distTo(ctx, { x: bowl.gx, y: bowl.gy }) > 1.6) return;
+              ctx.player.startAction('eat', 0.8);
+              ctx.game.audio.play('drink');
+              bowl.setPosition(13.5, 3.5);
+              ctx.say('(HE DRINKS, AND PUSHES THE BOWL BACK ONTO THE LANE)', { x: 13.5, y: 3.5 }, C.cyan);
+              w.complete = true;
+            },
+          }),
           fx({ supervillain: 25, value: 'Resistance', flags: { lawnHeld: true } }),
+          say('voice', 'THE LANE STAYS OPEN.'),
           sound('glitch'),
           flash(0xff2bd6),
           card('SUPER\nVILLAINED', '', { above: 'YOU HAVE BEEN', color: C.hotPink, seconds: 3.4, dim: 0.85, flash: true }),
-          say('zampano', 'THERE WAS A LAWN, AND IT WAS MINE.', { remembered: true }),
+          say('zampano', 'THERE WAS A BOWL, AND ANY DOG COULD REACH IT.', { remembered: true }),
         ];
       },
     },
     {
       id: '8.4',
-      title: 'In the chambers of the ladies',
-      happens: 'HE TELLS SANTINA THE WHOLE DAY. AT "AND THE LADIES SAID WE LOOKED LIKE ANGELS" SHE ASKS WHO TOLD HIM SO. HE HAS NO ANSWER.',
-      source: '"BY GOD\'S COIF, WE SHALL TALK OF THIS DAY IN THE LADIES\' CHAMBERS" (JV). THE ASIDE ON WHO TOLD CLARI (4C).',
-      script: () => [
-        stage('lawn', [{ name: 'santina', who: 'santina', at: '7', face: 'S' }], { skin: 'plain', at: '3' }),
-        move('zampano', '4', 2),
-        say('zampano', 'THERE WAS A CITY, AND IT WAS MADE OF ROOFS.'),
-        say('zampano', 'THERE WERE A LOT OF THEM, AND THEY WERE SHOUTING. AND WE WENT ON. AT A WALK.'),
-        say('zampano', 'AND THE LADIES SAID WE LOOKED LIKE ANGELS.'),
-        say('santina', 'WHO TOLD YOU SO?'),
-        ask('santina', 'WHO TOLD YOU THE LADIES SAID SO?', [
-          { label: 'THE LADIES.', then: [say('santina', 'WHICH LADIES?')] },
-          { label: 'SBRIMBRULON. BY GOD\'S COIF.', then: [say('santina', 'HE WAS IN THE FIRST RANK. FACING THE OTHER WAY.')] },
-          { label: 'I HEARD IT FROM A TENT.', then: [say('santina', 'TENTS SAY ANYTHING.')] },
-          { label: 'NOBODY. I WANTED YOU TO THINK SO.', locked: 'HE CANNOT GET IT OUT' },
-        ]),
-        say('zampano', '...'),
-        card('NO ANSWER', 'HE IS BRAVE, AND STILL TALKS LIKE A LOUT', { color: C.hotPink, seconds: 2.2 }),
-        fx({ flags: { courtesy84: 'lout' } }),
-        say('santina', 'TELL ME AGAIN TOMORROW, ZAMPANO.', { remembered: true }),
-      ],
+      title: "At Santina's gate, again",
+      happens:
+        'BACK IN FRONT OF THE GATE, ZAMPANO TAKES UP HIS BEST KNIGHTLY POSE AND PLANTS A PAW ON THE RED BALL. SHE ASKS HOW HIS DAY WENT. THIS TIME HE STAYS TO TELL HER, GETS ALL THE WAY TO THE LADIES AT THE WINDOWS AND SAYS THEY THOUGHT HE LOOKED LIKE AN ANGEL. SHE ASKS WHO HEARD THEM. HE LIFTS HIS PAW TO MAKE HIS POINT. THE BALL ROLLS THROUGH THE BARS TO HER AT LAST.',
+      source: 'BARBERO, LA QUARTA CROCIATA: CLARI AND THE LADIES. JOINVILLE E SAN LUIGI: SOISSONS AND THE LADIES\' CHAMBERS.',
+      script: () => {
+        let ball: PropEntity | null = null;
+        return [
+          call((ctx) => {
+            ctx.setStage('neighborhood', { skin: 'plain', at: { x: 19.5, y: 3.5 }, face: 'E' });
+            ctx.addActor('santina', 'santina', '9', { kind: 'idle', face: 'W' });
+            ball = placeObject(ctx, 'ball', { x: 21.4, y: 4.2 }, 0xff4040);
+          }),
+          move('zampano', { x: 20.9, y: 3.9 }, 1.8),
+          say('voice', '(HIS BEST KNIGHTLY POSE. A PAW PLANTED ON THE RED BALL.)'),
+          say('santina', 'ZAMPANO. HOW WAS YOUR DAY?'),
+          say('zampano', 'THERE WAS A CITY, AND IT WAS MADE OF ROOFS.'),
+          branch((s) => s.flags.vanguard === true, [say('zampano', 'THERE WERE A LOT OF THEM, AND THEY WERE SHOUTING. AND WE WENT ON. AT A WALK.')]),
+          say('zampano', 'AND THE LADIES AT THE WINDOWS... THEY THOUGHT I LOOKED LIKE AN ANGEL.'),
+          say('santina', 'WHO HEARD THEM?'),
+          call((ctx) => ctx.player.startAction('bark', 0.6)),
+          say('voice', '(HE LIFTS HIS PAW TO MAKE HIS POINT.)'),
+          call((ctx) => {
+            // The ball rolls through the bars to her at last.
+            ball?.setPosition(22.4, 3.7);
+            ctx.game.audio.play('ball');
+          }),
+          wait(0.3),
+          call(() => ball?.setPosition(23.1, 3.7)),
+          wait(1.4),
+          card('', 'THE BALL ROLLS THROUGH THE BARS TO HER AT LAST', { color: C.hotPink, seconds: 2 }),
+          say('santina', 'WHO TOLD YOU THEY SAID THAT?'),
+          call((ctx) => {
+            ctx.addActor('dog', 'crowdC', { x: 9.5, y: 3.5 }, { kind: 'goto', to: { x: 12.6, y: 3.5 }, speed: 1.6 });
+            ctx.player.startAction('bark', 0.4);
+          }),
+          say('voice', '(ZAMPANO OPENS HIS MOUTH. BEHIND HIM, ANOTHER DOG CROSSES THE LAWN AND TAKES A DRINK. SANTINA RESTS A PAW ON THE BALL AND WAITS.)'),
+          fx({ flags: { courtesy84: 'unanswered' } }),
+          card('CUT.', '', { color: '#ffffff', seconds: 1.6, dim: 1 }),
+          call((ctx) => ctx.apply({ remembered: 'WHO TOLD YOU THEY SAID THAT?' })),
+        ];
+      },
     },
   ],
 };

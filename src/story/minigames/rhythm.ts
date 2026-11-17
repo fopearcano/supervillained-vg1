@@ -22,6 +22,11 @@ export interface RhythmOptions {
   sequence?: string[];
   title: string;
   need: number;
+  /** Single mode: the word on each cue (RAISE, ROW...), the objective and the feedback lines. */
+  cue?: string;
+  objective?: string;
+  hit?: string;
+  miss?: string;
 }
 
 const WINDOW = STORY.RHYTHM.WINDOW;
@@ -49,14 +54,14 @@ export class RhythmGame extends MiniGame {
     super();
     this.beatTime = 60 / o.bpm;
     this.title = new PixelText(o.title, { color: C.yellow, outline: '#120818', glow: 'self', glowAlpha: 0.3, align: 'center' }).setOrigin(0.5, 0);
-    this.objective = o.mode === 'choice' ? 'PICK THE RIGHT GESTURE ON THE BEAT' : 'RAISE THE BANNERS ON THE BEAT';
+    this.objective = o.objective ?? (o.mode === 'choice' ? 'PICK THE RIGHT GESTURE ON THE BEAT' : 'RAISE THE BANNERS ON THE BEAT');
     const seq = o.sequence ?? ['RAISE'];
     for (let k = 0; k < o.beats; k++) {
       const correct = seq[k % seq.length]!;
       let decoy = seq[(k + 2 + Math.floor(Math.random() * (seq.length - 1))) % seq.length]!;
       if (decoy === correct) decoy = seq[(k + 1) % seq.length]!;
       this.layoutBeats.push({ correct, decoy, side: Math.random() < 0.5 ? 0 : 1 });
-      const t = new PixelText(o.mode === 'choice' ? '' : 'RAISE', { color: C.white, outline: '#000000' }).setOrigin(0.5);
+      const t = new PixelText(o.mode === 'choice' ? '' : (o.cue ?? 'RAISE'), { color: C.white, outline: '#000000' }).setOrigin(0.5);
       this.cues.push(t);
     }
     for (let k = 0; k < 14; k++) {
@@ -110,14 +115,14 @@ export class RhythmGame extends MiniGame {
     this.judged.add(k);
     if (ok) {
       this.hits++;
-      this.feedbackText = this.o.mode === 'choice' ? 'THEY WEEP BACK!' : 'ON THE BEAT!';
+      this.feedbackText = this.o.mode === 'choice' ? 'THEY WEEP BACK!' : (this.o.hit ?? 'ON THE BEAT!');
       ctx.game.audio.play(this.o.mode === 'choice' ? 'star' : 'treat');
       const t = this.tears[this.hits % this.tears.length]!;
       t.visible = true;
       t.alpha = 1;
       if (this.o.mode === 'choice') ctx.apply({ commozione: STORY.WEEP_HIT });
     } else {
-      this.feedbackText = this.o.mode === 'choice' ? 'TOO DRY' : 'OFF BEAT';
+      this.feedbackText = this.o.mode === 'choice' ? 'TOO DRY' : (this.o.miss ?? 'OFF BEAT');
       ctx.game.audio.play('empty');
     }
     this.feedback = 0.6;
@@ -198,7 +203,32 @@ export function weeping(round: number): RhythmGame {
   return new RhythmGame({ mode: 'choice', beats: W.BEATS, bpm: round === 1 ? W.BPM_ROUND1 : W.BPM_ROUND2, sequence: WEEPING, title: round === 1 ? 'THE ENVOYS WEEP' : 'THE DOGE TAKES THE CROSS', need: W.NEED });
 }
 
+/** 4.1: raise shields and banners as the clergy sing; a sailor quietly sets him right. */
 export function parade(): RhythmGame {
   const P = STORY.PARADE;
-  return new RhythmGame({ mode: 'single', beats: P.BEATS, bpm: P.BPM, title: 'VENI CREATOR', need: P.NEED });
+  return new RhythmGame({
+    mode: 'single',
+    beats: P.BEATS,
+    bpm: P.BPM,
+    title: 'VENI CREATOR',
+    need: P.NEED,
+    objective: 'RAISE SHIELDS AND BANNERS ON THE BEAT',
+    miss: 'THE SAILOR SETS HIM RIGHT',
+  });
+}
+
+/** 4.5: the old rowing rhythm that brings the ship of 1202 back beneath his feet. */
+export function rowing(): RhythmGame {
+  const P = STORY.PARADE;
+  return new RhythmGame({
+    mode: 'single',
+    beats: P.BEATS,
+    bpm: P.BPM - 8,
+    title: 'THE OLD ROWING RHYTHM',
+    need: P.NEED,
+    cue: 'ROW',
+    objective: 'ROW ON THE BEAT',
+    hit: 'STROKE!',
+    miss: 'OUT OF TIME',
+  });
 }

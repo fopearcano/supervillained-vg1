@@ -338,3 +338,36 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
   catch, and hunger drains in proportion, so a tile walked costs the same as before and not eating
   at all still loses a life. Level 1 has 44 treats instead of 30 (closer spacing). The shortest
   walk is about 48 s instead of 74 s, and food is much easier to find.
+
+## VG1 level design, revision 2 ("Supervillained VG1 — Levels implementation 2")
+
+The second PDF rewrites every sub-level (same 8 levels, 42 sub-levels). The scripts in
+`campaign/chapters/` now follow it scene by scene; where it supersedes the first PDF, it wins.
+
+- **New engine pieces** (all reusable): `followLeader()` (he follows his father, Sbrimbrulon, the
+  bread seller, a bolt of cloth, the Doge's banner; the leader waits when he lags), `lullWalk()`
+  (a voice fills the air, then pauses: only what he does in the lull is heard — 2.3 Fulk, 3.3 the
+  trumpets of San Marco, 7.8 the looting; the PDF's "learn to wait for another voice"),
+  `carry()` (a label over his head: red cloth, the collecting bowl, the vote, a message, the
+  sail, a crate), hidden goals found by ear (`goal.hidden` + `sounder()`: 7.5 the previous room,
+  7.7 the rattle of mail), scene overlays (`visor` for 1.1's slipping helmet, `fog` for 7.4's
+  smoke, `bleach` for 6.4's desert and 7.1's saturated city), a boat mini-game (4.2), a rowing
+  rhythm (4.5), the tug game reused for rowing the prince (7.1).
+- **The neighborhood** (`neighborhood` map, levels 1 and 8): home and study, Jack's garden gates,
+  the common lawn and the band's water bowl, Jack's next opening, the hedge with its gaps and the
+  longer lower lane, Santina's garden gate. New art: a garden gate prop (`J`) and the water bowl.
+- **Removed or changed from the first version**: the memory shards no longer unlock later levels
+  (levels open in order); 1.2's sniffed "scraps of the lecture" live in the book in their place.
+  Standing no longer decides who walks beside him (7.3 and 8.3 follow the PDF: Pierre, Saint-Pol
+  and Flanders in 7.3, Sbrimbrulon and Confusione in 8.3); it still shapes the ending notes. 7.3's
+  nerve gauge now measures staying level with Pierre's shoulder. The 6.1 catapult is now about
+  whisking the glass away before the shot lands. 8.1 has no chasing hound.
+- **Hard cuts** (4.3–4.5, 6.3–6.5, 7.5) keep the black-hole cards and their values.
+- **Endings**: 7.8 is "call the oath in a lull" or "stand silent while Niketas calls it". Both
+  leave the girl with her family; the book records his own words or Niketas's, and 8.2 reads it
+  back. Internally the endings are still `knight` / `alpha`; the screen now says THE KNIGHT or
+  THE WITNESS (staying silent is not villainy in this version: Bagnaskiz steps aside either way).
+- **8.4 ends on a cut**: no answer wheel; the PDF says to cut before he finds an answer.
+- The autopilot plays all of it (`npm run playtest`, new `--to` option for one level); three full
+  runs (both endings; first, last and random choices; skill 0.4–0.9) finish every sub-level.
+

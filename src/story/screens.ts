@@ -309,7 +309,7 @@ export class BookScene implements Scene {
     section('AT HOME (BROUGHT BACK)', s.book.items, 'relic', 'NOTHING YET');
     section('MARVELS SEEN', s.book.marvels, 'sparkle');
     section('VALUES LEARNED', s.book.values, 'cross');
-    section('MEMORY SHARDS', s.book.shards, 'shard');
+    section('SCRAPS OF THE LECTURE', s.book.shards, 'shard');
     section('REMEMBERED (IT MADE NO SENSE)', s.book.remembered, 'thought', 'NOTHING YET', (v) => `"${v.toUpperCase()}"`);
     this.rows = rows;
   }

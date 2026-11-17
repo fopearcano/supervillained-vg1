@@ -222,20 +222,32 @@ export class LaddersGame extends MiniGame {
 
 // ---------------------------------------------------------------------------- tug of war
 
-/** 7.7: Zampanò grabs Confusione's leg to stop him going into the hole. He is meant to lose. */
+export interface TugOptions {
+  objective: string;
+  label: string;
+  /** Who is pulled ahead of Zampanò (Confusione into the breach, the prince's boat). */
+  friend: 'confusione' | 'prince';
+}
+
+/**
+ * Mash against a force that keeps growing; meant to be lost. 7.7: Zampanò holds Confusione by a
+ * hind leg and he wriggles free. 7.1: rowing the prince along the walls while the shouting
+ * sends the boat back.
+ */
 export class TugGame extends MiniGame {
   private readonly g = new Graphics();
-  private readonly label = new PixelText('MASH TO HOLD HIM BACK!', { color: C.yellow, shadow: '#000000' }).setOrigin(0.5);
+  private readonly label: PixelText;
   private readonly hero: Sprite;
   private readonly friend: Sprite;
   private pos = 0;
 
-  constructor() {
+  constructor(private readonly o: TugOptions = { objective: 'HOLD CONFUSIONE BACK BY A HIND LEG', label: 'MASH TO HOLD HIM BACK!', friend: 'confusione' }) {
     super();
-    this.objective = 'HOLD CONFUSIONE BACK';
-    void ensureCharacters(['zampanoKnight', 'confusione']);
+    this.objective = o.objective;
+    this.label = new PixelText(o.label, { color: C.yellow, shadow: '#000000' }).setOrigin(0.5);
+    void ensureCharacters(['zampanoKnight', o.friend]);
     this.hero = new Sprite(textures.get(textureName('zampanoKnight', 'run', 'E', 0)));
-    this.friend = new Sprite(textures.get(textureName('confusione', 'run', 'E', 0)));
+    this.friend = new Sprite(textures.get(textureName(o.friend, 'run', 'E', 0)));
     this.hero.anchor.set(0.5, 0.9);
     this.friend.anchor.set(0.5, 0.9);
     this.root.addChild(this.g, this.hero, this.friend, this.label);
@@ -270,13 +282,87 @@ export class TugGame extends MiniGame {
     frameRect(g, 20, h * 0.5 + 40, bw, 6, hex(C.yellow));
     this.label.position.set(Math.round(w / 2), Math.round(h * 0.5 - 52));
     this.hero.texture = textures.get(textureName('zampanoKnight', 'run', 'E', Math.floor(this.time * 8) % 4));
-    this.friend.texture = textures.get(textureName('confusione', 'run', 'E', Math.floor(this.time * 10) % 4));
+    this.friend.texture = textures.get(textureName(this.o.friend, 'run', 'E', Math.floor(this.time * 10) % 4));
     return this.pos >= 1 ? 'lost' : 'running';
   }
 
   /** Autopilot: mash as fast as a person can (it is still meant to be lost). */
   override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
     p.every(ctx, 'tug', 1 / STORY.PILOT.TUG_TAPS, 'confirm');
+  }
+}
+
+// ---------------------------------------------------------------------------- the boat
+
+/**
+ * 4.2: lower the boat and ease alongside the parcel (Watson, floating on his back). Each stroke
+ * brings the boat closer; strokes too close together slosh water in, and a full boat swamps.
+ */
+export class BoatGame extends MiniGame {
+  private readonly g = new Graphics();
+  private readonly label = new PixelText('EASE ALONGSIDE: GENTLE STROKES', { color: C.cyan, shadow: '#000000', align: 'center' }).setOrigin(0.5);
+  private progress = 0;
+  private water = 0;
+  private lastStroke = -9;
+  private swampedT = 0;
+
+  constructor() {
+    super();
+    this.objective = 'REACH WATSON WITHOUT SWAMPING THE BOAT';
+  }
+
+  start(ctx: StoryScene): void {
+    ctx.setControls(false);
+    this.root.addChild(this.g, this.label);
+  }
+
+  update(dt: number, ctx: StoryScene): MiniResult {
+    const B = STORY.BOAT;
+    let strokes = ctx.game.input.consumeTaps().length;
+    if (act(ctx)) strokes++;
+    this.swampedT -= dt;
+    if (strokes && this.swampedT <= 0) {
+      if (this.time - this.lastStroke < B.MIN_GAP) {
+        this.water += B.SPLASH;
+        ctx.game.audio.play('splash', { volume: 0.5 });
+        ctx.notice('TOO HARD: WATER IN THE BOAT', C.orange);
+      } else {
+        this.progress = Math.min(1, this.progress + B.STROKE);
+        ctx.game.audio.play('click', { volume: 0.5 });
+      }
+      this.lastStroke = this.time;
+    }
+    this.water = Math.max(0, this.water - B.DRAIN * dt);
+    if (this.water >= 1) {
+      this.water = 0;
+      this.progress = Math.max(0, this.progress - 0.5);
+      this.swampedT = 1.2;
+      ctx.shake(4);
+      ctx.notice('SWAMPED! BAIL OUT AND TRY AGAIN', C.red);
+      ctx.game.audio.play('hurt');
+    }
+    const watson = ctx.actors.get('watson');
+    if (watson) watson.z = Math.sin(this.time * 2) * 1.5;
+    const { w, h } = this;
+    const g = this.g;
+    g.clear();
+    const bw = w - 60;
+    const bar = (y: number, frac: number, color: number) => {
+      g.rect(30, y, bw, 8).fill({ color: 0x000000, alpha: 0.6 });
+      g.rect(31, y + 1, Math.round((bw - 2) * Math.max(0, Math.min(1, frac))), 6).fill(color);
+      frameRect(g, 30, y, bw, 8, hex(C.yellow));
+    };
+    bar(h - 118, this.progress, 0x5ac8ff);
+    bar(h - 100, this.water, 0x2a6aff);
+    this.label.setText(this.swampedT > 0 ? 'SWAMPED!' : this.progress > 0.75 ? 'ALMOST ALONGSIDE...' : 'EASE ALONGSIDE: GENTLE STROKES\n(DISTANCE / WATER IN THE BOAT)');
+    this.label.position.set(Math.round(w / 2), h - 136);
+    return this.progress >= 1 ? 'won' : 'running';
+  }
+
+  /** Autopilot: steady strokes, a little too eager when unskilled. */
+  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
+    const gap = STORY.BOAT.MIN_GAP * (1.05 + p.policy.skill * 0.4);
+    p.every(ctx, 'boat', p.random() < 0.08 * (1 - p.policy.skill) ? gap * 0.6 : gap, 'confirm');
   }
 }
 

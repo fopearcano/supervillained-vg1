@@ -314,6 +314,20 @@ export function drawStoryProp(pal: Palette, kind: string, variant: number): Pixe
       pb.rect(26, 52, 12, 10, rgba(variant ? '#f0e090' : '#3a2a18'));
       return outline(pb);
     }
+    case 'wicket': {
+      // A painted garden gate: two posts and bars (a ball fits between them).
+      const pb = new PixelBuffer(30, 24);
+      const post = rgba('#f4f0e8');
+      const bar = rgba('#7aa8d8');
+      for (const x of [2, 25]) {
+        pb.rect(x, 4, 3, 18, post);
+        pb.rect(x, 3, 3, 1, rgba('#c8c0b0'));
+      }
+      pb.rect(5, 8, 20, 2, bar);
+      pb.rect(5, 17, 20, 2, bar);
+      for (let x = 7; x < 25; x += 4) pb.rect(x, 8, 2, 11, bar);
+      return outline(pb, '#2a3040');
+    }
     case 'bones': {
       const pb = new PixelBuffer(22, 10);
       const W = rgba('#f0ece0');
@@ -449,6 +463,14 @@ export function drawSpecial(kind: string, variant: number): PixelBuffer {
       pb.rect(4, 2, 4, 1, rgba('#f0d060'));
       pb.set(5, 7, rgba('#e02040'));
       return outline(pb, '#4a3008');
+    }
+    case 'bowl': {
+      const pb = new PixelBuffer(14, 8);
+      pb.rect(1, 2, 12, 5, rgba('#8a96b0'));
+      pb.rect(2, 7, 10, 1, rgba('#5a6478'));
+      pb.rect(2, 2, 10, 2, rgba('#5ac8ff'));
+      pb.rect(3, 2, 3, 1, rgba('#d8f4ff'));
+      return outline(pb, '#2a3040');
     }
     case 'banner': {
       const pb = new PixelBuffer(12, 26);

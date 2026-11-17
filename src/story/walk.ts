@@ -63,7 +63,8 @@ export interface WalkDef {
   objective: string;
   /** Action button label. */
   action?: string;
-  goal?: { reach: string | Point; radius?: number; label?: string };
+  /** `hidden`: no ring and no arrow; he finds it by ear (a script makes the sounds). */
+  goal?: { reach: string | Point; radius?: number; label?: string; hidden?: boolean };
   pickups?: Pickup[];
   /** How many pickups finish the walk (default: all, when there is no reach goal). */
   need?: number;
@@ -475,13 +476,13 @@ class WalkStep implements Step {
     r.clear();
     this.arrow.clear();
     const targets: Point[] = [];
-    if (this.goal) targets.push(this.goal);
+    if (this.goal && !this.def.goal?.hidden) targets.push(this.goal);
     if (this.mirage) {
       const m = gridToScreen(this.mirage.x, this.mirage.y);
       r.ellipse(m.x, m.y, 40, 16).fill({ color: 0x5ac8ff, alpha: 0.35 + 0.1 * Math.sin(ctx.time * 3) });
       r.ellipse(m.x - 6, m.y - 3, 18, 5).fill({ color: 0xd8f4ff, alpha: 0.4 });
     }
-    if (!targets.length && this.pickups.length) {
+    if (!targets.length && !this.goal && this.pickups.length) {
       // Point to the nearest pickup.
       const p = ctx.player;
       let best = this.pickups[0]!;

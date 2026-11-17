@@ -46,7 +46,8 @@ export type PropKind =
   | 'vine'
   | 'gate'
   | 'bones'
-  | 'table';
+  | 'table'
+  | 'wicket';
 
 export interface PropInfo {
   /** Blocks movement (as a circle at the tile center). */
@@ -82,6 +83,7 @@ export const PROP_INFO: Record<PropKind, PropInfo> = {
   throne: P(true, 0.4, true, false),
   vine: P(false, 0, true, true),
   gate: P(true, 0.5, true, true),
+  wicket: P(true, 0.45, false, true),
   bones: P(false, 0, false, false),
   table: P(true, 0.42, false, false),
 };
@@ -110,6 +112,7 @@ export const PROP_SPRITE: Record<PropKind, { key: string; variants: number }> = 
   gate: { key: 'gate', variants: 1 },
   bones: { key: 'bones', variants: 1 },
   table: { key: 'table', variants: 1 },
+  wicket: { key: 'wicket', variants: 1 },
 };
 
 export interface LegendEntry {
@@ -125,7 +128,7 @@ export interface LegendEntry {
  *           '~' deep water    '%' wall/building   '^' dock planks   '+' carpet   ' ' void
  *   props (on the map's base ground): F fountain  C column  D desk  K bookshelf  H house
  *           N tent  G galley (on deep water)  R rock  U statue  X crate  Y palm  A altar
- *           M market stall  O throne  V vine/fig  Q city gate  Z bones  L table
+ *           M market stall  O throne  V vine/fig  Q city gate  Z bones  L table  J garden gate
  *   digits 0-9: named markers (on base ground) used by story scripts.
  */
 export const LEGEND: Readonly<Record<string, LegendEntry>> = {
@@ -164,6 +167,7 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = {
   O: { ground: 'base', prop: 'throne' },
   V: { ground: 'base', prop: 'vine' },
   Q: { ground: 'base', prop: 'gate' },
+  J: { ground: 'base', prop: 'wicket' },
   Z: { ground: 'base', prop: 'bones' },
   L: { ground: 'base', prop: 'table' },
 };

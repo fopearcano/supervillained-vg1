@@ -344,6 +344,27 @@ export const STORY = {
     AXE_SLIDE_TIME: 0.5,
   },
   TUG: { BASE: 0.08, GROW: 0.05, PULL: 0.035 },
+  /** 1.1: the helmet slips over his eyes when he lowers his head (stands still, barks). */
+  VISOR: { STILL_AFTER: 0.7, DOWN_RATE: 2.4, UP_RATE: 1.5, MAX: 0.86 },
+  /** Characters he follows (1.2, 3.1, 3.4, 5.2, 7.2): they wait while he lags this far behind. */
+  LEAD: { WAIT_DISTANCE: 3.2, SPEED: 2.2, ARRIVE: 1.8 },
+  /**
+   * Acting in a lull (2.3 the preacher, 3.3 the square, 7.8 the oath): a voice talks, then
+   * pauses. Seconds of talk and of quiet (random in [min, max]); range of the action in tiles.
+   */
+  LULL: { TALK: [2.4, 3.4], QUIET: [1.4, 2.1], RANGE: 3.4, PHRASE_EVERY: 0.85 },
+  /** 4.2: easing the boat alongside. Strokes closer together than MIN_GAP slosh water in. */
+  BOAT: { STROKE: 0.11, MIN_GAP: 0.42, SPLASH: 0.3, DRAIN: 0.12 },
+  /** 6.1: whisking the glasses away before the count's shot lands. */
+  WHISK: { SHOTS: 6, WARN: 2.8, GAP: 0.9, RADIUS: 0.95, NEED: 3 },
+  /** 6.4: seconds for the desert to bleach the drawing grey. */
+  BLEACH_TIME: 36,
+  /** 7.3: stay level with Pierre's shoulder (tiles ahead or behind along the march). */
+  SHOULDER: { BAND: 1.2, LOSE: 0.2, GAIN: 0.12, SPEED: 1.5 },
+  /** 7.4: how thick the smoke gets on the sightseeing route (0..1). */
+  SMOKE: 0.82,
+  /** Hidden goals heard rather than seen (7.5 the previous room, 7.7 the rattle of mail): seconds between sounds. */
+  HEAR_EVERY: 1.6,
   CALM: { RATE: 0.14, PANIC_COST: 0.25, PANIC_TIME: 0.8 },
   CATAPULT: { SHOTS: 4, GRAVITY: 260, VX: 150, VY: 170, MIN_POWER: 0.35, POWER_RANGE: 0.75, OSC: 3 },
   RUMOUR: { ARRIVE_EVERY: 1.2 },
@@ -353,8 +374,8 @@ export const STORY = {
   WEEP_HIT: 1,
   /** Commozione spent by the big actions ("an unmoved Zampanò cannot act"). */
   COST: { SERMON: 4, SPEAK_UP: 10, GESTURE: 10, ATONE: 8, VIGIL: 8, DEFY: 10, OATH_BARK: 5 },
-  /** Standing needed for each companion to fall in beside him (7.3, 8.3). */
-  FOLLOW: { SAINT_POL: 45, FLANDERS: 65, SBRIMBRULON_LAWN: 35, WATSON_LAWN: 60 },
+  /** Standing thresholds for how the camp remembers him (ending notes). */
+  STANDING: { FOND: 60, FAIR: 35 },
   /** Grace tiers (8.2 altar, ending). */
   GRACE: { HIGH: 70, LOW: 40 },
   /** Autopilot (automated playtests). */

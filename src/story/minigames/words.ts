@@ -61,13 +61,20 @@ abstract class WordGame extends MiniGame {
 
 // ---------------------------------------------------------------------------- letter
 
+/** The barons' writing table: slot 1 either pleads necessity or names the debt outright. */
 const SLOTS: Array<{ before: string; options: string[] }> = [
-  { before: 'HOLY FATHER, AT ZARA WE ', options: ['VISITED', 'CORRECTED', 'LIBERATED', 'HELPED'] },
-  { before: ' THE CITY, PURELY BY ', options: ['CHANCE', 'THE WEATHER', 'THE VENETIANS', 'A MISUNDERSTANDING'] },
-  { before: '. WE ARE ', options: ['DEEPLY SORRY', 'VERY SORRY', 'AVAILABLE FOR PENANCE', 'BASICALLY PILGRIMS'] },
+  { before: 'HOLY FATHER, AT ZARA WE ', options: ['WERE COMPELLED', 'TOOK THE CITY', 'CORRECTED THE CITY', 'STAYED A WHILE'] },
+  { before: ', BY ', options: ['NECESSITY', 'OUR DEBT TO VENICE', 'THE WINTER', 'A MISUNDERSTANDING'] },
+  { before: '. WE ARE ', options: ['PENITENT', 'DEEPLY SORRY', 'AVAILABLE FOR PENANCE', 'STILL PILGRIMS'] },
 ];
 
-/** 5.4: compose the letter to the Pope from euphemism tiles. Every letter gets the same answer. */
+/** The version read aloud names the city and the debt outright. */
+const NAMES_THE_DEBT = 1;
+
+/**
+ * 5.4: assemble the barons' account from the words on their writing table and read it aloud.
+ * "Necessity" or the debt named outright: Innocent III's anger reaches camp either way.
+ */
 export class LetterGame extends MiniGame {
   private readonly g = new Graphics();
   private readonly text = new PixelText('', { color: '#3a2410', lineGap: 4 });
@@ -80,7 +87,7 @@ export class LetterGame extends MiniGame {
   constructor() {
     super();
     this.hidesStage = true;
-    this.objective = 'COMPOSE THE LETTER (TAP A WORD TO CHANGE IT)';
+    this.objective = "ASSEMBLE THE BARONS' ACCOUNT (TAP A WORD TO CHANGE IT)";
     this.root.addChild(this.g, this.text, this.answer);
   }
 
@@ -106,11 +113,11 @@ export class LetterGame extends MiniGame {
       SLOTS.forEach((s, k) => {
         y += add(`slot${k}`, `< ${s.options[this.picks[k]!]} >`, y, C.cyan) + 4;
       });
-      add('send', 'SEAL AND SEND TO ROME', y + 6, C.yellow);
+      add('send', 'READ IT ALOUD AND SEND IT', y + 6, C.yellow);
     } else {
       y = 320;
       y += add('again', 'WRITE IT AGAIN', y, C.cyan) + 4;
-      add('accept', 'ACCEPT THE ABSOLUTION', y, C.green);
+      add('accept', 'HEAR THE ANSWER OUT', y, C.green);
     }
   }
 
@@ -135,7 +142,10 @@ export class LetterGame extends MiniGame {
     } else if (pick === 'again') {
       this.phase = 'write';
       this.rebuild();
-    } else if (pick === 'accept') return 'won';
+    } else if (pick === 'accept') {
+      ctx.apply({ flags: { letter: this.picks[1] === NAMES_THE_DEBT ? 'named' : 'necessity' } });
+      return 'won';
+    }
 
     const g = this.g;
     g.clear();
@@ -151,7 +161,7 @@ export class LetterGame extends MiniGame {
     this.text.position.set(16, 84);
     this.answer.visible = this.phase === 'answer';
     this.answer.setText(
-      `LETTER ${this.sent}. THE POPE ANSWERS: "WE ARE NOT PLEASED AT ALL. WE ABSOLVE YOU, SO THAT YOU WILL NOT DO IT AGAIN. DO NOT ATTACK OTHER CHRISTIANS."`,
+      `LETTER ${this.sent}. INNOCENT III IS ANGRY EITHER WAY. THE PENITENT LEADERS ARE ABSOLVED AND WARNED: NO MORE ATTACKS ON CHRISTIANS. THE VENETIANS ARE NOT ABSOLVED.`,
     );
     this.answer.setStyle({ maxWidth: w - 32 });
     this.answer.position.set(16, 200);
@@ -170,22 +180,24 @@ export class LetterGame extends MiniGame {
 // ---------------------------------------------------------------------------- rumour
 
 const RUMOUR = [
-  'IN DECEMBER THE MARQUIS ARRIVES WITH A RUNAWAY PRINCE',
-  '"PUT MY FATHER BACK ON THE THRONE"',
-  '"AND I PAY FOR EVERYTHING"',
-  '"AND I BRING THE GREEKS BACK UNDER ROME"',
-  'THE BISHOPS RULE IT A GOOD WORK',
+  'YOUNG ALEXIOS, SON OF THE BLINDED ISAAC II',
+  '"RESTORE MY FATHER TO HIS THRONE"',
+  '"AND I PAY YOUR DEBT, AND MORE"',
+  '"AND I SEND MEN WITH YOU TO EGYPT"',
+  '"AND THE GREEKS SUBMIT TO ROME"',
+  'THE BISHOPS: IT IS A GOOD WORK',
 ];
 
 const GARBLE: Record<number, string> = {
-  0: 'MARQUIS... DECEMBER... A PRINCE THAT RAN?',
-  1: '...FATHER... THRONE... BACK ON IT?',
-  2: '...PAYS FOR... EVERYTHING?',
-  3: '...GREEKS... UNDER... ROME?',
-  4: '...BISHOPS SAY... GOOD WORK?',
+  0: 'ALEXIOS... ISAAC... BLINDED?',
+  1: '...FATHER... THRONE... RESTORE?',
+  2: '...PAYS... THE DEBT... AND MORE?',
+  3: '...MEN... EGYPT... WITH YOU?',
+  4: '...GREEKS... SUBMIT... ROME?',
+  5: '...BISHOPS SAY... GOOD WORK?',
 };
 
-/** 6.2: the news reaches Zampanò late and garbled. Piece it together in order. */
+/** 6.2: piece together young Alexios's promise, garbled on its way from the council tent. */
 export class RumourGame extends WordGame {
   private order: number[] = [];
   private placed: number[] = [];
@@ -244,7 +256,7 @@ export class RumourGame extends WordGame {
     g.rect(0, 0, w, h).fill(0x0e1420);
     g.rect(8, 76, w - 16, 136).fill(0xf0dcb0);
     this.drawButtons();
-    this.head.setText('WHAT THE POOR KNIGHTS HEARD (LAST)');
+    this.head.setText("ALEXIOS'S PROMISE, AS IT REACHED HIM");
     this.head.position.set(Math.round(w / 2), 64);
     this.body.setText(this.placed.map((k, n) => `${n + 1}. ${RUMOUR[k]}`).join('\n') || 'TAP THE PIECES IN THE ORDER THEY HAPPENED...');
     this.body.setStyle({ maxWidth: w - 32 });

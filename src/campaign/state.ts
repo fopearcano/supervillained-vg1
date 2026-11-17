@@ -41,7 +41,7 @@ export interface Book {
   values: string[];
   /** The one line per dream scene that makes no sense, and is remembered. */
   remembered: string[];
-  /** Memory shards fallen from the Professor's sentences (1.2). */
+  /** Scraps of the Professor's lecture, sniffed out in the study (1.2). */
   shards: string[];
 }
 
@@ -113,7 +113,7 @@ export function applyEffects(state: CampaignState, fx: Effects): Change[] {
   if (fx.item && addUnique(state.book.items, fx.item)) out.push({ label: `GOT: ${fx.item.toUpperCase()}`, positive: true });
   if (fx.value && addUnique(state.book.values, fx.value)) out.push({ label: `VALUE: ${fx.value.toUpperCase()}`, positive: true });
   if (fx.remembered) addUnique(state.book.remembered, fx.remembered);
-  if (fx.shard && addUnique(state.book.shards, fx.shard)) out.push({ label: `SHARD: ${fx.shard.toUpperCase()}`, positive: true });
+  if (fx.shard && addUnique(state.book.shards, fx.shard)) out.push({ label: `SCRAP: ${fx.shard.toUpperCase()}`, positive: true });
   if (fx.unlock && !state.abilities.includes(fx.unlock)) {
     state.abilities.push(fx.unlock);
     out.push({ label: `UNLOCKED: ${fx.unlock.toUpperCase()}`, positive: true });
@@ -149,7 +149,7 @@ export function unshakeable(state: CampaignState): boolean {
   return state.meters.supervillain >= METER_MAX;
 }
 
-/** The 7.8 choice decides the ending. */
+/** The 7.8 choice decides the ending: he called the oath himself (knight), or stood silent (alpha: "the witness"). */
 export type Ending = 'knight' | 'alpha';
 export function ending(state: CampaignState): Ending {
   return state.flags.oath === 'enforced' ? 'knight' : 'alpha';
@@ -173,14 +173,6 @@ export function fadeCommozione(state: CampaignState, chapter: number): number {
   return before - state.meters.commozione;
 }
 
-/** Who falls in beside him when he walks at the enemy (7.3) or at the band (8.3). Standing decides. */
-export function companions(state: CampaignState, scene: 'vanguard' | 'lawn'): string[] {
-  const s = state.meters.standing;
-  const F = STORY.FOLLOW;
-  if (scene === 'vanguard') return ['sbrim', ...(s >= F.SAINT_POL ? ['stpol'] : []), ...(s >= F.FLANDERS ? ['flanders'] : [])];
-  return ['conf', ...(s >= F.SBRIMBRULON_LAWN ? ['sbrim'] : []), ...(s >= F.WATSON_LAWN ? ['watson'] : [])];
-}
-
 /** Grace, as the 8.2 altar and the ending show it. */
 export type GraceTier = 'high' | 'mid' | 'low';
 export function graceTier(state: CampaignState): GraceTier {
@@ -201,11 +193,11 @@ export function endingNotes(state: CampaignState): string[] {
   );
   const st = state.meters.standing;
   out.push(
-    st >= STORY.FOLLOW.WATSON_LAWN
-      ? 'THE CAMP REMEMBERS HIM FONDLY. EVEN WATSON CROSSED THE LAWN TO STAND WITH HIM.'
-      : st >= STORY.FOLLOW.SBRIMBRULON_LAWN
+    st >= STORY.STANDING.FOND
+      ? 'THE CAMP REMEMBERS HIM FONDLY. THE DOGS AT THE FENCES WATCH HIM DRINK AND SAY NOTHING.'
+      : st >= STORY.STANDING.FAIR
         ? 'THE CAMP REMEMBERS HIM, MORE OR LESS.'
-        : 'THE CAMP CALLED HIM A TRAITOR. HE WALKED ON ANYWAY.',
+        : 'THE MARSHAL REMEMBERS WHO SPOKE AGAINST HIM. HE WALKED ON ANYWAY.',
   );
   return out;
 }

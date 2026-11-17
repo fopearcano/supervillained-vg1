@@ -630,6 +630,26 @@ export const STORY_MAPS = {
       '################',
     ],
   },
+  /** Level 1 and 8: home, the common lawn with the band's bowl, and the lane to Santina's gate. */
+  neighborhood: {
+    theme: 'greenzone',
+    base: '.',
+    rows: [
+      '##########################',
+      '#H..T..#..3.,..T.,#.T.#.B#',
+      '#H...,.J......7...J...#..#',
+      '#.S====2=====1====5==8J9.#',
+      '#......J..........J...#0.#',
+      '#..T...#.,.4....T.#,..#.T#',
+      '############6#######.#####',
+      '#.....,.....=#######=.,..#',
+      '#.T.,....T..=####====....#',
+      '#......B...,=####=....T..#',
+      '#..T.T....B.===E==...,...#',
+      '#.......T..........T...T.#',
+      '##########################',
+    ],
+  },
   /** 7.3: the plain before the walls (the vanguard walk). */
   field: {
     theme: 'constantinople',

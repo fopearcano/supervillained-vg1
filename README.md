@@ -12,10 +12,12 @@ Two modes, chosen on the title screen:
 
 - **STORY — The dream of the cross**: the campaign from the design document *Supervillained — VG1
   implemented*. Under the Professor's desk Zampanò dreams the Fourth Crusade: 8 levels, 42
-  sub-levels (Greenzone, On the edge of dreams, Venice, The sea, Zara, The long winter,
-  Constantinople, Back to Greenzone), dialogue with choices, dream walks (stealth, wonder hunts,
-  a nerve meter, thirst, fire, scrambled controls), mini-games, black holes into other crusades,
-  the Meraviglia book, and two endings decided by what he does at the sack of Constantinople.
+  sub-levels (The Greenzone, On the edge of dreams, Venice, The sea, Zara, The long winter,
+  Constantinople, Back to the Greenzone) following the level design revision *Levels
+  implementation 2*: dialogue with choices, dream walks (following someone, carrying things,
+  acting in a lull, stealth, a nerve gauge beside Pierre, thirst, smoke and fire, scrambled
+  controls), mini-games, hard cuts into other crusades, the Meraviglia book, and two endings
+  decided by whether he calls the oath himself at the sack of Constantinople.
   Progress is saved after every sub-level.
 - **ARCADE — Green Zone**: the original level from `SPEC.md`.
 
