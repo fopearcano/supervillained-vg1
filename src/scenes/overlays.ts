@@ -81,7 +81,8 @@ export class TitleScene extends Overlay {
     this.menu = new Menu(
       [
         { label: 'NEW GAME', action: actions.newGame, color: C.red },
-        { label: 'CONTINUE', action: () => (canContinue ? actions.cont() : this.game.audio.play('empty')), color: canContinue ? C.yellow : '#5a5a6a' },
+        // Always yellow: with no saved story, CONTINUE simply starts it (see Flow.toTitle).
+        { label: 'CONTINUE', action: actions.cont, color: C.yellow },
         { label: 'OPTIONS', action: actions.options, color: C.cyan },
         { label: 'QUIT', action: actions.quit, color: C.pink },
       ],

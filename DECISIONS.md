@@ -383,7 +383,7 @@ longer bullied in the Green Zone.
   walk; game over offers RETRY. Coins from the walk go to the story's purse. Numbered 1.0 so the
   PDF's 1.1–1.5 keep their numbers. Saves made before this count 1.0 as done if 1.1 is.
 - **Title**: NEW GAME (asks before wiping a saved story), CONTINUE (the next unfinished scene; the
-  label under the menu says which; greyed without a save), OPTIONS (sound, volume, text speed,
+  label under the menu says which; always yellow, and with no save it starts the story), OPTIONS (sound, volume, text speed,
   LEVELS for replays, the Meraviglia book), QUIT. The story's pause menu now quits to the title.
 - **QUIT**: on Android it closes the app through a tiny local Capacitor plugin (`QuitPlugin.java`,
   registered in `MainActivity`; `src/core/native.ts` uses `@capacitor/core`, already a

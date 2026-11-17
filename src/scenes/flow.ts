@@ -70,7 +70,8 @@ export class Flow {
     this.game.scenes.push(
       new TitleScene(this.game, {
         newGame: () => this.newGame(),
-        cont: () => this.glitch(() => this.story.continueGame()),
+        // No saved story yet: CONTINUE starts it from the beginning.
+        cont: () => this.glitch(() => (this.story.hasProgress() ? this.story.continueGame() : this.story.newGame())),
         options: () => this.openOptions(),
         quit: () => this.quit(),
         continueLabel: this.story.hasProgress() ? (this.story.nextLabel() ?? 'THE STORY IS FINISHED: REPLAY ANY LEVEL') : null,
