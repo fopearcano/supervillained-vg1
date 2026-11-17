@@ -62,7 +62,7 @@ async function boot(): Promise<void> {
     }
     if (params.get('skip') === 'game') flow.play(level.number);
     else if (sub) flow.story.debugPlay(sub);
-    else flow.toTitle(level.number);
+    else flow.toTitle();
   }
 
   // Debug/automation hook (used by the Playwright screenshot script).
@@ -71,7 +71,8 @@ async function boot(): Promise<void> {
     flow,
     scene: () => (params.get('story') ? game.scenes.top : (flow.current ?? game.scenes.top)),
     top: () => game.scenes.top,
-    storyIds: () => CHAPTERS.flatMap((c) => c.subLevels.map((s) => s.id)),
+    // Scripted sub-levels (the 1.0 Green Zone walk is covered by the walk's own scenarios).
+    storyIds: () => CHAPTERS.flatMap((c) => c.subLevels.filter((s) => !s.greenZone).map((s) => s.id)),
     step: (n: number) => game.loop.stepNow(n),
     faceToward: (x: number, y: number) => {
       const s = flow.current;

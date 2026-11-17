@@ -97,6 +97,10 @@ try {
   let total = 0;
   for (const e of log) {
     if (e.id === 'ending') continue;
+    if (e.greenZone) {
+      rows.push(`| ${e.id} | - | - | - | - | - | - | the Green Zone walk: not autoplayed (npm run screens covers it) |`);
+      continue;
+    }
     const m = e.metrics ?? { restarts: 0, caught: 0, nerveBroken: 0, ran: 0, miniRetries: 0, minis: [] };
     const flags = [];
     if (e.skipped) flags.push('FAIL: not finished');

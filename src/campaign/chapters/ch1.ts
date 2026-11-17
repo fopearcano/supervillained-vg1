@@ -35,6 +35,15 @@ export const CH1: ChapterDef = {
   },
   subLevels: [
     {
+      id: '1.0',
+      title: 'The Green Zone',
+      happens:
+        'THE DAILY WALK IN THE PARK. EAT TREATS AGAINST HUNGER, PEE TO CLEAN WHAT THE POOPS SPOIL, CATCH CATS FOR COINS, IGNORE THE BALLS, AND BARK AWAY BAGNASKIZ WHEN HE POLLUTES THE ZONE. AT THE END OF THE WALK, TIRED, HE LIES DOWN ON THE LAWN.',
+      source: 'SPEC: THE GREEN ZONE (FROM THE VIDEO). BOARD: THE GREENZONE, BAGNASKIZ THE BULLY.',
+      greenZone: 1,
+      script: () => [],
+    },
+    {
       id: '1.1',
       title: 'One step from Jerusalem',
       happens:
@@ -42,6 +51,7 @@ export const CH1: ChapterDef = {
       source: "BOARD PHOTOS, 16 NOVEMBER: CONFUSIONE'S SLAP (11:53:35).",
       script: () => [
         stage('jerusalem', [], { skinKey: 'zampanoKnight' }),
+        card('', 'AFTER THE WALK, ON THE LAWN, HE DOZES OFF...', { color: '#f6c8e0', seconds: 2, dim: 0.9 }),
         card('JERUSALEM', 'ONE STEP AWAY. PASTEL.', { color: '#f6c8e0', seconds: 2.2, dim: 0.3 }),
         walk({
           objective: 'WALK TO THE CITY GATE. KEEP YOUR HEAD UP',

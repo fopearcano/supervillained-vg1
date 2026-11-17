@@ -1,12 +1,14 @@
 # CLAUDE.md — SUPERVILLAINED
 
-2D isometric game (browser + Android via Capacitor), **no game engine**. Two modes:
-- **ARCADE: GREEN ZONE** (`SPEC.md`): Zampanò, a Maltese dog, walks through a park: eat treats,
-  pee to clean, avoid pollution, bark at the bully pug.
-- **STORY** (the VG1 design PDFs: "Supervillained — VG1 implemented", then the level design
-  revision "Supervillained VG1 — Levels implementation 2", which wins where they differ): an
-  8-level, 42-sub-level campaign — a Fourth-Crusade dream with dialogue, dream walks, mini-games
-  and two endings.
+2D isometric game (browser + Android via Capacitor), **no game engine**. **One game, one story**
+(title: NEW GAME / CONTINUE / OPTIONS / QUIT), from the VG1 design PDFs ("Supervillained — VG1
+implemented", then the level design revision "Supervillained VG1 — Levels implementation 2",
+which wins where they differ): 8 levels, 1.0 + 42 sub-levels.
+- **1.0 The Green Zone** (`SPEC.md`, the former "arcade"): Zampanò, a Maltese dog, walks through a
+  park: eat treats, pee to clean, avoid pollution, bark at the bully pug. It is the first scene
+  of Level 1, played by `scenes/gameScene.ts` (`SubLevelDef.greenZone`), not by a story script.
+- Then the rest of Level 1, the Fourth-Crusade dream (levels 2–7) and the return (level 8):
+  dialogue, dream walks, mini-games and two endings.
 
 Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`.
 
@@ -28,7 +30,7 @@ npm run playtest -- --from 3.1 --to 3.4          # one level
 npm run android:apk  # web build + cap sync + Gradle debug APK (needs JDK 21 + Android SDK 36)
 ```
 
-Debug URLs: `?skip=game` (straight into gameplay), `?story=7.3` (straight into a story
+Debug URLs: `?skip=game` (straight into the Green Zone walk, outside the story), `?story=7.3` (straight into a story
 sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
 `window.__sv` exposes the game for automation (`__sv.scene()` = top scene, `__sv.top()`,
 `__sv.storyIds()`, `__sv.flow.story.debugPlay(id)`; a `StoryScene` has `debugState()`,
@@ -55,7 +57,9 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
 - `systems/` — gameplay rules as small, mostly pure classes (unit-tested).
 - `ui/` — `pixelFont.ts` + `pixelText.ts` (crisp bitmap text with glow/outline), HUD, touch controls.
 - `fx/` — particles, popups, screen effects, glitch filter.
-- `scenes/` — Title (STORY / ARCADE), Briefing, Game, Pause, LevelEnd, GameOver, sprite viewer.
+- `scenes/` — `flow.ts` (title → new game / continue / options / quit; plays the 1.0 walk for the
+  story), Title, Options, Confirm, Goodbye, Briefing, Game (the walk), Pause, LevelEnd, GameOver,
+  sprite viewer. `core/native.ts`: QUIT closes the app on Android (`QuitPlugin.java`).
 - `world/world.ts` — the shared isometric stage (map + renderer + layers + camera + entities),
   used by the arcade `GameScene` and by story stages.
 - `campaign/` — the VG1 campaign as data: `state.ts` (meters, flags, book, unlocks, ending; pure,

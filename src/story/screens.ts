@@ -79,7 +79,7 @@ export class StoryMenuScene implements Scene {
   readonly root = new Container();
   readonly pausesBelow = true;
   private readonly bg = new Graphics();
-  private readonly title = new PixelText('THE DREAM OF THE CROSS', { color: C.yellow, outline: '#120818', glow: 'self', glowAlpha: 0.3 }).setOrigin(0.5, 0);
+  private readonly title = new PixelText('LEVELS', { color: C.yellow, outline: '#120818', glow: 'self', glowAlpha: 0.3 }).setOrigin(0.5, 0);
   private readonly sub = new PixelText('SUPERVILLAINED: CRUSADER', { color: '#9aa4c0', shadow: '#000000' }).setOrigin(0.5, 0);
   private readonly menu: Menu;
   private readonly meters = new PixelText('', { color: C.white, shadow: '#000000', align: 'center', lineGap: 3 }).setOrigin(0.5, 0);
@@ -93,7 +93,6 @@ export class StoryMenuScene implements Scene {
       play: (chapter: ChapterDef) => void;
       cont: () => void;
       book: () => void;
-      reset: () => void;
       back: () => void;
       unlocked: (chapter: ChapterDef) => boolean;
     },
@@ -109,7 +108,6 @@ export class StoryMenuScene implements Scene {
       });
     }
     items.push({ label: 'MERAVIGLIA BOOK', action: actions.book, color: C.pink });
-    items.push({ label: 'RESET STORY', action: actions.reset, color: '#8a8aa0' });
     items.push({ label: 'BACK', action: actions.back, color: C.white });
     this.menu = new Menu(items, 200, 14, 3);
     const m = state.meters;
@@ -231,7 +229,7 @@ export class StoryPauseScene implements Scene {
           },
           color: C.cyan,
         },
-        { label: 'STORY MENU', action: actions.menu, color: C.white },
+        { label: 'QUIT TO TITLE', action: actions.menu, color: C.white },
       ],
       140,
       16,

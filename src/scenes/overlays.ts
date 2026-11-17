@@ -1,7 +1,6 @@
 import { Container, Graphics, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import type { Game } from '../core/game';
-import { bestFor, loadCoins, type LevelRecord } from '../core/settings';
 import type { Scene } from '../core/scene';
 import { formatScore, formatTime, type LevelStats } from '../systems/scoring';
 import { Menu, type MenuItem } from '../ui/menu';
@@ -47,41 +46,50 @@ const big = (text: string, color: string, scale: number, extra: Partial<Construc
 const LOGO_TEXT = 'SUPERVILLAINED';
 const LOGO_STYLE: LogoStyle = { colors: ['#f2ffb0', '#d4ff3a', '#9ccc1a'], outline: '#120818', shadow: '#2a4a08', glow: '#d4ff3a' };
 
-/** Title card over the blurred level. */
+export interface TitleActions {
+  newGame: () => void;
+  cont: () => void;
+  options: () => void;
+  quit: () => void;
+  /** Where Continue goes ("LEVEL 3: 3.2 ..."), or null when there is no saved story. */
+  continueLabel: string | null;
+}
+
+/** Title card over the blurred Green Zone: NEW GAME, CONTINUE, OPTIONS, QUIT. */
 export class TitleScene extends Overlay {
   /** The logo: always one line (see ui/logo.ts). */
   private readonly title = new Sprite();
   private titleScale = 0;
   /** Edition title under the logo. */
   private readonly edition: PixelText;
+  /** Where Continue goes. */
   private readonly best: PixelText;
   private readonly menu: Menu;
   /** Publisher line: the smallest crisp size of the pixel font (scale 1), dimmed. */
   private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: '#8ad4ff', letterSpacing: 1 }).setOrigin(0.5, 1);
 
-  constructor(
-    game: Game,
-    level: LevelDef,
-    actions: { story: () => void; arcade: () => void },
-  ) {
+  constructor(game: Game, actions: TitleActions) {
     super(game, 0.15);
     this.edition = big('CRUSADER', C.hotPink, 1, { letterSpacing: 6, glow: C.hotPink, glowAlpha: 0.5 });
-    const rec: LevelRecord | null = bestFor(level.id);
-    const coins = loadCoins();
-    this.best = new PixelText(rec ? `ARCADE BEST ${formatScore(rec.score)}   COINS ${coins}` : `COINS ${coins}`, {
+    const canContinue = actions.continueLabel !== null;
+    this.best = new PixelText(canContinue ? actions.continueLabel! : '', {
       color: C.cyan,
       shadow: '#000000',
       align: 'center',
+      maxWidth: 190,
     }).setOrigin(0.5, 0);
     this.menu = new Menu(
       [
-        { label: 'STORY', action: actions.story, color: C.yellow },
-        { label: `ARCADE: ${level.zoneName.toUpperCase()}`, action: actions.arcade, color: C.green },
+        { label: 'NEW GAME', action: actions.newGame, color: C.yellow },
+        { label: 'CONTINUE', action: () => (canContinue ? actions.cont() : this.game.audio.play('empty')), color: canContinue ? C.green : '#5a5a6a' },
+        { label: 'OPTIONS', action: actions.options, color: C.cyan },
+        { label: 'QUIT', action: actions.quit, color: C.pink },
       ],
-      170,
-      20,
-      8,
+      150,
+      18,
+      6,
     );
+    if (canContinue) this.menu.selected = 1;
     this.root.addChild(this.title, this.edition, this.best, this.menu.root, this.footer);
   }
 
@@ -244,6 +252,8 @@ export interface LevelResult {
   newBest: boolean;
   coinsTotal: number;
   hasNext: boolean;
+  /** Label of the NEXT button (CONTINUE when the story goes on). */
+  nextLabel?: string;
 }
 
 /** End of level: stats, stars popping one by one, bonuses, NEXT / RETRY. */
@@ -306,7 +316,7 @@ export class LevelEndScene extends Overlay {
       { text: formatScore(r.total).padStart(9, ' '), color: C.yellow },
     ], { shadow: '#000000', glow: 'self', glowAlpha: 0.3 });
     const items: MenuItem[] = [];
-    if (r.hasNext) items.push({ label: 'NEXT', action: actions.next, color: C.green });
+    if (r.hasNext) items.push({ label: r.nextLabel ?? 'NEXT', action: actions.next, color: C.green });
     items.push({ label: 'RETRY', action: actions.retry, color: C.yellow });
     if (!r.hasNext) items.push({ label: 'TITLE', action: actions.quit, color: C.pink });
     this.menu = new Menu(items, 120, 16, 5);
@@ -400,3 +410,136 @@ export class GameOverScene extends Overlay {
     if (this.menu.root.visible) this.menu.update(dt, this.game.input);
   }
 }
+
+/** OPTIONS from the title: sound, volume, text speed, replaying levels, the book. */
+export class OptionsScene extends Overlay {
+  private readonly heading = big('OPTIONS', C.yellow, 2);
+  private readonly menu: Menu;
+
+  constructor(
+    game: Game,
+    actions: {
+      toggleSound: () => void;
+      muted: () => boolean;
+      cycleVolume: () => void;
+      volume: () => number;
+      cycleTextSpeed: () => void;
+      textSpeed: () => string;
+      levels: () => void;
+      book: () => void;
+      back: () => void;
+    },
+  ) {
+    // Nearly opaque: the title's own buttons must not show through.
+    super(game, 0.94);
+    this.menu = new Menu(
+      [
+        {
+          label: () => (actions.muted() ? 'SOUND: OFF' : 'SOUND: ON'),
+          action: () => {
+            actions.toggleSound();
+            this.menu.refreshLabels();
+          },
+          color: C.cyan,
+        },
+        {
+          label: () => `VOLUME: ${Math.round(actions.volume() * 100)}%`,
+          action: () => {
+            actions.cycleVolume();
+            this.menu.refreshLabels();
+          },
+          color: C.cyan,
+        },
+        {
+          label: () => `TEXT: ${actions.textSpeed()}`,
+          action: () => {
+            actions.cycleTextSpeed();
+            this.menu.refreshLabels();
+          },
+          color: C.cyan,
+        },
+        { label: 'LEVELS (REPLAY)', action: actions.levels, color: C.yellow },
+        { label: 'MERAVIGLIA BOOK', action: actions.book, color: C.pink },
+        { label: 'BACK', action: actions.back, color: C.white },
+      ],
+      160,
+      18,
+      6,
+    );
+    this.root.addChild(this.heading, this.menu.root);
+  }
+
+  protected layout(): void {
+    const { w, h } = this;
+    this.heading.position.set(Math.round(w / 2), Math.round(h * 0.22));
+    this.menu.layout(w / 2, Math.round(h * 0.32));
+  }
+
+  override update(dt: number): void {
+    super.update(dt);
+    if (this.time > 0.25) this.menu.update(dt, this.game.input);
+  }
+}
+
+/** A yes/no question (NEW GAME over a saved story). */
+export class ConfirmScene extends Overlay {
+  private readonly heading: PixelText;
+  private readonly text: PixelText;
+  private readonly menu: Menu;
+
+  constructor(game: Game, title: string, text: string, actions: { yes: () => void; no: () => void; yesLabel?: string; noLabel?: string }) {
+    super(game, 0.92);
+    this.heading = big(title, C.yellow, 1);
+    this.text = new PixelText(text, { color: C.white, shadow: '#000000', align: 'center', maxWidth: 180, lineGap: 3 }).setOrigin(0.5, 0);
+    this.menu = new Menu(
+      [
+        { label: actions.yesLabel ?? 'YES', action: actions.yes, color: C.green },
+        { label: actions.noLabel ?? 'NO', action: actions.no, color: C.pink },
+      ],
+      140,
+      18,
+      6,
+    );
+    this.menu.selected = 1;
+    this.root.addChild(this.heading, this.text, this.menu.root);
+  }
+
+  protected layout(): void {
+    const { w, h } = this;
+    this.heading.position.set(Math.round(w / 2), Math.round(h * 0.32));
+    this.text.position.set(Math.round(w / 2), Math.round(h * 0.32 + 16));
+    this.menu.layout(w / 2, Math.round(h * 0.32 + 30 + this.text.textHeight));
+  }
+
+  override update(dt: number): void {
+    super.update(dt);
+    if (this.time > 0.25) this.menu.update(dt, this.game.input);
+  }
+}
+
+/** QUIT in a browser tab (a web page cannot close its own tab): a goodbye card, tap to go back. */
+export class GoodbyeScene extends Overlay {
+  private readonly heading = big('THANKS FOR PLAYING', C.yellow, 1);
+  private readonly text = new PixelText('YOU CAN CLOSE THIS TAB NOW.\nTAP TO GO BACK TO THE TITLE.', { color: C.white, shadow: '#000000', align: 'center', lineGap: 4 }).setOrigin(0.5, 0);
+
+  constructor(
+    game: Game,
+    private readonly onBack: () => void,
+  ) {
+    super(game, 0.85);
+    this.root.addChild(this.heading, this.text);
+  }
+
+  protected layout(): void {
+    const { w, h } = this;
+    this.heading.position.set(Math.round(w / 2), Math.round(h * 0.42));
+    this.text.position.set(Math.round(w / 2), Math.round(h * 0.42 + 18));
+  }
+
+  override update(dt: number): void {
+    super.update(dt);
+    const input = this.game.input;
+    if (this.time > 0.5 && (input.consumeTaps().length || input.consume('confirm') || input.consume('back'))) this.onBack();
+  }
+}
+

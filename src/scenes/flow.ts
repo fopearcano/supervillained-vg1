@@ -1,27 +1,47 @@
 import { BlurFilter } from 'pixi.js';
 import type { Game } from '../core/game';
-import { addCoins, saveRecord, saveSettings } from '../core/settings';
+import type { Scene } from '../core/scene';
+import { saveRecord, saveSettings, TEXT_SPEEDS } from '../core/settings';
 import { LEVELS, levelByNumber } from '../levels';
 import { finalHealth, starBonus, starsFromHealth, timeBonus } from '../systems/scoring';
 import type { LevelDef } from '../world/level';
 import { bindGameAudio } from '../fx/gameAudio';
 import { GameScene } from './gameScene';
-import { BriefingScene, GameOverScene, LevelEndScene, PauseScene, TitleScene, type LevelResult } from './overlays';
+import {
+  BriefingScene,
+  ConfirmScene,
+  GameOverScene,
+  GoodbyeScene,
+  LevelEndScene,
+  OptionsScene,
+  PauseScene,
+  TitleScene,
+  type LevelResult,
+} from './overlays';
 import { StoryFlow } from '../story/storyFlow';
+import { BookScene } from '../story/screens';
 import { AUDIO } from '../config';
+import { quitApp } from '../core/native';
 
 /**
- * Scene flow: Title → Briefing → Game ⇄ Pause → Level End / Game Over → …
- * The game scene stays at the bottom of the stack; the others are overlays on top of it.
+ * One game. Title (NEW GAME / CONTINUE / OPTIONS / QUIT) → the story, whose first scene (1.0) is
+ * the Green Zone walk: Briefing → Game ⇄ Pause → Level End (CONTINUE into 1.1) / Game Over.
+ * The walk's game scene stays at the bottom of the stack; the others are overlays on top of it.
  */
 export class Flow {
   private gameScene: GameScene | null = null;
   private level: LevelDef = LEVELS[0]!;
   private readonly blur = new BlurFilter({ strength: 3, quality: 2, resolution: 1 });
   readonly story: StoryFlow;
+  /** While the walk is played as the story's 1.0: called when he reaches the exit. */
+  private storyDone: (() => void) | null = null;
 
   constructor(private readonly game: Game) {
-    this.story = new StoryFlow(game, () => this.glitch(() => this.toTitle()));
+    this.story = new StoryFlow(
+      game,
+      () => this.glitch(() => this.toTitle()),
+      (level, done) => this.playGreenZone(level, done),
+    );
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.autoPause();
     });
@@ -32,9 +52,10 @@ export class Flow {
     return this.gameScene;
   }
 
-  /** Title card over the (blurred, frozen) level. */
-  toTitle(levelNumber = this.level.number): void {
-    this.level = levelByNumber(levelNumber) ?? LEVELS[0]!;
+  /** Title card over the (blurred, frozen) Green Zone. */
+  toTitle(): void {
+    this.storyDone = null;
+    this.level = LEVELS[0]!;
     const scene = this.newGameScene();
     scene.active = false;
     scene.worldRoot.filters = [this.blur];
@@ -42,35 +63,107 @@ export class Flow {
     this.game.scenes.replaceAll(scene);
     scene.setControlsEnabled(false);
     scene.controls.root.visible = false;
-    // Intro music on the title screen (it starts with the first tap: browser autoplay rules).
+    // Intro music on the title screen (in a browser it starts with the first tap: autoplay rules).
     this.game.audio.setTrack('intro');
     this.game.audio.setDuck(1);
     this.game.audio.startMusic();
     this.game.scenes.push(
-      new TitleScene(this.game, this.level, {
-        story: () => this.glitch(() => this.story.openMenu()),
-        arcade: () => this.toBriefing(),
+      new TitleScene(this.game, {
+        newGame: () => this.newGame(),
+        cont: () => this.glitch(() => this.story.continueGame()),
+        options: () => this.openOptions(),
+        quit: () => this.quit(),
+        continueLabel: this.story.hasProgress() ? (this.story.nextLabel() ?? 'THE STORY IS FINISHED: REPLAY ANY LEVEL') : null,
       }),
     );
     this.glitch(null, 0.7, 1);
   }
 
-  toBriefing(): void {
-    const scene = this.gameScene;
-    if (!scene) return;
+  /** Opens a menu over the title, hiding the title's own buttons underneath. */
+  private overTitle(scene: Scene): void {
+    const title = this.game.scenes.top;
+    if (title instanceof TitleScene) title.root.visible = false;
+    this.game.scenes.push(scene);
+  }
+
+  /** Closes the menu opened over the title. */
+  private closeOverTitle(): void {
+    this.game.scenes.pop();
+    const top = this.game.scenes.top;
+    if (top instanceof TitleScene) top.root.visible = true;
+  }
+
+  /** NEW GAME: over a saved story, ask first. */
+  private newGame(): void {
+    const start = () => this.glitch(() => this.story.newGame());
+    if (!this.story.hasProgress()) return start();
+    this.overTitle(
+      new ConfirmScene(this.game, 'NEW GAME?', 'THE SAVED STORY WILL BE LOST.', {
+        yes: start,
+        no: () => this.closeOverTitle(),
+      }),
+    );
+  }
+
+  private openOptions(): void {
+    const s = this.game.settings;
+    const changed = () => {
+      saveSettings(s);
+      this.game.onSettingsChanged();
+    };
+    this.overTitle(
+      new OptionsScene(this.game, {
+        toggleSound: () => {
+          s.muted = !s.muted;
+          changed();
+        },
+        muted: () => s.muted,
+        cycleVolume: () => {
+          const steps = [0.25, 0.5, 0.7, 1];
+          const i = steps.findIndex((v) => v >= s.volume - 0.01);
+          s.volume = steps[(i + 1) % steps.length]!;
+          changed();
+          this.game.audio.play('click');
+        },
+        volume: () => s.volume,
+        cycleTextSpeed: () => {
+          s.textSpeed = TEXT_SPEEDS[(TEXT_SPEEDS.indexOf(s.textSpeed) + 1) % TEXT_SPEEDS.length]!;
+          saveSettings(s);
+        },
+        textSpeed: () => s.textSpeed.toUpperCase(),
+        levels: () => this.glitch(() => this.story.openMenu()),
+        book: () => this.game.scenes.push(new BookScene(this.game, this.story.state, () => this.game.scenes.pop())),
+        back: () => this.closeOverTitle(),
+      }),
+    );
+  }
+
+  /** QUIT: closes the app on Android; a browser tab cannot close itself, so it says goodbye. */
+  private quit(): void {
+    this.game.audio.play('click');
+    if (quitApp()) return;
+    this.overTitle(new GoodbyeScene(this.game, () => this.closeOverTitle()));
+  }
+
+  /** The story's 1.0: the Green Zone walk, then `done` (into 1.1). */
+  playGreenZone(levelNumber: number, done: () => void): void {
+    this.level = levelByNumber(levelNumber) ?? LEVELS[0]!;
+    const scene = this.newGameScene();
+    this.storyDone = done;
+    scene.active = false;
+    this.game.scenes.replaceAll(scene);
+    scene.setControlsEnabled(false);
+    this.game.audio.setTrack('greenzone');
     this.game.audio.startMusic();
-    this.glitch(() => {
-      this.popOverlays();
-      scene.worldRoot.filters = [];
-      scene.hud.root.visible = true;
-      this.game.scenes.push(new BriefingScene(this.game, () => this.startPlaying()));
-    });
+    this.game.scenes.push(new BriefingScene(this.game, () => this.startPlaying()));
   }
 
   startPlaying(): void {
     const scene = this.gameScene;
     if (!scene) return;
     this.popOverlays();
+    scene.worldRoot.filters = [];
+    scene.hud.root.visible = true;
     scene.active = true;
     scene.controls.root.visible = true;
     scene.setControlsEnabled(true);
@@ -85,10 +178,12 @@ export class Flow {
     this.game.transition.play(mid, duration, flash);
   }
 
-  /** Straight into gameplay (Retry / Restart / ?skip=game). */
+  /** Straight into the walk (Retry / Restart; `?skip=game` for tests, outside the story). */
   play(levelNumber = this.level.number): void {
     this.level = levelByNumber(levelNumber) ?? LEVELS[0]!;
+    const done = this.storyDone;
     const scene = this.newGameScene();
+    this.storyDone = done;
     this.game.scenes.replaceAll(scene);
     this.startPlaying();
   }
@@ -100,7 +195,7 @@ export class Flow {
 
   quitToTitle(): void {
     this.game.audio.play('click');
-    this.glitch(() => this.toTitle(this.level.number));
+    this.glitch(() => this.toTitle());
   }
 
   pause(): void {
@@ -146,12 +241,15 @@ export class Flow {
     if (attack) this.game.audio.loop('siren', { volume: AUDIO.SIREN_VOLUME });
   }
 
-  /** Android back button: pause / resume during play; ignored elsewhere. */
+  /** Android back button: pause / resume during the walk, close menus, quit from the title. */
   back(): void {
     if (this.story.back()) return;
     const top = this.game.scenes.top;
     if (top instanceof PauseScene) this.resume();
     else if (top === this.gameScene) this.pause();
+    else if (top instanceof BookScene) this.game.scenes.pop();
+    else if (top instanceof OptionsScene || top instanceof ConfirmScene || top instanceof GoodbyeScene) this.closeOverTitle();
+    else if (top instanceof TitleScene) this.quit();
   }
 
   /** Called when the app goes to the background. */
@@ -172,8 +270,7 @@ export class Flow {
     const sb = starBonus(stars);
     const total = st.score + tb + sb;
     const newBest = saveRecord(this.level.id, { score: total, stars, time: st.time });
-    const coinsTotal = addCoins(st.coins);
-    const idx = LEVELS.indexOf(this.level);
+    const done = this.storyDone;
     const result: LevelResult = {
       stats: st,
       health,
@@ -182,12 +279,17 @@ export class Flow {
       starBonus: sb,
       total,
       newBest,
-      coinsTotal,
-      hasNext: idx >= 0 && idx < LEVELS.length - 1,
+      coinsTotal: this.story.state.coins + st.coins,
+      hasNext: !!done,
+      nextLabel: 'CONTINUE',
     };
     scene.setControlsEnabled(false);
     const end = new LevelEndScene(this.game, this.level, result, {
-      next: () => this.glitch(() => this.toTitle(LEVELS[idx + 1]!.number)),
+      next: () => {
+        this.storyDone = null;
+        this.story.addCoins(st.coins);
+        this.glitch(() => done?.());
+      },
       retry: () => this.restart(),
       quit: () => this.quitToTitle(),
     });
@@ -197,7 +299,6 @@ export class Flow {
 
   private gameOver(scene: GameScene): void {
     scene.setControlsEnabled(false);
-    addCoins(scene.rules.stats.coins);
     this.game.scenes.push(
       new GameOverScene(this.game, scene.rules.stats, {
         retry: () => this.restart(),

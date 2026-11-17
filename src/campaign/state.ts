@@ -208,6 +208,9 @@ export function loadCampaign(): CampaignState {
   const raw = storage.get<Partial<CampaignState> | null>(KEY, null);
   const base = newCampaign();
   if (!raw || raw.version !== 1) return base;
+  const completed = Array.isArray(raw.completed) ? [...raw.completed] : [];
+  // Saves from before the Green Zone walk became 1.0: whoever reached 1.1 has walked it.
+  if (completed.includes('1.1') && !completed.includes('1.0')) completed.unshift('1.0');
   return {
     ...base,
     ...raw,
@@ -215,7 +218,7 @@ export function loadCampaign(): CampaignState {
     flags: { ...(raw.flags ?? {}) },
     book: { ...base.book, ...(raw.book ?? {}) },
     abilities: Array.isArray(raw.abilities) ? raw.abilities : [],
-    completed: Array.isArray(raw.completed) ? raw.completed : [],
+    completed,
   };
 }
 

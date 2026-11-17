@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CHAPTERS, findSubLevel } from '../src/campaign/chapters';
 import { homeObject, KNOWN_MARVELS } from '../src/campaign/home';
-import { applyEffects, canSpend, dreamSkin, ending, endingNotes, fadeCommozione, graceTier, METER_MAX, newCampaign, spend, unshakeable } from '../src/campaign/state';
+import { applyEffects, canSpend, dreamSkin, ending, endingNotes, fadeCommozione, graceTier, loadCampaign, METER_MAX, newCampaign, saveCampaign, spend, unshakeable } from '../src/campaign/state';
 import { STORY } from '../src/config';
 import { optionView } from '../src/story/steps';
 import { CHAPTER_TITLES } from '../src/campaign/titles';
@@ -104,11 +104,13 @@ describe('VG1 campaign data', () => {
     expect(CHAPTER_TITLES[7]).toBe('Back to the Greenzone');
   });
 
-  it('numbers sub-levels n.1, n.2 ... with unique ids (42 in all)', () => {
+  it('numbers sub-levels n.1, n.2 ... with unique ids (42, plus the 1.0 Green Zone walk)', () => {
     const ids = CHAPTERS.flatMap((c) => c.subLevels.map((s) => s.id));
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ids.length).toBe(42);
-    for (const c of CHAPTERS) c.subLevels.forEach((s, k) => expect(s.id).toBe(`${c.number}.${k + 1}`));
+    expect(ids.length).toBe(43);
+    expect(ids[0]).toBe('1.0');
+    expect(CHAPTERS[0]!.subLevels[0]!.greenZone).toBe(1);
+    for (const c of CHAPTERS) c.subLevels.filter((s) => !s.greenZone).forEach((s, k) => expect(s.id).toBe(`${c.number}.${k + 1}`));
     expect(findSubLevel('7.3')?.chapter.number).toBe(7);
     expect(findSubLevel('9.1')).toBeNull();
   });
@@ -120,6 +122,7 @@ describe('VG1 campaign data', () => {
       for (const s of c.subLevels) {
         expect(s.happens, s.id).toBe(s.happens.toUpperCase());
         expect(s.source.length, s.id).toBeGreaterThan(5);
+        if (s.greenZone) continue;
         const steps = s.script();
         expect(steps.length, s.id).toBeGreaterThan(1);
         // Scripts are rebuilt every time they are played.
@@ -150,3 +153,22 @@ describe('VG1 campaign data', () => {
     expect(homeObject('THE MOON')).toBe('A SOUVENIR OF MOON');
   });
 });
+
+describe('saved stories', () => {
+  it('counts the Green Zone walk (1.0) as done in saves made before it became part of the story', () => {
+    const mem = new Map<string, string>();
+    (globalThis as { localStorage?: unknown }).localStorage = {
+      getItem: (k: string) => (mem.has(k) ? mem.get(k)! : null),
+      setItem: (k: string, v: string) => void mem.set(k, v),
+      removeItem: (k: string) => void mem.delete(k),
+    };
+    const old = newCampaign();
+    old.completed = ['1.1', '1.2'];
+    saveCampaign(old);
+    expect(loadCampaign().completed).toEqual(['1.0', '1.1', '1.2']);
+    const fresh = newCampaign();
+    saveCampaign(fresh);
+    expect(loadCampaign().completed).toEqual([]);
+  });
+});
+

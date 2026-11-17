@@ -133,7 +133,7 @@ const SCENARIOS = {
   /** C3: the choice wheel (8.4, wrapped options + the locked right answer) and the story menu. */
   async storymenu(browser) {
     const page = await openGame(browser, '?story=8.4');
-    await skipTo(page, 'AskStep');
+    await skipTo(page, 'CardStep');
     await wait(1200);
     await page.screenshot({ path: `${OUT}/c8-no-answer.png` });
     await page.evaluate(() => window.__sv.flow.story.openMenu());
@@ -161,6 +161,15 @@ const SCENARIOS = {
     };
     const page = await openGame(browser, '');
     await page.evaluate((st) => localStorage.setItem('supervillained:story', JSON.stringify(st)), state);
+    // The title with a saved story: CONTINUE shows where it goes; then OPTIONS.
+    await page.evaluate(() => window.__sv.flow.toTitle());
+    await wait(1600);
+    await page.screenshot({ path: `${OUT}/p-title.png` });
+    await page.keyboard.press('ArrowDown');
+    await wait(80);
+    await page.keyboard.press('Enter');
+    await wait(700);
+    await page.screenshot({ path: `${OUT}/p-options.png` });
     await page.evaluate(() => window.__sv.flow.story.openMenu());
     await wait(700);
     await page.screenshot({ path: `${OUT}/p-story-menu.png` });
@@ -296,15 +305,22 @@ const SCENARIOS = {
     await page.close();
   },
 
-  /** M3: title → briefing → game → pause → level end; then game over. */
+  /** M3: title → NEW GAME → level card → 1.0 card → briefing → walk → pause → level end; then game over. */
   async m3(browser) {
     const page = await openGame(browser, '');
-    await wait(1200);
+    await page.evaluate(() => localStorage.removeItem('supervillained:story'));
+    await page.evaluate(() => window.__sv.flow.toTitle());
+    await wait(1500);
     await page.screenshot({ path: `${OUT}/m3-title.png` });
-    await page.mouse.click(200, 500);
+    await page.keyboard.press('Enter'); // NEW GAME
     await wait(150);
     await page.screenshot({ path: `${OUT}/m3-glitch-transition.png` });
     await wait(1250);
+    await page.mouse.click(200, 500); // level 1 card
+    await wait(1000);
+    await page.screenshot({ path: `${OUT}/m3-walk-card.png` });
+    await page.mouse.click(200, 500); // 1.0 card
+    await wait(1400);
     await page.screenshot({ path: `${OUT}/m3-briefing.png` });
     await page.mouse.click(200, 500);
     await wait(500);
@@ -418,9 +434,15 @@ const SCENARIOS = {
   /** M5: juice — treat popup + geometric particles, marking a tree, running dust, audio on. */
   async m5(browser) {
     const page = await openGame(browser, '');
-    await wait(900);
-    await page.mouse.click(200, 500); // title → briefing (also unlocks audio)
+    await page.evaluate(() => localStorage.removeItem('supervillained:story'));
+    await page.evaluate(() => window.__sv.flow.toTitle());
     await wait(1300);
+    await page.keyboard.press('Enter'); // NEW GAME (also unlocks audio)
+    await wait(1400);
+    await page.mouse.click(200, 500); // level 1 card
+    await wait(1000);
+    await page.mouse.click(200, 500); // 1.0 card
+    await wait(1400);
     await page.mouse.click(200, 500); // briefing → play
     await wait(400);
     await page.keyboard.down('ShiftLeft');
@@ -460,10 +482,13 @@ const SCENARIOS = {
     await page.waitForFunction(() => window.__sv && window.__sv.scene(), null, { timeout: 30000 });
     await wait(1300);
     await page.screenshot({ path: `${OUT}/m6-phone-title.png` });
-    await page.touchscreen.tap(200, 500);
-    await wait(1300);
-    await page.touchscreen.tap(200, 500);
-    await wait(600);
+    // NEW GAME, the level card, the 1.0 card, the briefing: then the phone's back button pauses the walk.
+    await page.evaluate(() => window.__sv.flow.story.newGame());
+    for (const ms of [1000, 1400, 1400]) {
+      await wait(ms);
+      await page.touchscreen.tap(200, 500);
+    }
+    await wait(700);
     await page.evaluate(() => window.__sv.flow.back());
     await wait(400);
     await page.screenshot({ path: `${OUT}/m6-phone-back-pause.png` });

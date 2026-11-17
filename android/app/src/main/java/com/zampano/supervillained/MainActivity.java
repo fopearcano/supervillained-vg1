@@ -16,10 +16,13 @@ import com.getcapacitor.BridgeActivity;
  * - Keeps the screen on while playing.
  * - The hardware back button opens/closes the in-game pause menu instead of quitting:
  *   it dispatches a "svback" event to the web page (see src/main.ts).
+ * - QUIT on the title screen calls QuitPlugin (AppQuit.quit() in src/core/native.ts).
  */
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Our own plugin (QUIT on the title screen) must be registered before the bridge starts.
+        registerPlugin(QuitPlugin.class);
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         hideSystemBars();

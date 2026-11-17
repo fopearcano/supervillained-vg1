@@ -1,5 +1,5 @@
 import { CHAPTERS } from '../campaign/chapters';
-import { ending, endingNotes, isComplete, loadCampaign, markComplete, resetCampaign, saveCampaign, type CampaignState } from '../campaign/state';
+import { applyEffects, ending, endingNotes, isComplete, loadCampaign, markComplete, resetCampaign, saveCampaign, type CampaignState } from '../campaign/state';
 import type { ChapterDef, SubLevelDef } from '../campaign/types';
 import type { Game } from '../core/game';
 import { saveSettings, TEXT_SPEEDS } from '../core/settings';
@@ -19,6 +19,8 @@ export interface PlaytestEntry {
   meters: CampaignState['meters'];
   skipped?: boolean;
   ending?: string;
+  /** The Green Zone walk: not played by the autopilot (the screenshot scenarios cover it). */
+  greenZone?: boolean;
 }
 
 export class StoryFlow {
@@ -33,7 +35,44 @@ export class StoryFlow {
   constructor(
     private readonly game: Game,
     private readonly backToTitle: () => void,
+    /** Plays the Green Zone walk (1.0) and calls `done` when he reaches the exit. */
+    private readonly playGreenZone: (level: number, done: () => void) => void,
   ) {}
+
+  /** A saved story to continue (at least one sub-level finished). */
+  hasProgress(): boolean {
+    return loadCampaign().completed.length > 0;
+  }
+
+  /** Where Continue goes ("LEVEL 3: 3.2 THE PRICE OF PASSAGE"), or null when all is done. */
+  nextLabel(): string | null {
+    const st = loadCampaign();
+    for (const ch of CHAPTERS) for (const sub of ch.subLevels) if (!isComplete(st, sub.id)) return `LEVEL ${ch.number}: ${sub.id} ${sub.title.toUpperCase()}`;
+    return null;
+  }
+
+  /** New game: a fresh campaign from the Green Zone walk. */
+  newGame(): void {
+    this.replaying = false;
+    this.state = resetCampaign();
+    const ch = CHAPTERS[0]!;
+    this.showSub(ch, ch.subLevels[0]!, true);
+  }
+
+  /** Continue: the next unfinished sub-level (the level select once everything is done). */
+  continueGame(): void {
+    this.replaying = false;
+    this.state = loadCampaign();
+    if (this.nextLabel() === null) return this.openMenu();
+    this.continueStory();
+  }
+
+  /** Coins picked up on the Green Zone walk go to the story's purse. */
+  addCoins(n: number): void {
+    if (!n || this.replaying) return;
+    applyEffects(this.state, { coins: n });
+    saveCampaign(this.state);
+  }
 
   get active(): StoryScene | null {
     const top = this.game.scenes.top;
@@ -56,10 +95,6 @@ export class StoryFlow {
         play: (ch) => this.glitch(() => this.openChapter(ch)),
         cont: () => this.glitch(() => this.continueStory()),
         book: () => this.openBook(),
-        reset: () => {
-          this.state = resetCampaign();
-          this.openMenu();
-        },
         back: () => this.backToTitle(),
         unlocked: (ch) => this.unlocked(ch),
       }),
@@ -133,6 +168,14 @@ export class StoryFlow {
   }
 
   private startSub(ch: ChapterDef, sub: SubLevelDef, restart = false): void {
+    if (sub.greenZone) {
+      // The Green Zone walk is played by the walk's own scenes; the autopilot does not play it.
+      if (this.autopilot) {
+        this.log.push({ id: sub.id, time: 0, metrics: null, meters: { ...this.state.meters }, greenZone: true });
+        return this.finishSub(ch, sub, false, true);
+      }
+      return this.playGreenZone(sub.greenZone, () => this.finishSub(ch, sub));
+    }
     const scene = new StoryScene(this.game, this.replaying ? structuredClone(this.state) : this.state, ch, sub, {
       onFinished: () => this.finishSub(ch, sub),
       onMenu: () => this.pause(ch, sub),
@@ -143,12 +186,12 @@ export class StoryFlow {
     this.game.scenes.replaceAll(scene);
   }
 
-  private finishSub(ch: ChapterDef, sub: SubLevelDef, skipped = false): void {
+  private finishSub(ch: ChapterDef, sub: SubLevelDef, skipped = false, logged = false): void {
     if (this.replaying) {
       this.replaying = false;
       return this.glitch(() => this.openChapter(ch));
     }
-    if (this.autopilot) {
+    if (this.autopilot && !logged) {
       const s = this.active;
       this.log.push({ id: sub.id, time: s?.time ?? 0, metrics: s ? structuredClone(s.metrics) : null, meters: { ...this.state.meters }, skipped });
     }
@@ -235,7 +278,7 @@ export class StoryFlow {
           saveSettings(s);
         },
         textSpeedLabel: () => this.game.settings.textSpeed.toUpperCase(),
-        menu: () => this.glitch(() => this.openMenu()),
+        menu: () => this.backToTitle(),
       }),
     );
   }

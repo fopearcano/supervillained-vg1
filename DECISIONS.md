@@ -371,3 +371,24 @@ The second PDF rewrites every sub-level (same 8 levels, 42 sub-levels). The scri
 - The autopilot plays all of it (`npm run playtest`, new `--to` option for one level); three full
   runs (both endings; first, last and random choices; skill 0.4–0.9) finish every sub-level.
 
+## One game: the Green Zone walk is Level 1, not a separate mode
+
+The arcade "Green Zone" and the story were two modes on the title screen. They are one game now:
+the dog walks the Green Zone, falls asleep, dreams the crusade and wakes up supervillained, no
+longer bullied in the Green Zone.
+
+- **1.0 The Green Zone**: the SPEC walk is the first scene of Level 1 (`greenZone: 1` on the
+  sub-level; `StoryFlow` hands it to `Flow.playGreenZone`). Briefing → walk → level end with
+  CONTINUE into 1.1, which opens with him dozing off on the lawn after the walk. RETRY replays the
+  walk; game over offers RETRY. Coins from the walk go to the story's purse. Numbered 1.0 so the
+  PDF's 1.1–1.5 keep their numbers. Saves made before this count 1.0 as done if 1.1 is.
+- **Title**: NEW GAME (asks before wiping a saved story), CONTINUE (the next unfinished scene; the
+  label under the menu says which; greyed without a save), OPTIONS (sound, volume, text speed,
+  LEVELS for replays, the Meraviglia book), QUIT. The story's pause menu now quits to the title.
+- **QUIT**: on Android it closes the app through a tiny local Capacitor plugin (`QuitPlugin.java`,
+  registered in `MainActivity`; `src/core/native.ts` uses `@capacitor/core`, already a
+  dependency). A browser tab cannot close itself, so the web version shows a goodbye card. The
+  phone's back button on the title also quits.
+- The autopilot does not play the walk (it marks 1.0 as done and goes on); the screenshot
+  scenarios m1–m6 play it, now starting from NEW GAME.
+

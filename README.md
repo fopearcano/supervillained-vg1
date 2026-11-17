@@ -1,25 +1,26 @@
 # SUPERVILLAINED
 
-A 2D isometric arcade game about **Zampanò**, a Maltese dog on a walk in the park, with a retro
-video-game HUD. Browser + Android, written from scratch in TypeScript with PixiJS as a pure WebGL
-renderer — no game engine.
+A 2D isometric game about **Zampanò**, a bullied Maltese dog, with a retro video-game HUD.
+Browser + Android, written from scratch in TypeScript with PixiJS as a pure WebGL renderer — no
+game engine.
 
 > MAKE A WALK. COLLECT ENOUGH TREATS TO COMPENSATE THE HUNGER. PEE ENOUGH TO COMPENSATE THE POOPS
 > AS TOO MANY POOPS CAN ENDANGER THE ENVIRONMENT OF THE ZONE YOU ARE PLAYING IN. CATS MEAN MONEY.
 > DON'T GET DISTRACTED BY THE BALLS.
 
-Two modes, chosen on the title screen:
+One game, one story (title menu: NEW GAME, CONTINUE, OPTIONS, QUIT). It starts in the Green
+Zone: the walk in the park above (1.0, the level from `SPEC.md`) and the bullying of the lawn.
+Then Zampanò falls asleep under the Professor's desk and dreams the Fourth Crusade, and at the end
+he wakes up *supervillained* (with character), not to be bullied again in the Green Zone.
 
-- **STORY — The dream of the cross**: the campaign from the design document *Supervillained — VG1
-  implemented*. Under the Professor's desk Zampanò dreams the Fourth Crusade: 8 levels, 42
-  sub-levels (The Greenzone, On the edge of dreams, Venice, The sea, Zara, The long winter,
-  Constantinople, Back to the Greenzone) following the level design revision *Levels
-  implementation 2*: dialogue with choices, dream walks (following someone, carrying things,
-  acting in a lull, stealth, a nerve gauge beside Pierre, thirst, smoke and fire, scrambled
-  controls), mini-games, hard cuts into other crusades, the Meraviglia book, and two endings
-  decided by whether he calls the oath himself at the sack of Constantinople.
-  Progress is saved after every sub-level.
-- **ARCADE — Green Zone**: the original level from `SPEC.md`.
+8 levels (The Greenzone, On the edge of dreams, Venice, The sea, Zara, The long winter,
+Constantinople, Back to the Greenzone) from the design documents *Supervillained — VG1
+implemented* and the level design revision *Levels implementation 2*: the Green Zone walk, then
+dialogue with choices, dream walks (following someone, carrying things, acting in a lull,
+stealth, a nerve gauge beside Pierre, thirst, smoke and fire, scrambled controls), mini-games,
+hard cuts into other crusades, the Meraviglia book, and two endings decided by whether he calls
+the oath himself at the sack of Constantinople. Progress is saved after every scene; OPTIONS has
+sound, volume, text speed, level replays and the book.
 
 ## Run it
 

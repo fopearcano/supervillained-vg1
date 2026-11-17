@@ -12,6 +12,11 @@ export interface SubLevelDef {
   source: string;
   /** Black holes: sudden jumps to another crusade or dream; left with one value. */
   blackHole?: { where: string; value: string };
+  /**
+   * The Green Zone walk (1.0): this sub-level is the walk in the park (SPEC.md's level with this
+   * number: treats, pee, poop, Bagnaskiz) instead of a story script.
+   */
+  greenZone?: number;
   /** Builds a fresh script every time the sub-level is played. */
   script: () => Step[];
 }
