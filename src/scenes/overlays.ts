@@ -1,6 +1,7 @@
-import { Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { BlurFilter, Container, Graphics, Sprite, Texture } from 'pixi.js';
 import { TITLE } from '../config';
 import type { TitleGlitchFilter } from '../fx/titleGlitchFilter';
+import { TextGlitchFilter } from '../fx/textGlitchFilter';
 import { loadTitleArt, titleTexture, type TitleArt } from '../ui/titleArt';
 import { frameAt, titleAnimation, titleStill, type TitleAnim } from '../ui/titleAnim';
 import { artVersion } from '../assets/build';
@@ -12,7 +13,7 @@ import { formatScore, formatTime, type LevelStats } from '../systems/scoring';
 import { Menu, type MenuItem } from '../ui/menu';
 import { PixelText, type Span } from '../ui/pixelText';
 import { logoTexture, logoWidth, type LogoStyle } from '../ui/logo';
-import { C, hex, retroBox } from '../ui/retro';
+import { C, retroBox } from '../ui/retro';
 import { spriteName } from '../assets/manifest';
 import type { LevelDef } from '../world/level';
 
@@ -93,9 +94,20 @@ export class TitleScene extends Overlay {
   /** Where Continue goes. */
   private readonly best: PixelText;
   private readonly menu: Menu;
-  /** Publisher line (a link to its site): the smallest crisp size of the pixel font, underlined. */
+  /** The title's lettering (SUPERVILLAINED + CRUSADER), glitching now and then. */
+  private readonly titleGroup = new Container();
+  private readonly titleGlitch = new TextGlitchFilter();
+  private textBurstLeft = 0;
+  private nextTextBurst = 1.2;
+  /** Publisher line (a link to its site): the smallest crisp size of the pixel font. */
   private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: C.green, shadow: '#000000', letterSpacing: 1 }).setOrigin(0.5, 1);
-  private readonly footerLine = new Graphics();
+  /** Its slow glow: a blurred pale copy behind it, breathing. */
+  private readonly footerGlow = new PixelText('SUPERVOID EDITIONS', {
+    color: TITLE.FOOTER_GLOW_COLOR,
+    outline: TITLE.FOOTER_GLOW_COLOR,
+    outlineWidth: 2,
+    letterSpacing: 1,
+  }).setOrigin(0.5, 1);
   /** Seconds left of the footer's flash after a tap. */
   private footerFlash = 0;
 
@@ -128,7 +140,10 @@ export class TitleScene extends Overlay {
     );
     if (canContinue) this.menu.selected = 1;
     this.dog.anchor.set(0.5, 0);
-    this.root.addChild(this.title, this.edition, this.dog, this.best, this.menu.root, this.footerLine, this.footer);
+    this.titleGroup.addChild(this.title, this.edition);
+    this.titleGroup.filters = [this.titleGlitch];
+    this.footerGlow.filters = [new BlurFilter({ strength: TITLE.FOOTER_GLOW_BLUR, quality: 3, resolution: 1 })];
+    this.root.addChild(this.titleGroup, this.dog, this.best, this.menu.root, this.footerGlow, this.footer);
     void loadTitleArt().then((art) => {
       this.art = art;
       if (!this.root.destroyed) this.layout();
@@ -145,35 +160,28 @@ export class TitleScene extends Overlay {
       this.title.anchor.set(0.5);
     }
     const cx = Math.round(w / 2);
-    // The stack, from the top: the title, CRUSADER, the portrait, the buttons, where CONTINUE goes.
-    // Laid out from y = 0, then lowered into most of the free space above the footer.
+    // The title near the top (TITLE.TOP), the buttons and where CONTINUE goes just above the
+    // publisher line, and the portrait in the middle of the space between them.
     const halfTitle = Math.round(this.title.height / 2);
-    let y = halfTitle + Math.round(this.title.height / 2) + 10;
-    const editionY = y;
-    y += 12;
-    const dogY = y;
-    const bottom = h - 16;
-    const top0 = Math.max(18, halfTitle + 4);
-    // The portrait takes DOG_WIDTH of the screen, smaller if the stack would not fit (short
-    // screens: a desktop window).
-    const below = 6 + this.menu.height + 5 + (this.actions.continueLabel ? this.best.textHeight : 0) + 6;
-    const room = bottom - (top0 - halfTitle) - y - below;
+    const titleY = Math.round(h * TITLE.TOP) + halfTitle;
+    const editionY = titleY + halfTitle + 10;
+    const headerBottom = editionY + 6;
+    const bestH = this.actions.continueLabel ? this.best.textHeight : 0;
+    const groupBottom = h - 16 - TITLE.BOTTOM_GAP;
+    const bestY = groupBottom - bestH;
+    const menuY = bestY - (bestH ? 5 : 0) - this.menu.height;
+    // The portrait takes DOG_WIDTH of the screen, smaller if it would not fit (short screens).
+    const gapTop = headerBottom + 6;
+    const room = menuY - 6 - gapTop;
     const dogW = Math.max(24, Math.min(Math.round(w * TITLE.DOG_WIDTH), Math.floor(room / TITLE.DOG_ASPECT)));
-    y += this.layoutDog(dogW) + 6;
-    const menuY = y;
-    y += this.menu.height + 5;
-    const bestY = y;
-    y += (this.actions.continueLabel ? this.best.textHeight : 0) + 6;
-    const free = Math.max(0, bottom - (top0 - halfTitle) - y);
-    const off = top0 + Math.round(free * TITLE.LOWER);
-    this.title.position.set(cx, off);
-    this.edition.position.set(cx, off + editionY - halfTitle);
-    this.dog.position.set(cx, off + dogY - halfTitle);
-    this.menu.layout(w / 2, off + menuY - halfTitle);
-    this.best.position.set(cx, off + bestY - halfTitle);
+    const dogH = this.layoutDog(dogW);
+    this.title.position.set(cx, titleY);
+    this.edition.position.set(cx, editionY);
+    this.dog.position.set(cx, gapTop + Math.max(0, Math.round((room - dogH) / 2)));
+    this.menu.layout(w / 2, menuY);
+    this.best.position.set(cx, bestY);
     this.footer.position.set(cx, h - 6);
-    const fw = Math.round(this.footer.textWidth);
-    this.footerLine.clear().rect(cx - Math.round(fw / 2), h - 5, fw, 1).fill({ color: hex(C.green), alpha: 0.7 });
+    this.footerGlow.position.set(cx, h - 6);
   }
 
   /** Sets the portrait for this width; returns the height it takes. */
@@ -221,8 +229,11 @@ export class TitleScene extends Overlay {
     this.dog.visible = this.time > 0.35;
     this.menu.root.visible = this.time > 0.5;
     this.animateGlitch(dt);
+    this.animateTitleGlitch(dt);
     this.footerFlash = Math.max(0, this.footerFlash - dt);
-    this.footer.alpha = this.footerLine.alpha = this.footerFlash > 0 ? 0.55 : 1;
+    this.footer.alpha = this.footerFlash > 0 ? 0.55 : 1;
+    const [fa, fb] = TITLE.FOOTER_GLOW_ALPHA;
+    this.footerGlow.alpha = fa + (fb - fa) * (0.5 - 0.5 * Math.cos(this.time * TITLE.FOOTER_GLOW_SPEED));
     // Covered by the glossary card: it keeps animating, but the card has the input.
     if (this.game.scenes.top !== this) return;
     if (this.time > 0.6) {
@@ -239,6 +250,21 @@ export class TitleScene extends Overlay {
       }
       this.menu.update(dt, input);
     }
+  }
+
+  /** The title's lettering glitches in short bursts, with a faint shiver in between. */
+  private animateTitleGlitch(dt: number): void {
+    const f = this.titleGlitch;
+    const rnd = (r: readonly number[]) => r[0]! + Math.random() * (r[1]! - r[0]!);
+    f.time = this.time;
+    this.nextTextBurst -= dt;
+    if (this.nextTextBurst <= 0) {
+      this.nextTextBurst = rnd(TITLE.TEXT_GLITCH_EVERY);
+      this.textBurstLeft = rnd(TITLE.TEXT_GLITCH_TIME);
+    }
+    this.textBurstLeft -= dt;
+    f.burst = this.textBurstLeft > 0 ? rnd(TITLE.TEXT_GLITCH_BURST) : 0;
+    f.idle = TITLE.TEXT_GLITCH_IDLE;
   }
 
   /** The background: an old dirty film that glitches now and then, mostly vertically. */

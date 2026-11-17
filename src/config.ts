@@ -84,8 +84,21 @@ export const TITLE = {
   DOG_WIDTH: 0.46,
   /** The animated portrait's height / width (space kept for it while the GIF decodes). */
   DOG_ASPECT: 1.4,
-  /** Share of the free space below the stack moved above it (lowers everything toward the footer). */
-  LOWER: 0.75,
+  /** The title (SUPERVILLAINED CRUSADER): its top at this fraction of the screen height. */
+  TOP: 0.07,
+  /** Space between the buttons (or where CONTINUE goes) and the publisher line, px. */
+  BOTTOM_GAP: 8,
+  /** Glitch on the title's lettering: a burst every [min, max] s, lasting [min, max] s. */
+  TEXT_GLITCH_EVERY: [1.8, 4.5],
+  TEXT_GLITCH_TIME: [0.06, 0.2],
+  /** ...its strength [min, max] (flickering while it lasts) and the faint shiver in between. */
+  TEXT_GLITCH_BURST: [0.45, 1],
+  TEXT_GLITCH_IDLE: 0.35,
+  /** Slow glow behind SUPERVOID EDITIONS: alpha (min, max), speed (rad/s), blur, color. */
+  FOOTER_GLOW_ALPHA: [0.05, 0.75],
+  FOOTER_GLOW_SPEED: 1.2,
+  FOOTER_GLOW_BLUR: 3,
+  FOOTER_GLOW_COLOR: '#c8ffb8',
   /** SUPERVOID EDITIONS at the bottom links to the publisher. */
   PUBLISHER_URL: 'https://supervoideditions.com/',
   /** Background glitch (mostly vertical): flickering burst strength [min, max], faint level in between. */

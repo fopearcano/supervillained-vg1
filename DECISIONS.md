@@ -405,7 +405,7 @@ longer bullied in the Green Zone.
   mostly vertically (`fx/titleGlitchFilter.ts`: columns tearing up and down, a vertical RGB
   split, rolling, tall corrupted blocks, vertical bars, a few horizontal tears). Tuning:
   `TITLE.GLITCH_*` and `TITLE.FILM`. The stack
-  is lowered into most of the free space above SUPERVOID EDITIONS (`TITLE.LOWER`).
+  is laid out as below ("Title page layout").
   The pictures are scaled in the browser (step-by-step halving, crisp alpha) to the logical
   resolution, so they match the pixel art at any screen size.
 
@@ -498,3 +498,17 @@ buttons the title's stack could overflow a short screen (a desktop window), so t
 shrinks to the room left. Measuring text uses `textWidth`/`textHeight` (a PixelText sprite is
 padded and rounded up to 16 px), which also centers GLOSSARY's ring and the footer's underline
 exactly.
+
+## Title page layout, the title's glitch, the publisher's glow
+
+- **Layout**: SUPERVILLAINED and CRUSADER sit near the top (their top at 7% of the screen height,
+  `TITLE.TOP`), the buttons (and where CONTINUE goes) just above SUPERVOID EDITIONS
+  (`TITLE.BOTTOM_GAP`), and the animated portrait in the middle of the space between them
+  (smaller if that space is short).
+- **The title glitches** (`fx/textGlitchFilter.ts`, on the title and CRUSADER together): short
+  bursts every 1.8 to 4.5 s in which horizontal slices of the letters jump sideways, the colors
+  split and rows flicker; a faint shiver in between. It touches only the letters (premultiplied
+  colors are clamped to their alpha), never the space around them.
+- **SUPERVOID EDITIONS** lost its underline (it is still a link) and glows slowly: a blurred,
+  outlined pale-green copy behind it breathes in and out (about 5 s per breath).
+  Tuning: `TITLE.TEXT_GLITCH_*`, `TITLE.FOOTER_GLOW_*`.
