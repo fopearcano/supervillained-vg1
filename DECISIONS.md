@@ -321,5 +321,7 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
   puddle; `siren` loops under the "under attack" alarm until the attack ends (and is the fire alarm
   in 7.4); `laser-eyes` is Bagnaskiz's hit on Zampanò. There was no file for the dream, so levels
   2-7 keep the synthesized medieval loop. Capacitor already lets media play without a fresh tap,
-  so music changes work inside the app.
+  so music changes work inside the app, and there the audio starts at launch so the intro music
+  plays on the title without a tap. Browsers forbid sound before the first tap, so on the web it
+  still starts with the first touch or key.
 

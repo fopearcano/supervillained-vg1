@@ -57,7 +57,7 @@ export class TitleScene extends Overlay {
   private readonly best: PixelText;
   private readonly menu: Menu;
   /** Publisher line: the smallest crisp size of the pixel font (scale 1), dimmed. */
-  private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: '#6a7290', letterSpacing: 1 }).setOrigin(0.5, 1);
+  private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: '#8ad4ff', letterSpacing: 1 }).setOrigin(0.5, 1);
 
   constructor(
     game: Game,

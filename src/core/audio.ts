@@ -53,6 +53,9 @@ export class AudioEngine {
         if (this.playingElement && this.wantMusic) void this.playingElement.play().catch(() => {});
       }
     });
+    // Where sound may start without a tap (the Android app: Capacitor's WebView drops the gesture
+    // requirement), start now so the intro music plays as soon as the title appears.
+    if (autoplayAllowed()) this.unlock();
   }
 
   get ready(): boolean {
@@ -258,6 +261,18 @@ export class AudioEngine {
       // Not allowed yet (no gesture): the next unlock() retries.
       if (this.playingElement === playing) this.playingElement = null;
     });
+  }
+}
+
+/** True in the native app, or in a browser that says audio may start without a user gesture. */
+function autoplayAllowed(): boolean {
+  const w = window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } };
+  if (w.Capacitor?.isNativePlatform?.()) return true;
+  const nav = navigator as Navigator & { getAutoplayPolicy?: (type: 'audiocontext') => string };
+  try {
+    return nav.getAutoplayPolicy?.('audiocontext') === 'allowed';
+  } catch {
+    return false;
   }
 }
 
