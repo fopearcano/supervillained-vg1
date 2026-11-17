@@ -332,4 +332,10 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
   can't run until it is back to 35%. The joystick now only walks, at any push. In the story the
   button is hidden in walking-pace scenes, scripted runs in cutscenes cost nothing, and the
   autopilot holds RUN when it wants to run; the full playtest still wins every sub-level.
+- **Faster Zampanò, more treats.** Walking 2.2 → 2.8 and running 3.8 → 4.8 tiles/s. What depends
+  on those speeds keeps its relation: the ball's pull still beats walking near the ball but not
+  running, Bagnaskiz still chases a bit slower than a walk, cats still need a run to catch, and
+  hunger drains in proportion, so a tile walked costs the same as before and not eating at all
+  still loses a life. Level 1 has 44 treats instead of 30 (closer spacing). The shortest walk is
+  about 58 s instead of 74 s, and food is much easier to find.
 

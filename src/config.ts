@@ -45,8 +45,8 @@ export const CAMERA = {
 } as const;
 
 export const PLAYER = {
-  WALK_SPEED: 2.2,
-  RUN_SPEED: 3.8,
+  WALK_SPEED: 2.8,
+  RUN_SPEED: 4.8,
   ACCEL: 16,
   DECEL: 20,
   /** Collision radius in tiles. */
@@ -88,6 +88,11 @@ export const INPUT = {
   ACTION_TTL: 0.25,
   /** Max movement (px) for a pointer press/release to count as a tap. */
   TAP_SLOP: 10,
+  /**
+   * Stick magnitude of keyboard walking: full walking speed, but below the story's "charging"
+   * threshold (STORY.PACE.CHARGE_MAG). Holding Shift pushes it to 1 (and runs).
+   */
+  KEYBOARD_WALK_MAG: 0.8,
 } as const;
 
 export const OCCLUSION = {
@@ -99,10 +104,10 @@ export const OCCLUSION = {
 export const HUNGER = {
   MAX: 100,
   START: 100,
-  /** Drain per second by activity. */
-  DRAIN_IDLE: 0.9,
-  DRAIN_WALK: 1.5,
-  DRAIN_RUN: 2.3,
+  /** Drain per second by activity (scaled with PLAYER speeds: the same hunger per tile walked). */
+  DRAIN_IDLE: 1.15,
+  DRAIN_WALK: 1.9,
+  DRAIN_RUN: 2.9,
   /** Hunger restored after losing a life. */
   REFILL_ON_LIFE_LOST: 50,
   /** Hunger below which the bar blinks. */
@@ -184,7 +189,8 @@ export const SCORE = {
 } as const;
 
 export const CAT = {
-  SPEED: 3.1,
+  /** Faster than Zampanò walking, slower than running: catching one takes a run. */
+  SPEED: 3.9,
   RADIUS: 0.22,
   TOUCH_RADIUS: 0.55,
   /** Cats start fleeing when Zampanò is closer than this. */
@@ -200,8 +206,8 @@ export const CAT = {
 
 export const BALL = {
   MAGNET_RADIUS: 3.6,
-  /** Max pull speed (tiles/s) at the ball. */
-  MAGNET_STRENGTH: 3.2,
+  /** Max pull speed (tiles/s) at the ball: beats walking near the ball, not running. */
+  MAGNET_STRENGTH: 4.1,
   GRAB_RADIUS: 0.45,
   LIFETIME: 22,
   FETCH_TIME: 2,
@@ -226,8 +232,9 @@ export const ATTACK = {
 } as const;
 
 export const BAGNASKIZ = {
-  SPEED: 2.1,
-  FLEE_SPEED: 4.4,
+  /** A little slower than Zampanò walking. */
+  SPEED: 2.65,
+  FLEE_SPEED: 5.6,
   RADIUS: 0.3,
   HITS_TO_FLEE: 3,
   /** Pollution trail stamp. */

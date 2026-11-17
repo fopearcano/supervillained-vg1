@@ -130,8 +130,9 @@ export class Input {
     if (this.keys.has('ArrowDown') || this.keys.has('KeyS')) ky += 1;
     if (kx !== 0 || ky !== 0) {
       const len = Math.hypot(kx, ky);
-      this.move.x = kx / len;
-      this.move.y = ky / len;
+      const mag = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') ? 1 : INPUT.KEYBOARD_WALK_MAG;
+      this.move.x = (kx / len) * mag;
+      this.move.y = (ky / len) * mag;
       return;
     }
     // Joystick vector

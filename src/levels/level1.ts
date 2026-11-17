@@ -26,7 +26,7 @@ export const LEVEL_1: LevelDef = {
     flowers: ['#ffe14a', '#ff7ad9', '#ffffff'],
   },
   spawns: {
-    treats: { count: 30, maxOffset: 2, minSpacing: 3.5 },
+    treats: { count: 45, maxOffset: 2, minSpacing: 2.5 },
     cats: { first: 22, interval: [20, 32], max: 1 },
     balls: { first: 38, interval: [26, 40], max: 1 },
   },
