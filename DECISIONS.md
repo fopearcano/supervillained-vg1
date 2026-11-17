@@ -461,3 +461,18 @@ hundred ms; until then the title keeps the portrait's place (`TITLE.DOG_ASPECT`)
 when it appears. Where `ImageDecoder` is missing the first frame is shown still. The old portrait
 is kept as the old art (OPTIONS > ART: OLD), like the replaced sprites. SUPERVOID EDITIONS is
 green.
+
+## Title page: GLOSSARY and the publisher link
+
+- **GLOSSARY** (violet, before QUIT) opens a floating paper card over the title (which keeps
+  animating behind it, without input): the dictionary entry of "supervillain, supervillained" as
+  given (headword, pronunciation, a) noun, b) verb). The b) verb ("to grow up strong; to get
+  character"), the sense the game is about, is circled by hand in red, as in the source image: the
+  ring draws itself when the card opens; the noun is in a faded ink. The text follows the game's
+  uppercase rule except the pronunciation, which stays lowercase IPA: Press Start 2P has no IPA,
+  so the pixel font borrows ' and : for the stress and length marks and makes the schwa from its
+  own "e" turned upside down. It closes with CLOSE, a tap outside it, Enter or back. Tuning:
+  `GLOSSARY` in `config.ts`.
+- **SUPERVOID EDITIONS** (now green and underlined) opens https://supervoideditions.com/: in the
+  phone's browser on Android (a new `openUrl` method on the app's own plugin, `QuitPlugin.java`, an
+  ACTION_VIEW intent: the game stays open behind), in a new tab in a browser.

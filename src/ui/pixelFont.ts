@@ -10,6 +10,14 @@ const SIZE = 8;
 const FIRST = 32;
 const LAST = 126;
 
+/**
+ * Characters beyond ASCII, for the glossary's pronunciation (/ˈsuːpərvilən/). Press Start 2P has
+ * no IPA: the stress and length marks borrow ' and :, and the schwa is the font's own "e" turned
+ * upside down (an extra cell after the ASCII ones).
+ */
+const BORROWED: Record<string, string> = { 'ˈ': "'", 'ː': ':' };
+const EXTRA = ['ə'] as const;
+
 export class PixelFont {
   /** Advance per glyph (monospace) in px at scale 1. */
   readonly advance: number;
@@ -73,7 +81,7 @@ export class PixelFont {
     const cellH = bottom - top + 1;
     const advance = SIZE;
     const atlas = document.createElement('canvas');
-    atlas.width = advance * count;
+    atlas.width = advance * (count + EXTRA.length);
     atlas.height = cellH;
     const actx = atlas.getContext('2d')!;
     const out = actx.createImageData(atlas.width, cellH);
@@ -94,13 +102,37 @@ export class PixelFont {
         }
       }
     }
+    // ə: "e" rotated by 180 degrees inside its own bounding box (so it stays on the baseline).
+    const ek = 'e'.charCodeAt(0) - FIRST;
+    let ex0 = advance;
+    let ex1 = -1;
+    let ey0 = cellH;
+    let ey1 = -1;
+    for (let y = 0; y < cellH; y++) {
+      for (let x = 0; x < advance; x++) {
+        if (!o[(y * atlas.width + ek * advance + x) * 4 + 3]) continue;
+        ex0 = Math.min(ex0, x);
+        ex1 = Math.max(ex1, x);
+        ey0 = Math.min(ey0, y);
+        ey1 = Math.max(ey1, y);
+      }
+    }
+    for (let y = ey0; y <= ey1; y++) {
+      for (let x = ex0; x <= ex1; x++) {
+        const src = (y * atlas.width + ek * advance + x) * 4;
+        const dst = ((ey0 + ey1 - y) * atlas.width + count * advance + (ex0 + ex1 - x)) * 4;
+        for (let c = 0; c < 4; c++) o[dst + c] = o[src + c]!;
+      }
+    }
     actx.putImageData(out, 0, 0);
     return new PixelFont(atlas, advance, cellH, loaded);
   }
 
   /** Atlas x of a character (unknown characters map to '?'). */
   glyphX(ch: string): number {
-    let code = ch.charCodeAt(0);
+    const extra = EXTRA.indexOf(ch as (typeof EXTRA)[number]);
+    if (extra >= 0) return (LAST - FIRST + 1 + extra) * this.advance;
+    let code = (BORROWED[ch] ?? ch).charCodeAt(0);
     if (code < FIRST || code > LAST) code = 63;
     return (code - FIRST) * this.advance;
   }

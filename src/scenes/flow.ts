@@ -21,9 +21,10 @@ import {
 } from './overlays';
 import { StoryFlow } from '../story/storyFlow';
 import { BookScene } from '../story/screens';
-import { AUDIO } from '../config';
+import { AUDIO, TITLE } from '../config';
 import { TitleGlitchFilter } from '../fx/titleGlitchFilter';
-import { quitApp } from '../core/native';
+import { openUrl, quitApp } from '../core/native';
+import { GlossaryScene } from './glossaryScene';
 import { setArtVersion } from '../assets/build';
 
 /**
@@ -77,7 +78,15 @@ export class Flow {
         // No saved story yet: CONTINUE starts it from the beginning.
         cont: () => this.glitch(() => (this.story.hasProgress() ? this.story.continueGame() : this.story.newGame())),
         options: () => this.openOptions(),
+        glossary: () => {
+          this.game.audio.play('click');
+          this.game.scenes.push(new GlossaryScene(this.game, () => this.game.scenes.pop()));
+        },
         quit: () => this.quit(),
+        publisher: () => {
+          this.game.audio.play('click');
+          openUrl(TITLE.PUBLISHER_URL);
+        },
         continueLabel: this.story.hasProgress() ? (this.story.nextLabel() ?? 'THE STORY IS FINISHED: REPLAY ANY LEVEL') : null,
         glitch,
       }),
@@ -268,7 +277,7 @@ export class Flow {
     const top = this.game.scenes.top;
     if (top instanceof PauseScene) this.resume();
     else if (top === this.gameScene) this.pause();
-    else if (top instanceof BookScene) this.game.scenes.pop();
+    else if (top instanceof BookScene || top instanceof GlossaryScene) this.game.scenes.pop();
     else if (top instanceof OptionsScene || top instanceof ConfirmScene || top instanceof GoodbyeScene) this.closeOverTitle();
     else if (top instanceof TitleScene) this.quit();
   }

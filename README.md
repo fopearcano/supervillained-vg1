@@ -8,7 +8,7 @@ game engine.
 > AS TOO MANY POOPS CAN ENDANGER THE ENVIRONMENT OF THE ZONE YOU ARE PLAYING IN. CATS MEAN MONEY.
 > DON'T GET DISTRACTED BY THE BALLS.
 
-One game, one story (title menu: NEW GAME, CONTINUE, OPTIONS, QUIT). It starts in the Green
+One game, one story (title menu: NEW GAME, CONTINUE, OPTIONS, GLOSSARY, QUIT). It starts in the Green
 Zone: the walk in the park above (1.0, the level from `SPEC.md`) and the bullying of the lawn.
 Then Zampanò falls asleep under the Professor's desk and dreams the Fourth Crusade, and at the end
 he wakes up *supervillained* (with character), not to be bullied again in the Green Zone.

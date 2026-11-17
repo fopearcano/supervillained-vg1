@@ -157,6 +157,11 @@ export class Input {
     return true;
   }
 
+  /** The queued taps, left in the queue. */
+  peekTaps(): readonly Tap[] {
+    return this.taps;
+  }
+
   /** Returns and clears the taps (pointer press+release without much movement). */
   consumeTaps(): Tap[] {
     const t = this.taps;

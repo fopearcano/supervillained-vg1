@@ -230,6 +230,27 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** The title's GLOSSARY card (the ring around the verb drawn), and the publisher link. */
+  async glossary(browser) {
+    const page = await openGame(browser, '');
+    await page.evaluate(() => {
+      window.__opened = [];
+      window.open = (u) => (window.__opened.push(u), null);
+    });
+    await wait(1500);
+    await page.evaluate(() => window.__sv.top().actions.glossary());
+    await wait(1400);
+    await page.screenshot({ path: `${OUT}/p-glossary.png` });
+    await page.keyboard.press('Enter'); // closes it
+    await wait(400);
+    const k = VIEWPORT.width / (await page.evaluate(() => window.__sv.game.width));
+    const f = await page.evaluate(() => ({ x: window.__sv.top().footer.x, y: window.__sv.top().footer.y }));
+    await page.touchscreen.tap(f.x * k, (f.y - 3) * k);
+    await wait(300);
+    console.log('top:', await page.evaluate(() => window.__sv.top().constructor.name), 'opened:', await page.evaluate(() => JSON.stringify(window.__opened)));
+    await page.close();
+  },
+
   /** The end of a story level: the logo snaps in over the last scene, then the Professor. */
   async levelend(browser) {
     const page = await openGame(browser, '?story=1.5');

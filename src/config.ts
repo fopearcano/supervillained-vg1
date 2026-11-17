@@ -86,6 +86,8 @@ export const TITLE = {
   DOG_ASPECT: 1.4,
   /** Share of the free space below the stack moved above it (lowers everything toward the footer). */
   LOWER: 0.75,
+  /** SUPERVOID EDITIONS at the bottom links to the publisher. */
+  PUBLISHER_URL: 'https://supervoideditions.com/',
   /** Background glitch (mostly vertical): flickering burst strength [min, max], faint level in between. */
   GLITCH_BURST: [0.25, 0.6],
   GLITCH_IDLE: 0.12,
@@ -111,6 +113,20 @@ export const TITLE = {
     /** Gate weave: the picture jumps up to this many pixels between film frames. */
     WEAVE: 1,
   },
+} as const;
+
+/** The GLOSSARY card on the title page (scenes/glossaryScene.ts). */
+export const GLOSSARY = {
+  /** Card width (px, at most the screen minus 16) and the dim behind it. */
+  CARD_WIDTH: 200,
+  DIM: 0.72,
+  /** The red ring around the b) verb: margin around the text (px), overshoot (of 64 steps). */
+  RING_PAD_X: 10,
+  RING_PAD_Y: 7,
+  RING_OVERSHOOT: 9,
+  /** It draws itself: after RING_DELAY seconds, in RING_TIME seconds. */
+  RING_DELAY: 0.35,
+  RING_TIME: 0.55,
 } as const;
 
 /**

@@ -12,7 +12,7 @@ import { formatScore, formatTime, type LevelStats } from '../systems/scoring';
 import { Menu, type MenuItem } from '../ui/menu';
 import { PixelText, type Span } from '../ui/pixelText';
 import { logoTexture, logoWidth, type LogoStyle } from '../ui/logo';
-import { C, retroBox } from '../ui/retro';
+import { C, hex, retroBox } from '../ui/retro';
 import { spriteName } from '../assets/manifest';
 import type { LevelDef } from '../world/level';
 
@@ -56,7 +56,10 @@ export interface TitleActions {
   newGame: () => void;
   cont: () => void;
   options: () => void;
+  glossary: () => void;
   quit: () => void;
+  /** SUPERVOID EDITIONS tapped (the publisher's site). */
+  publisher: () => void;
   /** Where Continue goes ("LEVEL 3: 3.2 ..."), or null when there is no saved story. */
   continueLabel: string | null;
   /** The background's glitch filter, animated by the title (mostly vertical bursts). */
@@ -88,8 +91,11 @@ export class TitleScene extends Overlay {
   /** Where Continue goes. */
   private readonly best: PixelText;
   private readonly menu: Menu;
-  /** Publisher line: the smallest crisp size of the pixel font (scale 1), dimmed. */
+  /** Publisher line (a link to its site): the smallest crisp size of the pixel font, underlined. */
   private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: C.green, shadow: '#000000', letterSpacing: 1 }).setOrigin(0.5, 1);
+  private readonly footerLine = new Graphics();
+  /** Seconds left of the footer's flash after a tap. */
+  private footerFlash = 0;
 
   constructor(
     game: Game,
@@ -110,6 +116,7 @@ export class TitleScene extends Overlay {
         // Always yellow: with no saved story, CONTINUE simply starts it (see Flow.toTitle).
         { label: 'CONTINUE', action: actions.cont, color: C.yellow },
         { label: 'OPTIONS', action: actions.options, color: C.cyan },
+        { label: 'GLOSSARY', action: actions.glossary, color: C.violet },
         { label: 'QUIT', action: actions.quit, color: C.pink },
       ],
       150,
@@ -118,7 +125,7 @@ export class TitleScene extends Overlay {
     );
     if (canContinue) this.menu.selected = 1;
     this.dog.anchor.set(0.5, 0);
-    this.root.addChild(this.title, this.edition, this.dog, this.best, this.menu.root, this.footer);
+    this.root.addChild(this.title, this.edition, this.dog, this.best, this.menu.root, this.footerLine, this.footer);
     void loadTitleArt().then((art) => {
       this.art = art;
       if (!this.root.destroyed) this.layout();
@@ -157,6 +164,8 @@ export class TitleScene extends Overlay {
     this.menu.layout(w / 2, off + menuY - halfTitle);
     this.best.position.set(cx, off + bestY - halfTitle);
     this.footer.position.set(cx, h - 6);
+    const fw = Math.round(this.footer.width);
+    this.footerLine.clear().rect(cx - Math.round(fw / 2), h - 5, fw, 1).fill({ color: hex(C.green), alpha: 0.7 });
   }
 
   /** Sets the portrait for this width; returns the height it takes. */
@@ -204,7 +213,24 @@ export class TitleScene extends Overlay {
     this.dog.visible = this.time > 0.35;
     this.menu.root.visible = this.time > 0.5;
     this.animateGlitch(dt);
-    if (this.time > 0.6) this.menu.update(dt, this.game.input);
+    this.footerFlash = Math.max(0, this.footerFlash - dt);
+    this.footer.alpha = this.footerLine.alpha = this.footerFlash > 0 ? 0.55 : 1;
+    // Covered by the glossary card: it keeps animating, but the card has the input.
+    if (this.game.scenes.top !== this) return;
+    if (this.time > 0.6) {
+      // SUPERVOID EDITIONS opens the publisher's site.
+      const f = this.footer;
+      const input = this.game.input;
+      const hit = input
+        .peekTaps()
+        .some((t) => Math.abs(t.x - f.x) <= f.width / 2 + 6 && t.y >= f.y - f.height - 6 && t.y <= f.y + 6);
+      if (hit) {
+        input.consumeTaps();
+        this.footerFlash = 0.25;
+        this.actions.publisher();
+      }
+      this.menu.update(dt, input);
+    }
   }
 
   /** The background: an old dirty film that glitches now and then, mostly vertically. */

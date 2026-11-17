@@ -13,6 +13,7 @@ export const C = {
   paleRose: '#ffd6f0',
   hotPink: '#ff5ad6',
   black: '#000000',
+  violet: '#a77bff',
 } as const;
 
 export function hex(c: string): number {
