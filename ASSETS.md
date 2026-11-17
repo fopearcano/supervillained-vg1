@@ -119,3 +119,13 @@ tile set is not wired yet because tiles are palette-driven per zone.
 All sound effects are synthesized at runtime (WebAudio); there are no audio files. There are two
 music loops: `chip` (Greenzone, arcade) and `medieval` (the dream), both rendered by
 `src/fx/sounds.ts`.
+
+## App icon and logo
+
+`branding/` holds the logo: `logo-source.webp` (the original), `logo.png` (the shape on pure white,
+cropped to its edges) and `app-icon.png` (1024 × 1024 square with the whole shape, for stores and
+documents). `npm run android:icons` builds everything else from `logo.png`: the Android launcher
+icons (square, round, adaptive foreground inside the 66 dp safe zone, white adaptive background),
+the white splash screens with the logo in the middle, and the web icons in `public/` (favicons,
+Apple touch icon, 192/512). To change the logo, replace `branding/logo.png` (8-bit RGB or RGBA PNG,
+the shape on white, cropped) and run the command again.

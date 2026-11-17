@@ -1,80 +1,27 @@
 /**
- * Generates the placeholder Android launcher icons and splash screens (pixel-art Zampanò face)
- * straight into android/app/src/main/res. No dependencies: a tiny PNG encoder over node:zlib.
+ * App icons and splash screens from the logo (branding/logo.png: the shape on white, cropped).
  *
- *   node scripts/gen-android-assets.mjs
+ *   npm run android:icons
+ *
+ * Writes, at every size already present in android/app/src/main/res:
+ *  - ic_launcher.png        square, white, the whole shape centred;
+ *  - ic_launcher_round.png  white disc, the whole shape inside the circle;
+ *  - ic_launcher_foreground.png  adaptive icon: the shape inside the 66 dp safe zone
+ *    (the background colour is set to white);
+ *  - splash.png             white screen with the logo in the middle;
+ * and the web icons in public/ (favicon, Apple touch icon, 192/512 for installs).
+ * No dependencies: a small PNG decoder/encoder over node:zlib and an area-average resize.
  */
-import { readdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import zlib from 'node:zlib';
 
 const RES = 'android/app/src/main/res';
+const LOGO = 'branding/logo.png';
+const PUBLIC = 'public';
+const WHITE = [255, 255, 255, 255];
 
-// 16x16 face: O outline, W white, S shade, K black (eyes + nose), P pink tongue.
-const FACE = [
-  '................',
-  '.....OOOOOO.....',
-  '...OOWWWWWWOO...',
-  '..OWWWWWWWWWWO..',
-  '.OSWWWWWWWWWWSO.',
-  'OSSWWKKWWKKWWSSO',
-  'OSSWWKKWWKKWWSSO',
-  'OSSWWWWWWWWWWSSO',
-  '.OSWWWWWWWWWWSO.',
-  '.OSWWWWKKWWWWSO.',
-  '..OWWWWKKWWWWO..',
-  '..OOWWWWPPWWOO..',
-  '...OOWWWPPWOO...',
-  '.....OOOOOO.....',
-  '................',
-  '................',
-];
-const COLORS = {
-  O: [0x2f, 0x38, 0x50, 255],
-  W: [0xff, 0xff, 0xff, 255],
-  S: [0xd9, 0xe2, 0xef, 255],
-  K: [0x11, 0x11, 0x11, 255],
-  P: [0xff, 0x6a, 0x8a, 255],
-};
-const GREEN = [0x3f, 0xcf, 0x1f, 255];
-const GREEN_DARK = [0x2a, 0x9e, 0x12, 255];
-const BLACK = [0, 0, 0, 255];
-
-function canvas(w, h, bg) {
-  const data = new Uint8Array(w * h * 4);
-  for (let k = 0; k < w * h; k++) data.set(bg ?? [0, 0, 0, 0], k * 4);
-  return { w, h, data };
-}
-
-function set(c, x, y, rgba) {
-  if (x < 0 || y < 0 || x >= c.w || y >= c.h) return;
-  c.data.set(rgba, (y * c.w + x) * 4);
-}
-
-/** Draws the face scaled by an integer factor at (ox, oy). */
-function drawFace(c, ox, oy, scale) {
-  FACE.forEach((row, j) => {
-    [...row].forEach((ch, i) => {
-      const col = COLORS[ch];
-      if (!col) return;
-      for (let y = 0; y < scale; y++) for (let x = 0; x < scale; x++) set(c, ox + i * scale + x, oy + j * scale + y, col);
-    });
-  });
-}
-
-/** Grass-checker background like the game tiles. */
-function grass(c) {
-  const cell = Math.max(2, Math.floor(c.w / 24));
-  for (let y = 0; y < c.h; y++)
-    for (let x = 0; x < c.w; x++) set(c, x, y, (Math.floor(x / cell) + Math.floor(y / cell)) % 2 ? GREEN : GREEN_DARK);
-}
-
-function circleMask(c) {
-  const r = c.w / 2;
-  for (let y = 0; y < c.h; y++)
-    for (let x = 0; x < c.w; x++) if (Math.hypot(x + 0.5 - r, y + 0.5 - r) > r) set(c, x, y, [0, 0, 0, 0]);
-}
-
+// ------------------------------------------------------------------ PNG
 const CRC = (() => {
   const t = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
@@ -100,16 +47,16 @@ function chunk(type, data) {
   return Buffer.concat([len, td, crc]);
 }
 
-function png(c) {
+function encodePng(img) {
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(c.w, 0);
-  ihdr.writeUInt32BE(c.h, 4);
-  ihdr[8] = 8; // bit depth
+  ihdr.writeUInt32BE(img.w, 0);
+  ihdr.writeUInt32BE(img.h, 4);
+  ihdr[8] = 8;
   ihdr[9] = 6; // RGBA
-  const raw = Buffer.alloc((c.w * 4 + 1) * c.h);
-  for (let y = 0; y < c.h; y++) {
-    raw[y * (c.w * 4 + 1)] = 0;
-    Buffer.from(c.data.buffer, y * c.w * 4, c.w * 4).copy(raw, y * (c.w * 4 + 1) + 1);
+  const raw = Buffer.alloc((img.w * 4 + 1) * img.h);
+  for (let y = 0; y < img.h; y++) {
+    raw[y * (img.w * 4 + 1)] = 0;
+    for (let x = 0; x < img.w * 4; x++) raw[y * (img.w * 4 + 1) + 1 + x] = img.data[y * img.w * 4 + x];
   }
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
@@ -119,48 +66,190 @@ function png(c) {
   ]);
 }
 
+/** 8-bit, non-interlaced RGB / RGBA / grey PNGs (what image editors and Pillow write). */
+function decodePng(buf) {
+  let p = 8;
+  let w = 0;
+  let h = 0;
+  let type = 0;
+  const idat = [];
+  while (p < buf.length) {
+    const len = buf.readUInt32BE(p);
+    const kind = buf.toString('ascii', p + 4, p + 8);
+    const data = buf.subarray(p + 8, p + 8 + len);
+    if (kind === 'IHDR') {
+      w = data.readUInt32BE(0);
+      h = data.readUInt32BE(4);
+      if (data[8] !== 8 || data[12] !== 0) throw new Error(`${LOGO}: only 8-bit non-interlaced PNGs are supported`);
+      type = data[9];
+    } else if (kind === 'IDAT') idat.push(data);
+    p += 12 + len;
+  }
+  const ch = { 0: 1, 2: 3, 4: 2, 6: 4 }[type];
+  if (!ch) throw new Error(`${LOGO}: unsupported PNG colour type ${type} (save it as RGB or RGBA)`);
+  const raw = zlib.inflateSync(Buffer.concat(idat));
+  const stride = w * ch;
+  const out = new Uint8Array(w * h * 4);
+  let prev = new Uint8Array(stride);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    const cur = new Uint8Array(stride);
+    for (let x = 0; x < stride; x++) {
+      const a = x >= ch ? cur[x - ch] : 0;
+      const b = prev[x];
+      const c = x >= ch ? prev[x - ch] : 0;
+      let v = line[x];
+      if (f === 1) v += a;
+      else if (f === 2) v += b;
+      else if (f === 3) v += (a + b) >> 1;
+      else if (f === 4) {
+        const pp = a + b - c;
+        const pa = Math.abs(pp - a);
+        const pb = Math.abs(pp - b);
+        const pc = Math.abs(pp - c);
+        v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      }
+      cur[x] = v & 255;
+    }
+    for (let x = 0; x < w; x++) {
+      const o = (y * w + x) * 4;
+      const s = x * ch;
+      if (ch >= 3) out.set([cur[s], cur[s + 1], cur[s + 2], ch === 4 ? cur[s + 3] : 255], o);
+      else out.set([cur[s], cur[s], cur[s], ch === 2 ? cur[s + 1] : 255], o);
+    }
+    prev = cur;
+  }
+  return { w, h, data: out };
+}
+
 function sizeOf(file) {
   const b = readFileSync(file);
   return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
 }
 
-if (!existsSync(RES)) {
-  console.error(`${RES} not found: run "npx cap add android" first.`);
+// ------------------------------------------------------------------ images
+function blank(w, h, rgba = [0, 0, 0, 0]) {
+  const data = new Uint8Array(w * h * 4);
+  for (let k = 0; k < w * h; k++) data.set(rgba, k * 4);
+  return { w, h, data };
+}
+
+/** Area-average resize (each output pixel is the mean of the source area it covers). */
+function resize(src, dw, dh) {
+  const sx = src.w / dw;
+  const sy = src.h / dh;
+  const out = new Uint8Array(dw * dh * 4);
+  for (let y = 0; y < dh; y++) {
+    const y0 = y * sy;
+    const y1 = y0 + sy;
+    for (let x = 0; x < dw; x++) {
+      const x0 = x * sx;
+      const x1 = x0 + sx;
+      const acc = [0, 0, 0, 0];
+      let total = 0;
+      for (let j = Math.floor(y0); j < Math.ceil(y1); j++) {
+        const wy = Math.min(j + 1, y1) - Math.max(j, y0);
+        for (let i = Math.floor(x0); i < Math.ceil(x1); i++) {
+          const wx = Math.min(i + 1, x1) - Math.max(i, x0);
+          const wgt = wx * wy;
+          const o = (Math.min(j, src.h - 1) * src.w + Math.min(i, src.w - 1)) * 4;
+          for (let c = 0; c < 4; c++) acc[c] += src.data[o + c] * wgt;
+          total += wgt;
+        }
+      }
+      for (let c = 0; c < 4; c++) out[(y * dw + x) * 4 + c] = Math.round(acc[c] / total);
+    }
+  }
+  return { w: dw, h: dh, data: out };
+}
+
+/** Paste `img` centred on `dst`. */
+function pasteCentered(dst, img) {
+  const ox = Math.round((dst.w - img.w) / 2);
+  const oy = Math.round((dst.h - img.h) / 2);
+  for (let y = 0; y < img.h; y++) {
+    for (let x = 0; x < img.w; x++) {
+      const tx = ox + x;
+      const ty = oy + y;
+      if (tx < 0 || ty < 0 || tx >= dst.w || ty >= dst.h) continue;
+      dst.data.set(img.data.subarray((y * img.w + x) * 4, (y * img.w + x) * 4 + 4), (ty * dst.w + tx) * 4);
+    }
+  }
+  return dst;
+}
+
+/** The logo scaled to fit a box (keeps the aspect ratio). */
+function logoIn(logo, boxW, boxH) {
+  const s = Math.min(boxW / logo.w, boxH / logo.h);
+  return resize(logo, Math.max(1, Math.round(logo.w * s)), Math.max(1, Math.round(logo.h * s)));
+}
+
+/** The logo scaled so its whole bounding box fits in a circle of radius r. */
+function logoInCircle(logo, r) {
+  const s = r / Math.hypot(logo.w / 2, logo.h / 2);
+  return resize(logo, Math.max(1, Math.round(logo.w * s)), Math.max(1, Math.round(logo.h * s)));
+}
+
+/** Transparent outside the inscribed circle, with an anti-aliased edge (4×4 samples). */
+function circleMask(img) {
+  const r = img.w / 2;
+  for (let y = 0; y < img.h; y++) {
+    for (let x = 0; x < img.w; x++) {
+      let inside = 0;
+      for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) if (Math.hypot(x + (i + 0.5) / 4 - r, y + (j + 0.5) / 4 - r) <= r) inside++;
+      const o = (y * img.w + x) * 4 + 3;
+      img.data[o] = Math.round((img.data[o] * inside) / 16);
+    }
+  }
+  return img;
+}
+
+// ------------------------------------------------------------------ build
+const makers = {
+  /** Square launcher icon: white, the whole shape centred with a margin. */
+  'ic_launcher.png': (w, h) => pasteCentered(blank(w, h, WHITE), logoIn(logo, w * 0.8, h * 0.84)),
+  /** Round launcher icon: white disc, the whole shape inside the circle. */
+  'ic_launcher_round.png': (w, h) => circleMask(pasteCentered(blank(w, h, WHITE), logoInCircle(logo, (w / 2) * 0.9))),
+  /** Adaptive icon foreground (108 dp): the shape inside the 66 dp safe circle, on white. */
+  'ic_launcher_foreground.png': (w, h) => pasteCentered(blank(w, h, WHITE), logoInCircle(logo, (w / 2) * (64 / 108))),
+  /** Splash: white, the logo in the middle. */
+  'splash.png': (w, h) => pasteCentered(blank(w, h, WHITE), logoIn(logo, w * 0.5, h * 0.42)),
+};
+
+if (!existsSync(LOGO)) {
+  console.error(`${LOGO} not found.`);
   process.exit(1);
 }
+const logo = decodePng(readFileSync(LOGO));
 
 let count = 0;
-for (const dir of readdirSync(RES)) {
-  const path = join(RES, dir);
-  for (const name of ['ic_launcher.png', 'ic_launcher_round.png', 'ic_launcher_foreground.png', 'splash.png']) {
-    const file = join(path, name);
-    if (!existsSync(file)) continue;
-    const { w, h } = sizeOf(file);
-    let c;
-    if (name === 'splash.png') {
-      c = canvas(w, h, BLACK);
-      const scale = Math.max(2, Math.floor(Math.min(w, h) / 3 / 16));
-      drawFace(c, Math.floor((w - 16 * scale) / 2), Math.floor((h - 16 * scale) / 2), scale);
-    } else if (name === 'ic_launcher_foreground.png') {
-      // Adaptive icon: keep the face inside the central 66% safe zone.
-      c = canvas(w, h);
-      const scale = Math.floor((w * 0.55) / 16);
-      drawFace(c, Math.floor((w - 16 * scale) / 2), Math.floor((w - 16 * scale) / 2) + scale, scale);
-    } else {
-      c = canvas(w, h);
-      grass(c);
-      const scale = Math.floor((w * 0.8) / 16);
-      drawFace(c, Math.floor((w - 16 * scale) / 2), Math.floor((h - 16 * scale) / 2) + Math.floor(scale / 2), scale);
-      if (name === 'ic_launcher_round.png') circleMask(c);
+if (existsSync(RES)) {
+  for (const dir of readdirSync(RES)) {
+    for (const [name, make] of Object.entries(makers)) {
+      const file = join(RES, dir, name);
+      if (!existsSync(file)) continue;
+      const { w, h } = sizeOf(file);
+      writeFileSync(file, encodePng(make(w, h)));
+      count++;
     }
-    writeFileSync(file, png(c));
-    count++;
   }
-}
+  writeFileSync(
+    join(RES, 'values/ic_launcher_background.xml'),
+    `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#FFFFFF</color>\n</resources>\n`,
+  );
+} else console.warn(`${RES} not found: Android icons skipped (run "npx cap add android" first).`);
 
-const bg = join(RES, 'values/ic_launcher_background.xml');
-writeFileSync(
-  bg,
-  `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#3FCF1F</color>\n</resources>\n`,
-);
-console.log(`wrote ${count} images + ${bg}`);
+// Web icons (served from the site root by Vite).
+mkdirSync(PUBLIC, { recursive: true });
+for (const [file, size] of [
+  ['favicon-32.png', 32],
+  ['favicon-64.png', 64],
+  ['apple-touch-icon.png', 180],
+  ['icon-192.png', 192],
+  ['icon-512.png', 512],
+]) {
+  writeFileSync(join(PUBLIC, file), encodePng(makers['ic_launcher.png'](size, size)));
+  count++;
+}
+console.log(`wrote ${count} images from ${LOGO}`);

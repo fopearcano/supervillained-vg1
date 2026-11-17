@@ -303,3 +303,10 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
   outline, drop shadow, soft glow and a small vertical gradient. CRUSADER is the edition title
   under it (the story menu reads "SUPERVILLAINED: CRUSADER"). The footer reads
   SUPERVOID EDITIONS, dimmed, at the pixel font's smallest crisp size.
+- **App icon and logo**: the logo supplied by the user (a blue pixel brush shape) replaces the
+  generated Zampanò face. Its cream background was white-balanced to pure white and it was
+  cropped to the shape (`branding/logo.png`); every launcher icon, the splash screens (now white
+  with the logo in the middle) and the web icons are derived from it by
+  `scripts/gen-android-assets.mjs`, still dependency-free (a small PNG decoder and an
+  area-average resize). The whole shape is always visible: it fits the square icon, the circle of
+  the round icon and the adaptive icon's safe zone.

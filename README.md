@@ -85,7 +85,8 @@ npm run android:install
 
 To open the native project in Android Studio (run on an emulator, debug): `npm run android:open`.
 After changing game code, `npm run android:sync` is enough before rebuilding.
-Placeholder icons/splash screens are regenerated with `npm run android:icons`.
+App icons, splash screens and web icons are generated from the logo (`branding/logo.png`) with
+`npm run android:icons`.
 
 ## Develop
 
