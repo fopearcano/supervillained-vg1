@@ -86,8 +86,12 @@ export const TITLE = {
   DOG_ASPECT: 1.4,
   /** The title (SUPERVILLAINED CRUSADER): its top at this fraction of the screen height. */
   TOP: 0.07,
-  /** Space between the buttons (or where CONTINUE goes) and the publisher line, px. */
-  BOTTOM_GAP: 8,
+  /**
+   * Space between the buttons (or where CONTINUE goes) and the publisher line, px: 8 plus one
+   * button's space (18 + 6). The portrait stays centered between title and buttons, so it rises
+   * half as much.
+   */
+  BOTTOM_GAP: 32,
   /** Glitch on the title's lettering: a burst every [min, max] s, lasting [min, max] s. */
   TEXT_GLITCH_EVERY: [1.8, 4.5],
   TEXT_GLITCH_TIME: [0.06, 0.2],

@@ -502,8 +502,8 @@ exactly.
 ## Title page layout, the title's glitch, the publisher's glow
 
 - **Layout**: SUPERVILLAINED and CRUSADER sit near the top (their top at 7% of the screen height,
-  `TITLE.TOP`), the buttons (and where CONTINUE goes) just above SUPERVOID EDITIONS
-  (`TITLE.BOTTOM_GAP`), and the animated portrait in the middle of the space between them
+  `TITLE.TOP`), the buttons (and where CONTINUE goes) one button's space above SUPERVOID
+  EDITIONS (`TITLE.BOTTOM_GAP`), and the animated portrait in the middle of the space between them
   (smaller if that space is short).
 - **The title glitches** (`fx/textGlitchFilter.ts`, on the title and CRUSADER together): short
   bursts every 1.8 to 4.5 s in which horizontal slices of the letters jump sideways, the colors
