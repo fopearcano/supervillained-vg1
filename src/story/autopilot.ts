@@ -134,7 +134,9 @@ export class Autopilot {
     return Math.floor(this.random() * n);
   }
 
-  /** Grid-space intent → screen-space stick vector, with magnitude. */
+  private wantRun = false;
+
+  /** Grid-space intent → screen-space stick vector, with magnitude (and RUN held or not). */
   private stick(ctx: StoryScene, dx: number, dy: number, mag: number, scramble: number): void {
     let sx = dx - dy;
     let sy = (dx + dy) / 2;
@@ -154,7 +156,7 @@ export class Autopilot {
       const s = Math.sin(-known);
       [sx, sy] = [sx * c - sy * s, sx * s + sy * c];
     }
-    ctx.game.input.override = { x: sx, y: sy };
+    ctx.game.input.override = { x: sx, y: sy, run: this.wantRun };
   }
 
   /** Steers Zampanò toward `target` along a path. Returns true when there. */
@@ -166,6 +168,8 @@ export class Autopilot {
     const arrive = o.arrive ?? 0.35;
     if (Math.hypot(target.x - p.gx, target.y - p.gy) <= arrive) return true;
     const mag = o.run ? STORY.PILOT.RUN_MAG : STORY.PILOT.WALK_MAG;
+    // Running is RUN held (it only works while Zampanò has energy).
+    this.wantRun = !!o.run;
     // Stuck: wiggle for a moment.
     if (this.jitterT > 0) {
       this.jitterT -= this.dt;

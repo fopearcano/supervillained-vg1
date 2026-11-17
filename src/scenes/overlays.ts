@@ -139,7 +139,7 @@ export class BriefingScene extends Overlay {
     const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     this.prompt = big(touch ? 'TAP TO START' : 'PRESS SPACE', C.white, 1, { outline: '#000000' });
     this.hint = new PixelText(
-      touch ? 'LEFT THUMB: MOVE\nBUTTONS: PEE / BARK' : 'WASD MOVE  SHIFT RUN\nSPACE PEE  J BARK  ESC MENU',
+      touch ? 'LEFT THUMB: MOVE\nBUTTONS: PEE / BARK / RUN' : 'WASD MOVE  SHIFT RUN\nSPACE PEE  J BARK  ESC MENU',
       { color: '#c8d0ff', shadow: '#000000', align: 'center', lineGap: 3, maxWidth: 190 },
     ).setOrigin(0.5, 0);
     this.root.addChild(this.text, this.prompt, this.hint);

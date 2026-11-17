@@ -12,10 +12,14 @@ export interface ButtonLayout {
   barkX: number;
   barkY: number;
   barkR: number;
+  runX: number;
+  runY: number;
+  runR: number;
 }
 
 /**
- * Floating virtual joystick + PEE / BARK buttons with the pee-charge indicator.
+ * Floating virtual joystick + PEE / BARK / RUN buttons, with the pee-charge droplets and the
+ * energy ring around RUN (held to run; dimmed while Zampanò is tired).
  */
 export class TouchControls {
   readonly root = new Container();
@@ -24,9 +28,12 @@ export class TouchControls {
   private readonly barkBtn = new Container();
   private readonly peeG = new Graphics();
   private readonly barkG = new Graphics();
+  private readonly runBtn = new Container();
+  private readonly runG = new Graphics();
+  private readonly energyRing = new Graphics();
   private readonly drops: Sprite[] = [];
   private readonly regen = new Graphics();
-  private layout: ButtonLayout = { peeX: 0, peeY: 0, peeR: 15, barkX: 0, barkY: 0, barkR: 17 };
+  private layout: ButtonLayout = { peeX: 0, peeY: 0, peeR: 15, barkX: 0, barkY: 0, barkR: 17, runX: 0, runY: 0, runR: 15 };
   private charges = 0;
   private maxCharges = 3;
   private regenFrac = 0;
@@ -34,6 +41,9 @@ export class TouchControls {
   private peeLabel!: PixelText;
   private barkLabel!: PixelText;
   private peeVisible = true;
+  private runVisible = true;
+  private energy = 1;
+  private canRun = true;
 
   constructor(private readonly input: Input) {
     const peeIcon = new Sprite(textures.get(spriteName('peeIcon')));
@@ -51,7 +61,12 @@ export class TouchControls {
       this.drops.push(d);
       this.peeBtn.addChild(d);
     }
-    this.root.addChild(this.joy, this.peeBtn, this.barkBtn);
+    const runIcon = new Graphics();
+    drawChevrons(runIcon, -4, -8, 0xffffff);
+    const runLabel = new PixelText('RUN', { color: '#4dff5a', outline: '#0a1a0a' }).setOrigin(0.5, 0);
+    runLabel.y = 5;
+    this.runBtn.addChild(this.runG, runIcon, runLabel, this.energyRing);
+    this.root.addChild(this.joy, this.peeBtn, this.barkBtn, this.runBtn);
   }
 
   setLayout(l: ButtonLayout): void {
@@ -60,6 +75,8 @@ export class TouchControls {
     this.barkBtn.position.set(l.barkX, l.barkY);
     this.input.setButton({ id: 'pee', action: 'pee', x: l.peeX, y: l.peeY, r: l.peeR + 4, enabled: true });
     this.input.setButton({ id: 'bark', action: 'bark', x: l.barkX, y: l.barkY, r: l.barkR + 4, enabled: true });
+    this.runBtn.position.set(l.runX, l.runY);
+    this.input.setButton({ id: 'run', action: 'run', x: l.runX, y: l.runY, r: l.runR + 4, enabled: this.root.visible && this.runVisible });
     // Charge droplets on an arc above-left of the PEE button.
     this.drops.forEach((d, k) => {
       const a = Math.PI * (1.05 + k * 0.22);
@@ -70,19 +87,27 @@ export class TouchControls {
 
   setEnabled(on: boolean): void {
     this.root.visible = on;
-    for (const id of ['pee', 'bark']) {
+    for (const id of ['pee', 'bark', 'run']) {
       const b = this.input.buttons.get(id);
-      if (b) b.enabled = on && (id !== 'pee' || this.peeVisible);
+      if (b) b.enabled = on && (id !== 'pee' || this.peeVisible) && (id !== 'run' || this.runVisible);
+      if (b && !b.enabled) b.pressed = false;
     }
     this.input.joystickEnabled = on;
   }
 
-  /** Story mode: hide PEE, relabel the action button (BARK / TALK / SERMON / LOOK...). */
-  configure(opts: { pee: boolean; action: string }): void {
+  /** Story mode: hide PEE, relabel the action button (BARK / TALK / SERMON / LOOK...), hide RUN in walking-pace scenes. */
+  configure(opts: { pee: boolean; action: string; run?: boolean }): void {
     this.peeVisible = opts.pee;
     this.peeBtn.visible = opts.pee;
     const b = this.input.buttons.get('pee');
     if (b) b.enabled = opts.pee && this.root.visible;
+    this.runVisible = opts.run ?? true;
+    this.runBtn.visible = this.runVisible;
+    const r = this.input.buttons.get('run');
+    if (r) {
+      r.enabled = this.runVisible && this.root.visible;
+      if (!r.enabled) r.pressed = false;
+    }
     this.barkLabel.setText(opts.action);
     this.peeLabel.setText('PEE');
   }
@@ -99,6 +124,14 @@ export class TouchControls {
     this.redrawButtons();
   }
 
+  /** Energy left (0..1) and whether RUN works now (false while tired). */
+  setEnergy(frac: number, canRun: boolean): void {
+    if (Math.abs(frac - this.energy) < 0.01 && canRun === this.canRun) return;
+    this.energy = frac;
+    this.canRun = canRun;
+    this.redrawButtons();
+  }
+
   setBarkReady(frac: number): void {
     if (Math.abs(frac - this.barkReady) < 0.05) return;
     this.barkReady = frac;
@@ -109,8 +142,18 @@ export class TouchControls {
     const l = this.layout;
     const pressedPee = this.input.buttons.get('pee')?.pressed ?? false;
     const pressedBark = this.input.buttons.get('bark')?.pressed ?? false;
+    const pressedRun = this.input.buttons.get('run')?.pressed ?? false;
     drawButton(this.peeG, l.peeR, 0xffe23a, 0xff3b3b, pressedPee, this.charges > 0 ? 1 : 0.35);
     drawButton(this.barkG, l.barkR, 0x3ff0ff, 0xb040ff, pressedBark, 0.4 + 0.6 * this.barkReady);
+    drawButton(this.runG, l.runR, 0x4dff5a, 0x3ff0ff, pressedRun && this.canRun, this.canRun ? 1 : 0.35);
+    this.runBtn.alpha = this.canRun ? 1 : 0.6;
+    // Energy ring: full circle = full energy; orange while tired (recovering).
+    this.energyRing.clear();
+    if (this.energy > 0.005) {
+      this.energyRing
+        .arc(0, 0, l.runR + 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, this.energy))
+        .stroke({ width: 2, color: this.canRun ? 0x4dff5a : 0xff9a1f, alpha: 0.9 });
+    }
     this.regen.clear();
     if (this.charges < this.maxCharges && this.regenFrac > 0) {
       this.regen.arc(0, 0, l.peeR + 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * this.regenFrac).stroke({ width: 1, color: 0xffe23a, alpha: 0.9 });
@@ -135,11 +178,18 @@ export class TouchControls {
         .fill({ color: 0x3ff0ff, alpha: 0.55 })
         .stroke({ width: 1, color: 0xffffff, alpha: 0.9 });
     }
-    const pressed = `${this.input.buttons.get('pee')?.pressed}|${this.input.buttons.get('bark')?.pressed}`;
+    const pressed = ['pee', 'bark', 'run'].map((id) => this.input.buttons.get(id)?.pressed).join('|');
     if (pressed !== this.lastPressed) {
       this.lastPressed = pressed;
       this.redrawButtons();
     }
+  }
+}
+
+/** ">>" made of pixel squares (crisp at any scale), top-left at (x, y). */
+function drawChevrons(g: Graphics, x: number, y: number, color: number): void {
+  for (const ox of [0, 4]) {
+    for (const [dx, dy] of [[0, 0], [1, 1], [2, 2], [1, 3], [0, 4]] as const) g.rect(x + ox + dx, y + dy, 1, 1).fill({ color });
   }
 }
 

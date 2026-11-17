@@ -51,8 +51,6 @@ export const PLAYER = {
   DECEL: 20,
   /** Collision radius in tiles. */
   RADIUS: 0.26,
-  /** Joystick magnitude above which Zampanò runs. */
-  RUN_THRESHOLD: 0.82,
   /** Squash & stretch amount while moving. */
   BOB_AMOUNT: 0.06,
   /** Seconds of invulnerability after losing a life. */
@@ -61,6 +59,23 @@ export const PLAYER = {
   MARK_DISTANCE: 1.05,
   /** Distance to a fountain to drink. */
   DRINK_DISTANCE: 1.0,
+} as const;
+
+/**
+ * Running (the RUN button, Shift or K held): it spends ENERGY, which comes back while walking or
+ * standing. Once empty, Zampanò can't run until the meter is back to MIN_TO_RUN.
+ */
+export const ENERGY = {
+  MAX: 100,
+  /** Spent per second of running (100 / 20 = a 5-second sprint from full). */
+  DRAIN_RUN: 20,
+  /** Recovered per second when standing / walking. */
+  RECOVER_IDLE: 24,
+  RECOVER_WALK: 13,
+  /** After emptying it, the meter must be back to this before running again. */
+  MIN_TO_RUN: 35,
+  /** Arcade: recovery multiplier while hungry (hunger at or below HUNGER.LOW_WARNING). */
+  HUNGRY_RECOVERY: 0.5,
 } as const;
 
 export const INPUT = {

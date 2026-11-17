@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BLADDER, DIGESTION, HUNGER, SCORE, TREAT, ZONE } from '../src/config';
+import { BLADDER, DIGESTION, ENERGY, HUNGER, SCORE, TREAT, ZONE } from '../src/config';
 import { LEVEL_1 } from '../src/levels/level1';
-import { Bladder, Digestion, Hunger } from '../src/systems/needs';
+import { Bladder, Digestion, Energy, Hunger } from '../src/systems/needs';
 import { placeTreats } from '../src/systems/placement';
 import { finalHealth, formatScore, formatTime, starBonus, starsFromHealth, timeBonus } from '../src/systems/scoring';
 import { loadLevel } from '../src/world/level';
@@ -140,5 +140,42 @@ describe('treat placement', () => {
     const progress = treats.map((t) => map.progressAt(t.x, t.y));
     expect(Math.min(...progress)).toBeLessThan(0.15);
     expect(Math.max(...progress)).toBeGreaterThan(0.85);
+  });
+});
+
+describe('Energy', () => {
+  it('drains while running and empties after a full sprint', () => {
+    const e = new Energy();
+    const sprint = ENERGY.MAX / ENERGY.DRAIN_RUN;
+    let event = null;
+    for (let t = 0; t < sprint + 0.1; t += 0.05) event = e.update(0.05, 'run') ?? event;
+    expect(event).toBe('empty');
+    expect(e.value).toBe(0);
+    expect(e.canRun).toBe(false);
+  });
+
+  it('stays tired until it recovers to MIN_TO_RUN', () => {
+    const e = new Energy();
+    e.value = 0.5;
+    expect(e.update(1, 'run')).toBe('empty');
+    const needed = ENERGY.MIN_TO_RUN / ENERGY.RECOVER_IDLE;
+    expect(e.update(needed * 0.9, 'idle')).toBe(null);
+    expect(e.canRun).toBe(false);
+    expect(e.update(needed * 0.2, 'idle')).toBe('ready');
+    expect(e.canRun).toBe(true);
+  });
+
+  it('recovers faster standing than walking, slower when hungry', () => {
+    const idle = new Energy();
+    const walk = new Energy();
+    const hungry = new Energy();
+    for (const e of [idle, walk, hungry]) e.value = 10;
+    hungry.recovery = ENERGY.HUNGRY_RECOVERY;
+    idle.update(1, 'idle');
+    walk.update(1, 'walk');
+    hungry.update(1, 'idle');
+    expect(idle.value).toBeGreaterThan(walk.value);
+    expect(hungry.value).toBeLessThan(idle.value);
+    expect(idle.value).toBeLessThanOrEqual(ENERGY.MAX);
   });
 });

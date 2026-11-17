@@ -324,4 +324,12 @@ itself that it "is not a playable build"; this phase turns it into one, on the s
   so music changes work inside the app, and there the audio starts at launch so the intro music
   plays on the title without a tap. Browsers forbid sound before the first tap, so on the web it
   still starts with the first touch or key.
+- **RUN is a button, and it costs energy.** Running used to happen by pushing the joystick all
+  the way (or holding Shift). Now it is a third touch button, RUN (above PEE and BARK; Shift or K
+  on a keyboard), held while moving. Running spends an energy meter drawn as a ring around the
+  button (`ENERGY` in `config.ts`: a 5-second sprint from full). It refills while walking or
+  standing, slower in the arcade while Zampanò is hungry, and once it is empty he is "TIRED!" and
+  can't run until it is back to 35%. The joystick now only walks, at any push. In the story the
+  button is hidden in walking-pace scenes, scripted runs in cutscenes cost nothing, and the
+  autopilot holds RUN when it wants to run; the full playtest still wins every sub-level.
 

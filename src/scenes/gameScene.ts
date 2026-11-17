@@ -138,7 +138,7 @@ export class GameScene implements Scene {
   resize(w: number, h: number): void {
     this.camera.setView(w, h);
     this.game.input.joystickZone = { x: 0, y: 60, w: w * 0.62, h: h - 60 };
-    this.controls.setLayout({ peeX: w - 60, peeY: h - 50, peeR: 15, barkX: w - 23, barkY: h - 60, barkR: 17 });
+    this.controls.setLayout({ peeX: w - 60, peeY: h - 50, peeR: 15, barkX: w - 23, barkY: h - 60, barkR: 17, runX: w - 42, runY: h - 98, runR: 15 });
     this.hud.layout(w, h);
     this.banner.layout(w, h);
   }
@@ -206,6 +206,7 @@ export class GameScene implements Scene {
     this.controls.update();
     this.controls.setPeeCharges(this.rules.bladder.charges, this.rules.bladder.max, this.rules.bladder.regenFraction);
     this.controls.setBarkReady(this.threats.barkReadiness);
+    this.controls.setEnergy(this.player.energy.fraction, this.player.canRun);
     this.hud.update(this.hudState(), frameDt);
   }
 

@@ -1,13 +1,14 @@
-import { INPUT, PLAYER } from '../config';
+import { INPUT } from '../config';
 
 /**
  * Unified input: keyboard + mouse + multi-touch.
  * - Movement is a screen-space vector (x right, y down) with magnitude 0..1.
  * - Discrete actions (pee, bark, menu, confirm, ...) are queued until consumed.
+ * - RUN is held, not queued: `runHeld` (RUN button, Shift or K).
  * - Touch: a floating virtual joystick (appears under the thumb) and on-screen buttons.
  */
 
-export type Action = 'pee' | 'bark' | 'menu' | 'confirm' | 'back' | 'up' | 'down' | 'left' | 'right';
+export type Action = 'pee' | 'bark' | 'run' | 'menu' | 'confirm' | 'back' | 'up' | 'down' | 'left' | 'right';
 
 export interface VirtualButton {
   id: string;
@@ -49,6 +50,7 @@ const KEY_ACTIONS: Record<string, Action[]> = {
   NumpadEnter: ['confirm'],
   KeyJ: ['bark'],
   KeyX: ['bark'],
+  KeyK: ['run'],
   Escape: ['menu', 'back'],
   KeyP: ['menu'],
   ArrowUp: ['up'],
@@ -99,8 +101,16 @@ export class Input {
     document.addEventListener('dblclick', prevent);
   }
 
-  /** Automation (story autopilot): when set, replaces keyboard and joystick movement. */
-  override: { x: number; y: number } | null = null;
+  /** Automation (story autopilot): when set, replaces keyboard and joystick movement and RUN. */
+  override: { x: number; y: number; run?: boolean } | null = null;
+
+  /** RUN is held: the touch button, Shift or K (or the autopilot asks for it). */
+  get runHeld(): boolean {
+    if (this.override) return !!this.override.run;
+    return (
+      this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || this.keys.has('KeyK') || (this.buttons.get('run')?.pressed ?? false)
+    );
+  }
 
   /** Called once per logic step. */
   update(dt: number): void {
@@ -120,9 +130,8 @@ export class Input {
     if (this.keys.has('ArrowDown') || this.keys.has('KeyS')) ky += 1;
     if (kx !== 0 || ky !== 0) {
       const len = Math.hypot(kx, ky);
-      const mag = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') ? 1 : PLAYER.RUN_THRESHOLD * 0.9;
-      this.move.x = (kx / len) * mag;
-      this.move.y = (ky / len) * mag;
+      this.move.x = kx / len;
+      this.move.y = ky / len;
       return;
     }
     // Joystick vector

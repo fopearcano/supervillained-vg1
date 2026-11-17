@@ -35,6 +35,8 @@ export interface GameEvents extends Record<string, unknown> {
   poop: At & { surface: 'low' | 'medium' | 'heavy' };
   pee: At & { marking: boolean; radius: number; score: number };
   peeEmpty: At;
+  /** Ran out of energy: no running until it recovers. */
+  tired: At;
   poopCleaned: At & { score: number };
   drink: At;
   /** Zampanò steps into a puddle. */

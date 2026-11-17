@@ -279,7 +279,7 @@ export function move(name: string, to: string | Point, speed = 2.4, run = false)
         const sx = dx - dy;
         const sy = (dx + dy) / 2;
         const l = Math.hypot(sx, sy) || 1;
-        p.setIntent((sx / l) * (run ? 1 : 0.7), (sy / l) * (run ? 1 : 0.7));
+        p.setIntent((sx / l) * (run ? 1 : 0.7), (sy / l) * (run ? 1 : 0.7), run ? 'scripted' : false);
         return 'running';
       }
       return a!.arrived || t > 8 ? 'done' : 'running';

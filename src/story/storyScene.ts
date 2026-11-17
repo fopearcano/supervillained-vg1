@@ -120,7 +120,7 @@ export class StoryScene implements Scene {
     this.cards.layout(w, h);
     this.world?.camera.setView(w, h);
     this.game.input.joystickZone = { x: 0, y: 70, w: w * 0.62, h: h - 70 };
-    this.controls.setLayout({ peeX: w - 60, peeY: h - 50, peeR: 15, barkX: w - 26, barkY: h - 40, barkR: 19 });
+    this.controls.setLayout({ peeX: w - 60, peeY: h - 50, peeR: 15, barkX: w - 26, barkY: h - 40, barkR: 19, runX: w - 45, runY: h - 80, runR: 15 });
   }
 
   // ------------------------------------------------------------------ steps
@@ -228,11 +228,12 @@ export class StoryScene implements Scene {
     return this.world!.player;
   }
 
-  /** Lets the joystick / action button drive Zampanò (walk steps). */
-  setControls(on: boolean, action = 'BARK'): void {
+  /** Lets the joystick / action button (and RUN, unless walking pace only) drive Zampanò. */
+  setControls(on: boolean, action = 'BARK', run = true): void {
     this.controlsWanted = on;
     this.controlsAction = action;
-    this.controls.configure({ pee: false, action });
+    this.controlsRun = run;
+    this.controls.configure({ pee: false, action, run });
     this.controls.setEnabled(on);
     if (!on) {
       this.game.input.joystick.active = false;
@@ -242,6 +243,7 @@ export class StoryScene implements Scene {
 
   private controlsWanted = false;
   private controlsAction = 'BARK';
+  private controlsRun = true;
 
   /** Pause menu opened: freeze input without forgetting what the step wanted. */
   suspendControls(): void {
@@ -254,7 +256,7 @@ export class StoryScene implements Scene {
   resumeAfterPause(): void {
     this.game.input.clearPending();
     this.hud.setMenuEnabled(true);
-    if (this.controlsWanted) this.setControls(true, this.controlsAction);
+    if (this.controlsWanted) this.setControls(true, this.controlsAction, this.controlsRun);
   }
 
   requestMenu(): void {
@@ -342,6 +344,7 @@ export class StoryScene implements Scene {
   render(alpha: number, frameDt: number): void {
     this.world?.render(alpha, frameDt);
     this.controls.update();
+    if (this.world) this.controls.setEnergy(this.player.energy.fraction, this.player.canRun);
     this.hud.update(frameDt, this.state);
     const g = this.overlayG;
     g.clear();

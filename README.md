@@ -33,7 +33,7 @@ Open the printed `Local` URL on the computer, or the `Network` URL on a phone on
 | Action | Touch | Keyboard |
 |--------|-------|----------|
 | Move   | virtual joystick (appears under your thumb, left side) | WASD / arrow keys |
-| Run    | push the joystick all the way | hold Shift |
+| Run    | hold RUN (only while the energy ring around it has energy) | hold Shift or K |
 | Pee    | PEE button | Space |
 | Bark   | BARK button | J or X |
 | Menu   | MENU (top right) | Esc |

@@ -1,4 +1,4 @@
-import { BLADDER, DIGESTION, HUNGER, LIVES, PLAYER, POOP, TREAT } from '../config';
+import { BLADDER, DIGESTION, ENERGY, HUNGER, LIVES, PLAYER, POOP, TREAT } from '../config';
 import type { Emitter, GameEvents } from '../core/events';
 import type { Input } from '../core/input';
 import { PoopPile, Treat } from '../entities/items';
@@ -89,8 +89,10 @@ export class Rules {
 
     if (input.consume('pee')) this.tryPee();
 
-    player.setIntent(input.move.x, input.move.y);
+    player.energy.recovery = this.hunger.value <= HUNGER.LOW_WARNING ? ENERGY.HUNGRY_RECOVERY : 1;
+    player.setIntent(input.move.x, input.move.y, input.runHeld);
     player.updateMovement(dt, map);
+    if (player.energyEvent === 'empty') this.world.events.emit('tired', { x: player.gx, y: player.gy });
 
     // Needs
     const activity: Activity = !player.moving ? 'idle' : player.running ? 'run' : 'walk';

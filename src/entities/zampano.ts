@@ -2,6 +2,7 @@ import { Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import { spriteName, type AnimName, type CharacterKey } from '../assets/manifest';
 import { PLAYER } from '../config';
+import { Energy, type EnergyEvent } from '../systems/needs';
 import { dirFromGridVector, dirToGridVector, screenDirToGrid, type Dir8 } from '../iso/projection';
 import type { GameMap } from '../world/map';
 import { Ground } from '../world/tiles';
@@ -64,6 +65,12 @@ export class Zampano extends Entity {
   speedMul = 1;
   /** Story: walking pace only (nerve scenes). */
   noRun = false;
+  /** Running spends energy; empty = no running until it recovers (see ENERGY). */
+  readonly energy = new Energy();
+  /** What the energy meter did this step ('empty' when he just got tired). */
+  energyEvent: EnergyEvent = null;
+  /** RUN is held (true), or a script makes him run without spending energy ('scripted'). */
+  private runWanted: boolean | 'scripted' = false;
   /** Squash & stretch spring (positive = stretched tall). */
   private squash = 0;
   private squashVel = 0;
@@ -97,10 +104,19 @@ export class Zampano extends Entity {
     return Math.hypot(this.vx, this.vy) > 0.25;
   }
 
-  /** Movement intent from the joystick/keyboard, in SCREEN space (magnitude 0..1). */
-  setIntent(mx: number, my: number): void {
+  /**
+   * Movement intent from the joystick/keyboard, in SCREEN space (magnitude 0..1), and whether
+   * RUN is held. Scripted runs ('scripted') don't spend energy.
+   */
+  setIntent(mx: number, my: number, run: boolean | 'scripted' = false): void {
     this.intentX = mx;
     this.intentY = my;
+    this.runWanted = run;
+  }
+
+  /** RUN would work now: not a walking-pace scene and not tired. */
+  get canRun(): boolean {
+    return !this.noRun && this.energy.canRun;
   }
 
   startAction(state: ZState, duration: number): void {
@@ -144,7 +160,7 @@ export class Zampano extends Entity {
       const mag = Math.min(1, Math.hypot(this.intentX, this.intentY));
       if (mag > 0.01) {
         const dir = screenDirToGrid(this.intentX, this.intentY);
-        this.running = mag >= PLAYER.RUN_THRESHOLD && !this.noRun;
+        this.running = this.runWanted === 'scripted' || (this.runWanted && this.canRun);
         const speed = (this.running ? PLAYER.RUN_SPEED : PLAYER.WALK_SPEED * Math.min(1, mag / 0.55)) * this.speedMul;
         const terrain = this.terrainFactor(map);
         tx = dir.x * speed * terrain;
@@ -176,6 +192,10 @@ export class Zampano extends Entity {
       this.gx = r.x;
       this.gy = r.y;
     }
+
+    // Energy: spent only by running the player asked for; recovers otherwise.
+    const activity = !this.moving ? 'idle' : this.running && this.runWanted === true ? 'run' : 'walk';
+    this.energyEvent = this.energy.update(dt, activity);
 
     // Facing follows the velocity (but not while knocked back).
     if (Math.hypot(this.vx, this.vy) > 0.3 && this.state !== 'hurt') {

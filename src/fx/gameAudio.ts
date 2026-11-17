@@ -12,6 +12,7 @@ export function bindGameAudio(events: Emitter<GameEvents>, audio: AudioEngine): 
     if (e.marking) audio.play('star', { delay: 0.12 });
   });
   events.on('peeEmpty', () => audio.play('empty'));
+  events.on('tired', () => audio.play('empty', { rate: 0.8 }));
   events.on('poopCleaned', () => audio.play('coin', { rate: 1.5, volume: 0.5 }));
   events.on('drink', () => audio.play('drink'));
   events.on('splash', () => audio.play('splash', { volume: 0.7 }));

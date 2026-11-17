@@ -210,7 +210,7 @@ class WalkStep implements Step {
   }
 
   resume(ctx: StoryScene): void {
-    ctx.setControls(true, this.def.action ?? 'BARK');
+    ctx.setControls(true, this.def.action ?? 'BARK', !this.def.noRun && !this.def.pace);
     ctx.hud.setObjective(this.def.objective);
   }
 
@@ -240,7 +240,7 @@ class WalkStep implements Step {
       const s = Math.sin(this.scrambleAngle);
       [mx, my] = [mx * c - my * s, mx * s + my * c];
     }
-    p.setIntent(mx, my);
+    p.setIntent(mx, my, input.runHeld);
 
     if (input.consume('bark') || input.consume('pee')) {
       if (this.def.onAction) this.def.onAction(ctx, w);

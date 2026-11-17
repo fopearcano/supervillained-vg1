@@ -117,6 +117,10 @@ export class GameFx {
       const p = at(e.x, e.y, 36);
       this.popups.text('EMPTY!', p.x, p.y, { color: C.orange, glow: 'self' }, 0.8, -14);
     });
+    events.on('tired', (e) => {
+      const p = at(e.x, e.y, 36);
+      this.popups.text('TIRED!', p.x, p.y, { color: C.cyan, glow: 'self' }, 0.8, -14);
+    });
     events.on('poopCleaned', (e) => {
       const g = at(e.x, e.y, 4);
       this.particles.burst(g.x, g.y, {

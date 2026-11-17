@@ -1,7 +1,7 @@
-import { BLADDER, DIGESTION, HUNGER } from '../config';
+import { BLADDER, DIGESTION, ENERGY, HUNGER } from '../config';
 
 /**
- * Zampanò's bodily needs. Pure logic, no rendering: hunger, digestion and bladder.
+ * Zampanò's bodily needs. Pure logic, no rendering: hunger, digestion, bladder and energy.
  */
 
 export type Activity = 'idle' | 'walk' | 'run';
@@ -128,5 +128,50 @@ export class Bladder {
     this.regen = 0;
     this.drinkCooldown = BLADDER.DRINK_COOLDOWN;
     return true;
+  }
+}
+
+export type EnergyEvent = 'empty' | 'ready' | null;
+
+/**
+ * Energy for running: spent while running, recovered while walking or standing. When it hits
+ * zero Zampanò is tired and can't run until it is back to ENERGY.MIN_TO_RUN.
+ */
+export class Energy {
+  value: number = ENERGY.MAX;
+  /** Emptied: running stays off until the meter recovers to ENERGY.MIN_TO_RUN. */
+  exhausted = false;
+  /** Recovery multiplier (the arcade halves it while Zampanò is hungry). */
+  recovery = 1;
+
+  update(dt: number, activity: Activity): EnergyEvent {
+    if (activity === 'run') {
+      this.value = Math.max(0, this.value - ENERGY.DRAIN_RUN * dt);
+      if (this.value === 0 && !this.exhausted) {
+        this.exhausted = true;
+        return 'empty';
+      }
+      return null;
+    }
+    const rate = (activity === 'walk' ? ENERGY.RECOVER_WALK : ENERGY.RECOVER_IDLE) * this.recovery;
+    this.value = Math.min(ENERGY.MAX, this.value + rate * dt);
+    if (this.exhausted && this.value >= ENERGY.MIN_TO_RUN) {
+      this.exhausted = false;
+      return 'ready';
+    }
+    return null;
+  }
+
+  get canRun(): boolean {
+    return !this.exhausted && this.value > 0;
+  }
+
+  get fraction(): number {
+    return this.value / ENERGY.MAX;
+  }
+
+  refill(): void {
+    this.value = ENERGY.MAX;
+    this.exhausted = false;
   }
 }
