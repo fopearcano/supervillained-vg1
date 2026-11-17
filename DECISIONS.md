@@ -397,9 +397,14 @@ longer bullied in the Green Zone.
   instead of restarting from the top.
 - **Title page**: the SUPERVILLAINED logo and CRUSADER sit at the top; Zampanò's portrait
   (`assets/starting-page-images`) over the buttons, 1/3 of the screen wide (the "You've been
-  supervillained" logo that sat under them moved to the end of the levels: see below); the blurred Green Zone behind glitches in flickering bursts with its own, mostly vertical
-  filter (`fx/titleGlitchFilter.ts`: columns tearing up and down, a vertical RGB split, rolling,
-  tall corrupted blocks, sweeping vertical bars and scanlines, a few horizontal tears). The stack
+  supervillained" logo that sat under them moved to the end of the levels: see below); the
+  blurred Green Zone behind is an old dirty film (fine grain, a slight brightness flicker, faded
+  warm colors, darker edges, two thin vertical scratches that stay put, drift and break up, dust
+  specks that change every film frame, the picture jumping a pixel now and then) that glitches
+  only now and then (every 3.5 to 8 s, short and mild: a constant strong glitch was annoying),
+  mostly vertically (`fx/titleGlitchFilter.ts`: columns tearing up and down, a vertical RGB
+  split, rolling, tall corrupted blocks, vertical bars, a few horizontal tears). Tuning:
+  `TITLE.GLITCH_*` and `TITLE.FILM`. The stack
   is lowered into most of the free space above SUPERVOID EDITIONS (`TITLE.LOWER`).
   The pictures are scaled in the browser (step-by-step halving, crisp alpha) to the logical
   resolution, so they match the pixel art at any screen size.

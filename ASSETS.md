@@ -191,7 +191,7 @@ transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
 `Youve_Been_Supervillained_Logo.png`, which is not on the title page: it snaps in at the end of
 every level, before the final info (`src/scenes/supervillainedScene.ts`). They are scaled down in
 the browser to the exact size each screen needs, so replacing a file (same name, PNG with
-transparency) is all it takes. Tuning in `config.ts`: `TITLE` (portrait, glitch) and
+transparency) is all it takes. Tuning in `config.ts`: `TITLE` (portrait, glitch, old-film look) and
 `SUPERVILLAINED` (size, snap, flash, shake, glow, sprite burst, hold time).
 
 ## App icon and logo

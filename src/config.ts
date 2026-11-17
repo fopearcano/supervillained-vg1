@@ -85,11 +85,30 @@ export const TITLE = {
   /** Share of the free space below the stack moved above it (lowers everything toward the footer). */
   LOWER: 0.75,
   /** Background glitch (mostly vertical): flickering burst strength [min, max], faint level in between. */
-  GLITCH_BURST: [0.45, 1],
-  GLITCH_IDLE: 0.45,
-  /** Background glitch: a burst every [min, max] seconds, lasting [min, max] seconds. */
-  GLITCH_EVERY: [0.9, 2.8],
-  GLITCH_TIME: [0.12, 0.45],
+  GLITCH_BURST: [0.25, 0.6],
+  GLITCH_IDLE: 0.12,
+  /** Background glitch: a burst every [min, max] seconds, lasting [min, max] seconds (rare, short). */
+  GLITCH_EVERY: [3.5, 8],
+  GLITCH_TIME: [0.08, 0.22],
+  /** Old dirty film over the background (all strengths 0..1; 0 turns that part off). */
+  FILM: {
+    /** Grain: per-pixel noise, renewed every film frame. */
+    GRAIN: 0.085,
+    /** Film frames per second (grain, dust, flicker and weave change at this rate). */
+    FPS: 18,
+    /** Brightness flicker between film frames. */
+    FLICKER: 0.035,
+    /** Warm, faded colors (0 = untouched, 1 = full sepia). */
+    SEPIA: 0.22,
+    /** Darkened edges. */
+    VIGNETTE: 0.5,
+    /** Vertical scratches: chance each of the two shows in a film frame. */
+    SCRATCHES: 0.55,
+    /** Dust specks: chance per 22-px cell per film frame. */
+    DUST: 0.045,
+    /** Gate weave: the picture jumps up to this many pixels between film frames. */
+    WEAVE: 1,
+  },
 } as const;
 
 /**

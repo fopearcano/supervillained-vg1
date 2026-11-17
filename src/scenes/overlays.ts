@@ -167,7 +167,7 @@ export class TitleScene extends Overlay {
     if (this.time > 0.6) this.menu.update(dt, this.game.input);
   }
 
-  /** The background glitches now and then, mostly vertically, with a faint flicker in between. */
+  /** The background: an old dirty film that glitches now and then, mostly vertically. */
   private animateGlitch(dt: number): void {
     const f = this.actions.glitch;
     if (!f) return;
@@ -182,6 +182,7 @@ export class TitleScene extends Overlay {
     // A burst flickers: its strength jumps around while it lasts.
     f.burst = this.burstLeft > 0 ? rnd(TITLE.GLITCH_BURST) : 0;
     f.idle = TITLE.GLITCH_IDLE;
+    f.film = TITLE.FILM;
   }
 }
 
