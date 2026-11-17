@@ -115,6 +115,14 @@ export const TITLE = {
   },
 } as const;
 
+/** The COUCH card on the title page (scenes/couchScene.ts): the saved story at a glance. */
+export const COUCH = {
+  /** Card width (px, at most the screen minus 12), the dim behind it, the meter bars' width. */
+  CARD_WIDTH: 204,
+  DIM: 0.72,
+  BAR_WIDTH: 50,
+} as const;
+
 /** The GLOSSARY card on the title page (scenes/glossaryScene.ts). */
 export const GLOSSARY = {
   /** Card width (px, at most the screen minus 16) and the dim behind it. */

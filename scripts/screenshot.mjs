@@ -230,6 +230,37 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** The title's COUCH card: a saved story half way through, and a fresh one. */
+  async couch(browser) {
+    const ids = ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '2.2', '2.3', '2.4', '2.5', '3.1', '3.2', '3.3', '3.4', '4.1', '4.2', '4.3'];
+    const story = {
+      version: 1,
+      completed: ids,
+      meters: { commozione: 45, supervillain: 100, grace: 59, standing: 55 },
+      flags: {},
+      book: { marvels: ['a', 'b', 'c', 'd', 'e'], items: ['x', 'y'], values: ['v1', 'v2', 'v3'], remembered: [], shards: ['s'] },
+      abilities: ['cross', 'knight'],
+      coins: 120,
+      playTime: 3905,
+      savedAt: Date.now() - 3600e3,
+    };
+    for (const [name, save] of [['p-couch', story], ['p-couch-new', null]]) {
+      const page = await openGame(browser, '');
+      await page.evaluate((s) => {
+        if (s) {
+          localStorage.setItem('supervillained:story', JSON.stringify(s));
+          localStorage.setItem('supervillained:records', JSON.stringify({ level1: { score: 4280, stars: 5, time: 41 } }));
+        } else localStorage.clear();
+        window.__sv.flow.toTitle();
+      }, save);
+      await wait(1200);
+      await page.evaluate(() => window.__sv.top().actions.couch());
+      await wait(500);
+      await page.screenshot({ path: `${OUT}/${name}.png` });
+      await page.close();
+    }
+  },
+
   /** The title's GLOSSARY card (the ring around the verb drawn), and the publisher link. */
   async glossary(browser) {
     const page = await openGame(browser, '');

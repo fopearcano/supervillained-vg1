@@ -56,6 +56,8 @@ export interface TitleActions {
   newGame: () => void;
   cont: () => void;
   options: () => void;
+  /** The saved story at a glance (Zampanò's "account"). */
+  couch: () => void;
   glossary: () => void;
   quit: () => void;
   /** SUPERVOID EDITIONS tapped (the publisher's site). */
@@ -115,6 +117,7 @@ export class TitleScene extends Overlay {
         { label: 'NEW GAME', action: actions.newGame, color: C.red },
         // Always yellow: with no saved story, CONTINUE simply starts it (see Flow.toTitle).
         { label: 'CONTINUE', action: actions.cont, color: C.yellow },
+        { label: 'COUCH', action: actions.couch, color: C.orange },
         { label: 'OPTIONS', action: actions.options, color: C.cyan },
         { label: 'GLOSSARY', action: actions.glossary, color: C.violet },
         { label: 'QUIT', action: actions.quit, color: C.pink },
@@ -149,13 +152,18 @@ export class TitleScene extends Overlay {
     const editionY = y;
     y += 12;
     const dogY = y;
-    y += this.layoutDog(Math.round(w * TITLE.DOG_WIDTH)) + 6;
+    const bottom = h - 16;
+    const top0 = Math.max(18, halfTitle + 4);
+    // The portrait takes DOG_WIDTH of the screen, smaller if the stack would not fit (short
+    // screens: a desktop window).
+    const below = 6 + this.menu.height + 5 + (this.actions.continueLabel ? this.best.textHeight : 0) + 6;
+    const room = bottom - (top0 - halfTitle) - y - below;
+    const dogW = Math.max(24, Math.min(Math.round(w * TITLE.DOG_WIDTH), Math.floor(room / TITLE.DOG_ASPECT)));
+    y += this.layoutDog(dogW) + 6;
     const menuY = y;
     y += this.menu.height + 5;
     const bestY = y;
     y += (this.actions.continueLabel ? this.best.textHeight : 0) + 6;
-    const bottom = h - 16;
-    const top0 = Math.max(18, halfTitle + 4);
     const free = Math.max(0, bottom - (top0 - halfTitle) - y);
     const off = top0 + Math.round(free * TITLE.LOWER);
     this.title.position.set(cx, off);
@@ -164,7 +172,7 @@ export class TitleScene extends Overlay {
     this.menu.layout(w / 2, off + menuY - halfTitle);
     this.best.position.set(cx, off + bestY - halfTitle);
     this.footer.position.set(cx, h - 6);
-    const fw = Math.round(this.footer.width);
+    const fw = Math.round(this.footer.textWidth);
     this.footerLine.clear().rect(cx - Math.round(fw / 2), h - 5, fw, 1).fill({ color: hex(C.green), alpha: 0.7 });
   }
 
@@ -223,7 +231,7 @@ export class TitleScene extends Overlay {
       const input = this.game.input;
       const hit = input
         .peekTaps()
-        .some((t) => Math.abs(t.x - f.x) <= f.width / 2 + 6 && t.y >= f.y - f.height - 6 && t.y <= f.y + 6);
+        .some((t) => Math.abs(t.x - f.x) <= f.textWidth / 2 + 6 && t.y >= f.y - f.textHeight - 8 && t.y <= f.y + 6);
       if (hit) {
         input.consumeTaps();
         this.footerFlash = 0.25;

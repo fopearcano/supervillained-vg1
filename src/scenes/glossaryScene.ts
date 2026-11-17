@@ -2,25 +2,12 @@ import { Container, Graphics } from 'pixi.js';
 import { GLOSSARY as G } from '../config';
 import type { Game } from '../core/game';
 import type { Scene } from '../core/scene';
+import { bold, drawCardButton, drawPaperCard, FADED, INK, textH, textW } from '../ui/card';
 import { PixelText } from '../ui/pixelText';
-import { C, frameRect, hex } from '../ui/retro';
+import { C, hex } from '../ui/retro';
 
-const INK = '#1c1626';
-const FADED = '#6a6478';
-const PAPER = 0xf3ecd8;
 const RING = 0xd42030;
 const VIOLET_INK = '#5b2bc4';
-
-/** Faux bold: the text twice, one pixel apart. */
-function bold(text: string, color: string, scale = 1, maxWidth = 0): Container {
-  const c = new Container();
-  for (const dx of [0, 1]) {
-    const t = new PixelText(text, { color, scale, maxWidth, lineGap: 3 });
-    t.x = dx;
-    c.addChild(t);
-  }
-  return c;
-}
 
 /**
  * GLOSSARY (title page): a floating paper card with the dictionary entry of "supervillain,
@@ -93,9 +80,9 @@ export class GlossaryScene implements Scene {
     let y = 0;
     const place = (o: Container, dx: number, gap: number) => {
       o.position.set(pad + dx, y);
-      y += Math.round(o.height) + gap;
+      y += Math.round(textH(o)) + gap;
     };
-    place(this.heading, Math.round((inner - this.heading.width) / 2), 12);
+    place(this.heading, Math.round((inner - textW(this.heading)) / 2), 12);
     place(this.headword, 0, 3);
     this.rule.clear().rect(pad, y, inner, 1).fill({ color: hex(INK) });
     y += 5;
@@ -104,16 +91,11 @@ export class GlossaryScene implements Scene {
     place(this.noun, 8, 11);
     place(this.verbLabel, 0, 10);
     // The verb, centered in the ring.
-    const vx = Math.round((inner - this.verb.width) / 2);
+    const vx = Math.round((inner - this.verb.textWidth) / 2);
     place(this.verb, vx, 14);
     // CLOSE: a small framed button, centered.
-    const bw = Math.round(this.closeText.width) + 16;
-    const bh = 15;
-    const bx = Math.round((cw - bw) / 2);
-    this.closeText.position.set(bx + 8, y + 4);
-    const b = this.closeBox.clear();
-    b.rect(bx, y, bw, bh).fill({ color: hex(C.violet), alpha: 0.18 });
-    frameRect(b, bx, y, bw, bh, hex(VIOLET_INK));
+    const bx = Math.round((cw - this.closeText.textWidth - 16) / 2);
+    const { w: bw, h: bh } = drawCardButton(this.closeBox, this.closeText, bx, y, C.violet, VIOLET_INK);
     y += bh;
     const cardH = y + pad * 2;
     const cx = Math.round((w - cw) / 2);
@@ -123,17 +105,13 @@ export class GlossaryScene implements Scene {
     this.body.position.set(cx, cy + pad);
 
     // The card: paper with a shadow and a violet double frame.
-    const g = this.card.clear();
-    g.rect(cx + 3, cy + 3, cw, cardH).fill({ color: 0x000000, alpha: 0.45 });
-    g.rect(cx, cy, cw, cardH).fill({ color: PAPER });
-    frameRect(g, cx, cy, cw, cardH, hex(C.violet));
-    frameRect(g, cx + 2, cy + 2, cw - 4, cardH - 4, hex(VIOLET_INK), 0.6);
+    drawPaperCard(this.card, cx, cy, cw, cardH, C.violet, VIOLET_INK);
 
     // The ring around the verb: a slightly wobbly ellipse whose end overshoots its start.
-    const ex = pad + vx + this.verb.width / 2;
-    const ey = this.verb.y + this.verb.height / 2;
-    const rx = this.verb.width / 2 + G.RING_PAD_X;
-    const ry = this.verb.height / 2 + G.RING_PAD_Y;
+    const ex = pad + vx + this.verb.textWidth / 2;
+    const ey = this.verb.y + this.verb.textHeight / 2;
+    const rx = this.verb.textWidth / 2 + G.RING_PAD_X;
+    const ry = this.verb.textHeight / 2 + G.RING_PAD_Y;
     this.ringPts = [];
     const steps = 64;
     for (let k = 0; k <= steps + G.RING_OVERSHOOT; k++) {

@@ -69,9 +69,11 @@ export class StoryFlow {
   }
 
   /** Coins picked up on the Green Zone walk go to the story's purse. */
-  addCoins(n: number): void {
-    if (!n || this.replaying) return;
-    applyEffects(this.state, { coins: n });
+  /** The Green Zone walk (1.0) is over: its coins go to the story's purse, its time to the play time. */
+  addWalk(coins: number, seconds: number): void {
+    if (this.replaying) return;
+    if (coins) applyEffects(this.state, { coins });
+    this.state.playTime += Math.max(0, seconds);
     saveCampaign(this.state);
   }
 

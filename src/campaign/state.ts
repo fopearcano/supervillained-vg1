@@ -53,6 +53,10 @@ export interface CampaignState {
   book: Book;
   abilities: Ability[];
   coins: number;
+  /** Seconds played (story scenes and the Green Zone walk; replays not counted). */
+  playTime: number;
+  /** When it was last saved (ms since 1970), null before the first save. */
+  savedAt: number | null;
 }
 
 export const METER_START: Readonly<Record<MeterKey, number>> = {
@@ -73,6 +77,8 @@ export function newCampaign(): CampaignState {
     book: { marvels: [], items: [], values: [], remembered: [], shards: [] },
     abilities: [],
     coins: 0,
+    playTime: 0,
+    savedAt: null,
   };
 }
 
@@ -219,10 +225,13 @@ export function loadCampaign(): CampaignState {
     book: { ...base.book, ...(raw.book ?? {}) },
     abilities: Array.isArray(raw.abilities) ? raw.abilities : [],
     completed,
+    playTime: typeof raw.playTime === 'number' && Number.isFinite(raw.playTime) ? Math.max(0, raw.playTime) : 0,
+    savedAt: typeof raw.savedAt === 'number' && Number.isFinite(raw.savedAt) ? raw.savedAt : null,
   };
 }
 
-export function saveCampaign(state: CampaignState): void {
+export function saveCampaign(state: CampaignState, now = Date.now()): void {
+  state.savedAt = now;
   storage.set(KEY, state);
 }
 

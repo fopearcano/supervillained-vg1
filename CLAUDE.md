@@ -1,7 +1,7 @@
 # CLAUDE.md — SUPERVILLAINED
 
 2D isometric game (browser + Android via Capacitor), **no game engine**. **One game, one story**
-(title: NEW GAME / CONTINUE / OPTIONS / GLOSSARY / QUIT), from the VG1 design PDFs ("Supervillained — VG1
+(title: NEW GAME / CONTINUE / COUCH / OPTIONS / GLOSSARY / QUIT), from the VG1 design PDFs ("Supervillained — VG1
 implemented", then the level design revision "Supervillained VG1 — Levels implementation 2",
 which wins where they differ): 8 levels, 1.0 + 42 sub-levels.
 - **1.0 The Green Zone** (`SPEC.md`, the former "arcade"): Zampanò, a Maltese dog, walks through a
@@ -64,13 +64,13 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
 - `scenes/` — `flow.ts` (title → new game / continue / options / quit; plays the 1.0 walk for the
   story), Title, Options, Confirm, Goodbye, Briefing, Game (the walk), Pause, LevelEnd, GameOver,
   `supervillainedScene.ts` (the "You've been supervillained" snap at the end of every level),
-  `glossaryScene.ts` (the title's GLOSSARY card),
+  `glossaryScene.ts` / `couchScene.ts` (the title's GLOSSARY and COUCH cards; `ui/card.ts`),
   sprite viewer. `core/native.ts`: QUIT closes the app on Android and SUPERVOID EDITIONS opens
   the publisher's site in the phone's browser (`QuitPlugin.java`: `quit`, `openUrl`).
 - `world/world.ts` — the shared isometric stage (map + renderer + layers + camera + entities),
   used by the arcade `GameScene` and by story stages.
-- `campaign/` — the VG1 campaign as data: `state.ts` (meters, flags, book, unlocks, ending; pure,
-  tested), `titles.ts`, `home.ts` (8.2 marvel → object at home), `chapters/ch1..ch8.ts` (one file
+- `campaign/` — the VG1 campaign as data: `state.ts` (meters, flags, book, unlocks, ending, play
+  time, last saved; pure, tested), `summary.ts` (the saved story at a glance, for COUCH), `titles.ts`, `home.ts` (8.2 marvel → object at home), `chapters/ch1..ch8.ts` (one file
   per level: sub-levels with `happens`, `source`, optional `blackHole`, and a `script()` that
   returns `Step[]`), `chapters/helpers.ts` (`followLeader`, `lullWalk`, `placeObject`,
   `sounder`, `walkableNear`).

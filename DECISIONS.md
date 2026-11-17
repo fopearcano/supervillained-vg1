@@ -476,3 +476,25 @@ green.
 - **SUPERVOID EDITIONS** (now green and underlined) opens https://supervoideditions.com/: in the
   phone's browser on Android (a new `openUrl` method on the app's own plugin, `QuitPlugin.java`, an
   ACTION_VIEW intent: the game stays open behind), in a new tab in a browser.
+
+## Title page: COUCH, the saved story at a glance
+
+There are no accounts (the game is offline and saves on the device), so the "account" is the
+save itself: **COUCH** (orange, after CONTINUE; his couch is where the story starts and ends)
+opens a floating paper card like GLOSSARY, read-only:
+
+- the next scene (or, once it is finished, the ending his choices lead to: THE KNIGHT or THE
+  WITNESS), the scenes done out of 43 with a percentage, and one cell per level filled with its
+  share of scenes (green when done);
+- the four meters (Commozione, Supervillain, Grace, Standing) as bars with their values;
+- the Meraviglia book (values, marvels, things carried home, shards), coins, the costume
+  (none / rag cross / armour), the Green Zone best (score, stars, time);
+- play time and when it was last saved. Both are new in the save (`playTime`, `savedAt`; older
+  saves start at 0 / never): story scenes add their time while they run (not replays), the Green
+  Zone walk adds its time when it is over, and every save stamps the date.
+
+`campaign/summary.ts` (`progressSummary`, pure and tested) builds what the card shows. With six
+buttons the title's stack could overflow a short screen (a desktop window), so the portrait now
+shrinks to the room left. Measuring text uses `textWidth`/`textHeight` (a PixelText sprite is
+padded and rounded up to 16 px), which also centers GLOSSARY's ring and the footer's underline
+exactly.

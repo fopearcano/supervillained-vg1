@@ -324,6 +324,8 @@ export class StoryScene implements Scene {
 
   update(dt: number): void {
     this.time += dt;
+    // Play time (saved with the campaign at the end of the scene; replays play on a copy).
+    if (this.persist) this.state.playTime += dt;
     const input = this.game.input;
     if (input.consume('menu') || input.consume('back')) {
       this.hooks.onMenu(this);
