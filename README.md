@@ -20,7 +20,8 @@ dialogue with choices, dream walks (following someone, carrying things, acting i
 stealth, a nerve gauge beside Pierre, thirst, smoke and fire, scrambled controls), mini-games,
 hard cuts into other crusades, the Meraviglia book, and two endings decided by whether he calls
 the oath himself at the sack of Constantinople. Progress is saved after every scene; OPTIONS has
-sound, volume, text speed, level replays and the book.
+sound, volume, text speed, the character art (NEW: the delivered sprite sheets; OLD: the art they
+replaced, kept), level replays and the book.
 
 ## Run it
 
@@ -101,7 +102,8 @@ npm run smoke      # runs every story script start to finish (skipping steps)
 npm run playtest   # the autopilot plays the whole campaign for real; report in docs/PLAYTEST.md
 ```
 
-See `CLAUDE.md` for the architecture, `ASSETS.md` to replace the placeholder art, and
+See `CLAUDE.md` for the architecture, `ASSETS.md` to replace the placeholder art (and how the
+replaced art is kept as the old version), and
 `DECISIONS.md` for design decisions.
 
 ## License notes

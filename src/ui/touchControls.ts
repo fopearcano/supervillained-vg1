@@ -3,6 +3,7 @@ import { textures } from '../core/assets';
 import type { Input } from '../core/input';
 import { INPUT } from '../config';
 import { spriteName } from '../assets/manifest';
+import { runIconTexture } from '../assets/build';
 import { PixelText } from './pixelText';
 
 export interface ButtonLayout {
@@ -61,8 +62,17 @@ export class TouchControls {
       this.drops.push(d);
       this.peeBtn.addChild(d);
     }
-    const runIcon = new Graphics();
-    drawChevrons(runIcon, -4, -8, 0xffffff);
+    // The new art's icon (sprite update 1); the old version is the chevrons drawn here.
+    const iconTex = runIconTexture();
+    let runIcon: Container;
+    if (iconTex) {
+      runIcon = new Sprite(iconTex);
+      runIcon.position.set(-Math.floor(iconTex.width / 2), -12);
+    } else {
+      const g = new Graphics();
+      drawChevrons(g, -4, -8, 0xffffff);
+      runIcon = g;
+    }
     const runLabel = new PixelText('RUN', { color: '#4dff5a', outline: '#0a1a0a' }).setOrigin(0.5, 0);
     runLabel.y = 5;
     this.runBtn.addChild(this.runG, runIcon, runLabel, this.energyRing);

@@ -17,7 +17,8 @@
     "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug",
     "android:install": "adb install -r android/app/build/outputs/apk/debug/app-debug.apk",
     "android:open": "cap open android",
-    "android:icons": "node scripts/gen-android-assets.mjs"
+    "android:icons": "node scripts/gen-android-assets.mjs",
+    "sprites:old": "node scripts/export-old-sprites.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.2",

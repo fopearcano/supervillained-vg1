@@ -1,5 +1,6 @@
 import { Application, TextureSource } from 'pixi.js';
-import { buildGlobalTextures, ensureCharacters } from './assets/build';
+import { buildGlobalTextures, ensureCharacters, setArtVersion } from './assets/build';
+import { loadSettings } from './core/settings';
 import { Game } from './core/game';
 import { levelByNumber } from './levels';
 import { Flow } from './scenes/flow';
@@ -33,6 +34,9 @@ async function boot(): Promise<void> {
   });
   app.ticker?.stop();
   await loadPixelFont();
+  // Character art version (Options > ART; `?art=old` forces the old one for a look).
+  const query = new URLSearchParams(location.search);
+  await setArtVersion(query.get('art') === 'old' ? 'old' : query.get('art') === 'new' ? 'new' : loadSettings().art);
   await buildGlobalTextures();
   await loadTitleArt();
   const game = new Game(app, canvas);

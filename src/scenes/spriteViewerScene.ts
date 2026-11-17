@@ -5,6 +5,7 @@ import type { Scene } from '../core/scene';
 import { CHARACTERS, textureName, type AnimName, type CharacterKey } from '../assets/manifest';
 import type { Dir8 } from '../iso/projection';
 import { PixelText } from '../ui/pixelText';
+import { artVersion } from '../assets/build';
 
 /** W, SW and NW are mirrors of E, SE and NE. */
 const VIEW_DIRS: Dir8[] = ['S', 'SE', 'E', 'NE', 'N'];
@@ -26,19 +27,21 @@ export class SpriteViewerScene implements Scene {
     const def = CHARACTERS[key];
     const bg = new Graphics().rect(0, 0, 2000, 2000).fill(0x3fcf1f);
     this.root.addChild(bg);
-    const title = new PixelText(key.toUpperCase(), { color: '#ffe23a', outline: '#000000' });
+    const title = new PixelText(`${key.toUpperCase()}  ${artVersion() === 'new' ? 'NEW' : 'OLD'} ART`, { color: '#ffe23a', outline: '#000000' });
     title.position.set(2, 2);
     this.root.addChild(title);
     const anims = Object.keys(def.anims) as AnimName[];
     const cw = def.frameW;
     const ch = def.frameH;
+    // Rows overlap a little when a character has many anims (Zampanò: 11), to fit the screen.
+    const rowH = Math.min(ch - 4, Math.floor((game.height - 18) / anims.length));
     anims.forEach((anim, row) => {
       const label = new PixelText(anim.slice(0, 4), { color: '#ffffff', outline: '#000000' });
-      label.position.set(1, 14 + row * (ch - 4) + ch / 2 - 4);
+      label.position.set(1, 14 + row * rowH + ch / 2 - 4);
       this.root.addChild(label);
       VIEW_DIRS.forEach((dir, col) => {
         const sprite = new Sprite(textures.get(textureName(key, anim, dir, 0)));
-        sprite.position.set(36 + col * (cw - 6) + def.anchorX - 4, 14 + row * (ch - 4) + def.anchorY);
+        sprite.position.set(36 + col * (cw - 6) + def.anchorX - 4, 14 + row * rowH + def.anchorY);
         this.root.addChild(sprite);
         this.cells.push({ sprite, anim, dir });
       });

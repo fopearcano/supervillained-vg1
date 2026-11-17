@@ -1,5 +1,5 @@
 import { Container, Graphics, Sprite, Texture } from 'pixi.js';
-import { ensureCharacters } from '../assets/build';
+import { artVersion, ensureCharacters } from '../assets/build';
 import { STORY } from '../config';
 import { textures } from '../core/assets';
 import type { Input } from '../core/input';
@@ -40,8 +40,20 @@ export const SPEAKERS: Record<string, { name: string; color: string; portrait: C
   knight: { name: 'A KNIGHT', color: '#d0d8e8', portrait: 'knight' },
 };
 
+/**
+ * Name colors matching the new art (sprite update 1); SPEAKERS keeps the colors of the old art
+ * (OPTIONS > ART: OLD).
+ */
+const NEW_ART_COLORS: Record<string, string> = {
+  sbrimbrulon: '#e08848', // tricolour: the rust streaks
+  jack: '#ff8ab8', // black chihuahua: the pink-lined ears
+  confusione: '#ffa040', // orange tabby
+};
+
 export function speakerOf(key: string): { name: string; color: string; portrait: CharacterKey | 'professor' | null } {
-  return SPEAKERS[key] ?? { name: key.toUpperCase(), color: C.white, portrait: null };
+  const sp = SPEAKERS[key] ?? { name: key.toUpperCase(), color: C.white, portrait: null };
+  const color = artVersion() === 'new' ? NEW_ART_COLORS[key] : undefined;
+  return color ? { ...sp, color } : sp;
 }
 
 export interface ChoiceView {

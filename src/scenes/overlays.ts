@@ -512,6 +512,8 @@ export class OptionsScene extends Overlay {
       volume: () => number;
       cycleTextSpeed: () => void;
       textSpeed: () => string;
+      toggleArt: () => void;
+      art: () => string;
       levels: () => void;
       book: () => void;
       back: () => void;
@@ -541,6 +543,14 @@ export class OptionsScene extends Overlay {
           label: () => `TEXT: ${actions.textSpeed()}`,
           action: () => {
             actions.cycleTextSpeed();
+            this.menu.refreshLabels();
+          },
+          color: C.cyan,
+        },
+        {
+          label: () => `ART: ${actions.art()}`,
+          action: () => {
+            actions.toggleArt();
             this.menu.refreshLabels();
           },
           color: C.cyan,

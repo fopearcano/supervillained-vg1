@@ -1,7 +1,7 @@
 import { packAtlas, subTexture, textures, tryLoadTexture, type AtlasEntry } from '../core/assets';
 import { DIRS8, TW } from '../iso/projection';
 import type { Palette } from '../world/level';
-import type { TextureSource } from 'pixi.js';
+import type { Texture, TextureSource } from 'pixi.js';
 import { drawCritter, drawShadow, poseFor } from './placeholders/critters';
 import { CAST_SPECS } from './placeholders/cast';
 import { drawSpecial, drawStoryProp, drawStoryTile } from './placeholders/storyArt';
@@ -16,7 +16,9 @@ import {
   TILE_VARIANTS,
   spriteName,
   textureName,
+  RUN_ICON,
   type AnimName,
+  type ArtVersion,
   type CharacterDef,
   type SpriteDef,
   type SpriteKey,
@@ -27,9 +29,25 @@ import {
  * placeholders for everything else.
  */
 
-/** Characters generated at boot; the story cast is generated on demand (ensureCharacters). */
-const BOOT_CHARACTERS = ['zampano', 'bagnaskiz', 'cat'];
+/**
+ * Characters built at boot: the Green Zone's, plus every character with a sheet (loading a PNG
+ * is asynchronous, so they must be ready before a scene spawns them). The rest of the story cast
+ * is generated on demand, synchronously (ensureCharacters).
+ */
+const BOOT_CHARACTERS = [
+  ...new Set(['zampano', 'bagnaskiz', 'cat', ...Object.values(CHARACTERS as Record<string, CharacterDef>).filter((d) => d.sheet).map((d) => d.key)]),
+];
 const builtCharacters = new Set<string>();
+
+/** Which art the replaced characters show (Options > ART); see CharacterDef.oldSheet. */
+let art: ArtVersion = 'new';
+
+export function artVersion(): ArtVersion {
+  return art;
+}
+
+/** Anims the procedural art never had (the old version shows idle frames for them). */
+const NEW_ONLY_ANIMS: ReadonlySet<AnimName> = new Set(['tired']);
 
 function characterEntries(def: CharacterDef): AtlasEntry[] {
   const spec = CAST_SPECS[def.key]!;
@@ -37,9 +55,10 @@ function characterEntries(def: CharacterDef): AtlasEntry[] {
   for (const [anim, ad] of Object.entries(def.anims) as Array<[AnimName, { frames: number }]>) {
     for (const dir of DIRS8) {
       for (let f = 0; f < ad.frames; f++) {
+        const pose = NEW_ONLY_ANIMS.has(anim) ? poseFor('idle', f % 2) : poseFor(anim, f);
         entries.push({
           name: textureName(def.key, anim, dir, f),
-          image: drawCritter(spec, dir, poseFor(anim, f)),
+          image: drawCritter(spec, dir, pose),
           anchorX: def.anchorX,
           anchorY: def.anchorY,
         });
@@ -47,6 +66,11 @@ function characterEntries(def: CharacterDef): AtlasEntry[] {
     }
   }
   return entries;
+}
+
+/** The sheet to load for a character in the current art version (null = procedural). */
+function sheetFor(def: CharacterDef): string | null {
+  return (art === 'old' ? def.oldSheet : def.sheet) ?? null;
 }
 
 /** Makes sure the given characters have textures (loads their sheet or generates placeholders). */
@@ -57,10 +81,34 @@ export async function ensureCharacters(keys: Iterable<string>): Promise<void> {
     const def = (CHARACTERS as Record<string, CharacterDef>)[key];
     if (!def) continue;
     builtCharacters.add(key);
-    if (def.sheet && (await loadCharacterSheet(def))) continue;
+    if (sheetFor(def) && (await loadCharacterSheet(def))) continue;
     entries.push(...characterEntries(def));
   }
   if (entries.length) packAtlas(entries, textures, 'cast');
+}
+
+/**
+ * Switches the art version and rebuilds the characters already built (sprites pick the new
+ * textures up on their next animation frame).
+ */
+export async function setArtVersion(v: ArtVersion): Promise<void> {
+  if (v === art && builtCharacters.size) return;
+  art = v;
+  const built = [...builtCharacters];
+  builtCharacters.clear();
+  await ensureCharacters(built);
+  await loadRunIcon();
+}
+
+/** The RUN button icon of the new art, or null (old art / missing: the chevrons drawn in code). */
+export function runIconTexture(): Texture | null {
+  return art === 'new' && textures.has('runIcon_0') ? textures.get('runIcon_0') : null;
+}
+
+async function loadRunIcon(): Promise<void> {
+  if (textures.has('runIcon_0')) return;
+  const icon = await tryLoadTexture(RUN_ICON);
+  if (icon) textures.set('runIcon_0', subTexture(icon, 0, 0, icon.frame.width, icon.frame.height, 0, 0));
 }
 
 function sprite(def: SpriteDef, variant: number, image: PixelBuffer): AtlasEntry {
@@ -73,9 +121,10 @@ export async function buildGlobalTextures(): Promise<void> {
   for (const key of BOOT_CHARACTERS) {
     const def = (CHARACTERS as Record<string, CharacterDef>)[key]!;
     builtCharacters.add(key);
-    if (def.sheet && (await loadCharacterSheet(def))) continue;
+    if (sheetFor(def) && (await loadCharacterSheet(def))) continue;
     entries.push(...characterEntries(def));
   }
+  await loadRunIcon();
   const S = SPRITES;
   const gen: Array<[SpriteDef, (v: number) => PixelBuffer]> = [
     [S.treat, () => items.drawTreat()],
@@ -171,22 +220,33 @@ export function buildLevelTextures(pal: Palette): void {
 }
 
 async function loadCharacterSheet(def: CharacterDef): Promise<boolean> {
-  const sheet = await tryLoadTexture(def.sheet!);
+  const path = sheetFor(def)!;
+  const sheet = await tryLoadTexture(path);
   if (!sheet) {
-    console.warn(`[assets] could not load ${def.sheet}, using placeholder for ${def.key}`);
+    console.warn(`[assets] could not load ${path}, using placeholder for ${def.key}`);
     return false;
   }
+  const own = art === 'new' ? (def.animSheets ?? {}) : {};
+  const rows = Math.floor(sheet.frame.height / def.frameH);
+  const cut = (src: Texture, anim: AnimName, dir: (typeof SHEET_DIRS)[number], f: number, row: number, col: number) =>
+    textures.set(
+      textureName(def.key, anim, dir, f),
+      subTexture(src, col * def.frameW, row * def.frameH, def.frameW, def.frameH, def.anchorX, def.anchorY),
+    );
   let row = 0;
   for (const [anim, ad] of Object.entries(def.anims) as Array<[AnimName, { frames: number }]>) {
-    for (const dir of SHEET_DIRS) {
+    const ownPath = own[anim];
+    const ownSheet = ownPath ? await tryLoadTexture(ownPath) : null;
+    if (ownPath && !ownSheet) console.warn(`[assets] could not load ${ownPath}, ${def.key} ${anim} shows idle`);
+    SHEET_DIRS.forEach((dir, d) => {
       for (let f = 0; f < ad.frames; f++) {
-        textures.set(
-          textureName(def.key, anim, dir, f),
-          subTexture(sheet, f * def.frameW, row * def.frameH, def.frameW, def.frameH, def.anchorX, def.anchorY),
-        );
+        if (ownSheet) cut(ownSheet, anim, dir, f, d, f);
+        else if (!ownPath && row < rows) cut(sheet, anim, dir, f, row, f);
+        // An anim this sheet predates: the idle frames (idle is always the first anim).
+        else cut(sheet, anim, dir, f, d, f % 2);
       }
-      row++;
-    }
+      if (!ownPath) row++;
+    });
   }
   return true;
 }

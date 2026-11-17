@@ -1,4 +1,5 @@
 import { AUDIO } from '../config';
+import { ART_VERSIONS, type ArtVersion } from '../assets/manifest';
 import { storage } from './storage';
 
 /** Persistent player settings and records (localStorage, guarded). */
@@ -11,6 +12,8 @@ export interface Settings {
   volume: number;
   /** Story dialogue typewriter speed. */
   textSpeed: TextSpeed;
+  /** Character art: the new sheets or the old (procedural) version they replaced. */
+  art: ArtVersion;
 }
 
 export interface LevelRecord {
@@ -25,6 +28,7 @@ export function loadSettings(): Settings {
     muted: typeof s.muted === 'boolean' ? s.muted : false,
     volume: typeof s.volume === 'number' ? Math.max(0, Math.min(1, s.volume)) : AUDIO.DEFAULT_VOLUME,
     textSpeed: TEXT_SPEEDS.includes(s.textSpeed as TextSpeed) ? (s.textSpeed as TextSpeed) : 'normal',
+    art: ART_VERSIONS.includes(s.art as ArtVersion) ? (s.art as ArtVersion) : 'new',
   };
 }
 

@@ -224,6 +224,8 @@ export class Zampano extends Entity {
       if ((this.state === 'eat' || this.state === 'bark') && speed > 0.4 && this.stateTime > 0.2) anim = this.running ? 'run' : 'walk';
     } else if (speed > PLAYER.WALK_SPEED * 1.15) anim = 'run';
     else if (speed > 0.25) anim = 'walk';
+    // Standing still while out of breath (energy emptied): panting.
+    else if (this.energy.exhausted) anim = 'tired';
     else anim = this.idleTime > 2.5 && Math.floor(this.idleTime / 3) % 2 === 1 ? 'sniff' : 'idle';
     this.idleTime = speed > 0.25 ? 0 : this.idleTime + dt;
     this.animator.speed = anim === 'walk' ? Math.max(0.6, speed / PLAYER.WALK_SPEED) : 1;

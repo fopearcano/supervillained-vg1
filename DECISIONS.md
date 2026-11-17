@@ -405,3 +405,28 @@ longer bullied in the Green Zone.
   The pictures are scaled in the browser (step-by-step halving, crisp alpha) to the logical
   resolution, so they match the pixel art at any screen size.
 
+
+## Sprite update 1: delivered character art, the old art kept
+
+`Supervillained-vg1-sprite-update-1.zip` (uploaded to main, kept at the repo root as delivered)
+brings sheets for Zampanò (new run), Bagnaskiz, Sbrimbrulon, Jack, Watson and Confusione, a
+`tired` animation for Zampanò and a RUN icon. Wired as its README asks (sheets in
+`public/sprites/`, `sheet:` in the manifest), with these choices:
+
+- **The replaced art is kept as the old version, never deleted.** `public/sprites/old/` holds the
+  procedural art each sheet replaced, frozen as PNGs in the same layout by
+  `npm run sprites:old` (it draws them with the game's own generator, which stays in
+  `src/assets/placeholders/`). OPTIONS > ART: NEW / OLD switches between them at once and is
+  saved; `?art=old|new` for tests. The old art keeps its RUN chevrons and its dialogue name
+  colors; the new art gets name colors that match it (Sbrimbrulon rust, Jack pink, Confusione
+  orange).
+- **Tired**: Zampanò pants (the delivered `tired`, its own sheet via `animSheets`) while he
+  stands still with the energy emptied, until RUN is available again. It is new-only: the old art
+  (and a sheet without the rows) shows the idle frames.
+- Every character with a sheet is loaded at boot (≈150 KB of PNGs), because a sheet loads
+  asynchronously and a story scene spawns its actors at once; the rest of the cast is still
+  generated on demand.
+- The costumes (`zampanoCross`, `zampanoKnight`, `bagnaskizMarshal`, `bagnaskizEmperor`) were not
+  in the update and stay procedural in both versions.
+- `tests/sprites.test.ts` checks every sheet's size against the manifest layout, the old ones
+  included.

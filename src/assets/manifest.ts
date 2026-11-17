@@ -12,7 +12,7 @@ import type { Dir8 } from '../iso/projection';
  *   sprites:    `${key}_${variant}`                e.g. tree_1
  */
 
-export const ANIMS = ['idle', 'walk', 'run', 'sniff', 'pee', 'poop', 'eat', 'bark', 'fetch', 'hurt'] as const;
+export const ANIMS = ['idle', 'walk', 'run', 'sniff', 'pee', 'poop', 'eat', 'bark', 'fetch', 'hurt', 'tired'] as const;
 export type AnimName = (typeof ANIMS)[number];
 
 /** Row order of directions inside a sprite sheet. */
@@ -33,10 +33,20 @@ export interface CharacterDef {
   anchorY: number;
   anims: Partial<Record<AnimName, AnimDef>>;
   /**
-   * Optional sprite sheet (path relative to /public). Layout: one row per (anim, dir) in the
-   * order of `anims` (as listed here) x SHEET_DIRS, one column per frame. Missing → placeholder.
+   * Optional sprite sheet (path relative to /public): the current ("new") art. Layout: one row
+   * per (anim, dir) in the order of `anims` (as listed here) x SHEET_DIRS, one column per frame.
+   * Anims listed in `animSheets` are skipped here; anims past the sheet's last row (an animation
+   * the sheet predates) show the idle frames. Missing → placeholder.
    */
   sheet?: string;
+  /** Anims delivered as sheets of their own (8 rows = SHEET_DIRS, one column per frame). */
+  animSheets?: Partial<Record<AnimName, string>>;
+  /**
+   * The art `sheet` replaced, kept as the "old" version (Options > ART: OLD), same layout. It is
+   * the procedural placeholder art the game shipped with, frozen as PNGs by
+   * `npm run sprites:old`.
+   */
+  oldSheet?: string;
 }
 
 export interface SpriteDef {
@@ -87,6 +97,28 @@ export const CAST_KEYS = [
 export type CastKey = (typeof CAST_KEYS)[number];
 export type CharacterKey = 'zampano' | 'bagnaskiz' | 'cat' | CastKey;
 
+/** Art versions: 'new' = the delivered sheets (sprite update 1), 'old' = the art they replaced. */
+export type ArtVersion = 'new' | 'old';
+export const ART_VERSIONS: readonly ArtVersion[] = ['new', 'old'];
+/** Where the old version of a replaced sheet lives. */
+export const OLD_SPRITES_DIR = 'sprites/old';
+
+/** Cast members with delivered sheets (sprite update 1); the rest stay procedural. */
+const CAST_SHEETS: Partial<Record<CastKey, string>> = {
+  sbrimbrulon: 'sprites/sbrimbrulon.png',
+  jack: 'sprites/jack.png',
+  watson: 'sprites/watson.png',
+  confusione: 'sprites/confusione.png',
+};
+
+/** The sheet and its kept old version, for a character whose art was replaced. */
+function sheets(key: string): Pick<CharacterDef, 'sheet' | 'oldSheet'> {
+  return { sheet: `sprites/${key}.png`, oldSheet: `${OLD_SPRITES_DIR}/${key}.png` };
+}
+
+/** RUN button icon (sprite update 1); the old version is the chevrons drawn in code. */
+export const RUN_ICON = 'sprites/runIcon.png';
+
 /** Story characters: idle / walk / run / bark, 40x40, anchored like Zampanò. */
 function castDefs<K extends string>(keys: readonly K[]): Record<K, CharacterDef> {
   const out = {} as Record<K, CharacterDef>;
@@ -97,6 +129,7 @@ function castDefs<K extends string>(keys: readonly K[]): Record<K, CharacterDef>
       frameH: 40,
       anchorX: 20,
       anchorY: 36,
+      ...(CAST_SHEETS[key as unknown as CastKey] ? sheets(key) : {}),
       anims:
         key === 'zampanoCross' || key === 'zampanoKnight'
           ? {
@@ -130,6 +163,8 @@ export const CHARACTERS = {
     frameH: 40,
     anchorX: 20,
     anchorY: 36,
+    ...sheets('zampano'),
+    animSheets: { tired: 'sprites/zampano-tired.png' },
     anims: {
       idle: { frames: 2, fps: 3, loop: true },
       walk: { frames: 4, fps: 9, loop: true },
@@ -141,6 +176,8 @@ export const CHARACTERS = {
       bark: { frames: 2, fps: 10, loop: false },
       fetch: { frames: 4, fps: 13, loop: true },
       hurt: { frames: 2, fps: 10, loop: true },
+      // Standing still after running out of energy (sprite update 1; the old art shows idle).
+      tired: { frames: 2, fps: 4, loop: true },
     },
   },
   bagnaskiz: {
@@ -149,6 +186,7 @@ export const CHARACTERS = {
     frameH: 40,
     anchorX: 20,
     anchorY: 36,
+    ...sheets('bagnaskiz'),
     anims: {
       idle: { frames: 2, fps: 3, loop: true },
       walk: { frames: 4, fps: 9, loop: true },

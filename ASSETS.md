@@ -8,8 +8,49 @@ Put image files under `public/` (served as-is and copied into the Android build)
 manifest are relative to `public/`, e.g. `sheet: 'sprites/zampano.png'` → `public/sprites/zampano.png`.
 If a file is missing or broken the placeholder is used and a warning is printed in the console.
 
-Tip: open the game with `?debug=sprites&char=zampano` (or `bagnaskiz`, `cat`) to see every
-animation and direction of a character playing side by side.
+Tip: open the game with `?debug=sprites&char=zampano` (or `bagnaskiz`, `cat`, any cast key) to
+see every animation and direction of a character playing side by side; add `&art=old` for the old
+version (below).
+
+## Delivered art and the old version
+
+**Sprite update 1** (`Supervillained-vg1-sprite-update-1.zip`, kept at the repo root as delivered)
+replaced the procedural art of six characters:
+
+| file in `public/sprites/` | size | what it is |
+|---|---|---|
+| `zampano.png` | 160 × 3200 | the 10 animations; the **run** rows (16–23) are new art, the other rows are the old art unchanged |
+| `zampano-tired.png` | 80 × 320 | new animation **tired** (2 frames × 8 directions, 4 fps): standing still after running out of energy |
+| `bagnaskiz.png` | 160 × 1600 | fawn pug, black ears, yellow eyes, toothy grin |
+| `sbrimbrulon.png` | 160 × 1600 | long-haired tricolour Shih-tzu (white fringe, rust streaks) |
+| `jack.png` | 160 × 1600 | black chihuahua, huge pink-lined ears, white muzzle and chest |
+| `watson.png` | 160 × 1600 | white-and-orange Jack Russell, backward teal cap, spiked collar, cigar |
+| `confusione.png` | 160 × 1600 | orange tabby fighting cat |
+| `runIcon.png` | 13 × 11 | the RUN button's double chevron |
+
+**Nothing replaced is deleted: it is kept as the old version.**
+
+- `public/sprites/old/` holds the art each sheet replaced, as PNGs in the same layout
+  (`zampano.png` 160 × 3200, the others 160 × 1600; `runIcon.png` 7 × 5, the white chevrons).
+  They were written by `npm run sprites:old` (`scripts/export-old-sprites.mjs`), which draws the
+  old art with the game's own generator (`src/assets/placeholders/`, also kept). Its Zampanò
+  sheet is pixel-identical to the delivered one outside the run rows.
+- **OPTIONS > ART: NEW / OLD** switches between the two (saved in the settings, applied at once).
+  `?art=old` / `?art=new` forces one for a test. With the old art, **tired** shows the idle frames
+  (the old art never had it), the RUN button draws its chevrons and the dialogue name colors are
+  the old ones.
+- In the manifest each replaced character has `sheet` (new) and `oldSheet` (old);
+  per-animation sheets go in `animSheets` (`tired: 'sprites/zampano-tired.png'`). A sheet that
+  predates an animation (no rows for it) shows the idle frames for it.
+
+The next update: before dropping new sheets in, run `npm run sprites:old` only if the art being
+replaced is still procedural; if it is already a delivered sheet, copy that sheet into
+`public/sprites/old/` (or a folder per version) by hand. Then update `sheet`/`oldSheet` and check
+`npm test` (`tests/sprites.test.ts` checks every sheet's size against the manifest).
+
+Still procedural in both versions: the costumes `zampanoCross` / `zampanoKnight` (Zampanò's
+dream skins: the dream walks use them from 1.5 on), Bagnaskiz's masks `bagnaskizMarshal` /
+`bagnaskizEmperor`, the Green Zone `cat` and the rest of the story cast.
 
 ## Directions
 
@@ -30,7 +71,7 @@ W/SW/NW may simply be mirrored copies of E/SE/NE.
 
 | key        | frame (px) | anchor (px) | animations                                                         |
 |------------|-----------:|------------:|--------------------------------------------------------------------|
-| `zampano`  | 40 × 40    | (20, 36)    | idle 2, walk 4, run 4, sniff 2, pee 2, poop 2, eat 2, bark 2, fetch 4, hurt 2 |
+| `zampano`  | 40 × 40    | (20, 36)    | idle 2, walk 4, run 4, sniff 2, pee 2, poop 2, eat 2, bark 2, fetch 4, hurt 2, tired 2 (own sheet) |
 | `bagnaskiz`| 40 × 40    | (20, 36)    | idle 2, walk 4, run 4, bark 2, hurt 2                              |
 | `cat`      | 28 × 28    | (14, 25)    | idle 2, walk 4, run 4                                              |
 
@@ -63,7 +104,8 @@ the game reads them from there.
 
 Animation meaning: `idle` standing/breathing · `walk` · `run` · `sniff` (head low, idle variant) ·
 `pee` (hind leg lifted) · `poop` (squatting) · `eat` (head down, mouth) · `bark` (mouth open,
-head forward, played once) · `fetch` (running with the ball in the mouth) · `hurt` (flinch).
+head forward, played once) · `fetch` (running with the ball in the mouth) · `hurt` (flinch) ·
+`tired` (panting, standing still while the energy recovers).
 
 ### Sheet layout
 
@@ -73,7 +115,8 @@ One PNG per character, a grid of `frameW × frameH` cells:
   order `N NE E SE S SW W NW`);
 - **columns**: frame 0, 1, 2, … (unused cells may stay empty).
 
-So Zampanò has 10 animations × 8 directions = 80 rows, 4 columns, i.e. a 160 × 3200 px image.
+So Zampanò has 10 animations × 8 directions = 80 rows, 4 columns, i.e. a 160 × 3200 px image
+(his 11th animation, `tired`, is a sheet of its own: see `animSheets`).
 
 Frame files rendered individually (e.g. from Blender) can be assembled with ImageMagick:
 

@@ -10,7 +10,9 @@ which wins where they differ): 8 levels, 1.0 + 42 sub-levels.
 - Then the rest of Level 1, the Fourth-Crusade dream (levels 2–7) and the return (level 8):
   dialogue, dream walks, mini-games and two endings.
 
-Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`.
+Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`. Delivered art replaces
+procedural art in `public/sprites/`; **the art it replaces is never deleted**: it is kept as the
+old version in `public/sprites/old/` (`npm run sprites:old`), selectable in OPTIONS > ART.
 
 ## Commands
 
@@ -27,11 +29,12 @@ npm run smoke -- 7.3 8.1         # selected sub-levels
 npm run playtest     # the autopilot plays the whole campaign for real → report (fails if a sub-level can't be won)
 npm run playtest -- --skill 0.4 --ending alpha --choice random --from 5.1 --out docs/PLAYTEST.md
 npm run playtest -- --from 3.1 --to 3.4          # one level
+npm run sprites:old  # freeze the procedural art of characters with delivered sheets → public/sprites/old/
 npm run android:apk  # web build + cap sync + Gradle debug APK (needs JDK 21 + Android SDK 36)
 ```
 
 Debug URLs: `?skip=game` (straight into the Green Zone walk, outside the story), `?story=7.3` (straight into a story
-sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
+sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`, `?art=old|new` (character art version).
 `window.__sv` exposes the game for automation (`__sv.scene()` = top scene, `__sv.top()`,
 `__sv.storyIds()`, `__sv.flow.story.debugPlay(id)`; a `StoryScene` has `debugState()`,
 `debugSkip()`, `marker(m)`).
@@ -78,8 +81,9 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   mini-games implement an optional `pilot()` that drives the real inputs).
 - `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
   sight cones, hostile contact).
-- `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims), `build.ts` (load PNGs or generate
-  placeholders), `placeholders/*` (procedural pixel art), `fonts/`.
+- `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims, `sheet`/`oldSheet`/`animSheets`),
+  `build.ts` (load PNGs of the chosen art version or generate placeholders; `setArtVersion`),
+  `placeholders/*` (procedural pixel art = the old art), `fonts/`.
 - Repo-root `assets/music` and `assets/sounds` — recorded audio, wired in `src/fx/audioFiles.ts`
   (table in `ASSETS.md`); `core/audio.ts` plays them (sfx decoded, music streamed) alongside the
   synthesized sounds of `fx/sounds.ts`.

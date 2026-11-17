@@ -23,6 +23,7 @@ import { BookScene } from '../story/screens';
 import { AUDIO } from '../config';
 import { TitleGlitchFilter } from '../fx/titleGlitchFilter';
 import { quitApp } from '../core/native';
+import { setArtVersion } from '../assets/build';
 
 /**
  * One game. Title (NEW GAME / CONTINUE / OPTIONS / QUIT) → the story, whose first scene (1.0) is
@@ -135,6 +136,14 @@ export class Flow {
           saveSettings(s);
         },
         textSpeed: () => s.textSpeed.toUpperCase(),
+        // The character art: the new sheets, or the old version they replaced.
+        toggleArt: () => {
+          s.art = s.art === 'new' ? 'old' : 'new';
+          saveSettings(s);
+          void setArtVersion(s.art);
+          this.game.audio.play('click');
+        },
+        art: () => (s.art === 'new' ? 'NEW' : 'OLD'),
         levels: () => this.glitch(() => this.story.openMenu()),
         book: () => this.game.scenes.push(new BookScene(this.game, this.story.state, () => this.game.scenes.pop())),
         back: () => this.closeOverTitle(),
