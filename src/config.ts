@@ -82,6 +82,8 @@ export const ENERGY = {
 export const TITLE = {
   /** Zampanò's portrait over the buttons, as a fraction of the screen width. */
   DOG_WIDTH: 0.46,
+  /** The animated portrait's height / width (space kept for it while the GIF decodes). */
+  DOG_ASPECT: 1.4,
   /** Share of the free space below the stack moved above it (lowers everything toward the footer). */
   LOWER: 0.75,
   /** Background glitch (mostly vertical): flickering burst strength [min, max], faint level in between. */

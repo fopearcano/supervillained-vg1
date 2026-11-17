@@ -448,3 +448,16 @@ The logo left the title page. It now marks the end of each level, before the lev
   (a tap skips it after 0.45 s), then the final info. All numbers in `config.ts` (`SUPERVILLAINED`).
 - The title page keeps its portrait, buttons and glitch; with the logo gone the stack sits a bit
   lower.
+
+## Title page: the animated portrait
+
+The portrait over the title's buttons is now `Zampano-Samemala-2.gif` (44 frames, about 2 s,
+1024 × 1536), animated. A browser draws only one frame of a GIF into a canvas, so the frames are
+decoded with WebCodecs' `ImageDecoder` (built into Chromium and the Android WebView; no new
+dependency), halved down to 256 px, cropped to the dog (the union of the frames' opaque areas, so
+it fills the same width as the old portrait), scaled to the title's width with crisp edges and
+packed into one texture; each frame keeps its GIF delay. Decoding starts at boot and takes a few
+hundred ms; until then the title keeps the portrait's place (`TITLE.DOG_ASPECT`) so nothing moves
+when it appears. Where `ImageDecoder` is missing the first frame is shown still. The old portrait
+is kept as the old art (OPTIONS > ART: OLD), like the replaced sprites. SUPERVOID EDITIONS is
+green.

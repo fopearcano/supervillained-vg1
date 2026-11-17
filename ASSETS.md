@@ -186,12 +186,22 @@ transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
 
 ## Title page art
 
-`assets/starting-page-images/` holds two pictures (`src/ui/titleArt.ts`):
-`Retro-16-Bit Ivory Dog Sprite-3-4-front.png` (Zampanò over the title's buttons) and
-`Youve_Been_Supervillained_Logo.png`, which is not on the title page: it snaps in at the end of
-every level, before the final info (`src/scenes/supervillainedScene.ts`). They are scaled down in
-the browser to the exact size each screen needs, so replacing a file (same name, PNG with
-transparency) is all it takes. Tuning in `config.ts`: `TITLE` (portrait, glitch, old-film look) and
+`assets/starting-page-images/` holds the pictures of the title page and the level ends:
+
+- `Zampano-Samemala-2.gif`: Zampanò over the title's buttons, **animated** (44 frames,
+  1024 × 1536, transparent; `src/ui/titleAnim.ts`). The browser decodes its frames (WebCodecs
+  `ImageDecoder`: Chromium and the Android WebView), crops them to the dog (the union of every
+  frame's opaque area), scales them to the title's size and plays them with the GIF's own delays.
+  Without `ImageDecoder` (Safari, the dev server opened over plain http on the LAN) the title
+  shows the first frame. `Zampano-Samemala-1.gif` (the other version) is kept, unused.
+- `Retro-16-Bit Ivory Dog Sprite-3-4-front.png`: the previous portrait, kept as the old version:
+  OPTIONS > ART: OLD shows it (still).
+- `Youve_Been_Supervillained_Logo.png`: not on the title page; it snaps in at the end of every
+  level, before the final info (`src/scenes/supervillainedScene.ts`).
+
+They are scaled down in the browser to the exact size each screen needs, so replacing a file
+(same name, transparent background) is all it takes; another GIF needs only its name changed in
+`titleAnim.ts`. Tuning in `config.ts`: `TITLE` (portrait, glitch, old-film look) and
 `SUPERVILLAINED` (size, snap, flash, shake, glow, sprite burst, hold time).
 
 ## App icon and logo

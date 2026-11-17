@@ -1,7 +1,10 @@
-import { Container, Graphics, Sprite } from 'pixi.js';
+import { Container, Graphics, Sprite, Texture } from 'pixi.js';
 import { TITLE } from '../config';
 import type { TitleGlitchFilter } from '../fx/titleGlitchFilter';
 import { loadTitleArt, titleTexture, type TitleArt } from '../ui/titleArt';
+import { frameAt, titleAnimation, titleStill, type TitleAnim } from '../ui/titleAnim';
+import { artVersion } from '../assets/build';
+import type { ArtVersion } from '../assets/manifest';
 import { textures } from '../core/assets';
 import type { Game } from '../core/game';
 import type { Scene } from '../core/scene';
@@ -66,8 +69,14 @@ export interface TitleActions {
  * (The "You've been supervillained" logo is kept for the end of each level: SupervillainedScene.)
  */
 export class TitleScene extends Overlay {
-  /** Zampanò's portrait (title art) over the buttons. */
+  /** Zampanò's portrait over the buttons: the animated GIF (new art) or the old still. */
   private readonly dog = new Sprite();
+  private anim: TitleAnim | null = null;
+  /** Width the animation was asked for (frames are made for one width). */
+  private animWidth = 0;
+  private animTime = 0;
+  /** The art version the portrait shows (OPTIONS > ART can change it under the title). */
+  private artShown: ArtVersion | null = null;
   private art: TitleArt | null = null;
   private burstLeft = 0;
   private nextBurst = 1;
@@ -80,7 +89,7 @@ export class TitleScene extends Overlay {
   private readonly best: PixelText;
   private readonly menu: Menu;
   /** Publisher line: the smallest crisp size of the pixel font (scale 1), dimmed. */
-  private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: '#8ad4ff', letterSpacing: 1 }).setOrigin(0.5, 1);
+  private readonly footer = new PixelText('SUPERVOID EDITIONS', { color: C.green, shadow: '#000000', letterSpacing: 1 }).setOrigin(0.5, 1);
 
   constructor(
     game: Game,
@@ -112,7 +121,7 @@ export class TitleScene extends Overlay {
     this.root.addChild(this.title, this.edition, this.dog, this.best, this.menu.root, this.footer);
     void loadTitleArt().then((art) => {
       this.art = art;
-      this.layout();
+      if (!this.root.destroyed) this.layout();
     });
   }
 
@@ -132,12 +141,8 @@ export class TitleScene extends Overlay {
     let y = halfTitle + Math.round(this.title.height / 2) + 10;
     const editionY = y;
     y += 12;
-    let dogY = y;
-    if (this.art) {
-      this.dog.texture = titleTexture(this.art.dog, Math.round(w * TITLE.DOG_WIDTH));
-      dogY = y;
-      y += this.dog.height + 6;
-    }
+    const dogY = y;
+    y += this.layoutDog(Math.round(w * TITLE.DOG_WIDTH)) + 6;
     const menuY = y;
     y += this.menu.height + 5;
     const bestY = y;
@@ -154,8 +159,43 @@ export class TitleScene extends Overlay {
     this.footer.position.set(cx, h - 6);
   }
 
+  /** Sets the portrait for this width; returns the height it takes. */
+  private layoutDog(width: number): number {
+    this.artShown = artVersion();
+    if (this.artShown === 'old') {
+      // The old art: the still portrait.
+      if (!this.art) return 0;
+      this.dog.texture = titleTexture(this.art.dog, width);
+      return this.dog.height;
+    }
+    if (this.animWidth !== width) {
+      this.animWidth = width;
+      this.anim = null;
+      // The first frame at once, the animation when it has decoded.
+      const show = (a: TitleAnim | null, still: boolean) => {
+        // The title may be gone by now (NEW GAME tapped while it decoded).
+        if (!a || this.animWidth !== width || this.root.destroyed) return;
+        if (still && this.anim) return;
+        this.anim = a;
+        this.layout();
+      };
+      void titleStill(width).then((a) => show(a, true));
+      void titleAnimation(width).then((a) => show(a, false));
+    }
+    if (!this.anim) {
+      // Not ready yet: keep its place.
+      this.dog.texture = Texture.EMPTY;
+      return Math.round(width * TITLE.DOG_ASPECT);
+    }
+    this.dog.texture = frameAt(this.anim, this.animTime);
+    return this.anim.frames[0]!.height;
+  }
+
   override update(dt: number): void {
     super.update(dt);
+    if (artVersion() !== this.artShown) this.layout();
+    this.animTime += dt;
+    if (this.anim && this.artShown === 'new') this.dog.texture = frameAt(this.anim, this.animTime);
     // Glitchy entrance: jitter for the first moments.
     const jitter = this.time < 0.9 ? Math.round((Math.random() * 2 - 1) * 4 * (1 - this.time / 0.9)) : 0;
     this.title.x = Math.round(this.w / 2) + jitter;

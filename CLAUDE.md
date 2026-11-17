@@ -58,7 +58,8 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
 - `entities/` — `Entity` base (grid position, interpolation, view), `CharacterAnimator`,
   `Zampano`, `PropEntity`, …
 - `systems/` — gameplay rules as small, mostly pure classes (unit-tested).
-- `ui/` — `pixelFont.ts` + `pixelText.ts` (crisp bitmap text with glow/outline), HUD, touch controls.
+- `ui/` — `pixelFont.ts` + `pixelText.ts` (crisp bitmap text with glow/outline), HUD, touch controls,
+  `titleArt.ts` / `titleAnim.ts` (title portrait: the animated GIF decoded with `ImageDecoder`).
 - `fx/` — particles, popups, screen effects, glitch filter.
 - `scenes/` — `flow.ts` (title → new game / continue / options / quit; plays the 1.0 walk for the
   story), Title, Options, Confirm, Goodbye, Briefing, Game (the walk), Pause, LevelEnd, GameOver,

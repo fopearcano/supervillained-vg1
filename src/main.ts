@@ -8,6 +8,8 @@ import { SpriteViewerScene } from './scenes/spriteViewerScene';
 import type { CharacterKey } from './assets/manifest';
 import { loadPixelFont } from './ui/pixelFont';
 import { loadTitleArt } from './ui/titleArt';
+import { titleAnimation, titleStill } from './ui/titleAnim';
+import { TITLE } from './config';
 import { dirFromGridVector } from './iso/projection';
 import { CHAPTERS } from './campaign/chapters';
 import { DEFAULT_POLICY } from './story/autopilot';
@@ -40,6 +42,9 @@ async function boot(): Promise<void> {
   await buildGlobalTextures();
   await loadTitleArt();
   const game = new Game(app, canvas);
+  // Start decoding the title's animated portrait now (it plays as soon as it is ready).
+  void titleStill(Math.round(game.width * TITLE.DOG_WIDTH));
+  void titleAnimation(Math.round(game.width * TITLE.DOG_WIDTH));
   document.getElementById('boot')?.remove();
 
   const params = new URLSearchParams(location.search);
