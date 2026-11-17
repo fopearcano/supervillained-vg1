@@ -396,9 +396,8 @@ longer bullied in the Green Zone.
   Zone or medieval) starts only when the play starts. Each track resumes where it was paused
   instead of restarting from the top.
 - **Title page**: the SUPERVILLAINED logo and CRUSADER sit at the top; Zampanò's portrait
-  (`assets/starting-page-images`) over the buttons, 1/3 of the screen wide; the "You've been
-  supervillained" logo under them with a pulsing pale halo (an additive glow disappears on the
-  bright green); the blurred Green Zone behind glitches in flickering bursts with its own, mostly vertical
+  (`assets/starting-page-images`) over the buttons, 1/3 of the screen wide (the "You've been
+  supervillained" logo that sat under them moved to the end of the levels: see below); the blurred Green Zone behind glitches in flickering bursts with its own, mostly vertical
   filter (`fx/titleGlitchFilter.ts`: columns tearing up and down, a vertical RGB split, rolling,
   tall corrupted blocks, sweeping vertical bars and scanlines, a few horizontal tears). The stack
   is lowered into most of the free space above SUPERVOID EDITIONS (`TITLE.LOWER`).
@@ -430,3 +429,17 @@ brings sheets for Zampanò (new run), Bagnaskiz, Sbrimbrulon, Jack, Watson and C
   in the update and stay procedural in both versions.
 - `tests/sprites.test.ts` checks every sheet's size against the manifest layout, the old ones
   included.
+
+## "You've been supervillained" at the end of every level
+
+The logo left the title page. It now marks the end of each level, before the level's final info:
+
+- **When**: the Green Zone walk (1.0) before its score card, and every story level (1 to 8) before
+  the Professor's aside (so Level 1 has it twice: after the walk and after 1.5). Not for replays
+  of a single scene, not for the autopilot.
+- **How**: it appears at once, over the frozen last frame (dimmed): twice its size snapping down
+  to it in 0.12 s with a decaying thump, a white flash, a shake, the glitch sound with a bark, and
+  a burst of sparkle and star sprites flying out of it; a pale halo pulses behind. It holds 2.4 s
+  (a tap skips it after 0.45 s), then the final info. All numbers in `config.ts` (`SUPERVILLAINED`).
+- The title page keeps its portrait, buttons and glitch; with the logo gone the stack sits a bit
+  lower.

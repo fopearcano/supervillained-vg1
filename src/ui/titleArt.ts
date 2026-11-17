@@ -3,10 +3,10 @@ import dogUrl from '../../assets/starting-page-images/Retro-16-Bit Ivory Dog Spr
 import logoUrl from '../../assets/starting-page-images/Youve_Been_Supervillained_Logo.png?url';
 
 /**
- * Title page art (assets/starting-page-images): Zampanò's portrait over the buttons and the
- * "You've been supervillained" logo under them. The source PNGs are large; they are scaled down
- * here to the exact size the title needs on this screen (the game draws at a low logical
- * resolution), so a replaced file needs no other step.
+ * Art from assets/starting-page-images: Zampanò's portrait over the title's buttons and the
+ * "You've been supervillained" logo shown at the end of every level (SupervillainedScene). The
+ * source PNGs are large; they are scaled down here to the exact size needed on this screen (the
+ * game draws at a low logical resolution), so a replaced file needs no other step.
  */
 export interface TitleArt {
   dog: HTMLImageElement;

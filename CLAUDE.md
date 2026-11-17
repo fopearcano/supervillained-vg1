@@ -62,6 +62,7 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
 - `fx/` — particles, popups, screen effects, glitch filter.
 - `scenes/` — `flow.ts` (title → new game / continue / options / quit; plays the 1.0 walk for the
   story), Title, Options, Confirm, Goodbye, Briefing, Game (the walk), Pause, LevelEnd, GameOver,
+  `supervillainedScene.ts` (the "You've been supervillained" snap at the end of every level),
   sprite viewer. `core/native.ts`: QUIT closes the app on Android (`QuitPlugin.java`).
 - `world/world.ts` — the shared isometric stage (map + renderer + layers + camera + entities),
   used by the arcade `GameScene` and by story stages.

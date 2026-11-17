@@ -186,11 +186,13 @@ transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
 
 ## Title page art
 
-`assets/starting-page-images/` holds the two pictures of the title page (`src/ui/titleArt.ts`):
-`Retro-16-Bit Ivory Dog Sprite-3-4-front.png` (Zampanò over the buttons, 1/3 of the screen wide)
-and `Youve_Been_Supervillained_Logo.png` (under the buttons, with a pulsing glow). They are scaled
-down in the browser to the exact size each screen needs, so replacing a file (same name, PNG with
-transparency) is all it takes. Sizes and the glow/glitch tuning are in `config.ts` (`TITLE`).
+`assets/starting-page-images/` holds two pictures (`src/ui/titleArt.ts`):
+`Retro-16-Bit Ivory Dog Sprite-3-4-front.png` (Zampanò over the title's buttons) and
+`Youve_Been_Supervillained_Logo.png`, which is not on the title page: it snaps in at the end of
+every level, before the final info (`src/scenes/supervillainedScene.ts`). They are scaled down in
+the browser to the exact size each screen needs, so replacing a file (same name, PNG with
+transparency) is all it takes. Tuning in `config.ts`: `TITLE` (portrait, glitch) and
+`SUPERVILLAINED` (size, snap, flash, shake, glow, sprite burst, hold time).
 
 ## App icon and logo
 

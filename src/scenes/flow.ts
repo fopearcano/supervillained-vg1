@@ -7,6 +7,7 @@ import { finalHealth, starBonus, starsFromHealth, timeBonus } from '../systems/s
 import type { LevelDef } from '../world/level';
 import { bindGameAudio } from '../fx/gameAudio';
 import { GameScene } from './gameScene';
+import { SupervillainedScene } from './supervillainedScene';
 import {
   BriefingScene,
   ConfirmScene,
@@ -315,7 +316,12 @@ export class Flow {
       quit: () => this.quitToTitle(),
     });
     end.onStar = (k) => this.game.audio.play('star', { rate: 1 + k * 0.12 });
-    this.game.scenes.push(end);
+    // "You've been supervillained" snaps in first, then the score.
+    const sv = new SupervillainedScene(this.game, () => {
+      this.game.scenes.remove(sv);
+      this.game.scenes.push(end);
+    });
+    this.game.scenes.push(sv);
   }
 
   private gameOver(scene: GameScene): void {

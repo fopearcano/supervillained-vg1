@@ -7,6 +7,7 @@ import { C } from '../ui/retro';
 import { BookScene, StoryCardScene, StoryChapterScene, StoryMenuScene, StoryPauseScene } from './screens';
 import { Autopilot, type PilotPolicy } from './autopilot';
 import { StoryScene } from './storyScene';
+import { SupervillainedScene } from '../scenes/supervillainedScene';
 
 /**
  * Story flow: menu → level card → sub-level card → sub-level → … → the Professor's aside →
@@ -213,9 +214,9 @@ export class StoryFlow {
       const nextCh = CHAPTERS.find((c) => c.number === ch.number + 1);
       return this.glitch(() => (nextCh ? this.showSub(nextCh, nextCh.subLevels[0]!, true) : this.showEnding()));
     }
-    // End of the level: the Professor's aside.
+    // End of the level: "You've been supervillained" snaps in, then the Professor's aside.
     this.reading();
-    this.glitch(() =>
+    this.supervillained(() =>
       this.game.scenes.replaceAll(
         new StoryCardScene(
           this.game,
@@ -233,6 +234,16 @@ export class StoryFlow {
         ),
       ),
     );
+  }
+
+  /**
+   * The end of a level: the "You've been supervillained" logo over the frozen last scene (menus
+   * opened over it are closed first), then a glitch into `next`.
+   */
+  private supervillained(next: () => void): void {
+    const scenes = this.game.scenes;
+    while (scenes.all.length > 1 && !(scenes.top instanceof StoryScene)) scenes.pop();
+    scenes.push(new SupervillainedScene(this.game, () => this.glitch(next)));
   }
 
   private showEnding(): void {

@@ -82,22 +82,52 @@ export const ENERGY = {
 export const TITLE = {
   /** Zampanò's portrait over the buttons, as a fraction of the screen width. */
   DOG_WIDTH: 0.46,
-  /** The "You've been supervillained" logo under the buttons, as a fraction of the screen width. */
-  LOGO_WIDTH: 0.5,
   /** Share of the free space below the stack moved above it (lowers everything toward the footer). */
   LOWER: 0.75,
-  /** Glow behind the logo: alpha pulse (min, max) and its speed. */
-  GLOW_ALPHA: [0.55, 1],
-  GLOW_SPEED: 2.4,
-  /** Glow size (scale of the blurred copy) and blur strength. */
-  GLOW_SCALE: 1.1,
-  GLOW_BLUR: 6,
   /** Background glitch (mostly vertical): flickering burst strength [min, max], faint level in between. */
   GLITCH_BURST: [0.45, 1],
   GLITCH_IDLE: 0.45,
   /** Background glitch: a burst every [min, max] seconds, lasting [min, max] seconds. */
   GLITCH_EVERY: [0.9, 2.8],
   GLITCH_TIME: [0.12, 0.45],
+} as const;
+
+/**
+ * "You've been supervillained" (assets/starting-page-images): at the end of every level, before
+ * its final info (the Green Zone's score, a story level's Professor), the logo snaps in at once.
+ */
+export const SUPERVILLAINED = {
+  /** Logo width as a fraction of the screen width (and at most MAX_HEIGHT of its height). */
+  WIDTH: 0.84,
+  MAX_HEIGHT: 0.5,
+  /** Vertical centre, as a fraction of the screen height. */
+  Y: 0.44,
+  /** Dim over the frozen level behind. */
+  DIM: 0.72,
+  /** The snap: it appears SNAP_FROM times its size and shrinks to it in SNAP_TIME seconds... */
+  SNAP_FROM: 2.2,
+  SNAP_TIME: 0.12,
+  /** ...then thumps (scale wobble amplitude, frequency in rad/s, decay per second). */
+  BOUNCE: 0.12,
+  BOUNCE_FREQ: 34,
+  BOUNCE_DECAY: 9,
+  /** White flash and shake (px) at the snap. */
+  FLASH_TIME: 0.3,
+  SHAKE: 5,
+  SHAKE_TIME: 0.4,
+  /** Pulsing pale halo behind the logo: alpha (min, max), speed, size, blur. */
+  GLOW_ALPHA: [0.55, 1],
+  GLOW_SPEED: 4,
+  GLOW_SCALE: 1.08,
+  GLOW_BLUR: 6,
+  /** Burst of sparkle and star sprites out of the logo: count, speed px/s, life s, gravity px/s². */
+  SPARKS: 34,
+  SPARK_SPEED: [70, 190],
+  SPARK_LIFE: [0.55, 1.2],
+  SPARK_GRAVITY: 120,
+  /** Seconds it stays before the final info; a tap skips it after SKIP_AFTER. */
+  HOLD: 2.4,
+  SKIP_AFTER: 0.45,
 } as const;
 
 export const INPUT = {

@@ -230,6 +230,23 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** The end of a story level: the logo snaps in over the last scene, then the Professor. */
+  async levelend(browser) {
+    const page = await openGame(browser, '?story=1.5');
+    for (let guard = 0; guard < 200; guard++) {
+      const name = await page.evaluate(() => window.__sv.top().constructor.name);
+      if (name === 'SupervillainedScene') break;
+      await page.evaluate(() => window.__sv.top().debugSkip?.());
+      await wait(120);
+    }
+    await wait(700);
+    await page.screenshot({ path: `${OUT}/c1-supervillained.png` });
+    await page.waitForFunction(() => window.__sv.top().constructor.name === 'StoryCardScene', null, { timeout: 15000 });
+    await wait(1200);
+    await page.screenshot({ path: `${OUT}/c1-professor.png` });
+    await page.close();
+  },
+
   /** Sprite sheets of every character with delivered art (debug viewer), new and old versions. */
   async sprites(browser) {
     for (const c of ['zampano', 'bagnaskiz', 'sbrimbrulon', 'jack', 'watson', 'confusione', 'cat']) {
@@ -339,7 +356,14 @@ const SCENARIOS = {
       s.teleport(s.map.exit.x + 1.2, s.map.exit.y + 1.2);
     });
     await holdKeys(page, ['KeyW'], 700);
-    await wait(5200);
+    // "You've been supervillained" snaps in before the score.
+    await page.waitForFunction(() => window.__sv.top().constructor.name === 'SupervillainedScene', null, { timeout: 15000 });
+    await wait(60);
+    await page.screenshot({ path: `${OUT}/m3-supervillained-snap.png` });
+    await wait(700);
+    await page.screenshot({ path: `${OUT}/m3-supervillained.png` });
+    await page.waitForFunction(() => window.__sv.top().constructor.name === 'LevelEndScene', null, { timeout: 15000 });
+    await wait(4200);
     await page.screenshot({ path: `${OUT}/m3-level-end.png` });
     console.log('top after exit:', await page.evaluate(() => window.__sv.top().constructor.name));
     // Retry, then starve twice → game over.

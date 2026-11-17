@@ -1,4 +1,4 @@
-import { BlurFilter, Container, Graphics, Sprite } from 'pixi.js';
+import { Container, Graphics, Sprite } from 'pixi.js';
 import { TITLE } from '../config';
 import type { TitleGlitchFilter } from '../fx/titleGlitchFilter';
 import { loadTitleArt, titleTexture, type TitleArt } from '../ui/titleArt';
@@ -62,15 +62,12 @@ export interface TitleActions {
 
 /**
  * Title page over the blurred, glitching Green Zone: the SUPERVILLAINED logo and CRUSADER at the
- * top, Zampanò's portrait, NEW GAME / CONTINUE / OPTIONS / QUIT, the glowing "You've been
- * supervillained" logo under the buttons, SUPERVOID EDITIONS at the bottom.
+ * top, Zampanò's portrait, NEW GAME / CONTINUE / OPTIONS / QUIT, SUPERVOID EDITIONS at the bottom.
+ * (The "You've been supervillained" logo is kept for the end of each level: SupervillainedScene.)
  */
 export class TitleScene extends Overlay {
   /** Zampanò's portrait (title art) over the buttons. */
   private readonly dog = new Sprite();
-  /** "You've been supervillained" under the buttons, with a pulsing glow behind it. */
-  private readonly svLogo = new Sprite();
-  private readonly svGlow = new Sprite();
   private art: TitleArt | null = null;
   private burstLeft = 0;
   private nextBurst = 1;
@@ -111,11 +108,8 @@ export class TitleScene extends Overlay {
       6,
     );
     if (canContinue) this.menu.selected = 1;
-    for (const s of [this.dog, this.svLogo, this.svGlow]) s.anchor.set(0.5, 0);
-    // A pale halo (normal blending: an additive glow vanishes on the bright green behind it).
-    this.svGlow.tint = 0xfff3a0;
-    this.svGlow.filters = [new BlurFilter({ strength: TITLE.GLOW_BLUR, quality: 3, resolution: 1 })];
-    this.root.addChild(this.title, this.edition, this.dog, this.best, this.menu.root, this.svGlow, this.svLogo, this.footer);
+    this.dog.anchor.set(0.5, 0);
+    this.root.addChild(this.title, this.edition, this.dog, this.best, this.menu.root, this.footer);
     void loadTitleArt().then((art) => {
       this.art = art;
       this.layout();
@@ -132,8 +126,8 @@ export class TitleScene extends Overlay {
       this.title.anchor.set(0.5);
     }
     const cx = Math.round(w / 2);
-    // The stack, from the top: the title, CRUSADER, the portrait, the buttons, where CONTINUE goes,
-    // the logo. Laid out from y = 0, then lowered into most of the free space above the footer.
+    // The stack, from the top: the title, CRUSADER, the portrait, the buttons, where CONTINUE goes.
+    // Laid out from y = 0, then lowered into most of the free space above the footer.
     const halfTitle = Math.round(this.title.height / 2);
     let y = halfTitle + Math.round(this.title.height / 2) + 10;
     const editionY = y;
@@ -148,19 +142,7 @@ export class TitleScene extends Overlay {
     y += this.menu.height + 5;
     const bestY = y;
     y += (this.actions.continueLabel ? this.best.textHeight : 0) + 6;
-    const logoY = y;
     const bottom = h - 16;
-    if (this.art) {
-      // LOGO_WIDTH wide, but never down into SUPERVOID EDITIONS.
-      const a = this.art.logo;
-      const top0 = Math.max(18, halfTitle + 4);
-      const room = bottom - (top0 - halfTitle) - logoY;
-      const lw = Math.max(40, Math.min(Math.round(w * TITLE.LOGO_WIDTH), Math.floor((room * a.naturalWidth) / a.naturalHeight)));
-      const tex = titleTexture(a, lw);
-      this.svLogo.texture = tex;
-      this.svGlow.texture = tex;
-      y += this.svLogo.height;
-    }
     const top0 = Math.max(18, halfTitle + 4);
     const free = Math.max(0, bottom - (top0 - halfTitle) - y);
     const off = top0 + Math.round(free * TITLE.LOWER);
@@ -169,9 +151,6 @@ export class TitleScene extends Overlay {
     this.dog.position.set(cx, off + dogY - halfTitle);
     this.menu.layout(w / 2, off + menuY - halfTitle);
     this.best.position.set(cx, off + bestY - halfTitle);
-    this.svLogo.position.set(cx, off + logoY - halfTitle);
-    this.svGlow.scale.set(TITLE.GLOW_SCALE);
-    this.svGlow.position.set(cx, Math.round(off + logoY - halfTitle - (this.svGlow.height - this.svLogo.height) / 2));
     this.footer.position.set(cx, h - 6);
   }
 
@@ -184,9 +163,6 @@ export class TitleScene extends Overlay {
     this.edition.visible = this.time > 0.25;
     this.dog.visible = this.time > 0.35;
     this.menu.root.visible = this.time > 0.5;
-    this.svLogo.visible = this.svGlow.visible = this.time > 0.65;
-    const [ga, gb] = TITLE.GLOW_ALPHA;
-    this.svGlow.alpha = ga + (gb - ga) * (0.5 + 0.5 * Math.sin(this.time * TITLE.GLOW_SPEED));
     this.animateGlitch(dt);
     if (this.time > 0.6) this.menu.update(dt, this.game.input);
   }
