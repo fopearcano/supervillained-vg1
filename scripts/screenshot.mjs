@@ -376,7 +376,7 @@ const SCENARIOS = {
     await page.close();
   },
 
-  /** M3: title → NEW GAME → level card → 1.0 card → briefing → walk → pause → level end; then game over. */
+  /** M3: title → NEW GAME → the Green Zone card → briefing → walk → pause → level end; then game over. */
   async m3(browser) {
     const page = await openGame(browser, '');
     await page.evaluate(() => localStorage.removeItem('supervillained:story'));
@@ -386,11 +386,9 @@ const SCENARIOS = {
     await page.keyboard.press('Enter'); // NEW GAME
     await wait(150);
     await page.screenshot({ path: `${OUT}/m3-glitch-transition.png` });
-    await wait(1250);
-    await page.mouse.click(200, 500); // level 1 card
-    await wait(1000);
-    await page.screenshot({ path: `${OUT}/m3-walk-card.png` });
-    await page.mouse.click(200, 500); // 1.0 card
+    await wait(1650);
+    await page.screenshot({ path: `${OUT}/m3-walk-card.png` }); // the one Green Zone card (level 1)
+    await page.mouse.click(200, 500);
     await wait(1400);
     await page.screenshot({ path: `${OUT}/m3-briefing.png` });
     await page.mouse.click(200, 500);
@@ -517,9 +515,7 @@ const SCENARIOS = {
     await wait(1300);
     await page.keyboard.press('Enter'); // NEW GAME (also unlocks audio)
     await wait(1400);
-    await page.mouse.click(200, 500); // level 1 card
-    await wait(1000);
-    await page.mouse.click(200, 500); // 1.0 card
+    await page.mouse.click(200, 500); // the Green Zone card
     await wait(1400);
     await page.mouse.click(200, 500); // briefing → play
     await wait(400);
@@ -560,9 +556,9 @@ const SCENARIOS = {
     await page.waitForFunction(() => window.__sv && window.__sv.scene(), null, { timeout: 30000 });
     await wait(1300);
     await page.screenshot({ path: `${OUT}/m6-phone-title.png` });
-    // NEW GAME, the level card, the 1.0 card, the briefing: then the phone's back button pauses the walk.
+    // NEW GAME, the Green Zone card, the briefing: then the phone's back button pauses the walk.
     await page.evaluate(() => window.__sv.flow.story.newGame());
-    for (const ms of [1000, 1400, 1400]) {
+    for (const ms of [1000, 1400]) {
       await wait(ms);
       await page.touchscreen.tap(200, 500);
     }

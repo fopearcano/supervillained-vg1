@@ -82,3 +82,13 @@ describe('COUCH: play time and save date', () => {
     expect(formatSavedAt(new Date(2025, 0, 3, 9, 5).getTime(), now)).toBe('3 JAN 2025');
   });
 });
+
+describe('names in the card texts', () => {
+  it('colors whole-word names (and their possessive), not other words', async () => {
+    const { withNames } = await import('../src/story/names');
+    const spans = withNames("AND BARK AWAY BAGNASKIZ. ZAMPANO'S JACKET, PIERRE D'AMIENS.", '#fff', '#ff0');
+    const yellow = spans.filter((s) => s.color === '#ff0').map((s) => s.text);
+    expect(yellow).toEqual(['BAGNASKIZ', "ZAMPANO'S", 'PIERRE', "D'AMIENS"]);
+    expect(spans.map((s) => s.text).join('')).toBe("AND BARK AWAY BAGNASKIZ. ZAMPANO'S JACKET, PIERRE D'AMIENS.");
+  });
+});

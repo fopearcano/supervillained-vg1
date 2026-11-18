@@ -7,6 +7,7 @@ import { C } from '../ui/retro';
 import { BookScene, StoryCardScene, StoryChapterScene, StoryMenuScene, StoryPauseScene } from './screens';
 import { Autopilot, type PilotPolicy } from './autopilot';
 import { StoryScene } from './storyScene';
+import { withNames } from './names';
 import { SupervillainedScene } from '../scenes/supervillainedScene';
 
 /**
@@ -145,6 +146,25 @@ export class StoryFlow {
   private showSub(ch: ChapterDef, sub: SubLevelDef, withChapterCard: boolean): void {
     if (this.autopilot) return this.startSub(ch, sub);
     this.reading();
+    const start = () => this.glitch(() => this.startSub(ch, sub));
+    const replayNote = this.replaying ? [{ text: 'REPLAY: THE CAMPAIGN WILL NOT CHANGE', color: C.cyan }] : [];
+    // The Green Zone walk (1.0): one page, the level and what the walk is.
+    if (sub.greenZone) {
+      this.game.scenes.replaceAll(
+        new StoryCardScene(
+          this.game,
+          0x140a24,
+          [
+            { text: `LEVEL ${ch.number}`, color: C.hotPink, scale: 3, gap: 6 },
+            { text: ch.title, color: C.green, scale: 2, gap: 16 },
+            { text: withNames(sub.happens, C.white), color: C.white, gap: 12 },
+            ...replayNote,
+          ],
+          start,
+        ),
+      );
+      return;
+    }
     const subCard = () =>
       this.game.scenes.replaceAll(
         new StoryCardScene(
@@ -153,14 +173,15 @@ export class StoryFlow {
           [
             { text: sub.blackHole ? 'BLACK HOLE' : `LEVEL ${ch.number}`, color: sub.blackHole ? '#b070ff' : '#9aa4c0' },
             { text: `${sub.id} ${sub.title.toUpperCase()}`, color: C.yellow, scale: 1, gap: 14 },
-            { text: sub.happens, color: C.white, gap: 14 },
+            { text: withNames(sub.happens, C.white), color: C.white, gap: 14 },
             { text: `SOURCE: ${sub.source}`, color: '#7a84a0', gap: this.replaying ? 12 : 8 },
-            ...(this.replaying ? [{ text: 'REPLAY: THE CAMPAIGN WILL NOT CHANGE', color: C.cyan }] : []),
+            ...replayNote,
           ],
-          () => this.glitch(() => this.startSub(ch, sub)),
+          start,
         ),
       );
     if (!withChapterCard) return subCard();
+    // The level card (the cast list in the chapter data is design information, not shown).
     this.game.scenes.replaceAll(
       new StoryCardScene(
         this.game,
@@ -168,8 +189,7 @@ export class StoryFlow {
         [
           { text: `LEVEL ${ch.number}`, color: C.hotPink, scale: 3, gap: 6 },
           { text: ch.title, color: C.green, scale: 2, gap: 16 },
-          { text: ch.intro, color: C.white, gap: 12 },
-          { text: `CAST: ${ch.cast}`, color: C.cyan },
+          { text: withNames(ch.intro, C.white), color: C.white },
         ],
         () => this.glitch(subCard),
       ),
@@ -226,7 +246,7 @@ export class StoryFlow {
           [
             { text: '', portrait: true, gap: 10 },
             { text: ch.professor.after ? `THE PROFESSOR (AFTER ${ch.professor.after})` : 'THE PROFESSOR', color: '#f0d8a0', gap: 12 },
-            { text: ch.professor.text, color: C.white, align: 'justify' },
+            { text: withNames(ch.professor.text, C.white), color: C.white, align: 'justify' },
           ],
           () => {
             const nextCh = CHAPTERS.find((c) => c.number === ch.number + 1);
@@ -262,8 +282,8 @@ export class StoryFlow {
         0x000000,
         [
           { text: e === 'knight' ? 'THE KNIGHT' : 'THE WITNESS', color: e === 'knight' ? C.cyan : '#c8a0ff', scale: 2, gap: 14 },
-          { text: lines, color: C.white, align: 'justify', gap: 10 },
-          { text: endingNotes(this.state).join(' '), color: '#c8c0e0', align: 'justify', gap: 14 },
+          { text: withNames(lines, C.white), color: C.white, align: 'justify', gap: 10 },
+          { text: withNames(endingNotes(this.state).join(' '), '#c8c0e0'), color: '#c8c0e0', align: 'justify', gap: 14 },
           { text: `VALUES: ${this.state.book.values.length}  MARVELS: ${this.state.book.marvels.length}`, color: C.yellow, gap: 6 },
           { text: `SUPERVILLAIN ${this.state.meters.supervillain}  GRACE ${this.state.meters.grace}`, color: C.pink, gap: 16 },
           { text: 'THE END', color: C.green, scale: 2 },

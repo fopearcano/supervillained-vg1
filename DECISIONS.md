@@ -512,3 +512,13 @@ exactly.
 - **SUPERVOID EDITIONS** lost its underline (it is still a link) and glows slowly: a blurred,
   outlined pale-green copy behind it breathes in and out (about 5 s per breath).
   Tuning: `TITLE.TEXT_GLITCH_*`, `TITLE.FOOTER_GLOW_*`.
+
+## Story cards: no design notes, one Green Zone page, names in yellow
+
+- The level card no longer shows `CAST: ...`: the chapter's `cast` field is design information
+  (who plays whom), kept in the data and the bible, not shown in the game.
+- The Green Zone walk (1.0) has a single presentation page: LEVEL 1, THE GREENZONE and what the
+  walk is (the scene's text), then the rules briefing. The level's own intro and the separate 1.0
+  card (with its SOURCE line) are not shown for it.
+- Names in the card texts (level intros, scene cards, the Professor, the ending) are yellow:
+  the cast and the historical people, not places (`story/names.ts`, `NAMES`).

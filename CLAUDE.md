@@ -81,6 +81,7 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   `screens.ts` (story menu, level's sub-level list, cards, pause, Meraviglia book), `storyFlow.ts`
   (menu → cards → sub-level → Professor aside → ending; saves progress; replays on a copy),
   `maps.ts` (story stages + palettes/themes), `carry.ts` (what he carries, shown over his head),
+  `names.ts` (names shown in yellow in the card texts),
   `autopilot.ts` (automated player: steps and
   mini-games implement an optional `pilot()` that drives the real inputs).
 - `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
