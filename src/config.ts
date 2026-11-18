@@ -399,8 +399,14 @@ export const AUDIO = {
   DEFAULT_VOLUME: 0.7,
   /** Synthesized music (the dream's medieval loop). */
   MUSIC_VOLUME: 0.32,
-  /** Recorded music (intro, Green Zone). */
+  /** Recorded music (intro, Green Zone, levels 2-4). */
   MUSIC_FILE_VOLUME: 0.55,
+  /**
+   * Per-track loudness trims for the recorded music (1 = as recorded), to match the Green Zone
+   * track's average level (about -16.5 dB): level 2 is mastered 4.7 dB louder, level 3 1.5 dB,
+   * level 4 6 dB.
+   */
+  MUSIC_FILE_GAIN: { level2: 0.58, level3: 0.84, level4: 0.5 } as Partial<Record<string, number>>,
   SFX_VOLUME: 0.9,
   /** Per-file loudness trims for the recorded sounds (1 = as recorded). */
   FILE_GAIN: { coin: 2.4, laser: 1.3, poop: 1.2, meow: 1.1, siren: 0.6 } as Partial<Record<string, number>>,

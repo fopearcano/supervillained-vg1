@@ -6,7 +6,7 @@ import { renderSound } from './synth';
 
 const SFX_RATE = 22050;
 const MUSIC_RATE = 22050;
-/** 'intro' and 'greenzone' are recorded (streamed); 'medieval' is synthesized for the dream. */
+/** Recorded tracks are streamed (intro, Green Zone, levels 2-4); 'medieval' is synthesized for the other dream levels. */
 export type MusicTrack = FileMusicTrack | 'medieval';
 
 interface Clip {
@@ -219,7 +219,7 @@ export class AudioEngine {
     if (this.music && this.ctx) this.music.gain.setTargetAtTime(this.musicLevel(), this.ctx.currentTime, 0.15);
   }
 
-  /** Switches the music: 'intro' (title, menus), 'greenzone' (Green Zone), 'medieval' (the dream). */
+  /** Switches the music: 'intro' (reading screens), a level's own track, 'medieval' (the other dream levels). */
   setTrack(track: MusicTrack): void {
     if (track === this.track) return;
     const wasPlaying = this.musicSource !== null || this.playingElement !== null;
@@ -251,7 +251,10 @@ export class AudioEngine {
       el = new Audio(MUSIC_FILES[this.track]);
       el.loop = true;
       el.preload = 'auto';
-      ctx.createMediaElementSource(el).connect(this.music);
+      // Per-track loudness trim (the level tracks are mastered louder than the Green Zone's).
+      const trim = ctx.createGain();
+      trim.gain.value = AUDIO.MUSIC_FILE_GAIN[this.track] ?? 1;
+      ctx.createMediaElementSource(el).connect(trim).connect(this.music);
       this.elements.set(this.track, el);
     }
     // Each track picks up where it was paused: switching between the intro (reading screens) and

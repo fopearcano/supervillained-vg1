@@ -31,7 +31,7 @@ export interface ChapterDef {
   cast: string;
   theme: ThemeKey;
   /** Music for the chapter. */
-  music: 'greenzone' | 'medieval';
+  music: 'greenzone' | 'level2' | 'level3' | 'level4' | 'medieval';
   subLevels: SubLevelDef[];
   /** The Professor's aside after the level. */
   professor: { text: string; after?: string };

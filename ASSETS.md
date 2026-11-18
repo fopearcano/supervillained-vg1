@@ -177,6 +177,9 @@ offline. Each file is wired in `src/fx/audioFiles.ts`:
 |------|-----------|
 | `music/intro-music.mp3` | every reading screen: title, options, level and scene cards, the walk's briefing and score, the Professor's asides, the ending |
 | `music/greenzone-music.mp3` | only while playing in the Green Zone: the 1.0 walk and the scenes of levels 1 and 8 |
+| `music/Level-2_SLY-Disco-Weapon.mp3` | while playing the scenes of level 2 (On the edge of dreams) |
+| `music/Level-3_HM-Plenty-Good-Lovin.mp3` | while playing the scenes of level 3 (Venice) |
+| `music/Level-4_CRI-Brother-Sister-(RM-Remix).mp3` | while playing the scenes of level 4 (The sea) |
 | `sounds/dog-bark.mp3` | Zampanò barks (arcade and story) |
 | `sounds/food-collect.mp3` | a treat is eaten (TREATS +1); story pickups |
 | `sounds/poos.mp3` | a poop (POOPS +1) |
@@ -190,8 +193,10 @@ offline. Each file is wired in `src/fx/audioFiles.ts`:
 | `sounds/laser-eyes.mp3` | Bagnaskiz knocks Zampanò |
 
 Leading silence is skipped automatically, and per-file loudness trims are in `config.ts`
-(`AUDIO.FILE_GAIN`). To replace a sound, overwrite the file with the same name (mp3 or wav). The
-dream levels (2 to 7) keep the synthesized medieval loop, and interface sounds (clicks, glitch
+(`AUDIO.FILE_GAIN`; music: `AUDIO.MUSIC_FILE_GAIN`, which brings the louder level tracks down to
+the Green Zone track's level). To replace a sound, overwrite the file with the same name (mp3 or
+wav). A level's music is its chapter's `music` (`src/campaign/chapters/chN.ts`). Levels 5 to 7
+keep the synthesized medieval loop, and interface sounds (clicks, glitch
 transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
 
 ## Title page art

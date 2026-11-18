@@ -570,3 +570,12 @@ done here, with these choices:
 - The buttons and INSERT BRAIN then rose by one more button's space (`TITLE.BUTTONS_RAISE`), towards
   the portrait, which stays where it was (it only shrinks or moves up if a short screen leaves no
   room).
+
+## Music for levels 2, 3 and 4
+
+Three recorded tracks (uploaded to main, `assets/music/Level-N_...mp3`) play while the scenes of
+their level are played, like the Green Zone track in levels 1 and 8; the reading screens keep the
+intro music and levels 5 to 7 the synthesized medieval loop. They are mastered louder than the
+Green Zone track (by 4.7, 1.5 and 6 dB on average), so each gets a gain trim
+(`AUDIO.MUSIC_FILE_GAIN`) through its own gain node. They are long (about 6 minutes) and at up to
+320 kbit/s; the three files add about 38 MB to the app.

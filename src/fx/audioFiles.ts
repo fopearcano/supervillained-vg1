@@ -1,5 +1,8 @@
 import greenzoneMusic from '../../assets/music/greenzone-music.mp3?url';
 import introMusic from '../../assets/music/intro-music.mp3?url';
+import level2Music from '../../assets/music/Level-2_SLY-Disco-Weapon.mp3?url';
+import level3Music from '../../assets/music/Level-3_HM-Plenty-Good-Lovin.mp3?url';
+import level4Music from '../../assets/music/Level-4_CRI-Brother-Sister-(RM-Remix).mp3?url';
 import alarm from '../../assets/sounds/alarm-greenzone-under-attack.mp3?url';
 import ball from '../../assets/sounds/ball.mp3?url';
 import cash from '../../assets/sounds/cash-after-cat.mp3?url';
@@ -52,6 +55,12 @@ export const MUSIC_FILES = {
   intro: introMusic,
   /** Green Zone gameplay (arcade) and the Greenzone levels of the story. */
   greenzone: greenzoneMusic,
+  /** Level 2, On the edge of dreams. */
+  level2: level2Music,
+  /** Level 3, Venice. */
+  level3: level3Music,
+  /** Level 4, The sea. */
+  level4: level4Music,
 } as const;
 
 export type FileMusicTrack = keyof typeof MUSIC_FILES;
