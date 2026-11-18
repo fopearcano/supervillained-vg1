@@ -45,6 +45,17 @@ export class Menu {
     }
   }
 
+  /** Number of buttons. */
+  get count(): number {
+    return this.rows.length;
+  }
+
+  /** A button's rectangle (after layout). */
+  rowRect(i: number): { x: number; y: number; w: number; h: number } {
+    const r = this.rows[i]!;
+    return { x: r.x, y: r.y, w: r.w, h: r.h };
+  }
+
   get height(): number {
     return this.rows.length * this.itemH + Math.max(0, this.rows.length - 1) * this.gap;
   }

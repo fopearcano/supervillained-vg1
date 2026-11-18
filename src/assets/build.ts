@@ -17,12 +17,8 @@ import {
   spriteName,
   textureName,
   RUN_ICON,
-  artAtLeast,
-  sheetSetFor,
   type AnimName,
-  type ArtVersion,
   type CharacterDef,
-  type SheetSet,
   type SpriteDef,
   type SpriteKey,
 } from './manifest';
@@ -38,16 +34,9 @@ import {
  * is generated on demand, synchronously (ensureCharacters).
  */
 const BOOT_CHARACTERS = [
-  ...new Set(['zampano', 'bagnaskiz', 'cat', ...Object.values(CHARACTERS as Record<string, CharacterDef>).filter((d) => d.sheets?.length).map((d) => d.key)]),
+  ...new Set(['zampano', 'bagnaskiz', 'cat', ...Object.values(CHARACTERS as Record<string, CharacterDef>).filter((d) => d.sheet).map((d) => d.key)]),
 ];
 const builtCharacters = new Set<string>();
-
-/** Which art version the characters show (Options > ART); see CharacterDef.sheets. */
-let art: ArtVersion = 'new';
-
-export function artVersion(): ArtVersion {
-  return art;
-}
 
 /** Anims the procedural art never had (it shows idle frames for them). */
 const NEW_ONLY_ANIMS: ReadonlySet<AnimName> = new Set(['tired']);
@@ -71,11 +60,6 @@ function characterEntries(def: CharacterDef): AtlasEntry[] {
   return entries;
 }
 
-/** The sheet set of a character in the current art version (null = procedural). */
-function sheetFor(def: CharacterDef): SheetSet | null {
-  return sheetSetFor(def, art);
-}
-
 /** Makes sure the given characters have textures (loads their sheet or generates placeholders). */
 export async function ensureCharacters(keys: Iterable<string>): Promise<void> {
   const entries: AtlasEntry[] = [];
@@ -84,28 +68,15 @@ export async function ensureCharacters(keys: Iterable<string>): Promise<void> {
     const def = (CHARACTERS as Record<string, CharacterDef>)[key];
     if (!def) continue;
     builtCharacters.add(key);
-    if (sheetFor(def) && (await loadCharacterSheet(def))) continue;
+    if (def.sheet && (await loadCharacterSheet(def))) continue;
     entries.push(...characterEntries(def));
   }
   if (entries.length) packAtlas(entries, textures, 'cast');
 }
 
-/**
- * Switches the art version and rebuilds the characters already built (sprites pick the new
- * textures up on their next animation frame).
- */
-export async function setArtVersion(v: ArtVersion): Promise<void> {
-  if (v === art && builtCharacters.size) return;
-  art = v;
-  const built = [...builtCharacters];
-  builtCharacters.clear();
-  await ensureCharacters(built);
-  await loadRunIcon();
-}
-
-/** The RUN button icon (from update 1 on), or null (old art / missing: the chevrons drawn in code). */
+/** The RUN button icon, or null (missing: the chevrons drawn in code). */
 export function runIconTexture(): Texture | null {
-  return artAtLeast(art, 'v1') && textures.has('runIcon_0') ? textures.get('runIcon_0') : null;
+  return textures.has('runIcon_0') ? textures.get('runIcon_0') : null;
 }
 
 async function loadRunIcon(): Promise<void> {
@@ -124,7 +95,7 @@ export async function buildGlobalTextures(): Promise<void> {
   for (const key of BOOT_CHARACTERS) {
     const def = (CHARACTERS as Record<string, CharacterDef>)[key]!;
     builtCharacters.add(key);
-    if (sheetFor(def) && (await loadCharacterSheet(def))) continue;
+    if (def.sheet && (await loadCharacterSheet(def))) continue;
     entries.push(...characterEntries(def));
   }
   await loadRunIcon();
@@ -223,14 +194,13 @@ export function buildLevelTextures(pal: Palette): void {
 }
 
 async function loadCharacterSheet(def: CharacterDef): Promise<boolean> {
-  const set = sheetFor(def)!;
-  const path = set.sheet;
+  const path = def.sheet!;
   const sheet = await tryLoadTexture(path);
   if (!sheet) {
     console.warn(`[assets] could not load ${path}, using placeholder for ${def.key}`);
     return false;
   }
-  const own = set.animSheets ?? {};
+  const own = def.animSheets ?? {};
   const rows = Math.floor(sheet.frame.height / def.frameH);
   const cut = (src: Texture, anim: AnimName, dir: (typeof SHEET_DIRS)[number], f: number, row: number, col: number) =>
     textures.set(

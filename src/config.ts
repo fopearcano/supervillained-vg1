@@ -96,6 +96,13 @@ export const TITLE = {
   DOG_MENU_GAP: 6,
   INSERT_BRAIN_GAP: 12,
   BLOCK_MIN_MARGIN: 8,
+  /** A slow glint across one of the buttons, here and there: every [min, max] s, crossing in SHINE_TIME s. */
+  SHINE_EVERY: [1.4, 3.6],
+  SHINE_TIME: 1.6,
+  /** The glint: a slanted light band, its width and slant (px), and its strength. */
+  SHINE_WIDTH: 14,
+  SHINE_SLANT: 7,
+  SHINE_ALPHA: 0.45,
   /** INSERT BRAIN (with the lives counter) and SPEED FOR LIVES under it: blink cycle, seconds (shown 60%). */
   INSERT_BRAIN_BLINK: 1,
   /** Glitch on the title's lettering: a burst every [min, max] s, lasting [min, max] s. */

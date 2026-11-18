@@ -619,3 +619,15 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
   centered between CRUSADER and SUPERVOID EDITIONS, measured from the dog's visible top (the
   frame's transparent crop margin is left out): the same space above and below it, the title
   where it was. On short screens the portrait shrinks to keep at least `TITLE.BLOCK_MIN_MARGIN`.
+
+## Only the latest art; shining buttons
+
+- The game now ships only the latest delivered art: OPTIONS > ART and the `?art=` debug parameter
+  are gone, and so are the old version's still portrait on the title. The replaced art (the frozen
+  procedural sheets and update 1's Zampanò) moved to `art-archive/` (kept, not bundled), with the
+  `sprites:old` export script that made them. The procedural generator stays: it still draws the
+  cast without delivered sheets. Dialogue name colors follow the delivered art (Sbrimbrulon rust,
+  Jack pink, Confusione orange). A saved `art` setting is simply ignored.
+- The title's buttons shine now and then: every 1.4 to 3.6 s a slow slanted light band (with a
+  thinner streak behind it) crosses one button, inside its frame, never the same button twice in a
+  row (`TITLE.SHINE_*`).

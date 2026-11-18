@@ -302,16 +302,12 @@ const SCENARIOS = {
     await page.close();
   },
 
-  /** Sprite sheets of every character with delivered art (debug viewer), in each art version. */
+  /** Sprite sheets of every character with delivered art (debug viewer). */
   async sprites(browser) {
-    // NEW = sprite update 2, v1 = update 1, old = the procedural art (only where they differ).
-    const versions = { zampano: ['new', 'v1', 'old'], zampanoCross: ['new', 'old'], zampanoKnight: ['new', 'old'], cat: ['new'] };
     for (const c of ['zampano', 'zampanoCross', 'zampanoKnight', 'bagnaskiz', 'sbrimbrulon', 'jack', 'watson', 'confusione', 'cat']) {
-      for (const art of versions[c] ?? ['new', 'old']) {
-        const page = await openGame(browser, `?debug=sprites&char=${c}&art=${art}`);
-        await page.screenshot({ path: `${OUT}/sprites-${c}${art === 'new' ? '' : '-' + art}.png` });
-        await page.close();
-      }
+      const page = await openGame(browser, `?debug=sprites&char=${c}`);
+      await page.screenshot({ path: `${OUT}/sprites-${c}.png` });
+      await page.close();
     }
   },
   /** M1: walking up the path, then standing behind a tree (occlusion fade). */

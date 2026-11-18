@@ -1,9 +1,9 @@
 import { Container, Graphics, Sprite, Texture } from 'pixi.js';
-import { artVersion, ensureCharacters } from '../assets/build';
+import { ensureCharacters } from '../assets/build';
 import { STORY } from '../config';
 import { textures } from '../core/assets';
 import type { Input } from '../core/input';
-import { artAtLeast, spriteName, textureName, CHARACTERS, type CharacterKey } from '../assets/manifest';
+import { spriteName, textureName, CHARACTERS, type CharacterKey } from '../assets/manifest';
 import type { CampaignState } from '../campaign/state';
 import { PixelText } from '../ui/pixelText';
 import { C, frameRect, hex, retroBox } from '../ui/retro';
@@ -11,14 +11,14 @@ import { C, frameRect, hex, retroBox } from '../ui/retro';
 /** Speaker names, colors and portraits. */
 export const SPEAKERS: Record<string, { name: string; color: string; portrait: CharacterKey | 'professor' | null }> = {
   zampano: { name: 'ZAMPANO', color: C.white, portrait: 'zampano' },
-  sbrimbrulon: { name: 'SBRIMBRULON', color: '#f6d890', portrait: 'sbrimbrulon' },
+  sbrimbrulon: { name: 'SBRIMBRULON', color: '#e08848', portrait: 'sbrimbrulon' },
   bagnaskiz: { name: 'BAGNASKIZ', color: C.orange, portrait: 'bagnaskiz' },
   marshal: { name: 'THE MARSHAL', color: C.orange, portrait: 'bagnaskizMarshal' },
   emperor: { name: 'THE USURPER', color: '#c070f0', portrait: 'bagnaskizEmperor' },
-  jack: { name: 'JACK', color: '#f0b060', portrait: 'jack' },
+  jack: { name: 'JACK', color: '#ff8ab8', portrait: 'jack' },
   watson: { name: 'WATSON', color: '#d8d4c8', portrait: 'watson' },
   santina: { name: 'SANTINA', color: C.hotPink, portrait: 'santina' },
-  confusione: { name: 'CONFUSIONE', color: '#b8b8c8', portrait: 'confusione' },
+  confusione: { name: 'CONFUSIONE', color: '#ffa040', portrait: 'confusione' },
   professor: { name: 'THE PROFESSOR', color: '#f0d8a0', portrait: 'professor' },
   doge: { name: 'THE DOGE', color: '#e8c048', portrait: 'doge' },
   king: { name: 'THE SAINTLY KING', color: '#8ab0ff', portrait: 'king' },
@@ -40,20 +40,8 @@ export const SPEAKERS: Record<string, { name: string; color: string; portrait: C
   knight: { name: 'A KNIGHT', color: '#d0d8e8', portrait: 'knight' },
 };
 
-/**
- * Name colors matching the new art (sprite update 1); SPEAKERS keeps the colors of the old art
- * (OPTIONS > ART: OLD).
- */
-const NEW_ART_COLORS: Record<string, string> = {
-  sbrimbrulon: '#e08848', // tricolour: the rust streaks
-  jack: '#ff8ab8', // black chihuahua: the pink-lined ears
-  confusione: '#ffa040', // orange tabby
-};
-
 export function speakerOf(key: string): { name: string; color: string; portrait: CharacterKey | 'professor' | null } {
-  const sp = SPEAKERS[key] ?? { name: key.toUpperCase(), color: C.white, portrait: null };
-  const color = artAtLeast(artVersion(), 'v1') ? NEW_ART_COLORS[key] : undefined;
-  return color ? { ...sp, color } : sp;
+  return SPEAKERS[key] ?? { name: key.toUpperCase(), color: C.white, portrait: null };
 }
 
 export interface ChoiceView {

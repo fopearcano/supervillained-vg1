@@ -45,22 +45,12 @@ describe('settings, records and coins', () => {
     (globalThis as { localStorage?: unknown }).localStorage = new MemoryStorage();
   });
 
-  it('persists mute, volume, text speed and art version', () => {
+  it('persists mute, volume, text speed and lives', () => {
     expect(loadSettings().muted).toBe(false);
     expect(loadSettings().textSpeed).toBe('normal');
-    expect(loadSettings().art).toBe('new');
-    saveSettings({ muted: true, volume: 0.3, textSpeed: 'fast', art: 'old', lives: 5 });
-    expect(loadSettings()).toEqual({ muted: true, volume: 0.3, textSpeed: 'fast', art: 'old', lives: 5 });
-  });
-
-  it('keeps update 1 as a choice', () => {
-    saveSettings({ muted: false, volume: 0.7, textSpeed: 'normal', art: 'v1', lives: 2 });
-    expect(loadSettings().art).toBe('v1');
-  });
-
-  it('falls back to the new art for unknown versions', () => {
-    localStorage.setItem('supervillained:settings', JSON.stringify({ art: 'v9' }));
-    expect(loadSettings().art).toBe('new');
+    expect(loadSettings().lives).toBe(2);
+    saveSettings({ muted: true, volume: 0.3, textSpeed: 'fast', lives: 5 });
+    expect(loadSettings()).toEqual({ muted: true, volume: 0.3, textSpeed: 'fast', lives: 5 });
   });
 
   it('falls back to normal text speed for unknown values', () => {

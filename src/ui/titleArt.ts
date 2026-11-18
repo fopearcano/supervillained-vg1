@@ -1,16 +1,13 @@
 import { Texture } from 'pixi.js';
-// A 384-px copy of the still portrait (shown at most ~124 px wide); the original is kept beside it.
-import dogUrl from '../../assets/starting-page-images/app/Retro-16-Bit Ivory Dog Sprite-3-4-front-384.png?url';
 import logoUrl from '../../assets/starting-page-images/Youve_Been_Supervillained_Logo.png?url';
 
 /**
- * Art from assets/starting-page-images: Zampanò's portrait over the title's buttons and the
- * "You've been supervillained" logo shown at the end of every level (SupervillainedScene). The
- * source PNGs are large; they are scaled down here to the exact size needed on this screen (the
- * game draws at a low logical resolution), so a replaced file needs no other step.
+ * Art from assets/starting-page-images: the "You've been supervillained" logo shown at the end of
+ * every level (SupervillainedScene). The source PNG is large; it is scaled down here to the exact
+ * size needed on this screen (the game draws at a low logical resolution), so a replaced file
+ * needs no other step. (The title's animated portrait is ui/titleAnim.ts.)
  */
 export interface TitleArt {
-  dog: HTMLImageElement;
   logo: HTMLImageElement;
 }
 
@@ -25,10 +22,10 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Loads both images once (null if they are missing: the title then simply goes without). */
+/** Loads the image once (null if it is missing: the level end then goes straight on). */
 export function loadTitleArt(): Promise<TitleArt | null> {
-  loading ??= Promise.all([loadImage(dogUrl), loadImage(logoUrl)])
-    .then(([dog, logo]) => ({ dog, logo }))
+  loading ??= loadImage(logoUrl)
+    .then((logo) => ({ logo }))
     .catch((err) => {
       console.warn('[title art]', err);
       return null;

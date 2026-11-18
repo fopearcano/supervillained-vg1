@@ -9,58 +9,37 @@ manifest are relative to `public/`, e.g. `sheet: 'sprites/zampano.png'` → `pub
 If a file is missing or broken the placeholder is used and a warning is printed in the console.
 
 Tip: open the game with `?debug=sprites&char=zampano` (or `bagnaskiz`, `cat`, any cast key) to
-see every animation and direction of a character playing side by side; add `&art=v1` or `&art=old`
-for an older art version (below).
+see every animation and direction of a character playing side by side.
 
-## Delivered art and the art versions
+## Delivered art
 
-Three art versions, oldest first; **OPTIONS > ART** cycles NEW → UPDATE 1 → OLD (saved, applied at
-once; `?art=new|v1|old` forces one for a test). **Nothing replaced is ever deleted**: each delivery
-moves the files it replaces into the folder of the version they belong to.
+The game ships only the latest delivered art (sprite update 2 over update 1, in `public/sprites/`);
+the art each delivery replaced is kept in `art-archive/` (not bundled). Both zips are kept at the
+repo root as delivered.
 
-| version | where | what |
+| file in `public/sprites/` | size | what it is |
 |---|---|---|
-| **OLD** | `public/sprites/old/` | the procedural art the game shipped with, frozen as PNGs by `npm run sprites:old` (drawn by the game's own generator, `src/assets/placeholders/`, also kept); the RUN chevrons (`runIcon.png`, 7 × 5) |
-| **UPDATE 1** | `public/sprites/v1/` + the update-1 files still in use | sprite update 1 (`Supervillained-vg1-sprite-update-1.zip`) |
-| **NEW** | `public/sprites/` | sprite update 2 (`Supervillained-vg1-sprite-update-2.zip`) over update 1 |
+| `zampano.png`, `zampano-tired.png` | 160 × 3200, 80 × 320 | Zampanò, all 10 animations + tired (update 2) |
+| `zampanoCross.png`, `zampanoCross-tired.png` | 160 × 3200, 80 × 320 | with the rag cross, worn from 1.5 (update 2) |
+| `zampanoKnight.png`, `zampanoKnight-tired.png` | 160 × 3200, 80 × 320 | with tabard and steel helm, from 2.5 (update 2) |
+| `bagnaskiz.png` | 160 × 1600 | fawn pug, black ears, yellow eyes (update 1) |
+| `sbrimbrulon.png` | 160 × 1600 | long-haired tricolour Shih-tzu (update 1) |
+| `jack.png` | 160 × 1600 | black chihuahua, pink-lined ears (update 1) |
+| `watson.png` | 160 × 1600 | white-and-orange Jack Russell, teal cap, cigar (update 1) |
+| `confusione.png` | 160 × 1600 | orange tabby fighting cat (update 1) |
+| `runIcon.png` | 13 × 11 | the RUN button's double chevron (update 1) |
 
-Both zips are kept at the repo root as delivered.
-
-**Sprite update 1** replaced the procedural art of six characters and added the RUN icon:
-`zampano.png` (only the **run** rows new; the rest the old art) and `zampano-tired.png` (the new
-**tired** animation: standing still after running out of energy), both now in `sprites/v1/`;
-`bagnaskiz.png` (fawn pug, black ears, yellow eyes), `sbrimbrulon.png` (long-haired tricolour
-Shih-tzu), `jack.png` (black chihuahua, pink-lined ears), `watson.png` (white-and-orange Jack
-Russell, teal cap, cigar), `confusione.png` (orange tabby fighting cat) and `runIcon.png` (13 × 11),
-still in `sprites/` (update 2 kept them unchanged).
-
-**Sprite update 2** (in `sprites/`) completes Zampanò and his two dream costumes, all with the
-same 10 animations (160 × 3200) plus a tired sheet each (80 × 320):
-
-| file | what it is |
-|---|---|
-| `zampano.png`, `zampano-tired.png` | the complete new Zampanò (fluffy ivory Maltese) |
-| `zampanoCross.png`, `zampanoCross-tired.png` | with the rag cross sewn on his coat (worn from 1.5) |
-| `zampanoKnight.png`, `zampanoKnight-tired.png` | with the white tabard and red cross and a big steel helm (from 2.5); the helm slips over his eyes when he sniffs or eats |
-
-Its own QA notes (in the zip's `reports/QA.md`): NE reads more like a side view, the S idle is
+Update 2's own QA notes (the zip's `reports/QA.md`): NE reads more like a side view, the S idle is
 seated, S run/fetch is a bobbing cycle rather than a gallop, the helm is blocky.
 
-**In the manifest** each character with delivered art has `sheets`: a list of sheet sets, oldest
-first, each with the version that introduced it (`since: 'old' | 'v1' | 'new'`), its `sheet` and
-any `animSheets` (animations delivered as a sheet of their own, like `tired`). A version shows the
-newest set introduced at or before it (`sheetSetFor`), so the band shows update 1 under NEW too,
-and the costumes show the procedural art under UPDATE 1 (as update 1 did). A sheet that predates an
-animation (no rows for it) shows the idle frames for it. The first set is always the procedural
-art in `sprites/old/`; `tests/sprites.test.ts` checks every sheet's size against the manifest.
+In the manifest a character with delivered art has `sheet` and, for animations delivered as a
+sheet of their own (like `tired`), `animSheets`. A sheet that predates an animation (no rows for
+it) shows the idle frames for it. `tests/sprites.test.ts` checks every sheet's size against the
+manifest. **The next update**: move the files it replaces into `art-archive/`, put the new ones in
+`public/sprites/`, update `sheet`/`animSheets`.
 
-**The next update**: move the files it replaces into `public/sprites/v2/` (or the next version's
-folder), add the version to `ART_VERSIONS` / `ART_LABELS`, give the replaced characters a set
-for it and put the delivered files in `public/sprites/`. If it replaces art that is still
-procedural, give that character an `old` set and run `npm run sprites:old` first.
-
-Still procedural in every version: Bagnaskiz's masks `bagnaskizMarshal` / `bagnaskizEmperor`,
-Santina, the Green Zone `cat` and the rest of the story cast.
+Still procedural (`src/assets/placeholders/`): Bagnaskiz's masks `bagnaskizMarshal` /
+`bagnaskizEmperor`, Santina, the Green Zone `cat` and the rest of the story cast.
 
 ## Directions
 
@@ -218,9 +197,7 @@ transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
   title's size. Without `ImageDecoder` (Safari, the dev server opened over plain http on the
   LAN) the first frame stays still. The earlier `Zampano-Samemala-1.gif` and `-2.gif` are kept,
   unused.
-- `Retro-16-Bit Ivory Dog Sprite-3-4-front.png`: the previous portrait, kept as the old version:
-  OPTIONS > ART: OLD shows it (still), from a 384-px copy (`app/...-384.png`, 0.2 MB instead of
-  1.4 MB; it is shown at most about 124 px wide).
+- `Retro-16-Bit Ivory Dog Sprite-3-4-front.png`: the first portrait (a still), kept, no longer used.
 - `Youve_Been_Supervillained_Logo.png`: not on the title page; it snaps in at the end of every
   level, before the final info (`src/scenes/supervillainedScene.ts`).
 

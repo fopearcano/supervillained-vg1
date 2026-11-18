@@ -2,10 +2,7 @@ import { BlurFilter, Container, Graphics, Sprite, Texture } from 'pixi.js';
 import { TITLE } from '../config';
 import type { TitleGlitchFilter } from '../fx/titleGlitchFilter';
 import { TextGlitchFilter } from '../fx/textGlitchFilter';
-import { loadTitleArt, titleTexture, type TitleArt } from '../ui/titleArt';
 import { titleFrames, TitlePlayer, type TitleFrames } from '../ui/titleAnim';
-import { artVersion } from '../assets/build';
-import type { ArtVersion } from '../assets/manifest';
 import { textures } from '../core/assets';
 import type { Game } from '../core/game';
 import type { Scene } from '../core/scene';
@@ -77,7 +74,7 @@ export interface TitleActions {
  * (The "You've been supervillained" logo is kept for the end of each level: SupervillainedScene.)
  */
 export class TitleScene extends Overlay {
-  /** Zampanò's portrait over the buttons: the animated GIF (new art) or the old still. */
+  /** Zampanò's animated portrait over the buttons. */
   private readonly dog = new Sprite();
   /** The animated portrait's frames (filled while the GIF decodes) and its player. */
   private frames: TitleFrames | null = null;
@@ -86,9 +83,6 @@ export class TitleScene extends Overlay {
   private animWidth = 0;
   /** The layout has room for the real frame size (not just the reserved space). */
   private dogSized = false;
-  /** The art version the portrait shows (OPTIONS > ART can change it under the title). */
-  private artShown: ArtVersion | null = null;
-  private art: TitleArt | null = null;
   private burstLeft = 0;
   private nextBurst = 1;
   /** The logo: always one line (see ui/logo.ts). */
@@ -103,6 +97,12 @@ export class TitleScene extends Overlay {
   private readonly livesText = new PixelText('', { color: C.yellow, shadow: '#000000' });
   private readonly livesIcon = new Sprite(textures.get(spriteName('dogFace')));
   private livesRect = { x: 0, y: 0, w: 0, h: 0 };
+  /** A slow glint crossing one button now and then (masked to that button). */
+  private readonly shine = new Graphics();
+  private readonly shineMask = new Graphics();
+  private shineButton = -1;
+  private shineTime = 0;
+  private nextShine = 1.2;
   /** Under INSERT BRAIN, blinking with it. */
   private readonly speedText = new PixelText('SPEED FOR LIVES', { color: '#c8c8d0', shadow: '#000000', letterSpacing: 1 }).setOrigin(0.5, 0);
   private readonly menu: Menu;
@@ -161,14 +161,13 @@ export class TitleScene extends Overlay {
       this.livesIcon,
       this.speedText,
       this.menu.root,
+      this.shine,
+      this.shineMask,
       this.footerGlow,
       this.footer,
     );
+    this.shine.mask = this.shineMask;
     this.showLives();
-    void loadTitleArt().then((art) => {
-      this.art = art;
-      if (!this.root.destroyed) this.layout();
-    });
   }
 
   protected layout(): void {
@@ -199,7 +198,7 @@ export class TitleScene extends Overlay {
     // The animated portrait's frame has a sliver of transparent space over the dog's head (the
     // crop margin): center what is seen, not the frame.
     const my = TITLE.DOG_CROP_MARGIN[1];
-    const topPad = this.artShown === 'old' ? 0 : Math.round((dogH * my) / (1 + 2 * my));
+    const topPad = Math.round((dogH * my) / (1 + 2 * my));
     const margin = Math.max(0, Math.round((space - (dogH - topPad) - below) / 2));
     const dogY = headerBottom + margin - topPad;
     const menuY = dogY + dogH + TITLE.DOG_MENU_GAP;
@@ -217,14 +216,6 @@ export class TitleScene extends Overlay {
 
   /** Sets the portrait for this width; returns the height it takes. */
   private layoutDog(width: number): number {
-    this.artShown = artVersion();
-    if (this.artShown === 'old') {
-      // The old art: the still portrait.
-      this.player = null;
-      if (!this.art) return 0;
-      this.dog.texture = titleTexture(this.art.dog, width);
-      return this.dog.height;
-    }
     if (this.animWidth !== width || !this.player) {
       this.animWidth = width;
       // The frames play as soon as they are decoded (titleAnim.ts).
@@ -244,7 +235,6 @@ export class TitleScene extends Overlay {
 
   override update(dt: number): void {
     super.update(dt);
-    if (artVersion() !== this.artShown) this.layout();
     if (this.player) {
       // The first frame has arrived: lay out with its real size.
       if (!this.dogSized && this.frames!.frames.length) this.layout();
@@ -267,6 +257,7 @@ export class TitleScene extends Overlay {
     this.menu.root.visible = this.time > 0.5;
     this.animateGlitch(dt);
     this.animateTitleGlitch(dt);
+    this.animateShine(dt);
     this.footerFlash = Math.max(0, this.footerFlash - dt);
     this.footer.alpha = this.footerFlash > 0 ? 0.55 : 1;
     const [fa, fb] = TITLE.FOOTER_GLOW_ALPHA;
@@ -328,6 +319,43 @@ export class TitleScene extends Overlay {
     this.livesText.position.set(bx + 4, y + Math.round((rowH - this.livesText.textHeight) / 2));
     icon.position.set(bx + 4 + this.livesText.textWidth + 2, y + Math.round((rowH - icon.height) / 2));
   }
+
+  /** Now and then a slow light band crosses one of the buttons (never the same one twice in a row). */
+  private animateShine(dt: number): void {
+    const g = this.shine.clear();
+    if (!this.menu.root.visible) return;
+    const rnd = (r: readonly number[]) => r[0]! + Math.random() * (r[1]! - r[0]!);
+    if (this.shineButton < 0) {
+      this.nextShine -= dt;
+      if (this.nextShine > 0) return;
+      const n = this.menu.count;
+      let pick = Math.floor(Math.random() * n);
+      if (pick === this.lastShine && n > 1) pick = (pick + 1) % n;
+      this.shineButton = this.lastShine = pick;
+      this.shineTime = 0;
+      const r = this.menu.rowRect(pick);
+      this.shineMask.clear().rect(r.x + 1, r.y + 1, r.w - 2, r.h - 2).fill({ color: 0xffffff });
+    }
+    this.shineTime += dt;
+    const p = this.shineTime / TITLE.SHINE_TIME;
+    if (p >= 1) {
+      this.shineButton = -1;
+      this.nextShine = rnd(TITLE.SHINE_EVERY);
+      return;
+    }
+    // Eased so it lingers a little in the middle; brightest there.
+    const e = 0.5 - 0.5 * Math.cos(p * Math.PI);
+    const r = this.menu.rowRect(this.shineButton);
+    const bw = TITLE.SHINE_WIDTH;
+    const sl = TITLE.SHINE_SLANT;
+    const x = Math.round(r.x - bw - sl + (r.w + bw + 2 * sl) * e);
+    const alpha = TITLE.SHINE_ALPHA * Math.sin(p * Math.PI);
+    g.poly([x + sl, r.y, x + sl + bw, r.y, x + bw, r.y + r.h, x, r.y + r.h]).fill({ color: 0xffffff, alpha });
+    // A thinner second streak just behind it.
+    g.poly([x + sl - 5, r.y, x + sl - 3, r.y, x - 3, r.y + r.h, x - 5, r.y + r.h]).fill({ color: 0xffffff, alpha: alpha * 0.6 });
+  }
+
+  private lastShine = -1;
 
   /** The title's lettering glitches in short bursts, with a faint shiver in between. */
   private animateTitleGlitch(dt: number): void {
@@ -666,8 +694,6 @@ export class OptionsScene extends Overlay {
       volume: () => number;
       cycleTextSpeed: () => void;
       textSpeed: () => string;
-      toggleArt: () => void;
-      art: () => string;
       levels: () => void;
       book: () => void;
       back: () => void;
@@ -697,14 +723,6 @@ export class OptionsScene extends Overlay {
           label: () => `TEXT: ${actions.textSpeed()}`,
           action: () => {
             actions.cycleTextSpeed();
-            this.menu.refreshLabels();
-          },
-          color: C.cyan,
-        },
-        {
-          label: () => `ART: ${actions.art()}`,
-          action: () => {
-            actions.toggleArt();
             this.menu.refreshLabels();
           },
           color: C.cyan,
