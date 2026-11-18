@@ -3,7 +3,7 @@ import { TITLE } from '../config';
 import type { TitleGlitchFilter } from '../fx/titleGlitchFilter';
 import { TextGlitchFilter } from '../fx/textGlitchFilter';
 import { loadTitleArt, titleTexture, type TitleArt } from '../ui/titleArt';
-import { frameAt, titleAnimation, titleStill, type TitleAnim } from '../ui/titleAnim';
+import { titleFrames, TitlePlayer, type TitleFrames } from '../ui/titleAnim';
 import { artVersion } from '../assets/build';
 import type { ArtVersion } from '../assets/manifest';
 import { textures } from '../core/assets';
@@ -77,10 +77,13 @@ export interface TitleActions {
 export class TitleScene extends Overlay {
   /** Zampanò's portrait over the buttons: the animated GIF (new art) or the old still. */
   private readonly dog = new Sprite();
-  private anim: TitleAnim | null = null;
-  /** Width the animation was asked for (frames are made for one width). */
+  /** The animated portrait's frames (filled while the GIF decodes) and its player. */
+  private frames: TitleFrames | null = null;
+  private player: TitlePlayer | null = null;
+  /** Width the frames were asked for (frames are made for one width). */
   private animWidth = 0;
-  private animTime = 0;
+  /** The layout has room for the real frame size (not just the reserved space). */
+  private dogSized = false;
   /** The art version the portrait shows (OPTIONS > ART can change it under the title). */
   private artShown: ArtVersion | null = null;
   private art: TitleArt | null = null;
@@ -118,12 +121,8 @@ export class TitleScene extends Overlay {
     super(game, 0.15);
     this.edition = big('CRUSADER', C.hotPink, 1, { letterSpacing: 6, glow: C.hotPink, glowAlpha: 0.5 });
     const canContinue = actions.continueLabel !== null;
-    this.best = new PixelText(canContinue ? actions.continueLabel! : '', {
-      color: C.cyan,
-      shadow: '#000000',
-      align: 'center',
-      maxWidth: 190,
-    }).setOrigin(0.5, 0);
+    // Under the buttons, blinking like an arcade cabinet's INSERT COIN.
+    this.best = new PixelText('INSERT BRAIN', { color: C.white, shadow: '#000000', letterSpacing: 1 }).setOrigin(0.5, 0);
     this.menu = new Menu(
       [
         { label: 'NEW GAME', action: actions.newGame, color: C.red },
@@ -160,16 +159,17 @@ export class TitleScene extends Overlay {
       this.title.anchor.set(0.5);
     }
     const cx = Math.round(w / 2);
-    // The title near the top (TITLE.TOP), the buttons and where CONTINUE goes just above the
-    // publisher line, and the portrait in the middle of the space between them.
+    // The title near the top (TITLE.TOP), the buttons TITLE.BOTTOM_GAP above the publisher line
+    // with INSERT BRAIN between them (nearer the buttons), and the portrait in the middle of the
+    // space between the title and the buttons.
     const halfTitle = Math.round(this.title.height / 2);
     const titleY = Math.round(h * TITLE.TOP) + halfTitle;
     const editionY = titleY + halfTitle + 10;
     const headerBottom = editionY + 6;
-    const bestH = this.actions.continueLabel ? this.best.textHeight : 0;
-    const groupBottom = h - 16 - TITLE.BOTTOM_GAP;
-    const bestY = groupBottom - bestH;
-    const menuY = bestY - (bestH ? 5 : 0) - this.menu.height;
+    const footerTop = h - 6 - this.footer.textHeight;
+    const menuBottom = h - 16 - TITLE.BOTTOM_GAP;
+    const menuY = menuBottom - this.menu.height;
+    const bestY = menuBottom + Math.round((footerTop - menuBottom - this.best.textHeight) * TITLE.INSERT_BRAIN_AT);
     // The portrait takes DOG_WIDTH of the screen, smaller if it would not fit (short screens).
     const gapTop = headerBottom + 6;
     const room = menuY - 6 - gapTop;
@@ -189,38 +189,39 @@ export class TitleScene extends Overlay {
     this.artShown = artVersion();
     if (this.artShown === 'old') {
       // The old art: the still portrait.
+      this.player = null;
       if (!this.art) return 0;
       this.dog.texture = titleTexture(this.art.dog, width);
       return this.dog.height;
     }
-    if (this.animWidth !== width) {
+    if (this.animWidth !== width || !this.player) {
       this.animWidth = width;
-      this.anim = null;
-      // The first frame at once, the animation when it has decoded.
-      const show = (a: TitleAnim | null, still: boolean) => {
-        // The title may be gone by now (NEW GAME tapped while it decoded).
-        if (!a || this.animWidth !== width || this.root.destroyed) return;
-        if (still && this.anim) return;
-        this.anim = a;
-        this.layout();
-      };
-      void titleStill(width).then((a) => show(a, true));
-      void titleAnimation(width).then((a) => show(a, false));
+      // The frames play as soon as they are decoded (titleAnim.ts).
+      this.frames = titleFrames(width);
+      this.player = new TitlePlayer(this.frames);
     }
-    if (!this.anim) {
-      // Not ready yet: keep its place.
+    const f = this.frames!;
+    this.dogSized = f.frames.length > 0;
+    if (!this.dogSized) {
+      // Not decoded yet: keep its place.
       this.dog.texture = Texture.EMPTY;
       return Math.round(width * TITLE.DOG_ASPECT);
     }
-    this.dog.texture = frameAt(this.anim, this.animTime);
-    return this.anim.frames[0]!.height;
+    this.dog.texture = f.frames[0]!;
+    return f.height;
   }
 
   override update(dt: number): void {
     super.update(dt);
     if (artVersion() !== this.artShown) this.layout();
-    this.animTime += dt;
-    if (this.anim && this.artShown === 'new') this.dog.texture = frameAt(this.anim, this.animTime);
+    if (this.player) {
+      // The first frame has arrived: lay out with its real size.
+      if (!this.dogSized && this.frames!.frames.length) this.layout();
+      const tex = this.player.update(dt);
+      if (tex) this.dog.texture = tex;
+    }
+    // INSERT BRAIN blinks (on 0.6 s, off 0.4 s).
+    this.best.visible = this.time > 0.6 && this.time % TITLE.INSERT_BRAIN_BLINK < TITLE.INSERT_BRAIN_BLINK * 0.6;
     // Glitchy entrance: jitter for the first moments.
     const jitter = this.time < 0.9 ? Math.round((Math.random() * 2 - 1) * 4 * (1 - this.time / 0.9)) : 0;
     this.title.x = Math.round(this.w / 2) + jitter;

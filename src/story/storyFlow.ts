@@ -174,14 +174,14 @@ export class StoryFlow {
             { text: sub.blackHole ? 'BLACK HOLE' : `LEVEL ${ch.number}`, color: sub.blackHole ? '#b070ff' : '#9aa4c0' },
             { text: `${sub.id} ${sub.title.toUpperCase()}`, color: C.yellow, scale: 1, gap: 14 },
             { text: withNames(sub.happens, C.white), color: C.white, gap: 14 },
-            { text: `SOURCE: ${sub.source}`, color: '#7a84a0', gap: this.replaying ? 12 : 8 },
             ...replayNote,
           ],
           start,
         ),
       );
     if (!withChapterCard) return subCard();
-    // The level card (the cast list in the chapter data is design information, not shown).
+    // The level card (the cast list and the scenes' sources in the chapter data are design
+    // information, not shown).
     this.game.scenes.replaceAll(
       new StoryCardScene(
         this.game,

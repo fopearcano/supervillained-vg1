@@ -1,79 +1,103 @@
-import { Rectangle, Texture } from 'pixi.js';
+import { Texture } from 'pixi.js';
 import gifUrl from '../../assets/starting-page-images/Zampano-Samemala-3.gif?url';
+import { TITLE } from '../config';
 
 /**
  * The title page's animated portrait of Zampanò (assets/starting-page-images/
- * Zampano-Samemala-3.gif, 99 frames, about 4 s). The GIF is large (1024 x 1536 per frame); its frames are
- * decoded by the browser (WebCodecs `ImageDecoder`, in Chromium and the Android WebView), cropped
- * to the dog (the union of every frame's opaque area), scaled down to the size the title needs
- * on this screen and packed into one texture. Until it is ready (a second or two on a slow
- * phone) and where `ImageDecoder` is missing (Safari, a page served over plain http on the LAN)
- * the title shows the GIF's first frame (`titleStill`).
+ * Zampano-Samemala-3.gif, 99 frames, about 4 s). The GIF is large (1024 x 1536 per frame), so its
+ * frames are decoded one after another by the browser (WebCodecs `ImageDecoder`, in Chromium and
+ * the Android WebView) and each is shown as soon as it is ready: decoding runs faster than the GIF
+ * plays, so the animation starts at once instead of after the whole file (`TitlePlayer` holds a
+ * frame in the rare case it catches up with the decoder). Every frame is cropped to the same box
+ * (the first frame's dog plus a margin, TITLE.DOG_CROP_MARGIN), scaled to the title's width with
+ * the browser's fast resize and given crisp edges. Where `ImageDecoder` is missing (Safari, a page
+ * served over plain http on the LAN) the portrait is the GIF's first frame alone.
  */
-export interface TitleAnim {
+export interface TitleFrames {
+  /** Frames decoded so far, in order (filled while the GIF decodes). */
   frames: Texture[];
-  /** Seconds each frame stays. */
+  /** Seconds each decoded frame stays. */
   durations: number[];
-  /** Total loop length, seconds. */
-  length: number;
+  /** Frames in the GIF (0 until known). */
+  count: number;
+  /** All frames are decoded (or decoding stopped). */
+  done: boolean;
+  /** Frame size, logical px (0 until the first frame). */
+  width: number;
+  height: number;
 }
 
 export const TITLE_GIF_URL: string = gifUrl;
 
 /** The bits of WebCodecs' ImageDecoder used here (not in every TypeScript DOM library). */
-interface DecodedFrame {
-  image: CanvasImageSource & { displayWidth: number; displayHeight: number; duration: number | null; close(): void };
-}
+type DecodedImage = CanvasImageSource & { displayWidth: number; displayHeight: number; duration: number | null; close(): void };
 interface ImageDecoderLike {
   readonly completed: Promise<void>;
   readonly tracks: { readonly ready: Promise<void>; readonly selectedTrack: { frameCount: number } | null };
-  decode(options: { frameIndex: number }): Promise<DecodedFrame>;
+  decode(options: { frameIndex: number }): Promise<{ image: DecodedImage }>;
   close(): void;
 }
 type ImageDecoderCtor = new (init: { data: ArrayBuffer; type: string }) => ImageDecoderLike;
 
-/**
- * Frames are first reduced to this width (by halving: smooth and sharp), cropped from there. 192
- * keeps the cropped dog wider than the widest title portrait (124 px) and the 99 reduced frames
- * small in memory (about 20 MB while they are packed).
- */
-const WORK_WIDTH = 192;
 /** Alpha at or above this becomes opaque, below it transparent (crisp edges, like the pixel art). */
 const ALPHA_CUT = 110;
+/** The first frame is measured at this width to find the dog. */
+const PROBE_WIDTH = 256;
 
-const cache = new Map<string, Promise<TitleAnim | null>>();
+const cache = new Map<number, TitleFrames>();
 
-function cached(key: string, make: () => Promise<TitleAnim | null>): Promise<TitleAnim | null> {
-  let p = cache.get(key);
-  if (!p) {
-    p = make().catch((err) => {
+/** The portrait's frames for this width: returned at once, filled while the GIF decodes. */
+export function titleFrames(width: number): TitleFrames {
+  let f = cache.get(width);
+  if (!f) {
+    f = { frames: [], durations: [], count: 0, done: false, width: 0, height: 0 };
+    cache.set(width, f);
+    const store = f;
+    void decodeInto(store, width).catch((err) => {
       console.warn('[title anim]', err);
-      return null;
+      store.done = true;
     });
-    cache.set(key, p);
   }
-  return p;
-}
-
-/** The animation with frames `width` logical px wide (cached per width). */
-export function titleAnimation(width: number): Promise<TitleAnim | null> {
-  return cached(`anim@${width}`, async () => {
-    const got = await decodedFrames();
-    return got ? pack(got.work, got.durations, width) : null;
-  });
+  return f;
 }
 
 /**
- * The GIF's first frame alone, cropped and scaled the same way: quick to make, shown while the
- * animation decodes (and for good where ImageDecoder is missing).
+ * Plays the frames in order with the GIF's delays; until the decoding is done it never runs ahead
+ * of it (it holds the last decoded frame), then it loops.
  */
-export function titleStill(width: number): Promise<TitleAnim | null> {
-  return cached(`still@${width}`, async () => {
-    const img = new Image();
-    img.src = gifUrl;
-    await img.decode();
-    return pack([reduce(img, img.naturalWidth, img.naturalHeight)], [1], width);
-  });
+export class TitlePlayer {
+  private index = 0;
+  private time = 0;
+
+  constructor(private readonly f: TitleFrames) {}
+
+  /** Advances by `dt` seconds; returns the frame to show (null before the first one). */
+  update(dt: number): Texture | null {
+    const f = this.f;
+    if (!f.frames.length) return null;
+    this.time += dt;
+    for (let guard = 0; guard < f.frames.length + 1; guard++) {
+      const d = f.durations[this.index] ?? 0.1;
+      if (this.time < d) break;
+      const next = this.index + 1;
+      if (next < f.frames.length) this.index = next;
+      else if (f.done) this.index = 0;
+      else {
+        // Waiting for the decoder: hold this frame.
+        this.time = d;
+        break;
+      }
+      this.time -= d;
+    }
+    return f.frames[this.index]!;
+  }
+}
+
+function smooth2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
+  const g = c.getContext('2d', { willReadFrequently: true })!;
+  g.imageSmoothingEnabled = true;
+  g.imageSmoothingQuality = 'high';
+  return g;
 }
 
 function canvas(w: number, h: number): HTMLCanvasElement {
@@ -83,101 +107,100 @@ function canvas(w: number, h: number): HTMLCanvasElement {
   return c;
 }
 
-function smooth(c: HTMLCanvasElement): CanvasRenderingContext2D {
-  const g = c.getContext('2d', { willReadFrequently: true })!;
-  g.imageSmoothingEnabled = true;
-  g.imageSmoothingQuality = 'high';
-  return g;
-}
-
-/** A frame reduced to WORK_WIDTH by halving (smooth and sharp). */
-function reduce(src0: CanvasImageSource, w: number, h: number): HTMLCanvasElement {
-  let src = src0;
-  let sw = w;
-  let sh = h;
-  while (sw / 2 >= WORK_WIDTH) {
-    const c = canvas(sw / 2, sh / 2);
-    smooth(c).drawImage(src, 0, 0, c.width, c.height);
-    [src, sw, sh] = [c, c.width, c.height];
+/** The crop box (source px): the dog in `img` plus TITLE.DOG_CROP_MARGIN, clamped to the frame. */
+function cropBox(img: CanvasImageSource, sw: number, sh: number): { x: number; y: number; w: number; h: number } {
+  const pw = PROBE_WIDTH;
+  const ph = Math.round((sh * pw) / sw);
+  const c = canvas(pw, ph);
+  const g = smooth2d(c);
+  g.drawImage(img, 0, 0, pw, ph);
+  const a = g.getImageData(0, 0, pw, ph).data;
+  let x0 = pw;
+  let y0 = ph;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < ph; y++) {
+    for (let x = 0; x < pw; x++) {
+      if (a[(y * pw + x) * 4 + 3]! < ALPHA_CUT) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
   }
-  const c = canvas(WORK_WIDTH, (sh * WORK_WIDTH) / sw);
-  smooth(c).drawImage(src, 0, 0, c.width, c.height);
-  return c;
+  if (x1 < 0) return { x: 0, y: 0, w: sw, h: sh };
+  const k = sw / pw;
+  const [mx, my] = TITLE.DOG_CROP_MARGIN;
+  const bw = (x1 - x0 + 1) * k;
+  const bh = (y1 - y0 + 1) * k;
+  const x = Math.max(0, Math.floor(x0 * k - bw * mx));
+  const y = Math.max(0, Math.floor(y0 * k - bh * my));
+  const xe = Math.min(sw, Math.ceil((x1 + 1) * k + bw * mx));
+  const ye = Math.min(sh, Math.ceil((y1 + 1) * k + bh * my));
+  return { x, y, w: xe - x, h: ye - y };
 }
 
-/** Every frame, reduced (null where ImageDecoder is missing). */
-async function decodedFrames(): Promise<{ work: HTMLCanvasElement[]; durations: number[] } | null> {
+/** One frame: cropped, scaled to fw x fh (via a 2x intermediate), crisp alpha. */
+async function makeFrame(img: CanvasImageSource & ImageBitmapSource, box: { x: number; y: number; w: number; h: number }, fw: number, fh: number): Promise<Texture> {
+  const out = canvas(fw, fh);
+  const g = smooth2d(out);
+  let bitmap: ImageBitmap | null = null;
+  try {
+    bitmap = await createImageBitmap(img, box.x, box.y, box.w, box.h, { resizeWidth: fw * 2, resizeHeight: fh * 2, resizeQuality: 'high' });
+    g.drawImage(bitmap, 0, 0, fw, fh);
+  } catch {
+    // No resizing createImageBitmap: let the canvas scale it.
+    g.drawImage(img, box.x, box.y, box.w, box.h, 0, 0, fw, fh);
+  } finally {
+    bitmap?.close();
+  }
+  const data = g.getImageData(0, 0, fw, fh);
+  for (let k = 3; k < data.data.length; k += 4) data.data[k] = data.data[k]! >= ALPHA_CUT ? 255 : 0;
+  g.putImageData(data, 0, 0);
+  return Texture.from(out);
+}
+
+async function decodeInto(f: TitleFrames, width: number): Promise<void> {
   const Decoder = (globalThis as { ImageDecoder?: ImageDecoderCtor }).ImageDecoder;
-  if (!Decoder) return null;
+  if (!Decoder) {
+    // The first frame alone, from an <img>.
+    const img = new Image();
+    img.src = gifUrl;
+    await img.decode();
+    const box = cropBox(img, img.naturalWidth, img.naturalHeight);
+    f.width = width;
+    f.height = Math.max(1, Math.round((box.h * width) / box.w));
+    f.frames.push(await makeFrame(img, box, f.width, f.height));
+    f.durations.push(1);
+    f.count = 1;
+    f.done = true;
+    return;
+  }
   const data = await (await fetch(gifUrl)).arrayBuffer();
   const decoder = new Decoder({ data, type: 'image/gif' });
   try {
     // The track list first (selectedTrack is null until then), then the whole file.
     await decoder.tracks.ready;
     await decoder.completed;
-    const count = decoder.tracks.selectedTrack?.frameCount ?? 0;
-    const work: HTMLCanvasElement[] = [];
-    const durations: number[] = [];
-    for (let i = 0; i < count; i++) {
+    f.count = decoder.tracks.selectedTrack?.frameCount ?? 0;
+    let box: { x: number; y: number; w: number; h: number } | null = null;
+    for (let i = 0; i < f.count; i++) {
       const { image } = await decoder.decode({ frameIndex: i });
-      durations.push(Math.max(0.02, (image.duration ?? 100_000) / 1e6));
-      work.push(reduce(image, image.displayWidth, image.displayHeight));
-      image.close();
-    }
-    return count ? { work, durations } : null;
-  } finally {
-    decoder.close();
-  }
-}
-
-/** Crops the reduced frames to the dog, scales them to `width` and packs them in one texture. */
-function pack(work: HTMLCanvasElement[], durations: number[], width: number): TitleAnim | null {
-  // The union of every frame's opaque area: the crop.
-  let x0 = Infinity;
-  let y0 = Infinity;
-  let x1 = -1;
-  let y1 = -1;
-  for (const c of work) {
-    const a = smooth(c).getImageData(0, 0, c.width, c.height).data;
-    for (let y = 0; y < c.height; y++) {
-      for (let x = 0; x < c.width; x++) {
-        if (a[(y * c.width + x) * 4 + 3]! < ALPHA_CUT) continue;
-        if (x < x0) x0 = x;
-        if (x > x1) x1 = x;
-        if (y < y0) y0 = y;
-        if (y > y1) y1 = y;
+      try {
+        if (!box) {
+          box = cropBox(image, image.displayWidth, image.displayHeight);
+          f.width = width;
+          f.height = Math.max(1, Math.round((box.h * width) / box.w));
+        }
+        const tex = await makeFrame(image as DecodedImage & ImageBitmapSource, box, f.width, f.height);
+        f.durations.push(Math.max(0.02, (image.duration ?? 100_000) / 1e6));
+        f.frames.push(tex);
+      } finally {
+        image.close();
       }
     }
+  } finally {
+    f.done = true;
+    decoder.close();
   }
-  if (x1 < 0) return null;
-
-  // Crop to the dog, scale to `width`, pack the frames into one atlas.
-  const count = work.length;
-  const cw = x1 - x0 + 1;
-  const ch = y1 - y0 + 1;
-  const fw = width;
-  const fh = Math.max(1, Math.round((ch * width) / cw));
-  const cols = Math.max(1, Math.min(count, Math.floor(2048 / (fw + 1))));
-  const rows = Math.ceil(count / cols);
-  const atlas = canvas(cols * (fw + 1), rows * (fh + 1));
-  const g = smooth(atlas);
-  work.forEach((c, i) => g.drawImage(c, x0, y0, cw, ch, (i % cols) * (fw + 1), Math.floor(i / cols) * (fh + 1), fw, fh));
-  const img = g.getImageData(0, 0, atlas.width, atlas.height);
-  for (let k = 3; k < img.data.length; k += 4) img.data[k] = img.data[k]! >= ALPHA_CUT ? 255 : 0;
-  g.putImageData(img, 0, 0);
-  const base = Texture.from(atlas);
-  const frames = work.map(
-    (_, i) => new Texture({ source: base.source, frame: new Rectangle((i % cols) * (fw + 1), Math.floor(i / cols) * (fh + 1), fw, fh) }),
-  );
-  return { frames, durations, length: durations.reduce((s, d) => s + d, 0) };
-}
-
-/** The frame showing `t` seconds into the loop. */
-export function frameAt(anim: TitleAnim, t: number): Texture {
-  let r = anim.length > 0 ? t % anim.length : 0;
-  for (let i = 0; i < anim.frames.length; i++) {
-    r -= anim.durations[i]!;
-    if (r < 0) return anim.frames[i]!;
-  }
-  return anim.frames[anim.frames.length - 1]!;
 }

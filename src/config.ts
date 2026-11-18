@@ -82,8 +82,10 @@ export const ENERGY = {
 export const TITLE = {
   /** Zampanò's portrait over the buttons, as a fraction of the screen width. */
   DOG_WIDTH: 0.46,
-  /** The animated portrait's height / width (space kept for it while the GIF decodes). */
-  DOG_ASPECT: 1.36,
+  /** The animated portrait's height / width (space kept for it until its first frame). */
+  DOG_ASPECT: 1.35,
+  /** Crop around the dog of the GIF's first frame: margin as a share of its width, height. */
+  DOG_CROP_MARGIN: [0.05, 0.03],
   /** The title (SUPERVILLAINED CRUSADER): its top at this fraction of the screen height. */
   TOP: 0.07,
   /**
@@ -92,6 +94,10 @@ export const TITLE = {
    * half as much.
    */
   BOTTOM_GAP: 32,
+  /** INSERT BRAIN between the buttons and the publisher line: 0 = at the buttons, 1 = at the line. */
+  INSERT_BRAIN_AT: 0.4,
+  /** ...blinking: one cycle in this many seconds (shown for 60% of it). */
+  INSERT_BRAIN_BLINK: 1,
   /** Glitch on the title's lettering: a burst every [min, max] s, lasting [min, max] s. */
   TEXT_GLITCH_EVERY: [1.8, 4.5],
   TEXT_GLITCH_TIME: [0.06, 0.2],

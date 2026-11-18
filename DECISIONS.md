@@ -552,3 +552,18 @@ done here, with these choices:
 - The costumes gained the `tired` animation (from their own sheets); with older art it shows idle.
 - Every character with a sheet in any version loads at boot (now about 450 KB of PNGs), as
   before, so story scenes never spawn a character before its textures exist.
+
+## Title: the portrait moves at once, INSERT BRAIN; no SOURCE lines
+
+- The animated portrait used to wait for all 99 GIF frames to be decoded and scaled (about 5 s in
+  a test browser, a few seconds on a phone), showing the first frame still meanwhile. Now each
+  frame plays as soon as it is decoded (`TitlePlayer` holds a frame if playback catches up with
+  the decoder; decoding runs faster than the GIF plays): the dog moves about a second after the
+  title appears. The crop is fixed from the first frame (its dog plus a margin) instead of the
+  union of all frames, and frames are scaled with the browser's resizing `createImageBitmap`
+  instead of step-by-step halving (about twice as fast).
+- Under the buttons, the line saying where CONTINUE goes is replaced by a blinking INSERT BRAIN
+  (an arcade INSERT COIN), centered, nearer the buttons than the publisher line
+  (`TITLE.INSERT_BRAIN_AT`). Where CONTINUE goes is in COUCH.
+- The scene cards no longer show `SOURCE: ...` (the conference or board reference): like CAST, it
+  is design information, kept in the chapter data and the bible.
