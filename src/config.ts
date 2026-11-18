@@ -45,8 +45,8 @@ export const CAMERA = {
 } as const;
 
 export const PLAYER = {
-  WALK_SPEED: 3.9,
-  RUN_SPEED: 6.7,
+  WALK_SPEED: 4.4,
+  RUN_SPEED: 7.5,
   ACCEL: 16,
   DECEL: 20,
   /** Collision radius in tiles. */
@@ -89,17 +89,15 @@ export const TITLE = {
   /** The title (SUPERVILLAINED CRUSADER): its top at this fraction of the screen height. */
   TOP: 0.07,
   /**
-   * Space between the buttons (or where CONTINUE goes) and the publisher line, px: 8 plus one
-   * button's space (18 + 6). The portrait stays centered between title and buttons, so it rises
-   * half as much.
+   * The block under the title (portrait, buttons, INSERT BRAIN, SPEED FOR LIVES) is centered between
+   * CRUSADER and the publisher line. Its inner gaps (px): portrait to buttons, buttons to INSERT
+   * BRAIN; and the least space kept above and below it on short screens (the portrait shrinks).
    */
-  BOTTOM_GAP: 32,
-  /** The buttons and INSERT BRAIN then rise by one button's space (18 + 6), nearer the portrait. */
-  BUTTONS_RAISE: 24,
+  DOG_MENU_GAP: 6,
+  INSERT_BRAIN_GAP: 12,
+  BLOCK_MIN_MARGIN: 8,
   /** INSERT BRAIN (with the lives counter) and SPEED FOR LIVES under it: blink cycle, seconds (shown 60%). */
   INSERT_BRAIN_BLINK: 1,
-  /** Lines of space between SPEED FOR LIVES and the publisher line. */
-  SPEED_FOR_LIVES_LINES: 2,
   /** Glitch on the title's lettering: a burst every [min, max] s, lasting [min, max] s. */
   TEXT_GLITCH_EVERY: [1.8, 4.5],
   TEXT_GLITCH_TIME: [0.06, 0.2],
@@ -228,8 +226,8 @@ export const HUNGER = {
   START: 100,
   /** Drain per second by activity (scaled with PLAYER speeds: the same hunger per tile walked). */
   DRAIN_IDLE: 1.4,
-  DRAIN_WALK: 2.64,
-  DRAIN_RUN: 4.04,
+  DRAIN_WALK: 2.98,
+  DRAIN_RUN: 4.52,
   /** Hunger restored after losing a life. */
   REFILL_ON_LIFE_LOST: 50,
   /** Hunger below which the bar blinks. */

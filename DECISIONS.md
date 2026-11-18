@@ -612,3 +612,10 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
   under it, two lines of space above SUPERVOID EDITIONS. The dream walks have no lives (they
   restart), so the speed cost stays in the Green Zone. Tuning: `LIVES.MAX`, `LIVES.SPEED_COST`
   (`systems/lives.ts`, tested).
+- Faster again at the base 2 lives: walk 4.4, run 7.5 tiles/s (hunger drain 2.98 and 4.52 per
+  second, same hunger per tile). The balance test now checks the shortest walk in tiles (over 150)
+  instead of seconds, so it does not move with the speed. The full playtest passes.
+- Title layout: the block under the title (portrait, buttons, INSERT BRAIN, SPEED FOR LIVES) is
+  centered between CRUSADER and SUPERVOID EDITIONS, measured from the dog's visible top (the
+  frame's transparent crop margin is left out): the same space above and below it, the title
+  where it was. On short screens the portrait shrinks to keep at least `TITLE.BLOCK_MIN_MARGIN`.

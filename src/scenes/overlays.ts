@@ -181,35 +181,33 @@ export class TitleScene extends Overlay {
       this.title.anchor.set(0.5);
     }
     const cx = Math.round(w / 2);
-    // The title near the top (TITLE.TOP), the buttons TITLE.BOTTOM_GAP above the publisher line
-    // with INSERT BRAIN between them (nearer the buttons), and the portrait in the middle of the
-    // space between the title and the buttons.
+    // The title near the top (TITLE.TOP). Under it, one block (the portrait, the buttons, INSERT
+    // BRAIN with its lives counter, SPEED FOR LIVES) centered between CRUSADER and the publisher
+    // line: the same space above and below it.
     const halfTitle = Math.round(this.title.height / 2);
     const titleY = Math.round(h * TITLE.TOP) + halfTitle;
     const editionY = titleY + halfTitle + 10;
-    const headerBottom = editionY + 6;
+    const headerBottom = editionY + 5;
     const footerTop = h - 6 - this.footer.textHeight;
-    const baseBottom = h - 16 - TITLE.BOTTOM_GAP;
-    // The buttons and INSERT BRAIN are raised TITLE.BUTTONS_RAISE towards the portrait, which stays
-    // where it was (centered between the title and the buttons' unraised place).
-    const menuBottom = baseBottom - TITLE.BUTTONS_RAISE;
-    const menuY = menuBottom - this.menu.height;
-    // SPEED FOR LIVES keeps SPEED_FOR_LIVES_LINES lines of space above the publisher line; INSERT
-    // BRAIN and its lives counter sit just above it.
-    const lineH = this.footer.textHeight + 2;
-    const speedY = footerTop - TITLE.SPEED_FOR_LIVES_LINES * lineH - this.speedText.textHeight;
     const rowH = 12;
-    const bestY = speedY - 5 - rowH;
-    // The portrait takes DOG_WIDTH of the screen, smaller if it would not fit (short screens).
-    const gapTop = headerBottom + 6;
-    const roomCenter = baseBottom - this.menu.height - 6 - gapTop;
-    const roomFit = menuY - 6 - gapTop;
-    const dogW = Math.max(24, Math.min(Math.round(w * TITLE.DOG_WIDTH), Math.floor(roomFit / TITLE.DOG_ASPECT)));
+    const below = TITLE.DOG_MENU_GAP + this.menu.height + TITLE.INSERT_BRAIN_GAP + rowH + 5 + this.speedText.textHeight;
+    const space = footerTop - headerBottom;
+    // The portrait takes DOG_WIDTH of the screen, smaller if the block would not fit (short screens).
+    const maxDogH = space - below - 2 * TITLE.BLOCK_MIN_MARGIN;
+    const dogW = Math.max(24, Math.min(Math.round(w * TITLE.DOG_WIDTH), Math.floor(maxDogH / TITLE.DOG_ASPECT)));
     const dogH = this.layoutDog(dogW);
-    const dogY = Math.min(gapTop + Math.max(0, Math.round((roomCenter - dogH) / 2)), menuY - 6 - dogH);
+    // The animated portrait's frame has a sliver of transparent space over the dog's head (the
+    // crop margin): center what is seen, not the frame.
+    const my = TITLE.DOG_CROP_MARGIN[1];
+    const topPad = this.artShown === 'old' ? 0 : Math.round((dogH * my) / (1 + 2 * my));
+    const margin = Math.max(0, Math.round((space - (dogH - topPad) - below) / 2));
+    const dogY = headerBottom + margin - topPad;
+    const menuY = dogY + dogH + TITLE.DOG_MENU_GAP;
+    const bestY = menuY + this.menu.height + TITLE.INSERT_BRAIN_GAP;
+    const speedY = bestY + rowH + 5;
     this.title.position.set(cx, titleY);
     this.edition.position.set(cx, editionY);
-    this.dog.position.set(cx, Math.max(gapTop, dogY));
+    this.dog.position.set(cx, dogY);
     this.menu.layout(w / 2, menuY);
     this.layoutLives(cx, bestY, rowH);
     this.speedText.position.set(cx, speedY);
