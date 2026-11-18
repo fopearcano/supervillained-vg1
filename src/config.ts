@@ -53,6 +53,8 @@ export const PLAYER = {
   RADIUS: 0.26,
   /** Squash & stretch amount while moving. */
   BOB_AMOUNT: 0.06,
+  /** Seconds of standing before the plain costume sits, then alternates sitting and sniffing. */
+  IDLE_PHASE_TIME: 3,
   /** Seconds of invulnerability after losing a life. */
   HURT_INVULN: 2,
   /** Distance to a vertical object (tree/pole/bush/fountain) that turns a pee into a marking. */

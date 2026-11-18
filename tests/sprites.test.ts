@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { animationDuration, animationFrame } from '../src/assets/animationTiming';
 import { CHARACTERS, RUN_ICON, SHEET_DIRS, type AnimName, type CharacterDef } from '../src/assets/manifest';
 
 /** Width and height from a PNG's IHDR. */
@@ -37,5 +38,28 @@ describe('sprite sheets match the manifest layout', () => {
 
   it('the RUN icon exists', () => {
     expect(pngSize(RUN_ICON)).toEqual({ w: 13, h: 11 });
+  });
+});
+
+describe('authored Zampanò timing', () => {
+  const { idle, sit, pee, poop } = CHARACTERS.zampano.anims;
+
+  it('holds the first idle frames for their authored durations and loops both idles', () => {
+    expect(animationFrame(idle!, 0.099)).toBe(0);
+    expect(animationFrame(idle!, 0.100)).toBe(1);
+    expect(animationFrame(idle!, 0.209)).toBe(1);
+    expect(animationFrame(idle!, 0.210)).toBe(2);
+    for (const clip of [idle!, sit!]) {
+      expect(animationFrame(clip, animationDuration(clip) - 0.005)).toBe(7);
+      expect(animationFrame(clip, animationDuration(clip) + 0.005)).toBe(0);
+    }
+  });
+
+  it('holds the final standing transition on bathroom one-shots', () => {
+    for (const clip of [pee!, poop!]) {
+      const end = animationDuration(clip);
+      expect(animationFrame(clip, end + 0.005)).toBe(7);
+      expect(animationFrame(clip, end + 0.005, true)).toBe(0);
+    }
   });
 });

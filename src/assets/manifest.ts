@@ -12,7 +12,7 @@ import type { Dir8 } from '../iso/projection';
  *   sprites:    `${key}_${variant}`                e.g. tree_1
  */
 
-export const ANIMS = ['idle', 'walk', 'run', 'sniff', 'pee', 'poop', 'eat', 'bark', 'fetch', 'hurt', 'tired'] as const;
+export const ANIMS = ['idle', 'walk', 'run', 'sniff', 'pee', 'poop', 'eat', 'bark', 'fetch', 'hurt', 'sit', 'tired'] as const;
 export type AnimName = (typeof ANIMS)[number];
 
 /** Row order of directions inside a sprite sheet. */
@@ -22,6 +22,14 @@ export interface AnimDef {
   frames: number;
   fps: number;
   loop: boolean;
+  /** Optional authored frame holds, in playback order. */
+  frameDurationsMs?: readonly number[];
+}
+
+function timedAnimation(frameDurationsMs: readonly number[], loop = true): AnimDef {
+  const frames = frameDurationsMs.length;
+  const durationMs = frameDurationsMs.reduce((sum, ms) => sum + ms, 0);
+  return { frames, fps: frames * 1000 / durationMs, loop, frameDurationsMs };
 }
 
 export interface CharacterDef {
@@ -159,17 +167,18 @@ export const CHARACTERS = {
     anchorY: 36,
     ...DELIVERED.zampano,
     anims: {
-      idle: { frames: 2, fps: 3, loop: true },
-      walk: { frames: 4, fps: 9, loop: true },
-      run: { frames: 4, fps: 13, loop: true },
+      idle: timedAnimation([100, 110, 120, 110, 100, 110, 120, 110]),
+      walk: timedAnimation([90, 80, 90, 110, 90, 80, 90, 110]),
+      run: timedAnimation([50, 60, 60, 50, 60, 50, 50, 50]),
       sniff: { frames: 2, fps: 5, loop: true },
-      pee: { frames: 2, fps: 6, loop: true },
-      poop: { frames: 2, fps: 3, loop: true },
-      eat: { frames: 2, fps: 8, loop: true },
+      pee: timedAnimation([120, 100, 130, 250, 360, 280, 140, 180], false),
+      poop: timedAnimation([120, 130, 150, 220, 360, 220, 140, 180], false),
+      eat: timedAnimation([110, 100, 100, 90, 180, 90, 90, 120]),
       bark: { frames: 2, fps: 10, loop: false },
       fetch: { frames: 4, fps: 13, loop: true },
       hurt: { frames: 2, fps: 10, loop: true },
-      // Standing still after running out of energy (sprite update 1; the old art shows idle).
+      sit: timedAnimation([120, 120, 150, 120, 120, 120, 150, 120]),
+      // Standing still after running out of energy.
       tired: { frames: 2, fps: 4, loop: true },
     },
   },

@@ -648,3 +648,18 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
   pushing) he gets through anyway; when he does (or after the third echoed bark) Jack steps aside
   first, during the CREAK line, and then the walk to the bowl continues (it used to play after he
   had already walked through Jack).
+
+## Zampanò animation integration
+
+- The `Supervillained_VG1_Zampano_Animation_Integration.zip` delivery (an overlay made against this
+  branch) replaces plain Zampanò's sheets: 8-frame idle, walk, run, pee, poop and eat, a new
+  `sit` (seated idle), and redrawn sniff, bark, fetch (with the tennis ball), hurt and tired, all
+  in the new ivory, shaggy design. Update 2's sheets moved to `art-archive/sprites-update-2/`; the
+  rag-cross and knight costumes keep update 2's sheets.
+- Timing: an animation can give per-frame holds (`frameDurationsMs`, `assets/animationTiming.ts`,
+  tested) instead of a single fps. Pee, poop and eat/drink are fitted to the existing action timers,
+  so no gameplay timing changed (nothing in the rules waits on an animation).
+- At rest: standing for 3 s, then sitting, then sniffing and sitting in turn
+  (`PLAYER.IDLE_PHASE_TIME`); the costumes alternate standing and sniffing. Rest counts again
+  after any action (the delivery did this for the plain costume only; here for all).
+- The code-drawn fallback (if a sheet fails to load) shows idle frames for `sit`.

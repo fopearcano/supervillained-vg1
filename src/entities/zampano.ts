@@ -1,5 +1,6 @@
 import { Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
+import { animationDuration } from '../assets/animationTiming';
 import { spriteName, type AnimName, type CharacterKey } from '../assets/manifest';
 import { PLAYER } from '../config';
 import { Energy, type EnergyEvent } from '../systems/needs';
@@ -78,7 +79,7 @@ export class Zampano extends Entity {
   private fetchDir = { x: 0, y: 0 };
   private intentX = 0;
   private intentY = 0;
-  /** Seconds since the last real movement (for idle sniffing). */
+  /** Seconds at rest (for seated idle and sniffing). */
   private idleTime = 0;
 
   constructor(gx: number, gy: number, skin: CharacterKey = 'zampano') {
@@ -94,6 +95,7 @@ export class Zampano extends Entity {
   /** Swaps the costume (plain, rag cross, knight). */
   setSkin(skin: CharacterKey): void {
     this.animator.key = skin;
+    this.animator.play(this.animator.anim, this.facing);
   }
 
   get controllable(): boolean {
@@ -242,10 +244,21 @@ export class Zampano extends Entity {
     else if (speed > 0.25) anim = 'walk';
     // Standing still while out of breath (energy emptied): panting.
     else if (this.energy.exhausted) anim = 'tired';
-    else anim = this.idleTime > 2.5 && Math.floor(this.idleTime / 3) % 2 === 1 ? 'sniff' : 'idle';
-    this.idleTime = speed > 0.25 ? 0 : this.idleTime + dt;
-    this.animator.speed = anim === 'walk' ? Math.max(0.6, speed / PLAYER.WALK_SPEED) : 1;
+    else {
+      const phase = Math.floor(this.idleTime / PLAYER.IDLE_PHASE_TIME);
+      if (this.animator.key === 'zampano') anim = phase === 0 ? 'idle' : phase % 2 === 1 ? 'sit' : 'sniff';
+      else anim = phase % 2 === 1 ? 'sniff' : 'idle';
+    }
+    // Rest counts from the end of an action too (a pee, a bark): he stands, then sits.
+    this.idleTime = speed > 0.25 || this.state !== 'free' ? 0 : this.idleTime + dt;
     this.animator.play(anim, this.facing);
+    const def = this.animator.definition;
+    // Fit the authored holds to the existing action timer, including the final standing pose.
+    if (anim === stateAnim && def.frameDurationsMs && this.stateDuration > 0) {
+      this.animator.speed = animationDuration(def) / this.stateDuration;
+    } else {
+      this.animator.speed = anim === 'walk' ? Math.max(0.6, speed / PLAYER.WALK_SPEED) : 1;
+    }
     this.animator.update(dt);
 
     // Squash & stretch spring

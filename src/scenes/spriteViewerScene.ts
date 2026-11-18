@@ -2,11 +2,12 @@ import { Container, Graphics, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import type { Game } from '../core/game';
 import type { Scene } from '../core/scene';
+import { animationFrame } from '../assets/animationTiming';
 import { CHARACTERS, textureName, type AnimName, type CharacterKey } from '../assets/manifest';
 import type { Dir8 } from '../iso/projection';
 import { PixelText } from '../ui/pixelText';
 
-/** W, SW and NW are mirrors of E, SE and NE. */
+/** Five representative directions fit the portrait sprite viewer. */
 const VIEW_DIRS: Dir8[] = ['S', 'SE', 'E', 'NE', 'N'];
 
 /**
@@ -49,10 +50,10 @@ export class SpriteViewerScene implements Scene {
 
   update(dt: number): void {
     this.time += dt;
-    const anims = CHARACTERS[this.key].anims as Record<string, { frames: number; fps: number }>;
+    const anims = CHARACTERS[this.key].anims;
     for (const c of this.cells) {
       const a = anims[c.anim]!;
-      const f = Math.floor(this.time * a.fps) % a.frames;
+      const f = animationFrame(a, this.time, true);
       c.sprite.texture = textures.get(textureName(this.key, c.anim, c.dir, f));
     }
   }

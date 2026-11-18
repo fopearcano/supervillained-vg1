@@ -2,7 +2,8 @@
 
 Every sprite in the game is described in **`src/assets/manifest.ts`**. Game logic only asks for
 textures *by name*; the loader (`src/assets/build.ts`) either loads your PNG or generates a
-code-drawn placeholder. To drop in final art you edit the manifest — never game logic.
+code-drawn placeholder. To drop in final art you edit the manifest — never game logic. The
+manifest also holds the timing: frames per second, or per-frame holds (`frameDurationsMs`).
 
 Put image files under `public/` (served as-is and copied into the Android build). Paths in the
 manifest are relative to `public/`, e.g. `sheet: 'sprites/zampano.png'` → `public/sprites/zampano.png`.
@@ -13,13 +14,15 @@ see every animation and direction of a character playing side by side.
 
 ## Delivered art
 
-The game ships only the latest delivered art (sprite update 2 over update 1, in `public/sprites/`);
-the art each delivery replaced is kept in `art-archive/` (not bundled). Both zips are kept at the
-repo root as delivered.
+The game ships only the latest delivered art (in `public/sprites/`): the Zampanò animation
+integration (plain Zampanò) over sprite update 2 (his costumes) over update 1 (the cast). The art
+each delivery replaced is kept in `art-archive/` (not bundled). The zips are kept at the repo root
+as delivered (`Supervillained_VG1_Zampano_Animation_Integration.zip` has a labelled chart of every
+action in `preview/actions.png` and the motion in `preview/animations.gif`).
 
 | file in `public/sprites/` | size | what it is |
 |---|---|---|
-| `zampano.png`, `zampano-tired.png` | 160 × 3200, 80 × 320 | Zampanò, all 10 animations + tired (update 2) |
+| `zampano.png`, `zampano-tired.png` | 320 × 3520, 80 × 320 | plain Zampanò: 11 animations (8-frame idle, walk, run, pee, poop, eat, sit) + tired (animation integration) |
 | `zampanoCross.png`, `zampanoCross-tired.png` | 160 × 3200, 80 × 320 | with the rag cross, worn from 1.5 (update 2) |
 | `zampanoKnight.png`, `zampanoKnight-tired.png` | 160 × 3200, 80 × 320 | with tabard and steel helm, from 2.5 (update 2) |
 | `bagnaskiz.png` | 160 × 1600 | fawn pug, black ears, yellow eyes (update 1) |
@@ -31,6 +34,14 @@ repo root as delivered.
 
 Update 2's own QA notes (the zip's `reports/QA.md`): NE reads more like a side view, the S idle is
 seated, S run/fetch is a bobbing cycle rather than a gallop, the helm is blocky.
+
+The animation integration's plain Zampanò: the new actions use the back view for N, the front for
+S, the right profile for NE/E/SE and the left profile for NW/W/SW. Idle, walk, run, pee, poop, eat
+and sit have authored per-frame holds; pee, poop and eat (also used for drinking) are fitted to the
+game's action timers (`PEE_TIME`, `SQUAT_TIME`, `DRINK_TIME`...), ending on the standing pose.
+Three seconds at rest he sits, then alternates sniffing and sitting (`PLAYER.IDLE_PHASE_TIME`;
+the costumes, which have no `sit`, alternate standing and sniffing). The fetching dog carries the
+tennis ball.
 
 In the manifest a character with delivered art has `sheet` and, for animations delivered as a
 sheet of their own (like `tired`), `animSheets`. A sheet that predates an animation (no rows for
@@ -60,7 +71,7 @@ W/SW/NW may simply be mirrored copies of E/SE/NE.
 
 | key        | frame (px) | anchor (px) | animations                                                         |
 |------------|-----------:|------------:|--------------------------------------------------------------------|
-| `zampano`  | 40 × 40    | (20, 36)    | idle 2, walk 4, run 4, sniff 2, pee 2, poop 2, eat 2, bark 2, fetch 4, hurt 2, tired 2 (own sheet) |
+| `zampano`  | 40 × 40    | (20, 36)    | idle 8, walk 8, run 8, sniff 2, pee 8, poop 8, eat 8, bark 2, fetch 4, hurt 2, sit 8, tired 2 (own sheet) |
 | `bagnaskiz`| 40 × 40    | (20, 36)    | idle 2, walk 4, run 4, bark 2, hurt 2                              |
 | `cat`      | 28 × 28    | (14, 25)    | idle 2, walk 4, run 4                                              |
 
@@ -91,7 +102,7 @@ The **anchor** is the ground contact point, centered between the paws (the shado
 the sprite is depth-sorted by it). Frame counts and fps live in the manifest — change them freely,
 the game reads them from there.
 
-Animation meaning: `idle` standing/breathing · `walk` · `run` · `sniff` (head low, idle variant) ·
+Animation meaning: `idle` standing/breathing · `sit` seated idle (plain Zampanò) · `walk` · `run` · `sniff` (head low, idle variant) ·
 `pee` (hind leg lifted) · `poop` (squatting) · `eat` (head down, mouth) · `bark` (mouth open,
 head forward, played once) · `fetch` (running with the ball in the mouth) · `hurt` (flinch) ·
 `tired` (panting, standing still while the energy recovers).
@@ -104,19 +115,20 @@ One PNG per character, a grid of `frameW × frameH` cells:
   order `N NE E SE S SW W NW`);
 - **columns**: frame 0, 1, 2, … (unused cells may stay empty).
 
-So Zampanò has 10 animations × 8 directions = 80 rows, 4 columns, i.e. a 160 × 3200 px image
-(his 11th animation, `tired`, is a sheet of its own: see `animSheets`).
+So plain Zampanò has 11 animations × 8 directions = 88 rows, 8 columns, i.e. a 320 × 3520 px
+image (his 12th animation, `tired`, is a sheet of its own: see `animSheets`). The costumes have 10
+animations (no `sit`) and 4 columns: 160 × 3200.
 
 Frame files rendered individually (e.g. from Blender) can be assembled with ImageMagick:
 
 ```bash
 # frames named <anim>_<dir>_<frame>.png, e.g. walk_NE_2.png
-for a in idle walk run sniff pee poop eat bark fetch hurt; do
+for a in idle walk run sniff pee poop eat bark fetch hurt sit; do
   for d in N NE E SE S SW W NW; do
     montage ${a}_${d}_*.png -tile x1 -geometry 40x40+0+0 -background none row_${a}_${d}.png
   done
 done
-montage $(for a in idle walk run sniff pee poop eat bark fetch hurt; do for d in N NE E SE S SW W NW; do echo row_${a}_${d}.png; done; done) \
+montage $(for a in idle walk run sniff pee poop eat bark fetch hurt sit; do for d in N NE E SE S SW W NW; do echo row_${a}_${d}.png; done; done) \
   -tile 1x -geometry +0+0 -gravity West -background none zampano.png
 ```
 

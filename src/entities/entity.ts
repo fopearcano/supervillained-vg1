@@ -1,6 +1,7 @@
 import { Container, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
-import { CHARACTERS, textureName, type AnimName, type CharacterKey } from '../assets/manifest';
+import { animationDuration, animationFrame } from '../assets/animationTiming';
+import { CHARACTERS, textureName, type AnimDef, type AnimName, type CharacterKey } from '../assets/manifest';
 import type { Rect, Sortable } from '../iso/depth';
 import { gridToScreen, type Dir8 } from '../iso/projection';
 
@@ -84,16 +85,19 @@ export class CharacterAnimator {
     this.dir = dir;
   }
 
+  get definition(): AnimDef {
+    const anims = CHARACTERS[this.key].anims;
+    return anims[this.anim] ?? anims.idle!;
+  }
+
   get finished(): boolean {
-    const def = (CHARACTERS[this.key].anims as Record<string, { frames: number; fps: number; loop: boolean }>)[this.anim]!;
-    return !def.loop && this.time * def.fps >= def.frames;
+    const def = this.definition;
+    return !def.loop && this.time >= animationDuration(def);
   }
 
   update(dt: number): void {
     this.time += dt * this.speed;
-    const def = (CHARACTERS[this.key].anims as Record<string, { frames: number; fps: number; loop: boolean }>)[this.anim]!;
-    let frame = Math.floor(this.time * def.fps);
-    frame = def.loop ? frame % def.frames : Math.min(frame, def.frames - 1);
+    const frame = animationFrame(this.definition, this.time);
     this.sprite.texture = textures.get(textureName(this.key, this.anim, this.dir, frame));
   }
 }

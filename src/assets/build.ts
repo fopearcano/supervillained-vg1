@@ -39,7 +39,7 @@ const BOOT_CHARACTERS = [
 const builtCharacters = new Set<string>();
 
 /** Anims the procedural art never had (it shows idle frames for them). */
-const NEW_ONLY_ANIMS: ReadonlySet<AnimName> = new Set(['tired']);
+const NEW_ONLY_ANIMS: ReadonlySet<AnimName> = new Set(['tired', 'sit']);
 
 function characterEntries(def: CharacterDef): AtlasEntry[] {
   const spec = CAST_SPECS[def.key]!;
