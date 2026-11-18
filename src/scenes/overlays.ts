@@ -104,7 +104,7 @@ export class TitleScene extends Overlay {
   private shineTime = 0;
   private nextShine = 1.2;
   /** Under INSERT BRAIN, blinking with it. */
-  private readonly speedText = new PixelText('SPEED FOR LIVES', { color: '#c8c8d0', shadow: '#000000', letterSpacing: 1 }).setOrigin(0.5, 0);
+  private readonly speedText = new PixelText('LIFE FOR SPEED', { color: '#8ad4ff', shadow: '#000000', letterSpacing: 1 }).setOrigin(0.5, 0);
   private readonly menu: Menu;
   /** The title's lettering (SUPERVILLAINED + CRUSADER), glitching now and then. */
   private readonly titleGroup = new Container();
@@ -181,7 +181,7 @@ export class TitleScene extends Overlay {
     }
     const cx = Math.round(w / 2);
     // The title near the top (TITLE.TOP). Under it, one block (the portrait, the buttons, INSERT
-    // BRAIN with its lives counter, SPEED FOR LIVES) centered between CRUSADER and the publisher
+    // BRAIN with its lives counter, LIFE FOR SPEED) centered between CRUSADER and the publisher
     // line: the same space above and below it.
     const halfTitle = Math.round(this.title.height / 2);
     const titleY = Math.round(h * TITLE.TOP) + halfTitle;

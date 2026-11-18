@@ -631,3 +631,4 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
 - The title's buttons shine now and then: every 1.4 to 3.6 s a slow slanted light band (with a
   thinner streak behind it) crosses one button, inside its frame, never the same button twice in a
   row (`TITLE.SHINE_*`).
+- The line under INSERT BRAIN now reads LIFE FOR SPEED, in light blue (#8ad4ff), still blinking.

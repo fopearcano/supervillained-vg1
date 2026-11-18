@@ -89,7 +89,7 @@ export const TITLE = {
   /** The title (SUPERVILLAINED CRUSADER): its top at this fraction of the screen height. */
   TOP: 0.07,
   /**
-   * The block under the title (portrait, buttons, INSERT BRAIN, SPEED FOR LIVES) is centered between
+   * The block under the title (portrait, buttons, INSERT BRAIN, LIFE FOR SPEED) is centered between
    * CRUSADER and the publisher line. Its inner gaps (px): portrait to buttons, buttons to INSERT
    * BRAIN; and the least space kept above and below it on short screens (the portrait shrinks).
    */
@@ -103,7 +103,7 @@ export const TITLE = {
   SHINE_WIDTH: 14,
   SHINE_SLANT: 7,
   SHINE_ALPHA: 0.45,
-  /** INSERT BRAIN (with the lives counter) and SPEED FOR LIVES under it: blink cycle, seconds (shown 60%). */
+  /** INSERT BRAIN (with the lives counter) and LIFE FOR SPEED under it: blink cycle, seconds (shown 60%). */
   INSERT_BRAIN_BLINK: 1,
   /** Glitch on the title's lettering: a burst every [min, max] s, lasting [min, max] s. */
   TEXT_GLITCH_EVERY: [1.8, 4.5],
