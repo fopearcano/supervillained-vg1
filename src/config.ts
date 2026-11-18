@@ -59,6 +59,11 @@ export const PLAYER = {
   MARK_DISTANCE: 1.05,
   /** Distance to a fountain to drink. */
   DRINK_DISTANCE: 1.0,
+  /**
+   * Bounced off someone who will not let him pass (Jack in a garden gate): the knockback, as a
+   * multiple of the running speed, so he is pushed back however fast he walks or runs.
+   */
+  BOUNCE: 1.5,
 } as const;
 
 /**
@@ -485,6 +490,11 @@ export const STORY = {
   VISOR: { STILL_AFTER: 0.7, DOWN_RATE: 2.4, UP_RATE: 1.5, MAX: 0.86 },
   /** Characters he follows (1.2, 3.1, 3.4, 5.2, 7.2): they wait while he lags this far behind. */
   LEAD: { WAIT_DISTANCE: 3.2, SPEED: 2.2, ARRIVE: 1.8 },
+  /**
+   * Someone blocking a gap (Jack in a garden gate, 1.2 and 1.3): pushing into him counts as one
+   * bump at most every EVERY seconds, however long the player keeps pushing.
+   */
+  BUMP: { EVERY: 0.5 },
   /**
    * Acting in a lull (2.3 the preacher, 3.3 the square, 7.8 the oath): a voice talks, then
    * pauses. Seconds of talk and of quiet (random in [min, max]); range of the action in tiles.

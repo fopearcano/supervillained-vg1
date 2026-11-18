@@ -142,6 +142,22 @@ export class Zampano extends Entity {
     this.knockY = (dy / len) * speed;
   }
 
+  /**
+   * Bounced off something solid that is not on the map (someone standing in a gap): the motion
+   * into it stops and he is knocked back along (nx, ny), the way out, faster than he can run.
+   */
+  bounce(nx: number, ny: number): void {
+    const len = Math.hypot(nx, ny) || 1;
+    const ux = nx / len;
+    const uy = ny / len;
+    const into = this.vx * ux + this.vy * uy;
+    if (into < 0) {
+      this.vx -= into * ux;
+      this.vy -= into * uy;
+    }
+    this.knockback(ux, uy, PLAYER.RUN_SPEED * PLAYER.BOUNCE);
+  }
+
   face(dir: Dir8): void {
     this.facing = dir;
     this.animator.dir = dir;

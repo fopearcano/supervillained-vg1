@@ -115,6 +115,36 @@ export function followLeader(o: FollowOptions): Step {
   });
 }
 
+// ------------------------------------------------------------------ someone in the way
+
+/** A gap someone stands in (grid box: x0 < gx < x1, y0 < gy < y1). */
+export interface Gap {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+}
+
+/**
+ * Someone standing in a gap on an east-west lane (Jack in a garden gate): while the player is
+ * inside the box he is put back out on the side he came in from and bounced away. Call it every
+ * frame; it returns true on a new bump, at most once every STORY.BUMP.EVERY seconds however long
+ * he keeps pushing, so a script reacts once per bump (a line, a count), not once per frame.
+ */
+export function blockGap(gap: Gap): (ctx: StoryScene) => boolean {
+  let last = -Infinity;
+  return (ctx) => {
+    const p = ctx.player;
+    if (p.gx <= gap.x0 || p.gx >= gap.x1 || p.gy <= gap.y0 || p.gy >= gap.y1) return false;
+    const west = p.gx - gap.x0 < gap.x1 - p.gx;
+    p.gx = west ? gap.x0 : gap.x1;
+    p.bounce(west ? -1 : 1, 0);
+    if (ctx.time - last < STORY.BUMP.EVERY) return false;
+    last = ctx.time;
+    return true;
+  };
+}
+
 // ------------------------------------------------------------------ acting in a lull
 
 export interface LullOptions {

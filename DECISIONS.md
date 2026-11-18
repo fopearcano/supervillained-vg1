@@ -632,3 +632,19 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
   thinner streak behind it) crosses one button, inside its frame, never the same button twice in a
   row (`TITLE.SHINE_*`).
 - The line under INSERT BRAIN now reads LIFE FOR SPEED, in light blue (#8ad4ff), still blinking.
+
+## 1.2: Jack's gate after the faster dog
+
+- Bug: in 1.2 the dog walked into Jack, and half a second later he was through, without the bark
+  puzzle, in a pile of NOPE! texts and JACK WILL NOT MOVE notices. The script pushed him back at a
+  fixed 3 tiles/s and counted every frame he was past the line as a new bump; once he walked at
+  4.4 tiles/s the push no longer beat his walk, so he was "bumping" 60 times a second and the
+  give-up counter (meant for several seconds of pushing) filled in 0.5 s. 1.3's cut-off had the
+  same pattern (a NOT THIS WAY, SIGNOR! every frame).
+- Fix: `Zampano.bounce()` stops his motion into the obstacle and knocks him back at
+  `PLAYER.BOUNCE` times his running speed, so it works at any speed; `blockGap()`
+  (`chapters/helpers.ts`) holds the gap and reports at most one bump every `STORY.BUMP.EVERY`
+  seconds. In 1.2 the hint comes at the 3rd and 8th bump, and after 14 bumps (about 7 s of
+  pushing) he gets through anyway; when he does (or after the third echoed bark) Jack steps aside
+  first, during the CREAK line, and then the walk to the bowl continues (it used to play after he
+  had already walked through Jack).

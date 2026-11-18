@@ -7,7 +7,7 @@ import { walk } from '../../story/walk';
 import { C } from '../../ui/retro';
 import { CHAPTER_TITLES } from '../titles';
 import type { ChapterDef } from '../types';
-import { bark, distTo, followLeader, placeObject } from './helpers';
+import { bark, blockGap, distTo, followLeader, placeObject } from './helpers';
 
 /** Heads popping up along the fences to watch (Jack calls them). */
 function heads(ctx: StoryScene): void {
@@ -104,15 +104,13 @@ export const CH1: ChapterDef = {
       script: () => {
         let echoes = 0;
         let open = false;
-        let tries = 0;
+        let bumps = 0;
+        // Jack in the gap between the two garden gates (he stands at marker '2', 7.5 3.5).
+        const jackGate = blockGap({ x0: 6.55, x1: 8.45, y0: 2, y1: 5 });
         const letThrough = (ctx: StoryScene) => {
           if (open) return;
           open = true;
           ctx.say('CREAK...', { x: 1.5, y: 1.5 }, '#f0d8a0');
-          ctx.insert([
-            say('jack', '(A CREAK FROM THE PROFESSOR\'S WINDOW. JACK STEPS ASIDE AS IF HE HAD ALWAYS MEANT TO.)'),
-            call((c) => c.actor('jack').setBehavior({ kind: 'goto', to: { x: 8.5, y: 4.5 }, speed: 2.5 })),
-          ]);
         };
         return [
           call((ctx) => {
@@ -169,17 +167,26 @@ export const CH1: ChapterDef = {
               if (echoes === 2) heads(ctx);
               if (echoes >= 3) letThrough(ctx);
             },
-            onUpdate: (ctx, _w, dt) => {
-              const p = ctx.player;
-              if (!open && p.gx > 6.55 && p.gy > 2 && p.gy < 5) {
-                p.gx = 6.55;
-                p.knockback(-1, 0, 3);
-                tries += dt + 0.4;
-                ctx.say('NOPE!', ctx.marker('2'), '#f0b060');
-                if (tries > 3) ctx.notice('JACK WILL NOT MOVE. BARK?', C.orange);
+            onUpdate: (ctx, w) => {
+              // The window creaked: Jack steps aside (below), then the way to the bowl is free.
+              if (open) {
+                w.complete = true;
+                return;
               }
-              if (!open && tries > 12) letThrough(ctx);
+              if (!jackGate(ctx)) return;
+              bumps++;
+              ctx.say('NOPE!', ctx.marker('2'), '#f0b060');
+              ctx.actor('jack').emote('bark');
+              if (bumps === 3 || bumps === 8) ctx.notice('JACK WILL NOT MOVE. BARK?', C.orange);
+              // Nobody stays stuck: pushing long enough gets him through too.
+              if (bumps >= 14) letThrough(ctx);
             },
+          }),
+          call((ctx) => ctx.actor('jack').setBehavior({ kind: 'goto', to: { x: 8.5, y: 4.5 }, speed: 2.5 })),
+          say('jack', "(A CREAK FROM THE PROFESSOR'S WINDOW. JACK STEPS ASIDE AS IF HE HAD ALWAYS MEANT TO.)"),
+          walk({
+            objective: 'GO THROUGH TO THE BOWL',
+            goal: { reach: '1', label: 'THE BOWL' },
           }),
           say('zampano', 'THERE WAS A GATE, AND IT WAS A CHIHUAHUA.', { remembered: true }),
         ];
@@ -194,6 +201,8 @@ export const CH1: ChapterDef = {
       script: () => {
         let bowl: PropEntity | null = null;
         let cutOff = 0;
+        // The second garden gate on the lane, where Jack cuts him off.
+        const cutGate = blockGap({ x0: 17.4, x1: 18.9, y0: 2, y1: 5 });
         let jokeT = 0;
         const jokes = ['AND THEN HE OFFERED THE OTHER PAW!', 'HA HA HA!', 'THE OTHER PAW!', 'HA HA!'];
         let j = 0;
@@ -244,9 +253,7 @@ export const CH1: ChapterDef = {
             onUpdate: (ctx, _w, dt) => {
               const p = ctx.player;
               // Jack cuts him off at the next opening on the direct path.
-              if (p.gx > 17.4 && p.gx < 18.9 && p.gy > 2 && p.gy < 5) {
-                p.gx = 17.4;
-                p.knockback(-1, 0, 4);
+              if (cutGate(ctx)) {
                 const jack = ctx.actor('jack');
                 jack.setPosition(18.5, 3.5);
                 jack.emote('bark');
