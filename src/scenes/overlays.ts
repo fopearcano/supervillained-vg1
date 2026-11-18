@@ -167,17 +167,22 @@ export class TitleScene extends Overlay {
     const editionY = titleY + halfTitle + 10;
     const headerBottom = editionY + 6;
     const footerTop = h - 6 - this.footer.textHeight;
-    const menuBottom = h - 16 - TITLE.BOTTOM_GAP;
+    const baseBottom = h - 16 - TITLE.BOTTOM_GAP;
+    // The buttons and INSERT BRAIN are raised TITLE.BUTTONS_RAISE towards the portrait, which stays
+    // where it was (centered between the title and the buttons' unraised place).
+    const menuBottom = baseBottom - TITLE.BUTTONS_RAISE;
     const menuY = menuBottom - this.menu.height;
-    const bestY = menuBottom + Math.round((footerTop - menuBottom - this.best.textHeight) * TITLE.INSERT_BRAIN_AT);
+    const bestY = menuBottom + Math.round((footerTop - baseBottom - this.best.textHeight) * TITLE.INSERT_BRAIN_AT);
     // The portrait takes DOG_WIDTH of the screen, smaller if it would not fit (short screens).
     const gapTop = headerBottom + 6;
-    const room = menuY - 6 - gapTop;
-    const dogW = Math.max(24, Math.min(Math.round(w * TITLE.DOG_WIDTH), Math.floor(room / TITLE.DOG_ASPECT)));
+    const roomCenter = baseBottom - this.menu.height - 6 - gapTop;
+    const roomFit = menuY - 6 - gapTop;
+    const dogW = Math.max(24, Math.min(Math.round(w * TITLE.DOG_WIDTH), Math.floor(roomFit / TITLE.DOG_ASPECT)));
     const dogH = this.layoutDog(dogW);
+    const dogY = Math.min(gapTop + Math.max(0, Math.round((roomCenter - dogH) / 2)), menuY - 6 - dogH);
     this.title.position.set(cx, titleY);
     this.edition.position.set(cx, editionY);
-    this.dog.position.set(cx, gapTop + Math.max(0, Math.round((room - dogH) / 2)));
+    this.dog.position.set(cx, Math.max(gapTop, dogY));
     this.menu.layout(w / 2, menuY);
     this.best.position.set(cx, bestY);
     this.footer.position.set(cx, h - 6);

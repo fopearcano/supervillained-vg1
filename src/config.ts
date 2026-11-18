@@ -94,6 +94,8 @@ export const TITLE = {
    * half as much.
    */
   BOTTOM_GAP: 32,
+  /** The buttons and INSERT BRAIN then rise by one button's space (18 + 6), nearer the portrait. */
+  BUTTONS_RAISE: 24,
   /** INSERT BRAIN between the buttons and the publisher line: 0 = at the buttons, 1 = at the line. */
   INSERT_BRAIN_AT: 0.4,
   /** ...blinking: one cycle in this many seconds (shown for 60% of it). */

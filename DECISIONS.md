@@ -567,3 +567,6 @@ done here, with these choices:
   (`TITLE.INSERT_BRAIN_AT`). Where CONTINUE goes is in COUCH.
 - The scene cards no longer show `SOURCE: ...` (the conference or board reference): like CAST, it
   is design information, kept in the chapter data and the bible.
+- The buttons and INSERT BRAIN then rose by one more button's space (`TITLE.BUTTONS_RAISE`), towards
+  the portrait, which stays where it was (it only shrinks or moves up if a short screen leaves no
+  room).
