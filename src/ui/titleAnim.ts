@@ -1,5 +1,7 @@
 import { Texture } from 'pixi.js';
-import gifUrl from '../../assets/starting-page-images/Zampano-Samemala-3.gif?url';
+// Zampano-Samemala-3.gif converted to a lossless animated WebP (same 99 frames and delays, 2.3 MB
+// instead of 6.6 MB); the GIF is kept beside it as the source.
+import gifUrl from '../../assets/starting-page-images/app/Zampano-Samemala-3.webp?url';
 import { TITLE } from '../config';
 
 /**
@@ -177,7 +179,7 @@ async function decodeInto(f: TitleFrames, width: number): Promise<void> {
     return;
   }
   const data = await (await fetch(gifUrl)).arrayBuffer();
-  const decoder = new Decoder({ data, type: 'image/gif' });
+  const decoder = new Decoder({ data, type: gifUrl.endsWith('.webp') ? 'image/webp' : 'image/gif' });
   try {
     // The track list first (selectedTrack is null until then), then the whole file.
     await decoder.tracks.ready;

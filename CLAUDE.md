@@ -32,6 +32,7 @@ npm run playtest -- --skill 0.4 --ending alpha --choice random --from 5.1 --out 
 npm run playtest -- --from 3.1 --to 3.4          # one level
 npm run sprites:old  # freeze the procedural art of characters with delivered sheets → public/sprites/old/
 npm run android:apk  # web build + cap sync + Gradle debug APK (needs JDK 21 + Android SDK 36)
+npm run android:release  # the same, shrunk with R8 (about 23 MB less code): the APK to hand out
 ```
 
 Debug URLs: `?skip=game` (straight into the Green Zone walk, outside the story), `?story=7.3` (straight into a story

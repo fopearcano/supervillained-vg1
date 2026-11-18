@@ -581,3 +581,20 @@ Green Zone track (by 4.7, 1.5 and 6 dB on average), so each gets a gain trim
 to 320 kbit/s (38 MB, a 59 MB APK), so the game bundles copies re-encoded as MP3 VBR at about
 130 kbit/s (`ffmpeg -codec:a libmp3lame -q:a 5`, 18.8 MB; same loudness, so the trims stand); the
 uploaded files are kept untouched in `assets/music/originals/`, which nothing imports.
+
+## A smaller app
+
+The debug APK had reached 59 MB. What changed (originals always kept in the repo, unbundled):
+
+- **Music**: every track is bundled as MP3 VBR at about 130 kbit/s (`ffmpeg -q:a 5`; the level
+  tracks came at up to 320 kbit/s); same loudness, so the gain trims stand. Uploads stay in
+  `assets/music/originals/`.
+- **Title portrait**: the 6.6 MB GIF is bundled as a lossless animated WebP (2.3 MB), checked
+  frame by frame and delay by delay against the GIF; `ImageDecoder` decodes WebP like GIF.
+- **Old still portrait** (ART: OLD): a 384-px copy (0.2 MB) instead of the 1024-px original.
+- **Release build** (`npm run android:release`): R8 shrinks and optimizes the code (about 8.6 MB of
+  dex in the debug build, 0.8 MB here). Capacitor's own ProGuard rules keep its plugins and their
+  `@PluginMethod` methods (QuitPlugin's `quit` and `openUrl` checked in the dex), Android's default
+  rules keep the WebView's `@JavascriptInterface` bridge. It is signed with the debug key so it
+  installs from a file like the debug APK; publishing on the Play Store needs an upload key kept by
+  the publisher (never in the repo), set in `android/app/build.gradle`.

@@ -18,8 +18,14 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // Shrunk and optimized (R8): the debug build's code is about four times larger.
+            // Capacitor's own rules keep its plugins (QuitPlugin included) and their methods.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Signed with the debug key, for installing from a file like the debug APK. For the
+            // Play Store, replace with an upload key kept by the publisher (never in the repo).
+            signingConfig signingConfigs.debug
         }
     }
 }

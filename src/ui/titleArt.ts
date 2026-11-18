@@ -1,5 +1,6 @@
 import { Texture } from 'pixi.js';
-import dogUrl from '../../assets/starting-page-images/Retro-16-Bit Ivory Dog Sprite-3-4-front.png?url';
+// A 384-px copy of the still portrait (shown at most ~124 px wide); the original is kept beside it.
+import dogUrl from '../../assets/starting-page-images/app/Retro-16-Bit Ivory Dog Sprite-3-4-front-384.png?url';
 import logoUrl from '../../assets/starting-page-images/Youve_Been_Supervillained_Logo.png?url';
 
 /**
