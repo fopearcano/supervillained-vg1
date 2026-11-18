@@ -577,5 +577,7 @@ Three recorded tracks (uploaded to main, `assets/music/Level-N_...mp3`) play whi
 their level are played, like the Green Zone track in levels 1 and 8; the reading screens keep the
 intro music and levels 5 to 7 the synthesized medieval loop. They are mastered louder than the
 Green Zone track (by 4.7, 1.5 and 6 dB on average), so each gets a gain trim
-(`AUDIO.MUSIC_FILE_GAIN`) through its own gain node. They are long (about 6 minutes) and at up to
-320 kbit/s; the three files add about 38 MB to the app.
+(`AUDIO.MUSIC_FILE_GAIN`) through its own gain node. They are long (about 6 minutes) and came at up
+to 320 kbit/s (38 MB, a 59 MB APK), so the game bundles copies re-encoded as MP3 VBR at about
+130 kbit/s (`ffmpeg -codec:a libmp3lame -q:a 5`, 18.8 MB; same loudness, so the trims stand); the
+uploaded files are kept untouched in `assets/music/originals/`, which nothing imports.

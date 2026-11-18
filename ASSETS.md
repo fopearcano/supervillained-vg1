@@ -195,7 +195,9 @@ offline. Each file is wired in `src/fx/audioFiles.ts`:
 Leading silence is skipped automatically, and per-file loudness trims are in `config.ts`
 (`AUDIO.FILE_GAIN`; music: `AUDIO.MUSIC_FILE_GAIN`, which brings the louder level tracks down to
 the Green Zone track's level). To replace a sound, overwrite the file with the same name (mp3 or
-wav). A level's music is its chapter's `music` (`src/campaign/chapters/chN.ts`). Levels 5 to 7
+wav). A level's music is its chapter's `music` (`src/campaign/chapters/chN.ts`). The level 2-4
+tracks in the game are re-encoded copies (MP3 VBR, about 130 kbit/s, `ffmpeg -q:a 5`) to keep the
+app small; the files as uploaded are kept in `assets/music/originals/` (not bundled). Levels 5 to 7
 keep the synthesized medieval loop, and interface sounds (clicks, glitch
 transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
 
