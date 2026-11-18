@@ -10,9 +10,10 @@ which wins where they differ): 8 levels, 1.0 + 42 sub-levels.
 - Then the rest of Level 1, the Fourth-Crusade dream (levels 2–7) and the return (level 8):
   dialogue, dream walks, mini-games and two endings.
 
-Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`. Delivered art replaces
-procedural art in `public/sprites/`; **the art it replaces is never deleted**: it is kept as the
-old version in `public/sprites/old/` (`npm run sprites:old`), selectable in OPTIONS > ART.
+Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`. Delivered art goes in
+`public/sprites/`; **the art it replaces is never deleted**: it moves into its version's folder
+(`public/sprites/old/` for the procedural art, `npm run sprites:old`; `public/sprites/v1/` for
+update 1) and stays selectable in OPTIONS > ART (NEW / UPDATE 1 / OLD).
 
 ## Commands
 
@@ -34,7 +35,7 @@ npm run android:apk  # web build + cap sync + Gradle debug APK (needs JDK 21 + A
 ```
 
 Debug URLs: `?skip=game` (straight into the Green Zone walk, outside the story), `?story=7.3` (straight into a story
-sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`, `?art=old|new` (character art version).
+sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`, `?art=new|v1|old` (character art version).
 `window.__sv` exposes the game for automation (`__sv.scene()` = top scene, `__sv.top()`,
 `__sv.storyIds()`, `__sv.flow.story.debugPlay(id)`; a `StoryScene` has `debugState()`,
 `debugSkip()`, `marker(m)`).
@@ -86,7 +87,7 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   mini-games implement an optional `pilot()` that drives the real inputs).
 - `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
   sight cones, hostile contact).
-- `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims, `sheet`/`oldSheet`/`animSheets`),
+- `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims, `sheets` per art version),
   `build.ts` (load PNGs of the chosen art version or generate placeholders; `setArtVersion`),
   `placeholders/*` (procedural pixel art = the old art), `fonts/`.
 - Repo-root `assets/music` and `assets/sounds` — recorded audio, wired in `src/fx/audioFiles.ts`

@@ -5,8 +5,9 @@
  *
  * When a delivered sprite sheet replaces a character's procedural (placeholder) art, the art it
  * replaced is kept as the "old" version: this script draws it with the game's own generator
- * (src/assets/placeholders) and writes, for every character with an `oldSheet` in the manifest,
- * a sheet in the same layout as the new one (rows = anims in manifest order x N, NE, E, SE, S,
+ * (src/assets/placeholders) and writes, for every character with an `old` sheet set in the
+ * manifest (`sheets: [{ since: 'old', sheet: 'sprites/old/<key>.png' }, ...]`), a sheet in the
+ * same layout as the delivered ones (rows = anims in manifest order x N, NE, E, SE, S,
  * SW, W, NW; columns = frames) into public/sprites/old/. Anims the old art never had (tired)
  * are left out: the game shows the idle frames for them. It also writes the old RUN icon
  * (the chevrons drawn in src/ui/touchControls.ts) as old/runIcon.png, for reference.
@@ -78,7 +79,8 @@ try {
   const NEW_ONLY = new Set(['tired']);
 
   for (const def of Object.values(CHARACTERS)) {
-    if (!def.oldSheet) continue;
+    const oldSet = (def.sheets ?? []).find((s) => s.since === 'old');
+    if (!oldSet) continue;
     const anims = Object.entries(def.anims).filter(([a]) => !NEW_ONLY.has(a));
     const cols = Math.max(...anims.map(([, a]) => a.frames));
     const w = cols * def.frameW;
@@ -98,7 +100,7 @@ try {
         row++;
       }
     }
-    const file = join(OUT, def.oldSheet);
+    const file = join(OUT, oldSet.sheet);
     mkdirSync(join(file, '..'), { recursive: true });
     writeFileSync(file, encodePng(w, h, sheet));
     console.log(`${file}  ${w}x${h}  (${anims.map(([a]) => a).join(', ')})`);

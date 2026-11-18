@@ -5,7 +5,7 @@ import { Game } from './core/game';
 import { levelByNumber } from './levels';
 import { Flow } from './scenes/flow';
 import { SpriteViewerScene } from './scenes/spriteViewerScene';
-import type { CharacterKey } from './assets/manifest';
+import { ART_VERSIONS, type CharacterKey } from './assets/manifest';
 import { loadPixelFont } from './ui/pixelFont';
 import { loadTitleArt } from './ui/titleArt';
 import { titleAnimation, titleStill } from './ui/titleAnim';
@@ -36,9 +36,10 @@ async function boot(): Promise<void> {
   });
   app.ticker?.stop();
   await loadPixelFont();
-  // Character art version (Options > ART; `?art=old` forces the old one for a look).
+  // Character art version (Options > ART; `?art=new|v1|old` forces one for a look).
   const query = new URLSearchParams(location.search);
-  await setArtVersion(query.get('art') === 'old' ? 'old' : query.get('art') === 'new' ? 'new' : loadSettings().art);
+  const forced = ART_VERSIONS.find((v) => v === query.get('art'));
+  await setArtVersion(forced ?? loadSettings().art);
   await buildGlobalTextures();
   await loadTitleArt();
   const game = new Game(app, canvas);

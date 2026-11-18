@@ -33,20 +33,25 @@ export interface CharacterDef {
   anchorY: number;
   anims: Partial<Record<AnimName, AnimDef>>;
   /**
-   * Optional sprite sheet (path relative to /public): the current ("new") art. Layout: one row
-   * per (anim, dir) in the order of `anims` (as listed here) x SHEET_DIRS, one column per frame.
-   * Anims listed in `animSheets` are skipped here; anims past the sheet's last row (an animation
-   * the sheet predates) show the idle frames. Missing → placeholder.
+   * The character's art, one set per art version that changed it (oldest first). An art version
+   * shows the newest set introduced at or before it; with no set, the art is procedural. Nothing
+   * is ever removed from this list: replaced art stays as the version it belongs to.
    */
-  sheet?: string;
+  sheets?: SheetSet[];
+}
+
+/**
+ * A character's sprite sheet in one art version (paths relative to /public). Layout: one row per
+ * (anim, dir) in the order of `anims` x SHEET_DIRS, one column per frame. Anims in `animSheets`
+ * are skipped here; anims past the sheet's last row (an animation it predates) show the idle
+ * frames.
+ */
+export interface SheetSet {
+  /** The art version that introduced it. */
+  since: ArtVersion;
+  sheet: string;
   /** Anims delivered as sheets of their own (8 rows = SHEET_DIRS, one column per frame). */
   animSheets?: Partial<Record<AnimName, string>>;
-  /**
-   * The art `sheet` replaced, kept as the "old" version (Options > ART: OLD), same layout. It is
-   * the procedural placeholder art the game shipped with, frozen as PNGs by
-   * `npm run sprites:old`.
-   */
-  oldSheet?: string;
 }
 
 export interface SpriteDef {
@@ -97,24 +102,50 @@ export const CAST_KEYS = [
 export type CastKey = (typeof CAST_KEYS)[number];
 export type CharacterKey = 'zampano' | 'bagnaskiz' | 'cat' | CastKey;
 
-/** Art versions: 'new' = the delivered sheets (sprite update 1), 'old' = the art they replaced. */
-export type ArtVersion = 'new' | 'old';
-export const ART_VERSIONS: readonly ArtVersion[] = ['new', 'old'];
-/** Where the old version of a replaced sheet lives. */
+/**
+ * Art versions, oldest first (OPTIONS > ART): 'old' = the procedural art the game shipped with
+ * (frozen as PNGs in sprites/old/), 'v1' = sprite update 1 (its replaced files in sprites/v1/),
+ * 'new' = the latest delivery (sprite update 2, in sprites/).
+ */
+export type ArtVersion = 'old' | 'v1' | 'new';
+export const ART_VERSIONS: readonly ArtVersion[] = ['old', 'v1', 'new'];
+export const ART_LABELS: Readonly<Record<ArtVersion, string>> = { old: 'OLD', v1: 'UPDATE 1', new: 'NEW' };
+/** Where the old (procedural) version of a replaced sheet lives. */
 export const OLD_SPRITES_DIR = 'sprites/old';
 
-/** Cast members with delivered sheets (sprite update 1); the rest stay procedural. */
-const CAST_SHEETS: Partial<Record<CastKey, string>> = {
-  sbrimbrulon: 'sprites/sbrimbrulon.png',
-  jack: 'sprites/jack.png',
-  watson: 'sprites/watson.png',
-  confusione: 'sprites/confusione.png',
-};
-
-/** The sheet and its kept old version, for a character whose art was replaced. */
-function sheets(key: string): Pick<CharacterDef, 'sheet' | 'oldSheet'> {
-  return { sheet: `sprites/${key}.png`, oldSheet: `${OLD_SPRITES_DIR}/${key}.png` };
+/** `a` is the same as or newer than `b`. */
+export function artAtLeast(a: ArtVersion, b: ArtVersion): boolean {
+  return ART_VERSIONS.indexOf(a) >= ART_VERSIONS.indexOf(b);
 }
+
+/** The set a character shows in an art version (null: procedural). */
+export function sheetSetFor(def: CharacterDef, art: ArtVersion): SheetSet | null {
+  let best: SheetSet | null = null;
+  for (const set of def.sheets ?? []) if (artAtLeast(art, set.since)) best = set;
+  return best;
+}
+
+const tired = (path: string) => ({ tired: path });
+/** The frozen procedural art (the 'old' version) of a character whose art was replaced. */
+const old = (key: string): SheetSet => ({ since: 'old', sheet: `${OLD_SPRITES_DIR}/${key}.png` });
+
+/** Delivered sheets per character (the rest of the cast stays procedural in every version). */
+const DELIVERED: Partial<Record<string, SheetSet[]>> = {
+  zampano: [
+    old('zampano'),
+    // Update 1: the new RUN rows over the old art, and the tired pose.
+    { since: 'v1', sheet: 'sprites/v1/zampano.png', animSheets: tired('sprites/v1/zampano-tired.png') },
+    // Update 2: the complete new Zampanò.
+    { since: 'new', sheet: 'sprites/zampano.png', animSheets: tired('sprites/zampano-tired.png') },
+  ],
+  zampanoCross: [old('zampanoCross'), { since: 'new', sheet: 'sprites/zampanoCross.png', animSheets: tired('sprites/zampanoCross-tired.png') }],
+  zampanoKnight: [old('zampanoKnight'), { since: 'new', sheet: 'sprites/zampanoKnight.png', animSheets: tired('sprites/zampanoKnight-tired.png') }],
+  bagnaskiz: [old('bagnaskiz'), { since: 'v1', sheet: 'sprites/bagnaskiz.png' }],
+  sbrimbrulon: [old('sbrimbrulon'), { since: 'v1', sheet: 'sprites/sbrimbrulon.png' }],
+  jack: [old('jack'), { since: 'v1', sheet: 'sprites/jack.png' }],
+  watson: [old('watson'), { since: 'v1', sheet: 'sprites/watson.png' }],
+  confusione: [old('confusione'), { since: 'v1', sheet: 'sprites/confusione.png' }],
+};
 
 /** RUN button icon (sprite update 1); the old version is the chevrons drawn in code. */
 export const RUN_ICON = 'sprites/runIcon.png';
@@ -129,7 +160,7 @@ function castDefs<K extends string>(keys: readonly K[]): Record<K, CharacterDef>
       frameH: 40,
       anchorX: 20,
       anchorY: 36,
-      ...(CAST_SHEETS[key as unknown as CastKey] ? sheets(key) : {}),
+      ...(DELIVERED[key] ? { sheets: DELIVERED[key] } : {}),
       anims:
         key === 'zampanoCross' || key === 'zampanoKnight'
           ? {
@@ -143,6 +174,8 @@ function castDefs<K extends string>(keys: readonly K[]): Record<K, CharacterDef>
               bark: { frames: 2, fps: 10, loop: false },
               fetch: { frames: 4, fps: 13, loop: true },
               hurt: { frames: 2, fps: 10, loop: true },
+              // Standing still out of breath (sprite update 2; older art shows idle).
+              tired: { frames: 2, fps: 4, loop: true },
             }
           : {
               idle: { frames: 2, fps: 3, loop: true },
@@ -163,8 +196,7 @@ export const CHARACTERS = {
     frameH: 40,
     anchorX: 20,
     anchorY: 36,
-    ...sheets('zampano'),
-    animSheets: { tired: 'sprites/zampano-tired.png' },
+    sheets: DELIVERED.zampano,
     anims: {
       idle: { frames: 2, fps: 3, loop: true },
       walk: { frames: 4, fps: 9, loop: true },
@@ -186,7 +218,7 @@ export const CHARACTERS = {
     frameH: 40,
     anchorX: 20,
     anchorY: 36,
-    ...sheets('bagnaskiz'),
+    sheets: DELIVERED.bagnaskiz,
     anims: {
       idle: { frames: 2, fps: 3, loop: true },
       walk: { frames: 4, fps: 9, loop: true },

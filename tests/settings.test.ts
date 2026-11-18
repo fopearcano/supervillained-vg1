@@ -53,6 +53,11 @@ describe('settings, records and coins', () => {
     expect(loadSettings()).toEqual({ muted: true, volume: 0.3, textSpeed: 'fast', art: 'old' });
   });
 
+  it('keeps update 1 as a choice', () => {
+    saveSettings({ muted: false, volume: 0.7, textSpeed: 'normal', art: 'v1' });
+    expect(loadSettings().art).toBe('v1');
+  });
+
   it('falls back to the new art for unknown versions', () => {
     localStorage.setItem('supervillained:settings', JSON.stringify({ art: 'v9' }));
     expect(loadSettings().art).toBe('new');

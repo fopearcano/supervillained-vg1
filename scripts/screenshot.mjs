@@ -165,8 +165,11 @@ const SCENARIOS = {
     await page.evaluate(() => window.__sv.flow.toTitle());
     await wait(1600);
     await page.screenshot({ path: `${OUT}/p-title.png` });
-    await page.keyboard.press('ArrowDown');
-    await wait(80);
+    // CONTINUE is selected; OPTIONS is two rows down (COUCH between them).
+    for (let k = 0; k < 2; k++) {
+      await page.keyboard.press('ArrowDown');
+      await wait(80);
+    }
     await page.keyboard.press('Enter');
     await wait(700);
     await page.screenshot({ path: `${OUT}/p-options.png` });
@@ -299,12 +302,14 @@ const SCENARIOS = {
     await page.close();
   },
 
-  /** Sprite sheets of every character with delivered art (debug viewer), new and old versions. */
+  /** Sprite sheets of every character with delivered art (debug viewer), in each art version. */
   async sprites(browser) {
-    for (const c of ['zampano', 'bagnaskiz', 'sbrimbrulon', 'jack', 'watson', 'confusione', 'cat']) {
-      for (const art of c === 'cat' ? ['new'] : ['new', 'old']) {
+    // NEW = sprite update 2, v1 = update 1, old = the procedural art (only where they differ).
+    const versions = { zampano: ['new', 'v1', 'old'], zampanoCross: ['new', 'old'], zampanoKnight: ['new', 'old'], cat: ['new'] };
+    for (const c of ['zampano', 'zampanoCross', 'zampanoKnight', 'bagnaskiz', 'sbrimbrulon', 'jack', 'watson', 'confusione', 'cat']) {
+      for (const art of versions[c] ?? ['new', 'old']) {
         const page = await openGame(browser, `?debug=sprites&char=${c}&art=${art}`);
-        await page.screenshot({ path: `${OUT}/sprites-${c}${art === 'old' ? '-old' : ''}.png` });
+        await page.screenshot({ path: `${OUT}/sprites-${c}${art === 'new' ? '' : '-' + art}.png` });
         await page.close();
       }
     }

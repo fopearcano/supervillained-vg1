@@ -533,3 +533,22 @@ exactly.
 - The title portrait is `Zampano-Samemala-3.gif` (99 frames, about 4 s, 6.6 MB). Frames are
   reduced to 192 px before cropping (256 before) to keep memory low while 99 frames are packed;
   the previous GIFs stay in the folder.
+
+## Sprite update 2: the complete Zampanò, a third art version
+
+`Supervillained-vg1-sprite-update-2.zip` (uploaded to main, kept at the repo root) brings the
+complete new Zampanò and, for the first time, his two dream costumes as sheets (rag cross,
+armour), each with a tired sheet. Its other six files are byte-identical to update 1. Its README
+mentions source changes made on Codex's local copy; they were not delivered, so the integration is
+done here, with these choices:
+
+- **Three art versions**, cycled by OPTIONS > ART: NEW (update 2), UPDATE 1, OLD. The update-1
+  Zampanò it replaces moved to `public/sprites/v1/`; the procedural costumes it replaces were
+  frozen into `public/sprites/old/` by `npm run sprites:old` (the other old PNGs came out
+  byte-identical). Saved settings keep working ('new' / 'old'; 'v1' is new).
+- The manifest's `sheet` / `oldSheet` / `animSheets` became `sheets`: sets tagged with the version
+  that introduced them; a version shows the newest set at or before it. So the band keeps update
+  1 under NEW, and the costumes show the procedural art under UPDATE 1, as that version did.
+- The costumes gained the `tired` animation (from their own sheets); with older art it shows idle.
+- Every character with a sheet in any version loads at boot (now about 450 KB of PNGs), as
+  before, so story scenes never spawn a character before its textures exist.

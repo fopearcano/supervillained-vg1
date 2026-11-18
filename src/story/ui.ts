@@ -3,7 +3,7 @@ import { artVersion, ensureCharacters } from '../assets/build';
 import { STORY } from '../config';
 import { textures } from '../core/assets';
 import type { Input } from '../core/input';
-import { spriteName, textureName, CHARACTERS, type CharacterKey } from '../assets/manifest';
+import { artAtLeast, spriteName, textureName, CHARACTERS, type CharacterKey } from '../assets/manifest';
 import type { CampaignState } from '../campaign/state';
 import { PixelText } from '../ui/pixelText';
 import { C, frameRect, hex, retroBox } from '../ui/retro';
@@ -52,7 +52,7 @@ const NEW_ART_COLORS: Record<string, string> = {
 
 export function speakerOf(key: string): { name: string; color: string; portrait: CharacterKey | 'professor' | null } {
   const sp = SPEAKERS[key] ?? { name: key.toUpperCase(), color: C.white, portrait: null };
-  const color = artVersion() === 'new' ? NEW_ART_COLORS[key] : undefined;
+  const color = artAtLeast(artVersion(), 'v1') ? NEW_ART_COLORS[key] : undefined;
   return color ? { ...sp, color } : sp;
 }
 

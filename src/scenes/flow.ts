@@ -27,6 +27,7 @@ import { openUrl, quitApp } from '../core/native';
 import { GlossaryScene } from './glossaryScene';
 import { CouchScene } from './couchScene';
 import { setArtVersion } from '../assets/build';
+import { ART_LABELS, ART_VERSIONS } from '../assets/manifest';
 
 /**
  * One game. Title (NEW GAME / CONTINUE / OPTIONS / QUIT) → the story, whose first scene (1.0) is
@@ -152,13 +153,15 @@ export class Flow {
         },
         textSpeed: () => s.textSpeed.toUpperCase(),
         // The character art: the new sheets, or the old version they replaced.
+        // Cycles NEW → UPDATE 1 → OLD → NEW.
         toggleArt: () => {
-          s.art = s.art === 'new' ? 'old' : 'new';
+          const order = [...ART_VERSIONS].reverse();
+          s.art = order[(order.indexOf(s.art) + 1) % order.length]!;
           saveSettings(s);
           void setArtVersion(s.art);
           this.game.audio.play('click');
         },
-        art: () => (s.art === 'new' ? 'NEW' : 'OLD'),
+        art: () => ART_LABELS[s.art],
         levels: () => this.glitch(() => this.story.openMenu()),
         book: () => this.game.scenes.push(new BookScene(this.game, this.story.state, () => this.game.scenes.pop())),
         back: () => this.closeOverTitle(),

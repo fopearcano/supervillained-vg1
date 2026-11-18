@@ -2,7 +2,7 @@ import { Container, Graphics, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import type { Game } from '../core/game';
 import type { Scene } from '../core/scene';
-import { CHARACTERS, textureName, type AnimName, type CharacterKey } from '../assets/manifest';
+import { ART_LABELS, CHARACTERS, textureName, type AnimName, type CharacterKey } from '../assets/manifest';
 import type { Dir8 } from '../iso/projection';
 import { PixelText } from '../ui/pixelText';
 import { artVersion } from '../assets/build';
@@ -27,7 +27,7 @@ export class SpriteViewerScene implements Scene {
     const def = CHARACTERS[key];
     const bg = new Graphics().rect(0, 0, 2000, 2000).fill(0x3fcf1f);
     this.root.addChild(bg);
-    const title = new PixelText(`${key.toUpperCase()}  ${artVersion() === 'new' ? 'NEW' : 'OLD'} ART`, { color: '#ffe23a', outline: '#000000' });
+    const title = new PixelText(`${key.toUpperCase()}  ${ART_LABELS[artVersion()]}`, { color: '#ffe23a', outline: '#000000' });
     title.position.set(2, 2);
     this.root.addChild(title);
     const anims = Object.keys(def.anims) as AnimName[];

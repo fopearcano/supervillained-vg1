@@ -17,9 +17,12 @@ import {
   spriteName,
   textureName,
   RUN_ICON,
+  artAtLeast,
+  sheetSetFor,
   type AnimName,
   type ArtVersion,
   type CharacterDef,
+  type SheetSet,
   type SpriteDef,
   type SpriteKey,
 } from './manifest';
@@ -35,18 +38,18 @@ import {
  * is generated on demand, synchronously (ensureCharacters).
  */
 const BOOT_CHARACTERS = [
-  ...new Set(['zampano', 'bagnaskiz', 'cat', ...Object.values(CHARACTERS as Record<string, CharacterDef>).filter((d) => d.sheet).map((d) => d.key)]),
+  ...new Set(['zampano', 'bagnaskiz', 'cat', ...Object.values(CHARACTERS as Record<string, CharacterDef>).filter((d) => d.sheets?.length).map((d) => d.key)]),
 ];
 const builtCharacters = new Set<string>();
 
-/** Which art the replaced characters show (Options > ART); see CharacterDef.oldSheet. */
+/** Which art version the characters show (Options > ART); see CharacterDef.sheets. */
 let art: ArtVersion = 'new';
 
 export function artVersion(): ArtVersion {
   return art;
 }
 
-/** Anims the procedural art never had (the old version shows idle frames for them). */
+/** Anims the procedural art never had (it shows idle frames for them). */
 const NEW_ONLY_ANIMS: ReadonlySet<AnimName> = new Set(['tired']);
 
 function characterEntries(def: CharacterDef): AtlasEntry[] {
@@ -68,9 +71,9 @@ function characterEntries(def: CharacterDef): AtlasEntry[] {
   return entries;
 }
 
-/** The sheet to load for a character in the current art version (null = procedural). */
-function sheetFor(def: CharacterDef): string | null {
-  return (art === 'old' ? def.oldSheet : def.sheet) ?? null;
+/** The sheet set of a character in the current art version (null = procedural). */
+function sheetFor(def: CharacterDef): SheetSet | null {
+  return sheetSetFor(def, art);
 }
 
 /** Makes sure the given characters have textures (loads their sheet or generates placeholders). */
@@ -100,9 +103,9 @@ export async function setArtVersion(v: ArtVersion): Promise<void> {
   await loadRunIcon();
 }
 
-/** The RUN button icon of the new art, or null (old art / missing: the chevrons drawn in code). */
+/** The RUN button icon (from update 1 on), or null (old art / missing: the chevrons drawn in code). */
 export function runIconTexture(): Texture | null {
-  return art === 'new' && textures.has('runIcon_0') ? textures.get('runIcon_0') : null;
+  return artAtLeast(art, 'v1') && textures.has('runIcon_0') ? textures.get('runIcon_0') : null;
 }
 
 async function loadRunIcon(): Promise<void> {
@@ -220,13 +223,14 @@ export function buildLevelTextures(pal: Palette): void {
 }
 
 async function loadCharacterSheet(def: CharacterDef): Promise<boolean> {
-  const path = sheetFor(def)!;
+  const set = sheetFor(def)!;
+  const path = set.sheet;
   const sheet = await tryLoadTexture(path);
   if (!sheet) {
     console.warn(`[assets] could not load ${path}, using placeholder for ${def.key}`);
     return false;
   }
-  const own = art === 'new' ? (def.animSheets ?? {}) : {};
+  const own = set.animSheets ?? {};
   const rows = Math.floor(sheet.frame.height / def.frameH);
   const cut = (src: Texture, anim: AnimName, dir: (typeof SHEET_DIRS)[number], f: number, row: number, col: number) =>
     textures.set(
