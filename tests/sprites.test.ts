@@ -62,4 +62,11 @@ describe('authored Zampanò timing', () => {
       expect(animationFrame(clip, end + 0.005, true)).toBe(0);
     }
   });
+
+  it('uses the complete authored layout for the knight costume', () => {
+    expect(CHARACTERS.zampanoKnight.anims).toEqual(CHARACTERS.zampano.anims);
+    expect(CHARACTERS.zampanoKnight.anims.sit!.frames).toBe(8);
+    expect(CHARACTERS.zampanoCross.anims.sit).toBeUndefined();
+    expect(CHARACTERS.zampanoCross.anims.pee!.frames).toBe(2);
+  });
 });

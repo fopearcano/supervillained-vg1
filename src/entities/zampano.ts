@@ -1,7 +1,7 @@
 import { Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import { animationDuration } from '../assets/animationTiming';
-import { spriteName, type AnimName, type CharacterKey } from '../assets/manifest';
+import { CHARACTERS, spriteName, type AnimName, type CharacterKey } from '../assets/manifest';
 import { PLAYER } from '../config';
 import { Energy, type EnergyEvent } from '../systems/needs';
 import { dirFromGridVector, dirToGridVector, screenDirToGrid, type Dir8 } from '../iso/projection';
@@ -95,7 +95,9 @@ export class Zampano extends Entity {
   /** Swaps the costume (plain, rag cross, knight). */
   setSkin(skin: CharacterKey): void {
     this.animator.key = skin;
-    this.animator.play(this.animator.anim, this.facing);
+    this.animator.play(this.animator.anim, this.facing, true);
+    this.animator.speed = 1;
+    this.animator.update(0);
   }
 
   get controllable(): boolean {
@@ -234,6 +236,7 @@ export class Zampano extends Entity {
 
   private updateAnimation(dt: number): void {
     const speed = Math.hypot(this.vx, this.vy);
+    const hasSeatedIdle = CHARACTERS[this.animator.key].anims.sit !== undefined;
     let anim: AnimName;
     const stateAnim = STATE_ANIM[this.state];
     if (stateAnim && this.state !== 'free') {
@@ -246,7 +249,7 @@ export class Zampano extends Entity {
     else if (this.energy.exhausted) anim = 'tired';
     else {
       const phase = Math.floor(this.idleTime / PLAYER.IDLE_PHASE_TIME);
-      if (this.animator.key === 'zampano') anim = phase === 0 ? 'idle' : phase % 2 === 1 ? 'sit' : 'sniff';
+      if (hasSeatedIdle) anim = phase === 0 ? 'idle' : phase % 2 === 1 ? 'sit' : 'sniff';
       else anim = phase % 2 === 1 ? 'sniff' : 'idle';
     }
     // Rest counts from the end of an action too (a pee, a bark): he stands, then sits.

@@ -8,7 +8,7 @@ Kept here for reference, outside `public/`, so it is not bundled.
   RUN chevrons.
 - `sprites-update-1/` — sprite update 1's Zampanò (new run rows over the old art, and his first
   tired pose), replaced by sprite update 2.
-- `sprites-update-2/` — sprite update 2's plain Zampanò (`zampano.png`, 10 animations of 4
-  frames, and `zampano-tired.png`), replaced by the Zampanò animation integration (8-frame cycles
-  and the seated idle). His costumes (`zampanoCross`, `zampanoKnight`) are still update 2's and
-  still in `public/sprites/`.
+- `sprites-update-2/` — sprite update 2's plain Zampanò and knight (`zampano.png`,
+  `zampanoKnight.png`: 10 animations of 4 frames, and their `-tired.png`), replaced by the Zampanò
+  animation integration and the armoured Zampanò animations (8-frame cycles and the seated idle).
+  The rag cross (`zampanoCross`) is still update 2's and still in `public/sprites/`.

@@ -663,3 +663,25 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
   (`PLAYER.IDLE_PHASE_TIME`); the costumes alternate standing and sniffing. Rest counts again
   after any action (the delivery did this for the plain costume only; here for all).
 - The code-drawn fallback (if a sheet fails to load) shows idle frames for `sit`.
+
+## Armoured Zampanò animations
+
+- `Supervillained_VG1_Armoured_Zampano_Animations.zip` (an overlay on the same base as the plain
+  animation integration, with that delivery's files included unchanged) replaces the knight's
+  sheets: the 12 actions of plain Zampanò, drawn with the conical helm, shoulder plates, mail coat
+  and the red cross on his back. The knight now shares plain Zampanò's animation table
+  (`ZAMPANO_ANIMS`), so from 2.5 on he also sits and sniffs at rest and his pee, squat and eat
+  are fitted to the action timers. Update 2's knight sheets moved to `art-archive/sprites-update-2/`;
+  the rag cross keeps update 2's.
+- The zip's large sheets (256 px, five views including a top-down one, 8 frames for every action)
+  are the sources; the game uses its 40 × 40 atlas as delivered, which has 2–4 frames for sniff,
+  bark, fetch, hurt and tired. Its cells are cropped and fitted per pose, not a plain downscale,
+  so no frames were added from the sources here.
+- Kept from the delivery: changing costume restarts the animation on the new sheet at once, and
+  the sit-and-sniff rest applies to any costume with a `sit` animation. Kept from before: rest
+  counts from the end of any action for every costume (the overlay limited that to costumes with
+  `sit`).
+- Two mini-games picked hero frames with a fixed `% 4` (the 4-frame sheets): the ladders (walk) and
+  the tug of war (the knight's run). With 8-frame cycles that showed half the cycle; they now use
+  the sheet's frame count (one walk cycle every four rungs, as before) and the run's authored
+  timing.

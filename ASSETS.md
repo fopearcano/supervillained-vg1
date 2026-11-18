@@ -14,17 +14,20 @@ see every animation and direction of a character playing side by side.
 
 ## Delivered art
 
-The game ships only the latest delivered art (in `public/sprites/`): the Zampanò animation
-integration (plain Zampanò) over sprite update 2 (his costumes) over update 1 (the cast). The art
+The game ships only the latest delivered art (in `public/sprites/`): the armoured Zampanò
+animations (the knight) and the Zampanò animation integration (plain Zampanò) over sprite update 2
+(the rag cross) over update 1 (the cast). The art
 each delivery replaced is kept in `art-archive/` (not bundled). The zips are kept at the repo root
 as delivered (`Supervillained_VG1_Zampano_Animation_Integration.zip` has a labelled chart of every
-action in `preview/actions.png` and the motion in `preview/animations.gif`).
+action in `preview/actions.png` and the motion in `preview/animations.gif`;
+`Supervillained_VG1_Armoured_Zampano_Animations.zip` has the knight's 256 px source sheets in
+five views, their timings in `animations.json` and a contact sheet in `preview/`).
 
 | file in `public/sprites/` | size | what it is |
 |---|---|---|
 | `zampano.png`, `zampano-tired.png` | 320 × 3520, 80 × 320 | plain Zampanò: 11 animations (8-frame idle, walk, run, pee, poop, eat, sit) + tired (animation integration) |
 | `zampanoCross.png`, `zampanoCross-tired.png` | 160 × 3200, 80 × 320 | with the rag cross, worn from 1.5 (update 2) |
-| `zampanoKnight.png`, `zampanoKnight-tired.png` | 160 × 3200, 80 × 320 | with tabard and steel helm, from 2.5 (update 2) |
+| `zampanoKnight.png`, `zampanoKnight-tired.png` | 320 × 3520, 80 × 320 | the knight (conical helm, shoulder plates, mail coat, red cross on the back), from 2.5: the same 11 animations + tired as plain Zampanò (armoured animations) |
 | `bagnaskiz.png` | 160 × 1600 | fawn pug, black ears, yellow eyes (update 1) |
 | `sbrimbrulon.png` | 160 × 1600 | long-haired tricolour Shih-tzu (update 1) |
 | `jack.png` | 160 × 1600 | black chihuahua, pink-lined ears (update 1) |
@@ -41,7 +44,10 @@ and sit have authored per-frame holds; pee, poop and eat (also used for drinking
 game's action timers (`PEE_TIME`, `SQUAT_TIME`, `DRINK_TIME`...), ending on the standing pose.
 Three seconds at rest he sits, then alternates sniffing and sitting (`PLAYER.IDLE_PHASE_TIME`;
 the costumes, which have no `sit`, alternate standing and sniffing). The fetching dog carries the
-tennis ball.
+tennis ball. The knight (armoured animations) has the same layout, timing and behaviour
+(`ZAMPANO_ANIMS` in the manifest), sitting included; only the rag cross keeps update 2's 4-frame
+sheet without `sit`. Sniff, bark, fetch, hurt and tired are 2–4 frames in the 40 × 40 atlases
+(the 256 px source sheets have 8).
 
 In the manifest a character with delivered art has `sheet` and, for animations delivered as a
 sheet of their own (like `tired`), `animSheets`. A sheet that predates an animation (no rows for
@@ -116,8 +122,8 @@ One PNG per character, a grid of `frameW × frameH` cells:
 - **columns**: frame 0, 1, 2, … (unused cells may stay empty).
 
 So plain Zampanò has 11 animations × 8 directions = 88 rows, 8 columns, i.e. a 320 × 3520 px
-image (his 12th animation, `tired`, is a sheet of its own: see `animSheets`). The costumes have 10
-animations (no `sit`) and 4 columns: 160 × 3200.
+image (his 12th animation, `tired`, is a sheet of its own: see `animSheets`); the knight's sheet is
+the same. The rag cross has 10 animations (no `sit`) and 4 columns: 160 × 3200.
 
 Frame files rendered individually (e.g. from Blender) can be assembled with ImageMagick:
 

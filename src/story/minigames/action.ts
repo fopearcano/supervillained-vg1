@@ -1,7 +1,8 @@
 import { Graphics, Sprite } from 'pixi.js';
 import { textures } from '../../core/assets';
 import { ensureCharacters } from '../../assets/build';
-import { textureName } from '../../assets/manifest';
+import { animationFrame } from '../../assets/animationTiming';
+import { CHARACTERS, textureName, type AnimName, type CharacterKey } from '../../assets/manifest';
 import { dreamSkin } from '../../campaign/state';
 import { PixelText } from '../../ui/pixelText';
 import { C, frameRect, hex, retroBox } from '../../ui/retro';
@@ -9,6 +10,12 @@ import { STORY } from '../../config';
 import type { Autopilot } from '../autopilot';
 import type { StoryScene } from '../storyScene';
 import { MiniGame, type MiniResult } from './miniGame';
+
+/** Frame `k` of a looping cycle, wrapped to the frames this character's sheet has for `anim`. */
+function cycleFrame(key: CharacterKey, anim: AnimName, k: number): number {
+  const n = CHARACTERS[key].anims[anim]?.frames ?? 1;
+  return ((Math.floor(k) % n) + n) % n;
+}
 
 /** Reads "pressed this step" for the common actions. */
 function act(ctx: StoryScene): boolean {
@@ -188,7 +195,10 @@ export class LaddersGame extends MiniGame {
       else g.ellipse(x, f.y, 5, 9).fill(0x1a1410);
     }
     this.hero.position.set(this.laneX(this.lane), heroY);
-    this.hero.texture = textures.get(textureName(this.heroSkin(ctx) as 'zampano', 'walk', 'N', Math.floor(this.rung) % 4));
+    // One walk cycle every four rungs, whatever the sheet's frame count.
+    const skin = this.heroSkin(ctx) as CharacterKey;
+    const walkFrames = CHARACTERS[skin].anims.walk?.frames ?? 4;
+    this.hero.texture = textures.get(textureName(skin, 'walk', 'N', cycleFrame(skin, 'walk', (this.rung * walkFrames) / 4)));
     this.hero.alpha = this.hitT > 0 && Math.floor(this.hitT * 12) % 2 ? 0.4 : 1;
     this.info.setText(`${Math.min(this.rungs, Math.floor(this.rung))}/${this.rungs}  TAP MIDDLE: CLIMB  SIDES: LADDER`);
     this.info.setStyle({ maxWidth: w - 16 });
@@ -281,8 +291,8 @@ export class TugGame extends MiniGame {
     g.rect(20, h * 0.5 + 41, Math.round(bw * Math.max(0, this.pos)), 4).fill(0xff3030);
     frameRect(g, 20, h * 0.5 + 40, bw, 6, hex(C.yellow));
     this.label.position.set(Math.round(w / 2), Math.round(h * 0.5 - 52));
-    this.hero.texture = textures.get(textureName('zampanoKnight', 'run', 'E', Math.floor(this.time * 8) % 4));
-    this.friend.texture = textures.get(textureName(this.o.friend, 'run', 'E', Math.floor(this.time * 10) % 4));
+    this.hero.texture = textures.get(textureName('zampanoKnight', 'run', 'E', animationFrame(CHARACTERS.zampanoKnight.anims.run!, this.time)));
+    this.friend.texture = textures.get(textureName(this.o.friend, 'run', 'E', cycleFrame(this.o.friend, 'run', this.time * 10)));
     return this.pos >= 1 ? 'lost' : 'running';
   }
 
