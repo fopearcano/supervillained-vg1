@@ -1,9 +1,9 @@
 import { Rectangle, Texture } from 'pixi.js';
-import gifUrl from '../../assets/starting-page-images/Zampano-Samemala-2.gif?url';
+import gifUrl from '../../assets/starting-page-images/Zampano-Samemala-3.gif?url';
 
 /**
  * The title page's animated portrait of Zampanò (assets/starting-page-images/
- * Zampano-Samemala-2.gif, 44 frames). The GIF is large (1024 x 1536 per frame); its frames are
+ * Zampano-Samemala-3.gif, 99 frames, about 4 s). The GIF is large (1024 x 1536 per frame); its frames are
  * decoded by the browser (WebCodecs `ImageDecoder`, in Chromium and the Android WebView), cropped
  * to the dog (the union of every frame's opaque area), scaled down to the size the title needs
  * on this screen and packed into one texture. Until it is ready (a second or two on a slow
@@ -32,8 +32,12 @@ interface ImageDecoderLike {
 }
 type ImageDecoderCtor = new (init: { data: ArrayBuffer; type: string }) => ImageDecoderLike;
 
-/** Frames are first reduced to this width (by halving: smooth and sharp), cropped from there. */
-const WORK_WIDTH = 256;
+/**
+ * Frames are first reduced to this width (by halving: smooth and sharp), cropped from there. 192
+ * keeps the cropped dog wider than the widest title portrait (124 px) and the 99 reduced frames
+ * small in memory (about 20 MB while they are packed).
+ */
+const WORK_WIDTH = 192;
 /** Alpha at or above this becomes opaque, below it transparent (crisp edges, like the pixel art). */
 const ALPHA_CUT = 110;
 

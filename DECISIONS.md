@@ -522,3 +522,14 @@ exactly.
   card (with its SOURCE line) are not shown for it.
 - Names in the card texts (level intros, scene cards, the Professor, the ending) are yellow:
   the cast and the historical people, not places (`story/names.ts`, `NAMES`).
+
+## The Green Zone page's text, the third title portrait
+
+- The Green Zone page (1.0) reads: ZAMPANO WAKES ON THE COMMON LAWN. THE WAY HOME RUNS THROUGH A
+  NEIGHBORHOOD WHERE EVERY OTHER DOG CAN WALK STRAIGHT TO THE WATER BOWL. EAT TREATS AGAINST
+  HUNGER, PEE TO CLEAN WHAT THE POOPS SPOIL, CATCH CATS FOR COINS, IGNORE THE BALLS, AND BARK AWAY
+  AT BAGNASKIZ WHEN HE POLLUTES THE ZONE. AT THE END OF THE WALK, TIRED, HE LIES DOWN ON THE LAWN.
+  (ZAMPANO without the accent: the pixel font has no ò, like everywhere else in the game.)
+- The title portrait is `Zampano-Samemala-3.gif` (99 frames, about 4 s, 6.6 MB). Frames are
+  reduced to 192 px before cropping (256 before) to keep memory low while 99 frames are packed;
+  the previous GIFs stay in the folder.

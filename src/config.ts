@@ -83,7 +83,7 @@ export const TITLE = {
   /** Zampanò's portrait over the buttons, as a fraction of the screen width. */
   DOG_WIDTH: 0.46,
   /** The animated portrait's height / width (space kept for it while the GIF decodes). */
-  DOG_ASPECT: 1.4,
+  DOG_ASPECT: 1.36,
   /** The title (SUPERVILLAINED CRUSADER): its top at this fraction of the screen height. */
   TOP: 0.07,
   /**

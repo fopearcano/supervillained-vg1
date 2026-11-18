@@ -188,12 +188,13 @@ transitions, stars, jingles, game over) stay synthesized in `src/fx/sounds.ts`.
 
 `assets/starting-page-images/` holds the pictures of the title page and the level ends:
 
-- `Zampano-Samemala-2.gif`: Zampanò over the title's buttons, **animated** (44 frames,
-  1024 × 1536, transparent; `src/ui/titleAnim.ts`). The browser decodes its frames (WebCodecs
+- `Zampano-Samemala-3.gif`: Zampanò over the title's buttons, **animated** (99 frames, about
+  4 s, 1024 × 1536, transparent; `src/ui/titleAnim.ts`). The browser decodes its frames (WebCodecs
   `ImageDecoder`: Chromium and the Android WebView), crops them to the dog (the union of every
   frame's opaque area), scales them to the title's size and plays them with the GIF's own delays.
-  Without `ImageDecoder` (Safari, the dev server opened over plain http on the LAN) the title
-  shows the first frame. `Zampano-Samemala-1.gif` (the other version) is kept, unused.
+  The first frame shows at once while the rest decode; without `ImageDecoder` (Safari, the dev
+  server opened over plain http on the LAN) it stays the only one. The earlier versions
+  `Zampano-Samemala-1.gif` and `-2.gif` (the one shown before) are kept, unused.
 - `Retro-16-Bit Ivory Dog Sprite-3-4-front.png`: the previous portrait, kept as the old version:
   OPTIONS > ART: OLD shows it (still).
 - `Youve_Been_Supervillained_Logo.png`: not on the title page; it snaps in at the end of every
