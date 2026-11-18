@@ -71,7 +71,8 @@ function simulate(greed: number) {
 describe('level 1 balance (bot)', () => {
   it('the shortest walk takes most of a minute, and not eating at all is not viable', () => {
     const r = simulate(0);
-    expect(r.time).toBeGreaterThan(45);
+    // Most of a minute even at the faster walk (3.9 tiles/s); hunger per tile stays the same.
+    expect(r.time).toBeGreaterThan(40);
     expect(r.time).toBeLessThan(110);
     expect(HUNGER.START - HUNGER.DRAIN_WALK * r.time).toBeLessThan(0);
   });

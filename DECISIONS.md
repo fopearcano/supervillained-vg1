@@ -598,3 +598,17 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
   rules keep the WebView's `@JavascriptInterface` bridge. It is signed with the debug key so it
   installs from a file like the debug APK; publishing on the Play Store needs an upload key kept by
   the publisher (never in the repo), set in `android/app/build.gradle`.
+
+## Faster dog; lives for speed
+
+- Zampanò walks at 3.9 tiles/s and runs at 6.7 (were 3.4 and 5.8), everywhere he is played. The
+  Green Zone's hunger drain while walking and running grows in proportion (2.64 and 4.04 per
+  second), so hunger per tile walked is unchanged and finishing the walk without eating is still
+  not viable; the balance test's floor for the shortest walk drops from 45 to 40 seconds.
+- **INSERT BRAIN [Nx]**: the title's counter, right of INSERT BRAIN, sets the lives of the Green
+  Zone walk (the only part of the game with lives): from 2 (the old default) up to 9, a tap (or
+  RIGHT) adds one and wraps back to 2, LEFT takes one off. It is saved. Each life above 2 costs 5%
+  of his speed in the walk (9 lives: 65%) - **SPEED FOR LIVES**, the blinking light-grey line
+  under it, two lines of space above SUPERVOID EDITIONS. The dream walks have no lives (they
+  restart), so the speed cost stays in the Green Zone. Tuning: `LIVES.MAX`, `LIVES.SPEED_COST`
+  (`systems/lives.ts`, tested).

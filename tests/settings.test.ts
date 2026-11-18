@@ -49,12 +49,12 @@ describe('settings, records and coins', () => {
     expect(loadSettings().muted).toBe(false);
     expect(loadSettings().textSpeed).toBe('normal');
     expect(loadSettings().art).toBe('new');
-    saveSettings({ muted: true, volume: 0.3, textSpeed: 'fast', art: 'old' });
-    expect(loadSettings()).toEqual({ muted: true, volume: 0.3, textSpeed: 'fast', art: 'old' });
+    saveSettings({ muted: true, volume: 0.3, textSpeed: 'fast', art: 'old', lives: 5 });
+    expect(loadSettings()).toEqual({ muted: true, volume: 0.3, textSpeed: 'fast', art: 'old', lives: 5 });
   });
 
   it('keeps update 1 as a choice', () => {
-    saveSettings({ muted: false, volume: 0.7, textSpeed: 'normal', art: 'v1' });
+    saveSettings({ muted: false, volume: 0.7, textSpeed: 'normal', art: 'v1', lives: 2 });
     expect(loadSettings().art).toBe('v1');
   });
 

@@ -45,8 +45,8 @@ export const CAMERA = {
 } as const;
 
 export const PLAYER = {
-  WALK_SPEED: 3.4,
-  RUN_SPEED: 5.8,
+  WALK_SPEED: 3.9,
+  RUN_SPEED: 6.7,
   ACCEL: 16,
   DECEL: 20,
   /** Collision radius in tiles. */
@@ -96,10 +96,10 @@ export const TITLE = {
   BOTTOM_GAP: 32,
   /** The buttons and INSERT BRAIN then rise by one button's space (18 + 6), nearer the portrait. */
   BUTTONS_RAISE: 24,
-  /** INSERT BRAIN between the buttons and the publisher line: 0 = at the buttons, 1 = at the line. */
-  INSERT_BRAIN_AT: 0.4,
-  /** ...blinking: one cycle in this many seconds (shown for 60% of it). */
+  /** INSERT BRAIN (with the lives counter) and SPEED FOR LIVES under it: blink cycle, seconds (shown 60%). */
   INSERT_BRAIN_BLINK: 1,
+  /** Lines of space between SPEED FOR LIVES and the publisher line. */
+  SPEED_FOR_LIVES_LINES: 2,
   /** Glitch on the title's lettering: a burst every [min, max] s, lasting [min, max] s. */
   TEXT_GLITCH_EVERY: [1.8, 4.5],
   TEXT_GLITCH_TIME: [0.06, 0.2],
@@ -228,8 +228,8 @@ export const HUNGER = {
   START: 100,
   /** Drain per second by activity (scaled with PLAYER speeds: the same hunger per tile walked). */
   DRAIN_IDLE: 1.4,
-  DRAIN_WALK: 2.3,
-  DRAIN_RUN: 3.5,
+  DRAIN_WALK: 2.64,
+  DRAIN_RUN: 4.04,
   /** Hunger restored after losing a life. */
   REFILL_ON_LIFE_LOST: 50,
   /** Hunger below which the bar blinks. */
@@ -301,6 +301,10 @@ export const ZONE = {
 
 export const LIVES = {
   START: 2,
+  /** The title's counter (next to INSERT BRAIN) adds lives up to this many... */
+  MAX: 9,
+  /** ...each one above START costs this share of his speed in the Green Zone walk. */
+  SPEED_COST: 0.05,
 } as const;
 
 export const SCORE = {

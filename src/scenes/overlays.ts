@@ -13,7 +13,9 @@ import { formatScore, formatTime, type LevelStats } from '../systems/scoring';
 import { Menu, type MenuItem } from '../ui/menu';
 import { PixelText, type Span } from '../ui/pixelText';
 import { logoTexture, logoWidth, type LogoStyle } from '../ui/logo';
-import { C, retroBox } from '../ui/retro';
+import { C, frameRect, hex, retroBox } from '../ui/retro';
+import { saveSettings } from '../core/settings';
+import { clampLives, nextLives } from '../systems/lives';
 import { spriteName } from '../assets/manifest';
 import type { LevelDef } from '../world/level';
 
@@ -96,6 +98,13 @@ export class TitleScene extends Overlay {
   private readonly edition: PixelText;
   /** Where Continue goes. */
   private readonly best: PixelText;
+  /** The lives counter right of INSERT BRAIN (tap, or LEFT/RIGHT): more lives, less speed. */
+  private readonly livesBox = new Graphics();
+  private readonly livesText = new PixelText('', { color: C.yellow, shadow: '#000000' });
+  private readonly livesIcon = new Sprite(textures.get(spriteName('dogFace')));
+  private livesRect = { x: 0, y: 0, w: 0, h: 0 };
+  /** Under INSERT BRAIN, blinking with it. */
+  private readonly speedText = new PixelText('SPEED FOR LIVES', { color: '#c8c8d0', shadow: '#000000', letterSpacing: 1 }).setOrigin(0.5, 0);
   private readonly menu: Menu;
   /** The title's lettering (SUPERVILLAINED + CRUSADER), glitching now and then. */
   private readonly titleGroup = new Container();
@@ -142,7 +151,20 @@ export class TitleScene extends Overlay {
     this.titleGroup.addChild(this.title, this.edition);
     this.titleGroup.filters = [this.titleGlitch];
     this.footerGlow.filters = [new BlurFilter({ strength: TITLE.FOOTER_GLOW_BLUR, quality: 3, resolution: 1 })];
-    this.root.addChild(this.titleGroup, this.dog, this.best, this.menu.root, this.footerGlow, this.footer);
+    this.best.setOrigin(0, 0);
+    this.root.addChild(
+      this.titleGroup,
+      this.dog,
+      this.best,
+      this.livesBox,
+      this.livesText,
+      this.livesIcon,
+      this.speedText,
+      this.menu.root,
+      this.footerGlow,
+      this.footer,
+    );
+    this.showLives();
     void loadTitleArt().then((art) => {
       this.art = art;
       if (!this.root.destroyed) this.layout();
@@ -172,7 +194,12 @@ export class TitleScene extends Overlay {
     // where it was (centered between the title and the buttons' unraised place).
     const menuBottom = baseBottom - TITLE.BUTTONS_RAISE;
     const menuY = menuBottom - this.menu.height;
-    const bestY = menuBottom + Math.round((footerTop - baseBottom - this.best.textHeight) * TITLE.INSERT_BRAIN_AT);
+    // SPEED FOR LIVES keeps SPEED_FOR_LIVES_LINES lines of space above the publisher line; INSERT
+    // BRAIN and its lives counter sit just above it.
+    const lineH = this.footer.textHeight + 2;
+    const speedY = footerTop - TITLE.SPEED_FOR_LIVES_LINES * lineH - this.speedText.textHeight;
+    const rowH = 12;
+    const bestY = speedY - 5 - rowH;
     // The portrait takes DOG_WIDTH of the screen, smaller if it would not fit (short screens).
     const gapTop = headerBottom + 6;
     const roomCenter = baseBottom - this.menu.height - 6 - gapTop;
@@ -184,7 +211,8 @@ export class TitleScene extends Overlay {
     this.edition.position.set(cx, editionY);
     this.dog.position.set(cx, Math.max(gapTop, dogY));
     this.menu.layout(w / 2, menuY);
-    this.best.position.set(cx, bestY);
+    this.layoutLives(cx, bestY, rowH);
+    this.speedText.position.set(cx, speedY);
     this.footer.position.set(cx, h - 6);
     this.footerGlow.position.set(cx, h - 6);
   }
@@ -226,7 +254,12 @@ export class TitleScene extends Overlay {
       if (tex) this.dog.texture = tex;
     }
     // INSERT BRAIN blinks (on 0.6 s, off 0.4 s).
-    this.best.visible = this.time > 0.6 && this.time % TITLE.INSERT_BRAIN_BLINK < TITLE.INSERT_BRAIN_BLINK * 0.6;
+    const on = this.time > 0.6 && this.time % TITLE.INSERT_BRAIN_BLINK < TITLE.INSERT_BRAIN_BLINK * 0.6;
+    this.best.visible = on;
+    this.speedText.visible = on;
+    // The counter itself stays visible (it is a control).
+    const showCounter = this.time > 0.5;
+    this.livesBox.visible = this.livesText.visible = this.livesIcon.visible = showCounter;
     // Glitchy entrance: jitter for the first moments.
     const jitter = this.time < 0.9 ? Math.round((Math.random() * 2 - 1) * 4 * (1 - this.time / 0.9)) : 0;
     this.title.x = Math.round(this.w / 2) + jitter;
@@ -254,8 +287,48 @@ export class TitleScene extends Overlay {
         this.footerFlash = 0.25;
         this.actions.publisher();
       }
+      // The lives counter: a tap adds a life (back to the start after the most); LEFT/RIGHT too.
+      const r = this.livesRect;
+      const onLives = input.peekTaps().some((t) => t.x >= r.x - 6 && t.x <= r.x + r.w + 6 && t.y >= r.y - 5 && t.y <= r.y + r.h + 5);
+      if (onLives) {
+        input.consumeTaps();
+        this.changeLives(1);
+      }
+      if (input.consume('right')) this.changeLives(1);
+      if (input.consume('left')) this.changeLives(-1);
       this.menu.update(dt, input);
     }
+  }
+
+  private changeLives(step: number): void {
+    const s = this.game.settings;
+    s.lives = nextLives(s.lives, step);
+    saveSettings(s);
+    this.game.audio.play('click');
+    this.showLives();
+    this.layout();
+  }
+
+  /** The counter's text: the lives, then the dog's face (as in the walk's HUD). */
+  private showLives(): void {
+    this.livesText.setText(`${clampLives(this.game.settings.lives)}x`);
+  }
+
+  /** INSERT BRAIN and the counter, centered together on one row at `y`. */
+  private layoutLives(cx: number, y: number, rowH: number): void {
+    const textW = this.best.textWidth;
+    const icon = this.livesIcon;
+    const boxW = 4 + this.livesText.textWidth + 2 + Math.round(icon.width) + 4;
+    const gap = 8;
+    const x0 = Math.round(cx - (textW + gap + boxW) / 2);
+    this.best.position.set(x0, y + Math.round((rowH - this.best.textHeight) / 2));
+    const bx = x0 + textW + gap;
+    this.livesRect = { x: bx, y, w: boxW, h: rowH };
+    const g = this.livesBox.clear();
+    g.rect(bx, y, boxW, rowH).fill({ color: 0x000000, alpha: 0.45 });
+    frameRect(g, bx, y, boxW, rowH, hex(C.yellow), 0.9);
+    this.livesText.position.set(bx + 4, y + Math.round((rowH - this.livesText.textHeight) / 2));
+    icon.position.set(bx + 4 + this.livesText.textWidth + 2, y + Math.round((rowH - icon.height) / 2));
   }
 
   /** The title's lettering glitches in short bursts, with a faint shiver in between. */

@@ -36,7 +36,7 @@ export type RunState = 'playing' | 'complete' | 'gameover';
  * pollution/cleaning, lives, scoring, exit. Threats (cats, balls, Bagnaskiz) plug in via hooks.
  */
 export class Rules {
-  readonly stats: LevelStats = newStats(LIVES.START);
+  readonly stats: LevelStats;
   readonly hunger = new Hunger();
   readonly digestion = new Digestion();
   readonly bladder = new Bladder();
@@ -56,7 +56,10 @@ export class Rules {
   constructor(
     private readonly world: WorldAccess,
     readonly level: LevelDef,
+    /** Lives at the start (the title's counter; LIVES.START by default). */
+    startLives: number = LIVES.START,
   ) {
+    this.stats = newStats(startLives);
     for (const p of placeTreats(world.map, level.spawns.treats, level.seed)) {
       const t = new Treat(p.x, p.y);
       this.treats.push(t);

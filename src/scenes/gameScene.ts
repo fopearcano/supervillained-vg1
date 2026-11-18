@@ -10,6 +10,7 @@ import type { Entity } from '../entities/entity';
 import { GameFx } from '../fx/gameFx';
 import type { Camera } from '../iso/camera';
 import { gridToScreen, gridVecToScreen } from '../iso/projection';
+import { clampLives, livesSpeed } from '../systems/lives';
 import { Rules } from '../systems/rules';
 import { Threats } from '../systems/threats';
 import { GlitchFilter } from '../fx/glitchFilter';
@@ -72,7 +73,10 @@ export class GameScene implements Scene {
     this.exitLabel = new PixelText('EXIT', { color: '#fff36a', outline: '#000000', glow: 'self' }).setOrigin(0.5, 1);
     this.world.fxLayer.addChild(this.exitLabel);
 
-    this.rules = new Rules(this, levelDef);
+    // Lives from the title's counter; each extra life costs speed (systems/lives.ts).
+    const lives = clampLives(game.settings.lives);
+    this.rules = new Rules(this, levelDef, lives);
+    this.player.speedMul = livesSpeed(lives);
     this.threats = new Threats(this, this.rules, levelDef);
     this.fx = new GameFx(this.events, this.player, this.camera, () => this.rules.poopWarning);
     this.world.decalLayer.addChild(this.fx.below, this.magnetG);
