@@ -11,16 +11,24 @@ game engine.
 One game, one story (title menu: NEW GAME, CONTINUE, COUCH, OPTIONS, GLOSSARY, QUIT; COUCH shows
 the saved story at a glance). It starts in the Green
 Zone: the walk in the park above (1.0, the level from `SPEC.md`) and the bullying of the lawn.
-Then Zampanò falls asleep under the Professor's desk and dreams the Fourth Crusade, and at the end
-he wakes up *supervillained* (with character), not to be bullied again in the Green Zone.
+Then Zampanò falls asleep under the Professor's desk with a rag cross on his back and dreams one
+story, the Fourth Crusade (1202–1204), from the place of a small knight of Picardy, Robert de
+Clari: the preaching and the list of names, the fleet bought on credit in Venice, Zara, the
+winter, the prince who promised everything, Constantinople in 1203 and its sack in 1204. The
+marshal Villehardouin speaks for the leaders, Niketas Choniates for the city. At the end he wakes
+up *supervillained* (with character), not to be bullied again in the Green Zone.
 
 8 levels (The Greenzone, On the edge of dreams, Venice, The sea, Zara, The long winter,
-Constantinople, Back to the Greenzone) from the design documents *Supervillained — VG1
-implemented* and the level design revision *Levels implementation 2*: the Green Zone walk, then
-dialogue with choices, dream walks (following someone, carrying things, acting in a lull,
-stealth, a nerve gauge beside Pierre, thirst, smoke and fire, scrambled controls), mini-games,
-hard cuts into other crusades, the Meraviglia book, and two endings decided by whether he calls
-the oath himself at the sack of Constantinople. Progress is saved after every scene; OPTIONS has
+Constantinople, Back to the Greenzone), 1.0 + 36 scenes, built from the design documents
+*Supervillained — VG1 implemented* and *Levels implementation 2* and rewritten around the
+chronicles: the Green Zone walk, then dialogue with choices, dream walks (following someone,
+carrying things, acting in a lull, stealth, a nerve gauge beside Pierre, smoke and fire,
+scrambled controls), mini-games, the Meraviglia book of marvels (which ends on an empty
+pedestal), and two endings — THE KNIGHT or THE WITNESS — decided by whether he calls the
+pilgrims to their oath himself at the sack. The story, scene by scene, is in
+[`docs/STORY.md`](docs/STORY.md); its sources and what is invented, in
+[`docs/STORY-SOURCES.md`](docs/STORY-SOURCES.md). Saves from the earlier version of the dream are
+migrated (the walk and the unchanged Level 1 scenes are kept; the old save is kept aside). Progress is saved after every scene; OPTIONS has
 sound, volume, text speed, the character art (NEW: the delivered sprite sheets; OLD: the art they
 replaced, kept), level replays and the book.
 

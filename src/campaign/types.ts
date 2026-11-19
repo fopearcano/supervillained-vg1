@@ -8,10 +8,8 @@ export interface SubLevelDef {
   title: string;
   /** Short "what happens", shown on the sub-level card. */
   happens: string;
-  /** The conference episode (or board note) it is built on. */
+  /** What it is built on: chronicle passages, the lecture, or "ADAPTATION" (docs/STORY-SOURCES.md). */
   source: string;
-  /** Black holes: sudden jumps to another crusade or dream; left with one value. */
-  blackHole?: { where: string; value: string };
   /**
    * The Green Zone walk (1.0): this sub-level is the walk in the park (SPEC.md's level with this
    * number: treats, pee, poop, Bagnaskiz) instead of a story script.

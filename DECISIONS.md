@@ -714,3 +714,57 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
   notes mention source sheets, rebuild scripts and pixel tests that were not in them; the
   regression test here is `tests/eightDirections.test.ts` (decodes the sheets with zlib, no new
   dependency; it fails on the old sheets).
+
+## The Fourth Crusade rewrite: Robert de Clari as the viewpoint
+
+Supersedes the story direction of the sections above ("VG1 — The story campaign", "VG1 level
+design, revision 2") where they differ. Those sections stay as the log of how the engine was
+built; the story itself is now [`docs/STORY.md`](docs/STORY.md), with sources, inventions and the
+save migration in [`docs/STORY-SOURCES.md`](docs/STORY-SOURCES.md).
+
+- **One dream, one crusade.** Levels 2–7 are the Fourth Crusade, 1202–1204, from the place of a
+  minor Picard knight (Clari's lord Pierre d'Amiens = Sbrimbrulòn, his brother Aleaume = Confusione);
+  Villehardouin (Bagnaskiz as the marshal) for agreements and leadership, Niketas Choniates (as
+  himself, no lawn face) for the city and its loss. The anthology episodes are gone: Dante's
+  beasts, Charles VI's falcon and stag, Leutard's bees, Joinville (rules, rescue, cellarer, emir,
+  Lampedusa, catapult, wake, Soissons), Christine de Pizan and Fortune, the penitentials and
+  Urban II, Anna Komnene and 1096–97, Hattin, Louis IX, Cligès, the relic altar and chapel, the
+  floating sailor, the hermit. The **black holes** (cuts into other crusades) are retired:
+  `blackHole` on `SubLevelDef`, `blackHoleIn/Out` steps and the BLACK HOLE card variant are removed.
+- **Boundaries.** 1.1 is reality (a sand bucket over his head, slapped off), no premature dream;
+  1.5 is a rag cross carried home, not a Louis IX reenactment, and its last card is the sleep
+  boundary. Nothing physical comes back from the dream: 8.2 replaces the relics with the study's
+  own objects, a told story and a drawing.
+- **Distinctions kept on purpose.** 1203 and 1204 are separate sieges; Alexios III, IV and V are
+  three different men (Bagnaskiz wears the first and the last: "the dream runs out of faces");
+  disagreements between the chronicles (34,000 vs 36,000 marks; who was absolved after Zara; how
+  Alexios IV and Isaac died; Clari's "no mischief" vs Choniates's grief) are shown, not resolved.
+- **The column** (7.4, 7.9) is Clari 92's carved pillars: scenes nobody can read until afterwards,
+  when everyone says they knew. An inscription recognized late, not a prophecy machine.
+- **Meraviglia** turns: the book of marvels ends on AN EMPTY PEDESTAL (the bronze Hercules melted
+  for coin, after Choniates), and 8.2's drawing can be of that pedestal.
+- **Endings.** Still decided at 7.8, now by a lull walk: call the pilgrims to their oath yourself
+  (THE KNIGHT) or stand silent while Niketas calls them (THE WITNESS; internal key `alpha`, kept so
+  saves and the playtest flag `--ending alpha` keep working). The girl is let go either way.
+- **Meters re-anchored.** Grace is the forms he swore to or was given (vow, prohibition, oath,
+  declaring booty), not divine favour; the ending notes say so. `STORY.COST` is now SPEAK_UP (5.1),
+  SHARE (6.1), OATH_BARK (7.8).
+- **Unlocks relocated.** Rag cross 1.5 (real); the vow (`sermon`) 2.2 at Fulk's preaching; the
+  armour (`knight`) 2.3 on the road. **Comradeship** is set up by sharing the last half loaf with
+  Aleaume at Zara (6.1) and read at the breach (7.7): his voice leads you in, or only his mail
+  rattles.
+- **New scenes:** 2.2 Names on a list, 2.3 A coat of mail too big, 4.2 Horses below deck,
+  4.3 Rumours on deck, 5.3 Whose orders?, 6.1 Short rations, 6.3 On their knees at Corfu,
+  7.9 The common pile, 8.2 What he can tell. 43 scenes became 37 (1.0 + 36). The calm-rescue and
+  catapult mini-games had no scene left and were removed (with their `STORY` tuning and the unused
+  WHISK / BLEACH_TIME numbers); the boat game takes its objective as an option.
+- **Saves.** `CampaignState.version` 2. A version-1 save is migrated on first load (`migrateV1`):
+  1.0, 1.2, 1.3, 1.4 and their flags, scraps, remembered lines, coins and play time are kept;
+  everything from 1.1 is played again with fresh meters, book and costumes; the untouched v1 save
+  is copied once to `story-v1-backup`; CONTINUE / the story menu show THE DREAM HAS BEEN REWRITTEN
+  once. Unit-tested; the `migration` screenshot scenario checks it in the browser.
+- **Sources.** The two lecture transcripts named in the brief were not available (not in the
+  repo, on `main`, or on the machine); no scene cites them any more. Quotations are limited to the
+  editions listed in `docs/STORY-SOURCES.md`; invented material is marked ADAPTATION. Episodes
+  not verifiable in those editions (Niketas's flight with a Venetian protector; the mosque of 1203)
+  are either marked as adaptation or omitted.

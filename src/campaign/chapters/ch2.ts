@@ -1,379 +1,210 @@
-import type { Actor } from '../../entities/actor';
-import type { PropEntity } from '../../entities/prop';
-import { gridToScreen } from '../../iso/projection';
-import { ask, call, card, emote, flash, fx, prof, say, shake, skin, sound, stage, wait } from '../../story/steps';
-import type { StoryScene } from '../../story/storyScene';
+import { STORY } from '../../config';
+import { ask, call, card, emote, fx, prof, say, skin, sound } from '../../story/steps';
 import { walk } from '../../story/walk';
 import { C } from '../../ui/retro';
 import { CHAPTER_TITLES } from '../titles';
 import type { ChapterDef } from '../types';
-import { bark, distTo, lullWalk, patrol, placeObject, walkableNear } from './helpers';
-
-const BEASTS = ['bear', 'leopard', 'hound'] as const;
+import { bark, followLeader, lullWalk } from './helpers';
 
 /**
- * Level 2 — On the edge of dreams (under the desk · dream threshold). A train suitcase, a
- * medieval king's falcon and three neighborhood dogs all fit under the same desk. Each obeys the
- * logic of the person who dreamed it.
+ * Level 2 — On the edge of dreams: becoming the small knight. Under the desk the dream starts
+ * (after the sleep boundary of 1.5). The lecture, the rag, the bucket and his hunger to be
+ * admired become a preacher, a list of names, borrowed armour and the road to Venice. He is a
+ * small knight of Picardy in Robert de Clari's position: the destination is Jerusalem, the plan
+ * is decided by others (docs/STORY.md, chapter 2).
  */
 export const CH2: ChapterDef = {
   number: 2,
   title: CHAPTER_TITLES[1],
   menuTitle: 'Edge of dreams',
-  intro: "A TRAIN SUITCASE, A MEDIEVAL KING'S FALCON AND THREE NEIGHBORHOOD DOGS ALL FIT UNDER THE SAME DESK. EACH OBEYS THE LOGIC OF THE PERSON WHO DREAMED IT.",
-  cast: 'THE BAND AS THREE BEASTS; A FALCON AND A WINGED STAG; TWO PREACHERS; TWO CLERKS; FORTUNE',
-  theme: 'darkwood',
+  intro: 'UNDER THE DESK THE DARK FILLS WITH PEOPLE: A PREACHER, A LIST OF NAMES, A BORROWED COAT OF MAIL. ZAMPANO IS A SMALL KNIGHT OF PICARDY NOW, AND JERUSALEM IS ALWAYS ONE STEP AWAY.',
+  cast: "CONFUSIONE AS ALEAUME, A CLERK; SBRIMBRULON AS PIERRE D'AMIENS, HIS LORD; BAGNASKIZ AS THE MARSHAL, GEOFFROI DE VILLEHARDOUIN; FULK OF NEUILLY",
+  theme: 'jerusalem',
   music: 'level2',
   professor: {
-    after: 'SG',
-    text: 'IN THE STUDY, VOICES BROKE INTO PIECES A DOG COULD CARRY. IN THE DREAM, SHIPS, WALLS AND PEOPLE WILL BREAK APART THE SAME WAY. FOLLOW THE SOUND, EVEN WHEN THE PICTURE CHANGES.',
+    text: 'VILLEHARDOUIN WAS ONE OF THE SIX ENVOYS WHO SIGNED FOR THE SHIPS. CLARI WAS IN THE CROWD THAT WOULD HAVE TO PAY FOR THEM. READ THEM SIDE BY SIDE, YOU UNDERSTAND, AND YOU CAN HEAR A DOOR CLOSING.',
   },
   subLevels: [
     {
       id: '2.1',
-      title: 'Three beasts on the path',
+      title: 'One step from Jerusalem',
       happens:
-        'THE UNDERSIDE OF THE DESK BECOMES A DARK WOOD. THE BEAR BLOCKS, THE LEOPARD DOUBLES BACK AND THE HOUND CROWDS THE GAP. WATCH THEIR FEET AND SLIP PAST WHILE THE THREE ARE LOOKING AT ONE ANOTHER: UNDER THE SKINS, THE PUG, THE CHIHUAHUA AND THE TERRIER STILL USE THEIR ROUTINE FROM THE BOWL.',
-      source: 'BARBERO, IL SOGNO NEL MEDIOEVO: DANTE "SO FULL OF SLEEP"; THE THREE BEASTS OF CHARLEMAGNE\'S DREAM.',
-      script: () => {
-        let routine = false;
-        let phaseT = 3.5;
-        const lines = ['THE PAW, SIGNOR.', 'PAAARDON...', 'OOPS, MAN.'];
-        const guard = (ctx: StoryScene) => {
-          const [bear, leo, hound] = BEASTS.map((n) => ctx.actor(n));
-          bear!.setBehavior({ kind: 'idle', face: 'player' });
-          leo!.setBehavior(patrol(ctx, ['8', '3'], 2.4, 0.2));
-          hound!.setBehavior({ kind: 'chase', speed: 1.6, radius: 2.4, home: { x: 7.5, y: 13.5 }, leash: 2.5 });
-          for (const a of [bear!, leo!, hound!]) {
-            a.hostile = true;
-            a.sight = { range: 3.2, halfAngle: 0.6 };
-          }
-        };
-        const turnInward = (ctx: StoryScene) => {
-          const as = BEASTS.map((n) => ctx.actor(n));
-          const cx = as.reduce((s, a) => s + a.gx, 0) / as.length;
-          const cy = as.reduce((s, a) => s + a.gy, 0) / as.length;
-          as.forEach((a: Actor, k) => {
-            a.setBehavior({ kind: 'idle' });
-            a.faceToward(cx, cy);
-            a.hostile = false;
-            a.sight = null;
-            a.alert = 0;
-            ctx.say(lines[k]!, { x: a.gx, y: a.gy }, '#f0b060');
-          });
-        };
-        return [
-          call((ctx) => {
-            ctx.setStage('darkwood');
-            ctx.addActor('bear', 'bear', '3', { kind: 'idle', face: 'S' });
-            ctx.addActor('leopard', 'leopard', '8', { kind: 'idle', face: 'S' });
-            ctx.addActor('hound', 'hound', { x: 7.5, y: 13.5 }, { kind: 'idle', face: 'S' });
-            guard(ctx);
-          }),
-          prof('"SO FULL OF SLEEP" AT THE START OF HIS JOURNEY. DANTE, YOU UNDERSTAND. NOT THE DOG.'),
-          walk({
-            objective: 'SLIP PAST THE BEASTS WHILE THEY LOOK AT ONE ANOTHER',
-            goal: { reach: 'E' },
-            caught: 'restart',
-            caughtText: 'THE BEASTS BARRED THE PATH',
-            checkpoints: ['1'],
-            onAction: (ctx) => {
-              bark(ctx, 'WOOF?');
-              ctx.notice('THEY CANNOT BE BEATEN. WATCH THEIR FEET', C.orange);
-            },
-            pilot: (ctx) => {
-              const p = ctx.player;
-              if (routine || p.gy < 9.5) return null;
-              return p.gy > 15 ? { target: ctx.marker('2'), hold: true } : null;
-            },
-            onUpdate: (ctx, w, dt) => {
-              phaseT -= dt;
-              if (phaseT <= 0) {
-                routine = !routine;
-                phaseT = routine ? 3.2 : 4;
-                if (routine) turnInward(ctx);
-                else guard(ctx);
-              } else if (routine) {
-                const as = BEASTS.map((n) => ctx.actor(n));
-                const cx = as.reduce((s, a) => s + a.gx, 0) / 3;
-                const cy = as.reduce((s, a) => s + a.gy, 0) / 3;
-                for (const a of as) a.faceToward(cx, cy);
-              }
-              ctx.hud.setMode(routine ? { label: 'THEY LOOK AT ONE ANOTHER: GO!', value: phaseT / 3.2, color: 0x4dff5a } : { label: 'WATCH THEIR FEET', value: phaseT / 4, color: 0xff7a1f });
-              if (!w.data.told && w.time > 1) {
-                w.data.told = true;
-                ctx.notice('WAIT FOR THEIR ROUTINE, THEN SLIP PAST', C.cyan);
-              }
-            },
-          }),
-          say('zampano', 'THERE WAS A BEAR, AND HE WANTED MY PAW.', { remembered: true }),
-        ];
-      },
+        'THE BOTTOM OF THE SHIP OPENS INTO A PASTEL COUNTRY. ON THE HORIZON, JERUSALEM: WHERE EVERYONE SAYS THEY ARE GOING. HIS HELMET IS FAR TOO BIG AND SLIDES DOWN WHENEVER HE STOPS. WALK TO THE GATE. IT IS ALWAYS ONE STEP AWAY, AND BEHIND A DOOR SOMEONE IS SAYING A DIFFERENT NAME.',
+      source:
+        "DREAM PROLOGUE (ADAPTATION; THE HELMET IS THE BUCKET OF 1.1). JERUSALEM AS THE PROMISED DESTINATION, NEVER REACHED. VILLEHARDOUIN (MARZIALS P. 8): THE COUNCIL WAS TOLD THE REAL OBJECTIVE WAS BABYLON (EGYPT), THE PEOPLE ONLY 'OVERSEAS'.",
+      script: () => [
+        call((ctx) => ctx.setStage('jerusalem')),
+        card('', 'THE BOTTOM OF THE SHIP OPENS...', { color: '#f6c8e0', seconds: 1.8, dim: 0.9 }),
+        card('JERUSALEM', 'WHERE EVERYONE SAYS THEY ARE GOING', { color: '#f6c8e0', seconds: 2.2, dim: 0.3 }),
+        prof('JERUSALEM, YOU UNDERSTAND. THAT IS WHAT THEY PREACHED. THAT IS WHAT THEY SEWED ON.'),
+        walk({
+          objective: 'WALK TO THE CITY GATE. KEEP YOUR HEAD UP',
+          goal: { reach: '1' },
+          noRun: true,
+          action: 'BARK',
+          onAction: (ctx, w) => {
+            bark(ctx, 'JERUSALEM!');
+            w.data.bow = 0.8;
+          },
+          onUpdate: (ctx, w, dt) => {
+            // The helmet (the bucket of 1.1, much grander) slides down whenever he lowers his head.
+            const V = STORY.VISOR;
+            const p = ctx.player;
+            const still = Math.hypot(p.vx, p.vy) < 0.2;
+            const stillT = still ? ((w.data.stillT as number) ?? 0) + dt : 0;
+            const bow = Math.max(0, ((w.data.bow as number) ?? 0) - dt);
+            w.data.stillT = stillT;
+            w.data.bow = bow;
+            const down = stillT > V.STILL_AFTER || bow > 0;
+            ctx.visor = down ? Math.min(V.MAX, ctx.visor + V.DOWN_RATE * dt) : Math.max(0, ctx.visor - V.UP_RATE * dt);
+            if (down && !w.data.told) {
+              w.data.told = true;
+              ctx.notice('THE HELMET SLIPS DOWN. WALK ON TO PUSH IT UP', C.cyan);
+            }
+            // Behind a door, the leaders use another name for the destination.
+            w.data.t = ((w.data.t as number) ?? 0) + dt;
+            if ((w.data.t as number) > 3.2) {
+              w.data.t = 0;
+              ctx.say('(BEHIND A DOOR) ...BABYLON... EGYPT FIRST... DO NOT TELL THE MEN...', { x: ctx.player.gx + 2, y: ctx.player.gy - 2 }, '#9aa4c0');
+            }
+          },
+        }),
+        call((ctx) => (ctx.visor = 0)),
+        card('ONE STEP AWAY', 'THE GATE MOVES BACK BY EXACTLY ONE STEP', { color: '#f6c8e0', seconds: 2 }),
+        say('zampano', 'NOBODY SAID ANYTHING ABOUT EGYPT.'),
+        say('voice', 'NOBODY SAID ANYTHING TO YOU.'),
+        card('FIRST', 'A PREACHER. THEN A LIST. THEN THE SHIPS. THEN THE MONEY.', { color: '#9aa4c0', seconds: 2.4 }),
+        say('zampano', 'THERE WAS A CITY, AND IT WAS ALWAYS ONE STEP AWAY.', { remembered: true }),
+      ],
     },
     {
       id: '2.2',
-      title: 'The falcon and the suitcase',
+      title: 'Names on a list',
       happens:
-        "CHASE THE FALCON UNTIL THE GROUND GIVES WAY UNDERFOOT. EACH TIME ZAMPANO PRESSES THE SUITCASE SHUT, A DIFFERENT SHIRT STICKS OUT. LEAVE IT OPEN. A WINGED STAG KNEELS, AND MOUNTING IT PUTS THE FALCON WITHIN REACH. THE PROFESSOR'S MISSED TRAIN WHISTLES SOMEWHERE IN CHARLES VI'S FOREST.",
-      source: "BARBERO, IL SOGNO NEL MEDIOEVO: CHARLES VI'S FALCON AND FLYING STAG; THE LECTURER'S OWN TRAINS AND SUITCASES.",
-      script: () => {
-        let suitcase: PropEntity | null = null;
-        let shut = 0;
-        const shirts = ['A STRIPED SHIRT STICKS OUT', 'A SHIRT WITH A FALCON ON IT', "THE PROFESSOR'S LECTURE SHIRT", 'A SHIRT NOBODY HAS EVER SEEN'];
-        let whistleT = 6;
-        const whistle = (ctx: StoryScene, dt: number) => {
-          whistleT -= dt;
-          if (whistleT > 0) return;
-          whistleT = 9;
-          ctx.say('WHOOO-OOO... (A MISSED TRAIN)', { x: ctx.player.gx - 2, y: ctx.player.gy - 3 }, '#c8d0ff');
-        };
-        return [
-          call((ctx) => {
-            ctx.setStage('darkwood', { at: '1' });
-            ctx.addActor('falcon', 'falcon', '2', { kind: 'fly', speed: 3.5, keepAway: 2.6, center: ctx.marker('3'), radius: 9 });
-          }),
-          walk({
-            objective: 'CHASE THE FALCON',
-            survive: 9,
-            pilot: (ctx) => {
-              const f = ctx.actors.get('falcon');
-              return f ? { target: { x: f.gx, y: f.gy } } : null;
-            },
-            onUpdate: (ctx, w, dt) => {
-              ctx.player.speedMul = Math.max(0.45, 1 - w.time / 16);
-              whistle(ctx, dt);
-            },
-          }),
-          shake(6),
-          flash(0x2a1e14),
-          card('THE GROUND GIVES WAY', 'UNDERFOOT. AND THERE IS A SUITCASE.', { color: '#c8a070', seconds: 2 }),
-          call((ctx) => {
-            suitcase = placeObject(ctx, 'crate', walkableNear(ctx, { x: ctx.player.gx + 1, y: ctx.player.gy - 0.6 }));
-          }),
-          walk({
-            objective: 'THE SUITCASE WILL NOT SHUT. PRESS IT, OR LEAVE IT OPEN',
-            action: 'SHUT',
-            pilot: (ctx, w) => {
-              if (!suitcase) return null;
-              if (shut < 1) return { target: { x: suitcase.gx - 0.6, y: suitcase.gy + 0.5 }, act: distTo(ctx, { x: suitcase.gx, y: suitcase.gy }) < 1.4, hold: true };
-              void w;
-              // Leave it open: walk off to the farthest open spot on the path.
-              const far = ['1', '2', '3', '5', 'E', 'S'].map((m) => ctx.marker(m)).sort((a, b) => Math.hypot(b.x - suitcase!.gx, b.y - suitcase!.gy) - Math.hypot(a.x - suitcase!.gx, a.y - suitcase!.gy))[0]!;
-              return { target: far };
-            },
-            onAction: (ctx) => {
-              if (!suitcase || distTo(ctx, { x: suitcase.gx, y: suitcase.gy }) > 1.6) return bark(ctx, 'WOOF?');
-              ctx.game.audio.play('hit');
-              ctx.shake(2);
-              ctx.say(shirts[shut++ % shirts.length]!, { x: suitcase.gx, y: suitcase.gy }, '#f0d8a0');
-            },
-            onUpdate: (ctx, w, dt) => {
-              whistle(ctx, dt);
-              ctx.player.speedMul = 1;
-              if (suitcase && shut > 0 && distTo(ctx, { x: suitcase.gx, y: suitcase.gy }) > 4) w.complete = true;
-            },
-          }),
-          card('HE LEAVES IT OPEN', 'A WINGED STAG KNEELS', { color: C.cyan, seconds: 1.8 }),
-          call((ctx) => ctx.addActor('stag', 'stag', walkableNear(ctx, { x: ctx.player.gx + 1.4, y: ctx.player.gy - 1 }), { kind: 'idle', face: 'player' })),
-          walk({ objective: 'MOUNT THE WINGED STAG', pilot: (ctx) => ({ target: { x: ctx.actor('stag').gx, y: ctx.actor('stag').gy } }), onUpdate: (ctx, w) => {
-            const s = ctx.actor('stag');
-            if (distTo(ctx, { x: s.gx, y: s.gy }) < 1) w.complete = true;
-          } }),
-          call((ctx) => {
-            ctx.removeActor('stag');
-            ctx.player.z = 18;
-            // Mounted, the falcon comes within reach: it circles low over open ground nearby.
-            const f = ctx.actor('falcon');
-            const c = walkableNear(ctx, { x: ctx.player.gx - 2, y: ctx.player.gy - 2 });
-            f.setPosition(c.x, c.y);
-            f.setBehavior({ kind: 'wander', center: c, radius: 0.8, speed: 0.6 });
-          }),
-          card('ON THE STAG', 'THE FALCON IS WITHIN REACH', { color: C.cyan, seconds: 1.6 }),
-          walk({
-            objective: 'CATCH THE FALCON',
-            pilot: (ctx) => ({ target: { x: ctx.actor('falcon').gx, y: ctx.actor('falcon').gy } }),
-            onUpdate: (ctx, w, dt) => {
-              whistle(ctx, dt);
-              const f = ctx.actor('falcon');
-              if (distTo(ctx, { x: f.gx, y: f.gy }) < 1.5) w.complete = true;
-            },
-          }),
-          call((ctx) => {
-            ctx.player.z = 0;
-            ctx.removeActor('falcon');
-          }),
-          sound('star'),
-          fx({ flags: { rodeStag: true }, commozione: 4 }),
-          say('zampano', 'THERE WAS A SUITCASE, AND IT WOULD NOT SHUT.', { remembered: true }),
-        ];
-      },
-    },
-    {
-      id: '2.3',
-      title: "The preacher's bees",
-      happens:
-        "LEUTARD'S BEES GO IN ONE END OF THE DOG AND COME OUT AT THE OTHER, GIVING HIM A FORMIDABLE SPEAKING VOICE. ACROSS THE THRESHOLD ANOTHER PREACHER, FULK OF NEUILLY, IS COLLECTING MONEY. TRY THE NEW BARK IN THE LULL BETWEEN HIS PHRASES: THE CONGREGATION TURNS AND A PATH OPENS THROUGH IT.",
-      source: 'BARBERO, IL SOGNO NEL MEDIOEVO: LEUTARD. LA QUARTA CROCIATA: FULK OF NEUILLY.',
+        "AT A TOURNAMENT IN CHAMPAGNE, FULK OF NEUILLY IS PREACHING THE CROSS. SHOUT ZAMPANO'S VOW IN THE PAUSES BETWEEN HIS PHRASES UNTIL THE CROWD HEARS IT. THEN THE GREAT COUNTS TAKE THE CROSS ON THE PLATFORM AND EVERY HEAD TURNS TO THEM. A CLERK WRITES THE NAMES BY RANK. ZAMPANO'S GOES AT THE BOTTOM. THE MARSHAL LEAVES FOR VENICE TO HIRE THE SHIPS.",
+      source:
+        "VILLEHARDOUIN (MARZIALS PP. 1-4): FULK OF NEUILLY PREACHES; THE INDULGENCE IS PROCLAIMED; AT THE TOURNEY OF ECRI THIBAUT OF CHAMPAGNE AND LOUIS OF BLOIS TAKE THE CROSS; SIX ENVOYS, VILLEHARDOUIN AMONG THEM, GO TO VENICE. FULK'S WORDS, THE VOW IN THE LULLS AND THE LIST ARE ADAPTATION. FULK DIED BEFORE THE DEPARTURE (P. 18).",
       script: () => {
         const crowd = ['1', '2', '3', '4', '5', '7'];
         return [
           call((ctx) => {
             ctx.setStage('fair', { at: 'S' });
-            ctx.addActor('preacher', 'preacher', '0', { kind: 'idle', face: 'SE' });
+            ctx.addActor('fulk', 'preacher', '0', { kind: 'idle', face: 'SE' });
             crowd.forEach((m, k) => ctx.addActor(`c${k}`, (['crowdA', 'crowdB', 'crowdC'] as const)[k % 3], m, { kind: 'idle', face: 'N' }));
           }),
-          card('BEES', 'THEY GO IN ONE END OF THE DOG...', { color: C.yellow, seconds: 2 }),
-          call((ctx) => {
-            const s = gridToScreen(ctx.player.gx, ctx.player.gy);
-            ctx.particles.burst(s.x, s.y - 12, { count: 26, textures: ['bee'], colors: [0xffffff], speed: [30, 80], life: [0.8, 1.6], drag: 1 });
-            ctx.shake(3);
-            ctx.game.audio.play('hurt');
-          }),
-          card('...AND COME OUT AT THE OTHER', 'A FORMIDABLE SPEAKING VOICE', { color: C.yellow, seconds: 2 }),
-          fx({ unlock: 'sermon', commozione: 10 }),
-          say('preacher', 'BLESSED ARE THE POOR. PASS THE BOWL. NO, THE OTHER WAY.'),
+          card('A TOURNAMENT IN CHAMPAGNE', 'A PREACHER HAS TAKEN OVER THE FIELD', { color: C.yellow, seconds: 2 }),
+          say('fulk', 'TAKE THE CROSS! WHOEVER GOES, GOES FORGIVEN. LORDS FIRST, AND THEN EVERYBODY.'),
           lullWalk({
-            objective: 'BARK IN THE LULL BETWEEN HIS PHRASES',
-            action: 'SERMON',
-            source: 'preacher',
+            objective: 'SHOUT YOUR VOW IN THE PAUSES BETWEEN HIS PHRASES',
+            action: 'VOW',
+            source: 'fulk',
             range: 6,
             stand: { x: 9.5, y: 10.5 },
-            noise: ['BLESSED ARE THE POOR!', 'GIVE TO THE CROSS!', 'PASS THE BOWL!', 'NO, THE OTHER WAY!', 'GOD SEES YOUR PURSE!'],
+            noise: ['TAKE THE CROSS!', 'REPENT!', 'OVERSEAS!', 'LEAVE YOUR FIELDS!', 'GOD SEES YOU!'],
             noiseLabel: 'FULK IS PREACHING',
-            drowned: 'FULK DROWNS HIM OUT. WAIT FOR A LULL',
-            actText: 'REPENT! AND... WOOF!',
+            drowned: 'FULK DROWNS HIM OUT. WAIT FOR A PAUSE',
+            actText: 'I GO TOO! WOOF!',
             need: 3,
             onGood: (ctx, _w, n) => {
-              // The congregation turns, two at a time, and steps aside.
+              // The crowd turns, two at a time, and makes room.
               for (const k of [2 * (n - 1), 2 * (n - 1) + 1]) {
                 const a = ctx.actors.get(`c${k}`);
                 if (!a) continue;
                 a.faceToward(ctx.player.gx, ctx.player.gy);
-                a.emote('hurt', 0.8);
-                ctx.say('AMEN?', { x: a.gx, y: a.gy }, C.yellow);
+                ctx.say('THE LITTLE ONE TOO?', { x: a.gx, y: a.gy }, C.yellow);
                 a.setBehavior({ kind: 'goto', to: { x: a.gx + (k % 2 ? 2.5 : -2.5), y: a.gy }, speed: 1.6 });
               }
               ctx.apply({ commozione: 2 });
             },
           }),
-          card('THE CONGREGATION TURNS', 'AND A PATH OPENS THROUGH IT', { color: C.yellow, seconds: 2 }),
-          walk({ objective: 'WALK THROUGH THE OPEN PATH', goal: { reach: '0', radius: 1.4 } }),
-          say('preacher', '...THAT WAS MY LULL.'),
-          say('zampano', 'THERE WERE BEES, AND THEY WERE PREACHING.', { remembered: true }),
-        ];
-      },
-    },
-    {
-      id: '2.4',
-      title: 'Who sent this dream?',
-      happens:
-        "TWO CLERKS DISPUTE THE SAME OMEN. CHOOSE WHICH CLERK TO TRUST: THE ONE WHO CALLS IT A WARNING LIGHTS A DIRECT TRAIL, THE ONE WHO CALLS IT A TRICK SHOWS A SIDE DOOR. NAMING THE DEVIL COSTS A TOKEN UNDER JOINVILLE'S HOUSE RULE. BOTH PATHS LEAD TO FORTUNE.",
-      source: 'BARBERO, IL SOGNO NEL MEDIOEVO: DREAMS FROM GOD OR FROM THE DEVIL. JOINVILLE E SAN LUIGI: THE HOUSEHOLD RULE ON SWEARING.',
-      script: () => {
-        return [
+          fx({ unlock: 'sermon', grace: 5, flags: { vow: true } }),
+          card('A VOW', 'HE HAS SAID IT OUT LOUD. IT COUNTS NOW.', { color: C.yellow, seconds: 2 }),
           call((ctx) => {
-            ctx.setStage('fair', { at: 'S' });
-            ctx.addActor('white', 'clerkB', '7', { kind: 'idle', face: 'player' });
-            ctx.addActor('black', 'clerkA', '5', { kind: 'idle', face: 'player' });
-            ctx.addActor('fortune', 'fortune', '9', { kind: 'idle' });
+            ctx.addActor('count1', 'marquis', { x: 7.5, y: 5.5 }, { kind: 'idle', face: 'S' });
+            ctx.addActor('count2', 'knight', { x: 9.5, y: 5.5 }, { kind: 'idle', face: 'S' });
+            for (let k = 0; k < 6; k++) ctx.actors.get(`c${k}`)?.faceToward(8.5, 5.5);
           }),
-          say('clerkB', 'THIS DREAM IS A WARNING. GOD SENT IT. TAKE IT LITERALLY: GO STRAIGHT.'),
-          say('clerkA', 'IT IS A TRICK. YOU KNOW WHOSE. NEVER GO WHERE A DREAM POINTS: TAKE THE SIDE DOOR.'),
-          say('clerkB', 'HOUSE RULE: WHOEVER NAMES THE OTHER ONE PAYS A TOKEN.'),
-          ask('clerkA', 'SO. WHICH OF US DO YOU TRUST?', [
-            { label: 'THE WHITE CLERK. IT IS A WARNING.', effects: { grace: 4, flags: { omen: 'warning' } } },
-            { label: 'THE BLACK CLERK. IT IS A TRICK.', effects: { flags: { omen: 'trick' } } },
+          say('voice', 'THEN THE COUNTS OF CHAMPAGNE AND BLOIS TAKE THE CROSS ON THE PLATFORM, AND EVERY HEAD TURNS TO THEM.'),
+          call((ctx) => ctx.addActor('clerk', 'clerkB', { x: 11.5, y: 8.5 }, { kind: 'idle', face: 'player' })),
+          say('clerk', '(A CLERK, WRITING) THE COUNTS. THEIR KNIGHTS. THEIR KNIGHTS\' KNIGHTS. AND YOU ARE?'),
+          ask('clerk', 'NAME, AND WHOSE MAN YOU ARE.', [
             {
-              label: "THE BLACK CLERK. IT IS THE DEVIL'S TRICK.",
-              effects: { grace: -6, coins: -1, flags: { omen: 'trick', namedDevil: true } },
-              then: [say('clerkB', 'YOU SAID HIS NAME. ONE TOKEN, PLEASE.'), card('-1 TOKEN', "JOINVILLE'S HOUSE RULE", { color: C.red, seconds: 1.4 })],
+              label: 'A KNIGHT OF PICARDY. PUT ME NEAR THE TOP.',
+              effects: { supervillain: 3, standing: -2 },
+              then: [say('clerk', 'THE LIST GOES BY RANK. (HE WRITES AT THE BOTTOM.)')],
+            },
+            {
+              label: '(JUST BE GLAD TO BE ON IT.)',
+              effects: { commozione: 3, standing: 2 },
+              then: [say('clerk', '(HE WRITES AT THE BOTTOM, VERY SMALL.)')],
             },
           ]),
-          call((ctx) => {
-            if (ctx.state.flags.omen === 'warning') {
-              // A direct, lit trail to Fortune.
-              const a = ctx.marker('S');
-              const b = ctx.marker('9');
-              for (let k = 1; k < 8; k++) {
-                const s = gridToScreen(a.x + ((b.x - a.x) * k) / 8, a.y + ((b.y - a.y) * k) / 8);
-                ctx.particles.burst(s.x, s.y - 4, { count: 6, textures: ['sparkle'], colors: [0xffe23a], speed: [5, 15], life: [3, 4], drag: 4 });
-              }
-              ctx.insert([walk({ objective: 'FOLLOW THE LIT TRAIL TO FORTUNE', goal: { reach: '9', radius: 1.4, label: 'FORTUNE' } })]);
-            } else {
-              placeObject(ctx, 'wicket', '6');
-              ctx.insert([
-                walk({ objective: 'TAKE THE SIDE DOOR', goal: { reach: '6', label: 'SIDE DOOR' } }),
-                walk({ objective: 'THE SIDE DOOR LEADS TO FORTUNE TOO', goal: { reach: '9', radius: 1.4, label: 'FORTUNE' } }),
-              ]);
-            }
-          }),
-          say('fortune', 'BOTH PATHS LEAD HERE. THEY ALWAYS DO.'),
-          say('zampano', 'THERE WERE TWO CLERKS, AND THEY WERE BOTH RIGHT.', { remembered: true }),
+          call((ctx) => ctx.addActor('marshal', 'bagnaskizMarshal', { x: 5.5, y: 9.5 }, { kind: 'idle', face: 'player' })),
+          card('A FAMILIAR FACE', "BAGNASKIZ IS THE MARSHAL HERE: GEOFFROI DE VILLEHARDOUIN, WHO WILL WRITE IT ALL DOWN", { color: C.orange, seconds: 2.6 }),
+          say('marshal', 'SIX OF US RIDE TO VENICE TO HIRE THE SHIPS. I AM ONE OF THE SIX.'),
+          say('zampano', 'CAN I COME?'),
+          say('marshal', 'YOU CAN PAY, LATER. EVERYONE WILL PAY, LATER.'),
+          say('zampano', 'THERE WAS A LIST, AND I WAS AT THE BOTTOM OF IT.', { remembered: true }),
         ];
       },
     },
     {
-      id: '2.5',
-      title: "Fortune's hands",
+      id: '2.3',
+      title: 'A coat of mail too big',
       happens:
-        'FORTUNE TURNS THE DOG OVER TO INSPECT HIM, AS IF THE KNIGHT MIGHT BE ON THE UNDERSIDE. TAKE THE HELM IN A SQUALL. WHEN THE SHIP RIGHTS ITSELF, ZAMPANO IS ROBERT DE CLARI, POOR KNIGHT, IN A COAT OF MAIL. TRY OUT HIS CHARGE ACROSS THE TILTING DECK. A MUCH HARDER TRICK WILL BE TO WALK.',
-      source: 'BARBERO, IL SOGNO NEL MEDIOEVO: CHRISTINE DE PIZAN TURNED BY FORTUNE INTO A MAN WHO CAN STEER THE SHIP.',
-      script: () => {
-        const tilt = (ctx: StoryScene, t: number, k = 1) => {
-          ctx.player.pushX = Math.sin(t * 0.9) * 1.1 * k;
-          ctx.player.pushY = Math.cos(t * 0.7) * 0.6 * k;
-        };
-        return [
-          call((ctx) => {
-            ctx.setStage('fair', { at: '9' });
-            ctx.addActor('fortune', 'fortune', { x: ctx.marker('9').x - 1.2, y: ctx.marker('9').y - 1.2 }, { kind: 'idle' });
-          }),
-          say('fortune', 'HOLD STILL. THE KNIGHT MUST BE SOMEWHERE. PERHAPS UNDERNEATH.'),
-          call((ctx) => {
-            ctx.player.startAction('hurt', 0.8);
-            ctx.shake(3);
-          }),
-          card('', 'FORTUNE TURNS THE DOG OVER TO INSPECT HIM', { color: '#f0d8a0', seconds: 1.8, dim: 0.3 }),
-          say('fortune', 'NOT UNDERNEATH. VERY WELL: A SQUALL, THEN. TAKE THE HELM.'),
-          sound('glitch'),
-          stage('ship', [], { at: 'S' }),
-          card('A SQUALL', 'TAKE THE HELM', { color: C.cyan, seconds: 1.6 }),
-          walk({
-            objective: 'REACH THE HELM ON THE TILTING DECK',
-            goal: { reach: '3', label: 'HELM' },
-            onUpdate: (ctx, w) => tilt(ctx, w.time),
-          }),
-          walk({
-            objective: 'HOLD THE HELM UNTIL THE SHIP RIGHTS ITSELF',
-            survive: 4,
-            action: 'STEER',
-            onAction: (ctx) => ctx.say('HOLD!', { x: ctx.player.gx, y: ctx.player.gy }, C.cyan),
-            pilot: (ctx) => ({ target: ctx.marker('3'), hold: true }),
-            onUpdate: (ctx, w) => {
-              tilt(ctx, w.time, Math.max(0, 1 - w.time / 4));
-              ctx.hud.setMode({ label: 'THE SHIP RIGHTS ITSELF', value: Math.min(1, w.time / 4), color: 0x5ac8ff });
-              if (distTo(ctx, ctx.marker('3')) > 1.6) w.time = Math.max(0, w.time - 0.05);
-            },
-          }),
-          sound('glitch'),
-          call((ctx) => ctx.game.transition.play(null, 0.8, 1)),
-          wait(0.4),
-          fx({ unlock: 'knight', supervillain: 10 }),
-          skin('zampanoKnight'),
-          flash(0xfff0a0),
-          card('ROBERT DE CLARI', 'POOR KNIGHT, IN A COAT OF MAIL', { color: C.cyan, seconds: 2.4 }),
-          emote('zampano', 'bark'),
-          say('zampano', 'WOOF. (DEEPER.)'),
-          walk({
-            objective: 'TRY OUT HIS CHARGE ACROSS THE TILTING DECK (HOLD RUN)',
-            goal: { reach: '4', label: 'CHARGE!' },
-            pilot: () => null,
-            onUpdate: (ctx, w) => tilt(ctx, w.time, 0.5),
-          }),
-          card('A MUCH HARDER TRICK', 'WILL BE TO WALK', { color: C.yellow, seconds: 2.2 }),
-          say('zampano', 'THERE WAS A LADY, AND SHE TURNED ME OVER LIKE A PANCAKE.', { remembered: true }),
-        ];
-      },
+        "ON THE ROAD SOUTH, PICK UP A BORROWED HELMET, A MAIL COAT AND A SHIELD PAINTED LAST NIGHT: ZAMPANO IS A KNIGHT, HEAVY AND MAGNIFICENT. CONFUSIONE IS ALEAUME, A CLERK WHO CALLS HIM BROTHER. TRY THE CHARGE ACROSS THE ROAD. THEN FALL IN BEHIND SBRIMBRULON, WHO IS PIERRE D'AMIENS, HIS LORD. A MUCH HARDER TRICK WILL BE TO WALK.",
+      source:
+        "ADAPTATION. CLARI SIGNS HIMSELF 'ROBERT OF CLARI, KNIGHT' (CLARI 120) AND RIDES IN PIERRE D'AMIENS'S BATTALION (CLARI 45-47, 75); ALEAUME OF CLARI, A CLERK, IS ROBERT'S BROTHER (CLARI 75-76). THE BORROWED ARMOUR AND THE ROAD ARE INVENTED.",
+      script: () => [
+        call((ctx) => {
+          ctx.setStage('road', { at: 'S' });
+          ctx.addActor('conf', 'confusione', { x: 9.5, y: 26.5 }, { kind: 'follow', target: ctx.player, distance: 1.4, speed: 3, side: -0.8 });
+        }),
+        card('A FAMILIAR FACE', "CONFUSIONE IS ALEAUME HERE: ROBERT OF CLARI'S BROTHER, A CLERK. IN THE DREAM HE CALLS ZAMPANO BROTHER. ON THE LAWN HE NEVER WOULD.", { color: C.cyan, seconds: 3 }),
+        say('confusione', 'BROTHER. YOU CANNOT GO TO JERUSALEM IN A RAG. THE ARMOURER LEFT THINGS ALONG THE ROAD.'),
+        walk({
+          objective: 'PICK UP THE HELMET, THE MAIL COAT AND THE SHIELD',
+          pickups: [
+            { at: '2', kind: 'spot', label: 'A HELMET', text: 'BORROWED. IT FITS LIKE THE BUCKET.' },
+            { at: '3', kind: 'spot', label: 'A COAT OF MAIL', text: 'TWO SIZES TOO BIG. IT CLINKS.' },
+            { at: '4', kind: 'spot', label: 'A SHIELD', text: 'PAINTED LAST NIGHT. STILL WET.' },
+          ],
+        }),
+        fx({ unlock: 'knight', supervillain: 8 }),
+        sound('star'),
+        skin('zampanoKnight'),
+        card('A KNIGHT', 'HEAVY, CLINKING AND MAGNIFICENT', { color: C.cyan, seconds: 2.2 }),
+        emote('zampano', 'bark'),
+        say('zampano', 'WOOF. (DEEPER.)'),
+        say('confusione', 'IT IS THE HELMET. IT ECHOES.'),
+        walk({
+          objective: 'TRY OUT THE CHARGE DOWN THE ROAD (HOLD RUN)',
+          goal: { reach: '6', label: 'CHARGE!' },
+          onUpdate: (ctx) => {
+            // The armour is heavy: walking is slower, and only a charge feels grand.
+            ctx.player.speedMul = ctx.player.running ? 1 : 0.8;
+          },
+        }),
+        call((ctx) => {
+          ctx.player.speedMul = 1;
+          ctx.addActor('pierre', 'sbrimbrulonKnight', { x: ctx.player.gx + 1, y: ctx.player.gy - 0.6 }, { kind: 'idle', face: 'player' });
+        }),
+        card('A FAMILIAR FACE', "SBRIMBRULON IS PIERRE D'AMIENS HERE: THE LORD WHOSE MEN HE RIDES WITH", { color: C.cyan, seconds: 2.4 }),
+        say('sbrimbrulon', 'THAT WAS A FINE CHARGE AT NOTHING, LITTLE ONE. NOW WALK. VENICE IS A LONG WAY.'),
+        followLeader({
+          objective: "FALL IN BEHIND PIERRE. TO VENICE",
+          leader: 'pierre',
+          path: ['7', '8', '9'],
+          speed: 1.6,
+          onReach: (ctx, k) => {
+            const lines = ['THEY SAY THE VENETIANS HAVE BUILT A WHOLE FLEET FOR US.', 'THEY SAY IT IS ALREADY PAID FOR.', ''];
+            const a = ctx.actor('pierre');
+            if (lines[k]) ctx.say(lines[k]!, { x: a.gx, y: a.gy - 1 }, C.cyan);
+          },
+        }),
+        card('A MUCH HARDER TRICK', 'WILL BE TO WALK', { color: C.yellow, seconds: 2.2 }),
+        say('zampano', 'THERE WAS A COAT OF MAIL, AND I WAS INSIDE IT SOMEWHERE.', { remembered: true }),
+      ],
     },
   ],
 };

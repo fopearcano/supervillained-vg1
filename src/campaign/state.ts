@@ -4,13 +4,15 @@ import { storage } from '../core/storage';
 /**
  * The story campaign's persistent state and its rules (pure, unit-tested).
  *
- * Meters (VG1 "systems taken from the board"):
- *  - Commozione: filled by weeping, wonder and caring; actions spend it; an unmoved Zampanò
+ * Meters (VG1 "systems taken from the board", re-anchored by the Fourth Crusade rewrite):
+ *  - Commozione: filled by weeping, wonder and caring; big actions spend it; an unmoved Zampanò
  *    cannot act.
  *  - Supervillain: character; rises with nerve, comradeship and kept oaths. When full he cannot
  *    be pushed off the lawn.
- *  - Grace: Forms. Breaking a formal rule costs Grace even when every authority forgives.
- *  - Standing: what the camp thinks of him (dissent costs standing, not the level).
+ *  - Grace: the forms he swore to or was given (his vow, the pope's prohibition at Zara, the oath
+ *    before the assault, declaring what he picks up). Breaking a form costs Grace even when every
+ *    authority forgives. It measures his observance, not divine favour.
+ *  - Standing: what the camp and its leaders think of him (dissent costs standing, not the level).
  */
 
 export type MeterKey = 'commozione' | 'supervillain' | 'grace' | 'standing';
@@ -37,7 +39,7 @@ export interface Book {
   marvels: string[];
   /** Things he carries home: the fresco, the identity card... */
   items: string[];
-  /** Values learned (black holes and knightly scenes). */
+  /** Values learned (Comradeship, Physical courage, Kept oaths, An honest share, Resistance). */
   values: string[];
   /** The one line per dream scene that makes no sense, and is remembered. */
   remembered: string[];
@@ -45,8 +47,14 @@ export interface Book {
   shards: string[];
 }
 
+/** Save format: 2 = the Fourth Crusade dream (docs/STORY.md); 1 = the earlier anthology dream. */
+export const STORY_VERSION = 2;
+
+/** A one-time message shown before the story continues. */
+export type StoryNotice = 'dream-rewritten';
+
 export interface CampaignState {
-  version: 1;
+  version: 2;
   completed: string[];
   meters: Record<MeterKey, number>;
   flags: Record<string, FlagValue>;
@@ -57,6 +65,8 @@ export interface CampaignState {
   playTime: number;
   /** When it was last saved (ms since 1970), null before the first save. */
   savedAt: number | null;
+  /** Shown once on CONTINUE or the story menu, then cleared (see migrateV1). */
+  notice: StoryNotice | null;
 }
 
 export const METER_START: Readonly<Record<MeterKey, number>> = {
@@ -70,7 +80,7 @@ export const METER_MAX = 100;
 
 export function newCampaign(): CampaignState {
   return {
-    version: 1,
+    version: 2,
     completed: [],
     meters: { ...METER_START },
     flags: {},
@@ -79,6 +89,7 @@ export function newCampaign(): CampaignState {
     coins: 0,
     playTime: 0,
     savedAt: null,
+    notice: null,
   };
 }
 
@@ -155,7 +166,10 @@ export function unshakeable(state: CampaignState): boolean {
   return state.meters.supervillain >= METER_MAX;
 }
 
-/** The 7.8 choice decides the ending: he called the oath himself (knight), or stood silent (alpha: "the witness"). */
+/**
+ * The 7.8 choice decides the ending: he called the pilgrims to their oath himself (THE KNIGHT), or
+ * stood silent while Niketas did (THE WITNESS; internal key "alpha", kept for save compatibility).
+ */
 export type Ending = 'knight' | 'alpha';
 export function ending(state: CampaignState): Ending {
   return state.flags.oath === 'enforced' ? 'knight' : 'alpha';
@@ -179,7 +193,7 @@ export function fadeCommozione(state: CampaignState, chapter: number): number {
   return before - state.meters.commozione;
 }
 
-/** Grace, as the 8.2 altar and the ending show it. */
+/** Grace, as the telling in 8.2 and the ending show it. */
 export type GraceTier = 'high' | 'mid' | 'low';
 export function graceTier(state: CampaignState): GraceTier {
   const g = state.meters.grace;
@@ -192,10 +206,10 @@ export function endingNotes(state: CampaignState): string[] {
   const tier = graceTier(state);
   out.push(
     tier === 'high'
-      ? 'HE KEPT THE FORMS, EVEN WHEN EVERY AUTHORITY FORGAVE HIM. THE ALTAR UNDER THE DESK STILL GLOWS.'
+      ? 'HE KEPT THE FORMS HE SWORE TO, EVEN THE SMALL ONES NOBODY CHECKS.'
       : tier === 'mid'
-        ? 'HE KEPT MOST OF THE FORMS. THE ALTAR UNDER THE DESK IS A LITTLE CROOKED, LIKE HIM.'
-        : 'HE BROKE THE FORMS AND NOBODY MINDED, EXCEPT THE BURGHER. THE ALTAR IS MADE OF CHEW TOYS.',
+        ? 'HE KEPT MOST OF THE FORMS HE SWORE TO. ABOUT THE REST HE HAS A LONG EXPLANATION.'
+        : 'HE BROKE THE FORMS HE SWORE TO, AND EVERY AUTHORITY FORGAVE HIM. HE HAS NOT QUITE FORGIVEN HIMSELF.',
   );
   const st = state.meters.standing;
   out.push(
@@ -209,24 +223,74 @@ export function endingNotes(state: CampaignState): string[] {
 }
 
 const KEY = 'story';
+/** Where a version-1 save is kept, untouched, when it is migrated. */
+export const V1_BACKUP_KEY = 'story-v1-backup';
+
+/**
+ * Version-1 scenes whose meaning the rewrite keeps (docs/STORY-SOURCES.md, "Save migration").
+ * 1.1 and 1.5 changed (the bucket, the rag cross and the sleep boundary) and every dream scene
+ * belongs to the new story, so they are played again; nothing old counts as a new scene.
+ */
+export const V1_KEPT_SCENES: readonly string[] = ['1.0', '1.2', '1.3', '1.4'];
+/** Flags only the kept scenes set. */
+const V1_KEPT_FLAGS = ['pawOffered', 'longWay', 'santinaBall'];
+/** The lecture scraps of 1.2 (same names in both versions). */
+const V1_KEPT_SHARDS = ['A FLEET BOUGHT ON CREDIT', 'A KNIGHT WHO KEPT WALKING', 'A CITY SEEN FROM ITS WALLS'];
+/** The remembered lines of the kept scenes. */
+const V1_KEPT_REMEMBERED = ['AND A DOG DREAMS LECTURES.', 'THERE WAS A GATE, AND IT WAS A CHIHUAHUA.', 'THERE WAS A BOWL, AND IT WAS ALWAYS ONE STEP AWAY.', 'THERE WAS A GATE, AND I WAS MAGNIFICENT AT IT.'];
+
+type V1Save = Partial<Omit<CampaignState, 'version' | 'notice'>> & { version?: number };
+
+/**
+ * A version-1 save in the rewritten story: the Green Zone and the unchanged neighborhood scenes
+ * (1.0, 1.2-1.4) with their flags, scraps and remembered lines, coins and play time are kept; the
+ * dream starts again at 1.1 with fresh meters, book and costume. A one-time notice says so.
+ * Pure (the caller keeps the original under V1_BACKUP_KEY).
+ */
+export function migrateV1(raw: V1Save): CampaignState {
+  const s = newCampaign();
+  const old = Array.isArray(raw.completed) ? raw.completed.filter((x): x is string => typeof x === 'string') : [];
+  // Saves from before the Green Zone walk became 1.0: whoever reached 1.1 has walked it.
+  if (old.includes('1.1') && !old.includes('1.0')) old.unshift('1.0');
+  s.completed = V1_KEPT_SCENES.filter((id) => old.includes(id));
+  const flags = raw.flags ?? {};
+  for (const f of V1_KEPT_FLAGS) if (f in flags && s.completed.length) s.flags[f] = flags[f]!;
+  // The kept scenes' own meter change: offering the paw at the bowl (1.3).
+  if (s.flags.pawOffered === true) s.meters.supervillain = Math.max(0, s.meters.supervillain - 3);
+  s.book.shards = (raw.book?.shards ?? []).filter((x) => V1_KEPT_SHARDS.includes(x));
+  s.book.remembered = (raw.book?.remembered ?? []).filter((x) => V1_KEPT_REMEMBERED.includes(x));
+  s.coins = typeof raw.coins === 'number' && Number.isFinite(raw.coins) ? Math.max(0, raw.coins) : 0;
+  s.playTime = typeof raw.playTime === 'number' && Number.isFinite(raw.playTime) ? Math.max(0, raw.playTime) : 0;
+  s.savedAt = typeof raw.savedAt === 'number' && Number.isFinite(raw.savedAt) ? raw.savedAt : null;
+  // Tell the player only when something they played is being played again.
+  s.notice = old.some((id) => !V1_KEPT_SCENES.includes(id)) ? 'dream-rewritten' : null;
+  return s;
+}
 
 export function loadCampaign(): CampaignState {
-  const raw = storage.get<Partial<CampaignState> | null>(KEY, null);
+  const raw = storage.get<(Partial<Omit<CampaignState, 'version'>> & { version?: number }) | null>(KEY, null);
   const base = newCampaign();
-  if (!raw || raw.version !== 1) return base;
-  const completed = Array.isArray(raw.completed) ? [...raw.completed] : [];
-  // Saves from before the Green Zone walk became 1.0: whoever reached 1.1 has walked it.
-  if (completed.includes('1.1') && !completed.includes('1.0')) completed.unshift('1.0');
+  if (!raw) return base;
+  if (raw.version === 1) {
+    // Keep the old save untouched beside the migrated one, once.
+    if (storage.get<unknown>(V1_BACKUP_KEY, null) === null) storage.set(V1_BACKUP_KEY, raw);
+    const migrated = migrateV1(raw as V1Save);
+    storage.set(KEY, migrated);
+    return migrated;
+  }
+  if (raw.version !== STORY_VERSION) return base;
   return {
     ...base,
     ...raw,
+    version: STORY_VERSION,
     meters: { ...base.meters, ...(raw.meters ?? {}) },
     flags: { ...(raw.flags ?? {}) },
     book: { ...base.book, ...(raw.book ?? {}) },
     abilities: Array.isArray(raw.abilities) ? raw.abilities : [],
-    completed,
+    completed: Array.isArray(raw.completed) ? [...raw.completed] : [],
     playTime: typeof raw.playTime === 'number' && Number.isFinite(raw.playTime) ? Math.max(0, raw.playTime) : 0,
     savedAt: typeof raw.savedAt === 'number' && Number.isFinite(raw.savedAt) ? raw.savedAt : null,
+    notice: raw.notice === 'dream-rewritten' ? raw.notice : null,
   };
 }
 

@@ -504,28 +504,25 @@ export const STORY = {
   LULL: { TALK: [2.4, 3.4], QUIET: [1.4, 2.1], RANGE: 3.4, PHRASE_EVERY: 0.85 },
   /** 4.2: easing the boat alongside. Strokes closer together than MIN_GAP slosh water in. */
   BOAT: { STROKE: 0.11, MIN_GAP: 0.42, SPLASH: 0.3, DRAIN: 0.12 },
-  /** 6.1: whisking the glasses away before the count's shot lands. */
-  WHISK: { SHOTS: 6, WARN: 2.8, GAP: 0.9, RADIUS: 0.95, NEED: 3 },
-  /** 6.4: seconds for the desert to bleach the drawing grey. */
-  BLEACH_TIME: 36,
   /** 7.3: stay level with Pierre's shoulder (tiles ahead or behind along the march). */
   SHOULDER: { BAND: 1.2, LOSE: 0.2, GAIN: 0.12, SPEED: 1.5 },
   /** 7.4: how thick the smoke gets on the sightseeing route (0..1). */
   SMOKE: 0.82,
   /** Hidden goals heard rather than seen (7.5 the previous room, 7.7 the rattle of mail): seconds between sounds. */
   HEAR_EVERY: 1.6,
-  CALM: { RATE: 0.14, PANIC_COST: 0.25, PANIC_TIME: 0.8 },
-  CATAPULT: { SHOTS: 4, GRAVITY: 260, VX: 150, VY: 170, MIN_POWER: 0.35, POWER_RANGE: 0.75, OSC: 3 },
   RUMOUR: { ARRIVE_EVERY: 1.2 },
   /** The feeling fades: Commozione lost at the start of every dream sub-level (levels 2-7). */
   COMMOZIONE_FADE: 2,
   /** Commozione per correct weeping beat. */
   WEEP_HIT: 1,
-  /** Commozione spent by the big actions ("an unmoved Zampanò cannot act"). */
-  COST: { SERMON: 4, SPEAK_UP: 10, GESTURE: 10, ATONE: 8, VIGIL: 8, DEFY: 10, OATH_BARK: 5 },
+  /**
+   * Commozione spent by the big actions ("an unmoved Zampanò cannot act"): 5.1 speaking up at
+   * Zara, 6.1 sharing the last ration, 7.8 calling the pilgrims to their oath.
+   */
+  COST: { SPEAK_UP: 10, SHARE: 8, OATH_BARK: 5 },
   /** Standing thresholds for how the camp remembers him (ending notes). */
   STANDING: { FOND: 60, FAIR: 35 },
-  /** Grace tiers (8.2 altar, ending). */
+  /** Grace tiers (8.2 what he can tell, ending). */
   GRACE: { HIGH: 70, LOW: 40 },
   /** Autopilot (automated playtests). */
   PILOT: {

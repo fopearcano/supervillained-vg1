@@ -65,8 +65,38 @@ export class StoryFlow {
   continueGame(): void {
     this.replaying = false;
     this.state = loadCampaign();
+    if (this.showNotice(() => this.continueGame())) return;
     if (this.nextLabel() === null) return this.openMenu();
     this.continueStory();
+  }
+
+  /**
+   * A save from before the Fourth Crusade rewrite (campaign/state.ts migrateV1): one card says
+   * what was kept, then the notice is cleared for good and `next` runs. False when there is none.
+   */
+  private showNotice(next: () => void): boolean {
+    if (this.state.notice !== 'dream-rewritten') return false;
+    this.state.notice = null;
+    saveCampaign(this.state);
+    this.reading();
+    this.game.scenes.replaceAll(
+      new StoryCardScene(
+        this.game,
+        0x0a0a14,
+        [
+          { text: 'THE DREAM HAS BEEN REWRITTEN', color: C.yellow, scale: 1, gap: 14 },
+          {
+            text: 'ZAMPANO NOW DREAMS ONE STORY: THE FOURTH CRUSADE, FROM VENICE TO CONSTANTINOPLE, AS A SMALL KNIGHT SEES IT. YOUR WALK IN THE GREEN ZONE AND THE NEIGHBORHOOD SCENES YOU PLAYED ARE KEPT, WITH YOUR COINS AND PLAY TIME. THE STORY STARTS AGAIN FROM 1.1, WITH FRESH METERS, BOOK AND COSTUMES.',
+            color: C.white,
+            align: 'justify',
+            gap: 12,
+          },
+          { text: 'YOUR OLD SAVE IS KEPT ASIDE, UNTOUCHED.', color: '#9aa4c0' },
+        ],
+        () => this.glitch(next),
+      ),
+    );
+    return true;
   }
 
   /** Coins picked up on the Green Zone walk go to the story's purse. */
@@ -91,6 +121,7 @@ export class StoryFlow {
   openMenu(): void {
     this.replaying = false;
     this.state = loadCampaign();
+    if (this.showNotice(() => this.openMenu())) return;
     this.game.audio.setTrack('intro');
     this.game.audio.setDuck(1);
     this.game.audio.startMusic();
@@ -169,9 +200,9 @@ export class StoryFlow {
       this.game.scenes.replaceAll(
         new StoryCardScene(
           this.game,
-          sub.blackHole ? 0x12062a : 0x0a0a14,
+          0x0a0a14,
           [
-            { text: sub.blackHole ? 'BLACK HOLE' : `LEVEL ${ch.number}`, color: sub.blackHole ? '#b070ff' : '#9aa4c0' },
+            { text: `LEVEL ${ch.number}`, color: '#9aa4c0' },
             { text: `${sub.id} ${sub.title.toUpperCase()}`, color: C.yellow, scale: 1, gap: 14 },
             { text: withNames(sub.happens, C.white), color: C.white, gap: 14 },
             ...replayNote,
@@ -274,8 +305,8 @@ export class StoryFlow {
     if (this.autopilot) this.log.push({ id: 'ending', time: 0, metrics: null, meters: { ...this.state.meters }, ending: e });
     const lines =
       e === 'knight'
-        ? 'IN A LULL IN THE LOOTING HE CALLED THE PILGRIMS TO THEIR OATH, IN HIS OWN WORDS, AND AT THE DESK HE READ THEM BACK IN HIS OWN VOICE. ON THE LAWN BAGNASKIZ STEPPED ASIDE AND THE LANE STAYED OPEN. ZAMPANO DID NOT CHANGE: HE FOUND OUT HE WAS A KNIGHT ALL ALONG, AND TOO THICK-HEADED TO BE STOPPED.'
-        : 'HE STOOD SILENT WHILE NIKETAS CALLED THE PILGRIMS TO THEIR OATH. AT THE DESK HE READ THE LINE IN ITS OWNER\'S VOICE AND SAID SO. ON THE LAWN BAGNASKIZ STEPPED ASIDE ANYWAY, AND THE LANE STAYED OPEN. THE GIRL IS WITH HER FAMILY EITHER WAY; WHAT DIFFERS IS THE STORY HE CAN HONESTLY TELL.';
+        ? 'IN A LULL IN THE LOOTING HE CALLED THE PILGRIMS TO THEIR OATH, IN HIS OWN WORDS, AND UNDER THE DESK HE TOLD IT THAT WAY. ON THE LAWN BAGNASKIZ STEPPED ASIDE AND THE LANE STAYED OPEN. ZAMPANO DID NOT BECOME A HERO: HE WAS A SMALL KNIGHT WHO SAID ONE TRUE THING AT THE RIGHT MOMENT, AND HE IS TOO THICK-HEADED TO STOP SAYING IT.'
+        : 'HE STOOD SILENT WHILE NIKETAS CALLED THE PILGRIMS TO THEIR OATH, AND UNDER THE DESK HE GAVE THE LINE BACK TO ITS OWNER. ON THE LAWN BAGNASKIZ STEPPED ASIDE ANYWAY, AND THE LANE STAYED OPEN. THE GIRL IS WITH HER FAMILY EITHER WAY; WHAT DIFFERS IS THE STORY HE CAN HONESTLY TELL.';
     this.game.scenes.replaceAll(
       new StoryCardScene(
         this.game,

@@ -2,13 +2,19 @@
 
 2D isometric game (browser + Android via Capacitor), **no game engine**. **One game, one story**
 (title: NEW GAME / CONTINUE / COUCH / OPTIONS / GLOSSARY / QUIT), from the VG1 design PDFs ("Supervillained — VG1
-implemented", then the level design revision "Supervillained VG1 — Levels implementation 2",
-which wins where they differ): 8 levels, 1.0 + 42 sub-levels.
+implemented", then the level design revision "Supervillained VG1 — Levels implementation 2"),
+rewritten as one dream of the Fourth Crusade seen by a small knight in Robert de Clari's place:
+8 levels, 1.0 + 36 sub-levels. **The canonical story is `docs/STORY.md`** (sources, inventions
+and save migration: `docs/STORY-SOURCES.md`); it wins over the PDFs where they differ.
 - **1.0 The Green Zone** (`SPEC.md`, the former "arcade"): Zampanò, a Maltese dog, walks through a
   park: eat treats, pee to clean, avoid pollution, bark at the bully pug. It is the first scene
   of Level 1, played by `scenes/gameScene.ts` (`SubLevelDef.greenZone`), not by a story script.
-- Then the rest of Level 1, the Fourth-Crusade dream (levels 2–7) and the return (level 8):
-  dialogue, dream walks, mini-games and two endings.
+- Then the rest of Level 1 (reality: the bucket, the lecture, the bowl, Santina's ball, the rag
+  cross; he falls asleep under the Professor's desk at the end of 1.5), the Fourth-Crusade dream
+  (levels 2–7: Champagne, Venice, the sea, Zara, the winter, Constantinople 1203–1204, with
+  Villehardouin as the marshal and Niketas Choniates as the city's voice) and the return
+  (level 8): dialogue, dream walks, mini-games and two endings (THE KNIGHT / THE WITNESS, decided
+  at 7.8). No other crusade or dream cuts in; nothing physical comes back from the dream.
 
 Decisions/deviations: `DECISIONS.md`. Sprite replacement: `ASSETS.md`. Delivered art goes in
 `public/sprites/` and the game ships only the latest art; the art it replaces moves to
@@ -71,11 +77,11 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   used by the arcade `GameScene` and by story stages.
 - `campaign/` — the VG1 campaign as data: `state.ts` (meters, flags, book, unlocks, ending, play
   time, last saved; pure, tested), `summary.ts` (the saved story at a glance, for COUCH), `titles.ts`, `home.ts` (8.2 marvel → object at home), `chapters/ch1..ch8.ts` (one file
-  per level: sub-levels with `happens`, `source`, optional `blackHole`, and a `script()` that
+  per level: sub-levels with `happens`, `source` (chronicle references or ADAPTATION), and a `script()` that
   returns `Step[]`), `chapters/helpers.ts` (`followLeader`, `lullWalk`, `placeObject`,
   `sounder`, `walkableNear`).
 - `story/` — the story engine: `step.ts` (Step interface), `steps.ts` (script vocabulary: say, ask,
-  card, stage, move, walk, mini, branch, fx, blackHoleIn/Out…), `walk.ts` (dream walk: reach,
+  card, stage, move, walk, mini, branch, fx…), `walk.ts` (dream walk: reach,
   pickups, sight cones, pace/nerve, thirst, scramble, fire), `minigames/`, `storyScene.ts` (runs a
   script over a World stage), `ui.ts` (dialogue box + choice wheel, cards, story HUD with meters),
   `screens.ts` (story menu, level's sub-level list, cards, pause, Meraviglia book), `storyFlow.ts`
@@ -116,6 +122,11 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   A missing marker throws — run `npm run smoke` after editing maps or scripts.
 - Meter rules live in `campaign/state.ts` (pure, tested): `fadeCommozione`, `graceTier`,
   `endingNotes`, `ending`. Choices that are big actions take `cost` (Commozione).
+- Story changes: keep `docs/STORY.md` (and the scene's `source`) in step with the script. Quote a
+  chronicle only from an edition listed in `docs/STORY-SOURCES.md`, never invent a quotation or a
+  page reference, and mark invented material as ADAPTATION. Renumbering or changing the meaning of
+  saved scenes needs a new save version with a migration in `campaign/state.ts` (see `migrateV1`)
+  and a test.
 - Scripted characters walk in straight lines (no pathfinding): give `followLeader` paths whose
   segments stay on walkable ground, and test a level with `npm run playtest -- --from 3.1 --to 3.4`.
 - A new walk objective the autopilot can't infer from `goal`/`pickups` gets a `pilot` hint in the

@@ -130,12 +130,13 @@ const SCENARIOS = {
     await page.close();
   },
 
-  /** C3: the choice wheel (8.4, wrapped options + the locked right answer) and the story menu. */
+  /** C3: the choice wheel (8.2, the drawings he can leave: locked when he never saw it) and the story menu. */
   async storymenu(browser) {
-    const page = await openGame(browser, '?story=8.4');
-    await skipTo(page, 'CardStep');
-    await wait(1200);
-    await page.screenshot({ path: `${OUT}/c8-no-answer.png` });
+    const page = await openGame(browser, '?story=8.2');
+    await page.evaluate(() => localStorage.clear());
+    await skipTo(page, 'AskStep');
+    await wait(1500);
+    await page.screenshot({ path: `${OUT}/c8-drawing.png` });
     await page.evaluate(() => window.__sv.flow.story.openMenu());
     await wait(900);
     await page.screenshot({ path: `${OUT}/c-story-menu.png` });
@@ -145,19 +146,22 @@ const SCENARIOS = {
   /** P: a campaign in progress: sub-level picker, the book with icons, a costly choice, the pause menu. */
   async progress(browser) {
     const state = {
-      version: 1,
-      completed: ['1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '2.2', '2.3', '2.4', '2.5', '3.1', '3.2', '3.3', '3.4', '4.1', '4.2', '4.3'],
+      version: 2,
+      completed: ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '3.4', '4.1', '4.2', '4.3'],
       meters: { commozione: 6, supervillain: 30, grace: 75, standing: 50 },
       flags: {},
       book: {
-        marvels: ['THE DROMONS', 'THE HORSE TRANSPORTS', 'THE GALLEYS', 'THE COLUMNS OF SAN MARCO', 'THE FLEET LEAVING VENICE'],
-        items: ['A FRESCO FOR THE CHAPEL AT HOME'],
-        values: ['Pilgrims, not martyrs'],
-        remembered: ['THERE WAS A SHIP, MAN, AND IT WAS SINGING.'],
-        shards: ['LEVEL 2: ON THE EDGE OF DREAMS'],
+        marvels: ['THE HORSE TRANSPORTS', 'THE GALLEYS', 'THE GREAT SHIPS', 'THE FLEET LEAVING VENICE'],
+        items: ['MERAVIGLIA'],
+        values: [],
+        remembered: ['THERE WAS A SHIP, AND IT WAS SINGING.'],
+        shards: ['A FLEET BOUGHT ON CREDIT'],
       },
       abilities: ['cross', 'knight', 'sermon'],
       coins: 0,
+      playTime: 0,
+      savedAt: null,
+      notice: null,
     };
     const page = await openGame(browser, '');
     await page.evaluate((st) => localStorage.setItem('supervillained:story', JSON.stringify(st)), state);
@@ -176,18 +180,18 @@ const SCENARIOS = {
     await page.evaluate(() => window.__sv.flow.story.openMenu());
     await wait(700);
     await page.screenshot({ path: `${OUT}/p-story-menu.png` });
-    // Story menu → level 4 (CONTINUE, 1, 2, 3, 4): the sub-level picker.
-    for (let k = 0; k < 4; k++) {
+    // Story menu → level 5 (CONTINUE, 1, 2, 3, 4, 5): the sub-level picker.
+    for (let k = 0; k < 5; k++) {
       await page.keyboard.press('ArrowDown');
       await wait(80);
     }
     await page.keyboard.press('Enter');
     await wait(1400);
     await page.screenshot({ path: `${OUT}/p-chapter.png` });
-    // 4.4 with little Commozione: the costly choice is locked.
-    await page.evaluate(() => window.__sv.flow.story.debugPlay('4.4'));
+    // 5.1 with little Commozione: speaking up is locked.
+    await page.evaluate(() => window.__sv.flow.story.debugPlay('5.1'));
     await wait(300);
-    await skipTo(page, 'AskStep', 2);
+    await skipTo(page, 'AskStep');
     await wait(1500);
     await page.screenshot({ path: `${OUT}/p-costly-choice.png` });
     await page.keyboard.press('Escape');
@@ -211,23 +215,22 @@ const SCENARIOS = {
     await page.close();
   },
 
-  /** C1: Level 1 of the story (1.1 dream → slap → lawn). */
+  /** C1: Level 1 of the story (1.1 the bucket on his head → the walk to the hedge gap → the slap). */
   async story1(browser) {
     const page = await openGame(browser, '?story=1.1');
-    await wait(900);
-    await page.screenshot({ path: `${OUT}/c1-jerusalem.png` });
-    await wait(1600);
-    await advance(page, 2);
-    await page.keyboard.down('KeyW');
-    await wait(2500);
+    await page.evaluate(() => localStorage.clear());
+    await wait(2600);
+    await page.screenshot({ path: `${OUT}/c1-bucket.png` });
+    await skipTo(page, 'WalkStep');
+    await joystickWalk(page, '6', 2500);
     await page.screenshot({ path: `${OUT}/c1-walk.png` });
-    await wait(6500);
-    await page.keyboard.up('KeyW');
+    await joystickWalk(page, '6', 12000);
     console.log('after walk', JSON.stringify(await storyState(page)));
-    await wait(700);
+    // After the slap: Confusione's lines.
+    await wait(1200);
     await page.screenshot({ path: `${OUT}/c1-slap.png` });
-    await wait(3600);
-    await advance(page, 1);
+    await advance(page, 2);
+    await wait(900);
     await page.screenshot({ path: `${OUT}/c1-lawn.png` });
     console.log('end', JSON.stringify(await storyState(page)));
     await page.close();
@@ -235,9 +238,9 @@ const SCENARIOS = {
 
   /** The title's COUCH card: a saved story half way through, and a fresh one. */
   async couch(browser) {
-    const ids = ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '2.2', '2.3', '2.4', '2.5', '3.1', '3.2', '3.3', '3.4', '4.1', '4.2', '4.3'];
+    const ids = ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '2.2', '2.3', '3.1', '3.2', '3.3', '3.4', '4.1', '4.2', '4.3'];
     const story = {
-      version: 1,
+      version: 2,
       completed: ids,
       meters: { commozione: 45, supervillain: 100, grace: 59, standing: 55 },
       flags: {},
@@ -246,6 +249,7 @@ const SCENARIOS = {
       coins: 120,
       playTime: 3905,
       savedAt: Date.now() - 3600e3,
+      notice: null,
     };
     for (const [name, save] of [['p-couch', story], ['p-couch-new', null]]) {
       const page = await openGame(browser, '');
@@ -262,6 +266,42 @@ const SCENARIOS = {
       await page.screenshot({ path: `${OUT}/${name}.png` });
       await page.close();
     }
+  },
+
+  /** A save from before the Fourth Crusade rewrite: CONTINUE shows the one-time notice, then the story resumes. */
+  async migration(browser) {
+    const v1 = {
+      version: 1,
+      completed: ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '2.2', '2.3', '2.4', '2.5', '3.1'],
+      meters: { commozione: 45, supervillain: 60, grace: 50, standing: 55 },
+      flags: { pawOffered: true },
+      book: { marvels: ['THE DROMONS'], items: ['A RELIC'], values: ['Forms matter'], remembered: [], shards: ['A FLEET BOUGHT ON CREDIT'] },
+      abilities: ['cross', 'knight', 'sermon'],
+      coins: 40,
+      playTime: 2400,
+      savedAt: Date.now() - 86400e3,
+    };
+    const page = await openGame(browser, '');
+    await page.evaluate((s) => {
+      localStorage.clear();
+      localStorage.setItem('supervillained:story', JSON.stringify(s));
+      window.__sv.flow.toTitle();
+    }, v1);
+    await wait(1400);
+    await page.screenshot({ path: `${OUT}/p-migrated-title.png` });
+    await page.evaluate(() => window.__sv.flow.story.continueGame());
+    await wait(1400);
+    await page.screenshot({ path: `${OUT}/p-migrated-notice.png` });
+    const saved = await page.evaluate(() => ({
+      story: JSON.parse(localStorage.getItem('supervillained:story')),
+      backup: JSON.parse(localStorage.getItem('supervillained:story-v1-backup')),
+    }));
+    console.log('migrated:', JSON.stringify({ version: saved.story.version, completed: saved.story.completed, notice: saved.story.notice, abilities: saved.story.abilities, backupVersion: saved.backup?.version }));
+    await page.keyboard.press('Enter');
+    await wait(1600);
+    console.log('after notice:', await page.evaluate(() => window.__sv.top().constructor.name));
+    await page.screenshot({ path: `${OUT}/p-migrated-continue.png` });
+    await page.close();
   },
 
   /** The title's GLOSSARY card (the ring around the verb drawn), and the publisher link. */

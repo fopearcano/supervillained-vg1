@@ -23,7 +23,7 @@ describe('COUCH: progress summary', () => {
     const s = progressSummary(newCampaign(), CHAPTERS);
     expect(s.started).toBe(false);
     expect(s.done).toBe(0);
-    expect(s.total).toBe(43);
+    expect(s.total).toBe(37);
     expect(s.levels).toHaveLength(8);
     expect(s.next).toEqual({ level: 1, id: '1.0', title: CHAPTERS[0]!.subLevels[0]!.title });
     expect(s.ending).toBeNull();

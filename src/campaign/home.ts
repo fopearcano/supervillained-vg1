@@ -1,26 +1,23 @@
 /**
- * 8.2 "Relics for the parish": each marvel found in the dream becomes an object at home
- * (Meraviglia system). Pure data so it can be tested.
+ * 8.2 "What he can tell": each marvel of the dream is furniture of the study, borrowed (Meraviglia,
+ * the book of impressions). Nothing comes back from the dream; the dream took these from home.
+ * Pure data so it can be tested.
  */
 const HOME_OBJECTS: Readonly<Record<string, string>> = {
-  'THE DROMONS': 'A TOY SHIP ON THE SHELF',
+  'THE GREAT SHIPS': 'A TOY SHIP ON THE SHELF',
   'THE HORSE TRANSPORTS': 'A WOODEN HORSE',
   'THE GALLEYS': 'A PAPER BOAT',
-  'THE COLUMNS OF SAN MARCO': 'TWO CANDLESTICKS',
-  'THE FOUNTAIN OF VENICE': 'THE WATER BOWL, POLISHED',
   'THE FLEET LEAVING VENICE': 'A LITTLE FLAG ON THE DESK',
-  'THE HERMIT ORATORY': 'A WHITEWASHED PEBBLE',
-  'THE HERMIT GARDEN': 'A DRIED FIG',
-  'THE TWO SKELETONS': 'TWO CHEW BONES, SIDE BY SIDE',
   'THE GREAT WALLS': 'A ROW OF BOOKS LIKE TOWERS',
   'THE CITY OF ROOFS': 'A PILE OF CUSHIONS',
-  'THE GOLDEN DOMES': 'AN UPTURNED GOLDEN BOWL',
-  'THE GOLDEN PALACE': 'A SHINY BISCUIT TIN',
-  'THE CHAPEL OF RELICS': 'A SHOEBOX OF TREASURES',
-  'THE CHURCH OF THE APOSTLES': 'A POSTCARD OF A CHURCH',
-  'THE GREAT CHURCH': 'THE LAMPSHADE (IT IS A DOME)',
+  'THE GOLDEN DOMES': 'THE LAMPSHADE (IT IS A DOME)',
+  "THE PALACE OF THE LION'S MOUTH": 'A SHINY BISCUIT TIN',
+  'THE CARVED COLUMN': 'THE CHAIR LEG, WITH HIS TOOTH MARKS ON IT',
+  'THE BRONZE HERCULES': "THE PROFESSOR'S BOOKENDS",
+  'A LAMP IN A COURTYARD': 'THE DESK LAMP',
+  'THE GREAT CHURCH': 'AN UPTURNED GOLDEN BOWL',
   'THE HIPPODROME': 'THE RUG (IT IS A RACETRACK)',
-  'THE STATUES': "THE PROFESSOR'S BOOKENDS",
+  'AN EMPTY PEDESTAL': 'AN EMPTY SPOT ON THE SHELF',
 };
 
 export function homeObject(marvel: string): string {

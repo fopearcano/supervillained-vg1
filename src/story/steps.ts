@@ -335,17 +335,3 @@ export function emote(name: string, anim: 'bark' | 'hurt' = 'bark'): Step {
     else ctx.actor(name).emote(anim);
   });
 }
-
-/** Black hole: "entered without warning, left with one value". */
-export function blackHoleIn(where: string): Step[] {
-  return [sound('glitch'), call((ctx) => ctx.game.transition.play(null, 0.9, 1)), card('BLACK HOLE', `ILLOGICAL SPACETIME DEVIATION\n\n${where}`, { color: '#b070ff', seconds: 2.4, dim: 0.9 })];
-}
-
-export function blackHoleOut(value: string): Step[] {
-  return [
-    fx({ value }),
-    sound('glitch'),
-    call((ctx) => ctx.game.transition.play(null, 0.9, 1)),
-    card('LEFT WITH ONE VALUE', value.toUpperCase(), { color: '#b070ff', dim: 0.9 }),
-  ];
-}

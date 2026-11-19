@@ -17,9 +17,11 @@ function heads(ctx: StoryScene): void {
 }
 
 /**
- * Level 1 — The Greenzone (Homeland · Outbound, then Santina's gate). Zampanò wakes on the common
- * lawn. The way home runs through a neighborhood where every other dog can walk straight to the
- * water bowl. Cast: everyone as themselves.
+ * Level 1 — The Greenzone (reality). Zampanò walks home through a neighborhood where every other
+ * dog can walk straight to the water bowl. Nothing in this level is a dream: it plants what the
+ * dream will use (the bucket that will be a helmet, the bowl's clang that will be a harbor bell,
+ * the gates that will be walls, the cloth that will be a cross and a sail, the lecture's three
+ * voices) and ends when he falls asleep under the Professor's desk (docs/STORY.md).
  */
 export const CH1: ChapterDef = {
   number: 1,
@@ -30,8 +32,7 @@ export const CH1: ChapterDef = {
   theme: 'greenzone',
   music: 'greenzone',
   professor: {
-    after: 'JV',
-    text: 'IN THE MIDDLE AGES, YOU UNDERSTAND, DOGS WALKED INTO CHURCH AND NOBODY SAID A WORD. SO WE ARE NOT GOING TO BE SCANDALISED IF ONE OF THEM TAKES THE CROSS.',
+    text: 'CLARI, YOU UNDERSTAND, WAS A SMALL KNIGHT FROM PICARDY. HE HEARD MOST THINGS AFTER OTHER PEOPLE HAD DECIDED THEM, AND WROTE THEM DOWN AS IF HE HAD BEEN IN THE ROOM.',
   },
   subLevels: [
     {
@@ -39,31 +40,35 @@ export const CH1: ChapterDef = {
       title: 'The Green Zone',
       happens:
         'ZAMPANO WAKES ON THE COMMON LAWN. THE WAY HOME RUNS THROUGH A NEIGHBORHOOD WHERE EVERY OTHER DOG CAN WALK STRAIGHT TO THE WATER BOWL. EAT TREATS AGAINST HUNGER, PEE TO CLEAN WHAT THE POOPS SPOIL, CATCH CATS FOR COINS, IGNORE THE BALLS, AND BARK AWAY AT BAGNASKIZ WHEN HE POLLUTES THE ZONE. AT THE END OF THE WALK, TIRED, HE LIES DOWN ON THE LAWN.',
-      source: 'SPEC: THE GREEN ZONE (FROM THE VIDEO). BOARD: THE GREENZONE, BAGNASKIZ THE BULLY.',
+      source: 'SPEC: THE GREEN ZONE (FROM THE VIDEO). BOARD: THE GREENZONE, BAGNASKIZ THE BULLY. REALITY.',
       greenZone: 1,
       script: () => [],
     },
     {
       id: '1.1',
-      title: 'One step from Jerusalem',
+      title: 'A bucket on his head',
       happens:
-        'WALK THE LITTLE MALTESE TOWARDS A PASTEL CITY. HIS HELMET SLIPS DOWN WHENEVER HE LOWERS HIS HEAD. A PAW COMES IN FROM OUTSIDE THE FRAME: CONFUSIONE HAS SLAPPED HIM AWAKE ON THE LAWN. THE CITY GATE IS A GAP IN A HEDGE.',
-      source: "BOARD PHOTOS, 16 NOVEMBER: CONFUSIONE'S SLAP (11:53:35).",
+        "AFTER THE WALK HE DOZES ON THE LAWN AND WAKES WITH A CHILD'S SAND BUCKET OVER HIS HEAD. WALK HOME TO THE HEDGE GAP: WHENEVER HE STOPS OR BARKS, THE BUCKET SLIDES DOWN OVER HIS EYES. A PAW COMES IN FROM OUTSIDE THE FRAME: CONFUSIONE SLAPS IT OFF IN FRONT OF EVERYONE.",
+      source: "ORIGINAL GREENZONE SCENE, REWORKED FROM THE OLD PREMATURE JERUSALEM DREAM: CONFUSIONE'S SLAP (BOARD PHOTOS, 16 NOVEMBER). THE BUCKET PLANTS THE HELMET OF 2.1.",
       script: () => [
-        stage('jerusalem', [], { skinKey: 'zampanoKnight' }),
-        card('', 'AFTER THE WALK, ON THE LAWN, HE DOZES OFF...', { color: '#f6c8e0', seconds: 2, dim: 0.9 }),
-        card('JERUSALEM', 'ONE STEP AWAY. PASTEL.', { color: '#f6c8e0', seconds: 2.2, dim: 0.3 }),
+        stage('neighborhood', [{ name: 'watson', who: 'watson', at: { x: 4.5, y: 10.4 }, face: 'NW' }], { skin: 'plain', at: { x: 3.5, y: 9.5 }, face: 'E' }),
+        card('', 'AFTER THE WALK, ON THE LAWN, HE DOZES OFF...', { color: C.green, seconds: 1.8, dim: 0.9 }),
+        sound('hit'),
+        shake(3),
+        call((ctx) => (ctx.visor = STORY.VISOR.MAX)),
+        card('CLONK', 'SOMETHING HAS COME DOWN OVER HIS HEAD', { color: C.yellow, seconds: 1.6, dim: 0.2 }),
+        say('watson', 'OOPS, MAN. THE KIDS LEFT THEIR SAND BUCKET. IT SUITS YOU.'),
         walk({
-          objective: 'WALK TO THE CITY GATE. KEEP YOUR HEAD UP',
-          goal: { reach: '1' },
+          objective: 'WALK HOME TO THE HEDGE GAP. KEEP YOUR HEAD UP',
+          goal: { reach: '6', label: 'THE HEDGE GAP' },
           noRun: true,
           action: 'BARK',
           onAction: (ctx, w) => {
-            bark(ctx, 'DEUS LO VULT!');
+            bark(ctx, 'WOOF! (IT ECHOES INSIDE THE BUCKET.)');
             w.data.bow = 0.8;
           },
           onUpdate: (ctx, w, dt) => {
-            // The helmet slips down whenever he lowers his head: standing still (sniffing) or barking.
+            // The bucket slips down whenever he lowers his head: standing still or barking.
             const V = STORY.VISOR;
             const p = ctx.player;
             const still = Math.hypot(p.vx, p.vy) < 0.2;
@@ -73,26 +78,23 @@ export const CH1: ChapterDef = {
             w.data.bow = bow;
             const down = stillT > V.STILL_AFTER || bow > 0;
             ctx.visor = down ? Math.min(V.MAX, ctx.visor + V.DOWN_RATE * dt) : Math.max(0, ctx.visor - V.UP_RATE * dt);
-            if (down && !w.data.told) {
+            if (!w.data.told && w.time > 0.6) {
               w.data.told = true;
-              ctx.notice('THE HELMET SLIPS DOWN. WALK ON TO PUSH IT UP', C.cyan);
+              ctx.notice('WALK ON TO PUSH THE BUCKET UP. STOP AND IT SLIDES DOWN', C.cyan);
             }
           },
         }),
-        call((ctx) => {
-          ctx.visor = 0;
-          ctx.addActor('conf', 'confusione', { x: ctx.player.gx + 3.5, y: ctx.player.gy + 3 }, { kind: 'goto', to: { x: ctx.player.gx + 0.6, y: ctx.player.gy + 0.4 }, speed: 8, run: true });
-        }),
-        card('', 'A PAW COMES IN FROM OUTSIDE THE FRAME', { color: '#f6c8e0', seconds: 0.9, dim: 0 }),
+        call((ctx) => ctx.addActor('conf', 'confusione', { x: ctx.player.gx + 2.6, y: ctx.player.gy - 1.4 }, { kind: 'goto', to: { x: ctx.player.gx + 0.6, y: ctx.player.gy - 0.3 }, speed: 8, run: true })),
+        card('', 'A PAW COMES IN FROM OUTSIDE THE FRAME', { color: C.green, seconds: 0.9, dim: 0 }),
         sound('hurt'),
         flash(),
         shake(8),
-        card('SLAP!', '', { color: C.red, seconds: 1.1, dim: 0.2 }),
-        stage('neighborhood', [{ name: 'conf', who: 'confusione', at: '4', face: 'NW' }], { skin: 'plain', at: '6', face: 'N' }),
-        card('THE LAWN', 'THE CITY GATE WAS A GAP IN THE HEDGE', { color: C.green, seconds: 2.2 }),
-        say('confusione', 'YOU WERE SNORING IN LATIN.'),
-        say('zampano', 'JERUSALEM WAS ONE STEP AWAY. THE GATE WAS RIGHT HERE.', { remembered: true }),
-        say('confusione', 'THAT IS THE HEDGE. IT IS ALWAYS ONE STEP AWAY. GET UP.'),
+        call((ctx) => (ctx.visor = 0)),
+        card('SLAP!', 'THE BUCKET ROLLS AWAY ACROSS THE LANE', { color: C.red, seconds: 1.4, dim: 0.2 }),
+        say('confusione', 'YOU WERE WALKING INTO THE HEDGE WITH A BUCKET ON. THE WHOLE LANE SAW.'),
+        say('zampano', 'I WAS KEEPING MY HEAD UP.'),
+        say('confusione', 'THE GAP IS RIGHT HERE. IT IS ALWAYS RIGHT HERE. GO HOME.'),
+        say('zampano', 'THERE WAS A BUCKET, AND IT FELT LIKE A HELMET.', { remembered: true }),
       ],
     },
     {
@@ -100,7 +102,7 @@ export const CH1: ChapterDef = {
       title: "Under the Professor's desk",
       happens:
         'FOLLOW HIS FATHER, A MEDIEVAL HISTORIAN REHEARSING A LECTURE, INTO THE STUDY. SNIFF THE CHAIR LEG, A SUITCASE AND THE HEM OF HIS COAT FOR SCRAPS OF THE LECTURE. OUTSIDE, JACK LETS THE OTHER DOGS PASS BETWEEN TWO GARDEN GATES, BUT ECHOES ZAMPANO\'S BARK UNTIL HEADS POP UP ALONG THE FENCES. AT A CREAK FROM THE WINDOW HE LETS HIM THROUGH.',
-      source: 'BOARD: DREAMS ARE FURNISHED WITH DAILY LIFE (SG). THE LECTURE: A FLEET BOUGHT ON CREDIT, A KNIGHT WHO KEPT WALKING, A CITY SEEN FROM ITS WALLS.',
+      source: "ORIGINAL GREENZONE SCENE. THE LECTURE PLANTS THE DREAM'S THREE VOICES (VILLEHARDOUIN, CLARI, NIKETAS CHONIATES) AND ITS RESIDUES: THE DEBT FOR THE FLEET (VILLEHARDOUIN'S TREATY, 85,000 MARKS), PIERRE'S WALK (CLARI 47), THE CITY WATCHING FROM ITS WALLS (CLARI 40).",
       script: () => {
         let echoes = 0;
         let open = false;
@@ -124,7 +126,7 @@ export const CH1: ChapterDef = {
             path: ['3', '7', '1', '6'],
             speed: 1.4,
             onReach: (ctx, k) => {
-              const lines = ['VILLEHARDOUIN, YOU UNDERSTAND, WAS IN ON EVERY SECRET.', 'CLARI SEES EVERYTHING AND IS TOLD NOTHING.', 'NOBODY SAILS IN WINTER.', 'AND FROM THE WALLS, THE WHOLE CITY WAS WATCHING.'];
+              const lines = ['VILLEHARDOUIN, YOU UNDERSTAND, WAS IN THE ROOM WHEN THEY DECIDED.', 'CLARI WAS OUTSIDE THE ROOM. HE SAW EVERYTHING AND WAS TOLD NOTHING.', 'NOBODY SAILS IN WINTER.', 'AND NIKETAS WAS INSIDE THE WALLS, WATCHING THEM COME.'];
               const legs = ctx.actor('prof');
               ctx.say(lines[k % lines.length]!, { x: legs.gx, y: legs.gy - 1.2 }, '#f0d8a0');
             },
@@ -140,7 +142,7 @@ export const CH1: ChapterDef = {
               { at: '6', kind: 'shard', label: 'THE HEM OF HIS COAT', text: '"A CITY SEEN FROM ITS WALLS, AND THE WALLS FULL OF PEOPLE."', effects: { shard: 'A CITY SEEN FROM ITS WALLS' } },
             ],
           }),
-          say('professor', 'DREAMS ARE FURNISHED WITH DAILY LIFE. A KING DREAMS FALCONS; A COMMUTER DREAMS TRAINS AND SUITCASES.'),
+          say('professor', 'DREAMS ARE FURNISHED WITH DAILY LIFE, YOU KNOW. A SAILOR DREAMS ROPES; A COMMUTER DREAMS TRAINS AND SUITCASES.'),
           say('zampano', 'AND A DOG DREAMS LECTURES.', { remembered: true }),
           call((ctx) => {
             ctx.setStage('neighborhood', { skin: 'plain', at: 'S', face: 'NE' });
@@ -197,7 +199,7 @@ export const CH1: ChapterDef = {
       title: 'The toll at the bowl',
       happens:
         'BAGNASKIZ LETS SBRIMBRULON DRINK, THEN PUTS HIS PAW OVER THE BOWL AND DEMANDS THE USUAL APOLOGY. JACK CALLS THE FENCES TO WATCH; WATSON DRAGS THE BOWL JUST OUT OF REACH. OFFER THE PAW AND HE DEMANDS THE OTHER ONE TOO. TRY THE DIRECT PATH AND JACK CUTS HIM OFF. THE HEDGE IS ALWAYS OPEN: THE LONG WAY TO HIS OWN NEIGHBOR\'S GATE.',
-      source: "BOARD: BAGNASKIZ'S CHARACTER CARD (11:52:06). BARBERO, JOINVILLE E SAN LUIGI: THE BAREFOOT APOLOGY, TRANSPOSED TO THE LAWN.",
+      source: "ORIGINAL GREENZONE SCENE: BAGNASKIZ'S CHARACTER CARD (BOARD, 11:52:06). THE BOWL'S CLANG BECOMES THE HARBOR BELL OF VENICE; THE BOWL ALWAYS ONE STEP AWAY, THE FLEET BOUGHT ON CREDIT.",
       script: () => {
         let bowl: PropEntity | null = null;
         let cutOff = 0;
@@ -235,8 +237,10 @@ export const CH1: ChapterDef = {
             },
             { label: '(LOOK PAST HIM AT THE WATER)', then: [say('bagnaskiz', 'THE WATER IS NOT LOOKING AT YOU.')] },
           ]),
-          call(() => {
+          call((ctx) => {
             if (bowl) bowl.setPosition(14.6, 2.4);
+            ctx.game.audio.play('hit');
+            ctx.say('CLONG.', { x: 14.6, y: 2.4 }, '#c8d0ff');
           }),
           say('watson', '(HE DRAGS THE BOWL JUST OUT OF REACH.) OOPS, MAN.'),
           walk({
@@ -281,7 +285,7 @@ export const CH1: ChapterDef = {
       title: 'Santina wants her ball back',
       happens:
         'A RED BALL HAS ROLLED THROUGH THE BARS. SANTINA AND A FRIEND CAN SEE IT ON ZAMPANO\'S SIDE OF THE GATE, AND SHE ASKS HIM TO ROLL IT BACK. EVERY REPLY COMES FROM HIS SINCERE CONVICTION THAT SHE WANTS TO SEE SOMETHING IMPRESSIVE.',
-      source: 'BOARD: THE HANDWRITTEN NOTE BESIDE THE CASTING LIST (11:52:30). BARBERO, IL SOGNO NEL MEDIOEVO: DANTE MEETING BEATRICE.',
+      source: 'ORIGINAL GREENZONE SCENE: THE HANDWRITTEN NOTE BESIDE THE CASTING LIST (BOARD, 11:52:30). HIS CONVICTION THAT SHE WANTS A PERFORMANCE RETURNS AT THE WALLS IN 7.3 AND IS ANSWERED IN 8.4.',
       script: () => {
         let ball: PropEntity | null = null;
         const used = new Set<string>();
@@ -336,10 +340,10 @@ export const CH1: ChapterDef = {
     },
     {
       id: '1.5',
-      title: 'Taking the cross',
+      title: 'A cross of rag',
       happens:
-        'FOLLOW THE FAMILIAR LANE HOME CARRYING A SCRAP OF RED CLOTH FROM THE HEDGE. CONFUSIONE HELPS SEW IT TO HIS COAT. HE RETURNS THE CROSS, WAITS FOR THE PROFESSOR TO LOOK, THEN TAKES IT AGAIN SO EVERYONE CAN SEE HE WAS IN HIS RIGHT MIND. CURL UP UNDER THE DESK.',
-      source: 'BARBERO, LE CROCIATE, FIRST EVENING: LOUIS IX TAKING THE CROSS A SECOND TIME. A CRUSADER IS ONE WHO HAS A CROSS SEWN ON HIS COAT (4C).',
+        'A SCRAP OF RED CLOTH IS CAUGHT IN THE HEDGE. CARRY IT HOME. IN THE STUDY THE PROFESSOR IS STILL REHEARSING: THE KNIGHTS SEWED CLOTH CROSSES ON THEIR SHOULDERS AND WENT. ZAMPANO PUTS THE RAG ON HIS OWN BACK AND WAITS FOR SOMEONE TO NOTICE. CURL UP UNDER THE DESK, WHERE THE DREAM BEGINS.',
+      source: "ORIGINAL GREENZONE SCENE, REPLACING THE OLD REENACTMENT OF LOUIS IX. THE CLOTH CROSS AS THE SIGN OF THOSE WHO TOOK THE CROSS (VILLEHARDOUIN, MARZIALS PP. 1-4). THE SLEEP BOUNDARY: EVERYTHING AFTER THE LAST CARD IS DREAM.",
       script: () => [
         stage('neighborhood', [], { skin: 'plain', at: '8', face: 'W' }),
         walk({
@@ -354,23 +358,31 @@ export const CH1: ChapterDef = {
           ctx.addActor('conf', 'confusione', '6', { kind: 'idle', face: 'player' });
           ctx.addActor('prof', 'legs', '2', { kind: 'idle' });
         }),
-        say('confusione', 'HOLD STILL. A CRUSADER IS ONE WHO HAS A CROSS SEWN ON HIS COAT.'),
-        ask('confusione', 'THERE. IT IS RAG, BUT IT IS A CROSS.', [{ label: '(WEAR THE CROSS)', effects: { unlock: 'cross' } }]),
+        prof('...AND ONE BY ONE THEY TOOK THE CROSS. A PIECE OF CLOTH, SEWN ON THE SHOULDER. THAT WAS ENOUGH TO BELONG.'),
+        say('voice', 'ZAMPANO LAYS THE RAG ON HIS BACK. IT SLIDES OFF. HE LAYS IT ON AGAIN.'),
+        ask('confusione', 'AND WHAT IS THAT SUPPOSED TO BE?', [
+          {
+            label: 'I AM ONE OF THEM. I HEARD THE WHOLE THING.',
+            effects: { unlock: 'cross', supervillain: 3 },
+            then: [say('confusione', 'YOU HEARD A MAN TALKING TO HIS COAT.')],
+          },
+          {
+            label: '(SAY NOTHING. LET THEM SEE IT.)',
+            effects: { unlock: 'cross', commozione: 3 },
+            then: [say('confusione', 'NOBODY IS LOOKING, ZAMPANO.')],
+          },
+        ]),
         skin('zampanoCross'),
         sound('star'),
-        say('zampano', 'I AM GIVING IT BACK.'),
-        skin('zampano'),
-        say('confusione', 'WHY?'),
-        say('zampano', 'WAIT.'),
         call((ctx) => ctx.actor('prof').setBehavior({ kind: 'goto', to: { x: ctx.player.gx + 1.2, y: ctx.player.gy - 0.8 }, speed: 1.2 })),
         wait(1.4),
-        card('', 'THE PROFESSOR LOOKS', { color: '#f0d8a0', seconds: 1.4, dim: 0.2 }),
-        ask('zampano', '(NOW EVERYONE IS WATCHING.)', [{ label: '(TAKE IT AGAIN, SO EVERYONE SEES I AM IN MY RIGHT MIND.)', effects: { supervillain: 3 } }]),
-        skin('zampanoCross'),
-        say('confusione', 'IN YOUR RIGHT MIND. OBVIOUSLY.'),
+        card('', 'THE PROFESSOR STEPS OVER HIM WITHOUT LOOKING DOWN', { color: '#f0d8a0', seconds: 1.8, dim: 0.2 }),
+        say('zampano', 'HE WILL NOTICE TOMORROW.'),
+        say('confusione', 'TOMORROW. OBVIOUSLY.'),
+        say('zampano', 'THERE WAS A RAG, AND IT WAS A CROSS, AND NOBODY LOOKED.', { remembered: true }),
         walk({ objective: 'CURL UP UNDER THE DESK', goal: { reach: '0', label: 'THE DESK' } }),
-        prof('...AND THEY SAILED.'),
-        card('UNDER THE DESK', "IN THE DARK, THE HEM OF HIS FATHER'S TROUSERS BECOMES THE EDGE OF A SAIL.", { color: '#f0d8a0' }),
+        prof('...AND IN THE SPRING THEY SET OFF FOR VENICE, WHERE THE SHIPS WERE. THE MONEY WAS ANOTHER MATTER.'),
+        card('UNDER THE DESK', "IN THE DARK, THE HEM OF HIS FATHER'S TROUSERS BECOMES THE EDGE OF A SAIL. THE UNDERSIDE OF THE DESK IS THE BOTTOM OF A SHIP.", { color: '#f0d8a0' }),
       ],
     },
   ],

@@ -73,7 +73,8 @@ const NAMES_THE_DEBT = 1;
 
 /**
  * 5.4: assemble the barons' account from the words on their writing table and read it aloud.
- * "Necessity" or the debt named outright: Innocent III's anger reaches camp either way.
+ * "Necessity" or the debt named outright; the reply that comes back from Rome has two versions
+ * (Villehardouin: the pilgrims absolved; Clari 15: everyone, the Venetians too).
  */
 export class LetterGame extends MiniGame {
   private readonly g = new Graphics();
@@ -161,7 +162,7 @@ export class LetterGame extends MiniGame {
     this.text.position.set(16, 84);
     this.answer.visible = this.phase === 'answer';
     this.answer.setText(
-      `LETTER ${this.sent}. INNOCENT III IS ANGRY EITHER WAY. THE PENITENT LEADERS ARE ABSOLVED AND WARNED: NO MORE ATTACKS ON CHRISTIANS. THE VENETIANS ARE NOT ABSOLVED.`,
+      `LETTER ${this.sent}. THE ENVOYS COME BACK FROM ROME. THE MARSHAL SAYS THE POPE HAS ABSOLVED THE PILGRIMS. THE CAMP SAYS THE LETTERS ABSOLVE EVERYONE, THE VENETIANS TOO. ZAMPANO HEARS BOTH ON THE SAME DAY.`,
     );
     this.answer.setStyle({ maxWidth: w - 32 });
     this.answer.position.set(16, 200);
@@ -180,24 +181,24 @@ export class LetterGame extends MiniGame {
 // ---------------------------------------------------------------------------- rumour
 
 const RUMOUR = [
-  'YOUNG ALEXIOS, SON OF THE BLINDED ISAAC II',
-  '"RESTORE MY FATHER TO HIS THRONE"',
-  '"AND I PAY YOUR DEBT, AND MORE"',
-  '"AND I SEND MEN WITH YOU TO EGYPT"',
-  '"AND THE GREEKS SUBMIT TO ROME"',
-  'THE BISHOPS: IT IS A GOOD WORK',
+  'YOUNG ALEXIOS, SON OF THE DEPOSED EMPEROR ISAAC II',
+  '"HELP ME PUT MY FATHER BACK ON HIS THRONE"',
+  '"TWO HUNDRED THOUSAND MARKS"',
+  '"FOOD FOR THE WHOLE HOST FOR A YEAR"',
+  '"TEN THOUSAND MEN FOR EGYPT, FIVE HUNDRED KNIGHTS FOR LIFE"',
+  '"AND THE GREEK CHURCH WILL OBEY ROME"',
 ];
 
 const GARBLE: Record<number, string> = {
-  0: 'ALEXIOS... ISAAC... BLINDED?',
-  1: '...FATHER... THRONE... RESTORE?',
-  2: '...PAYS... THE DEBT... AND MORE?',
-  3: '...MEN... EGYPT... WITH YOU?',
-  4: '...GREEKS... SUBMIT... ROME?',
-  5: '...BISHOPS SAY... GOOD WORK?',
+  0: 'ALEXIOS... ISAAC... DEPOSED?',
+  1: '...FATHER... THRONE... HELP?',
+  2: '...TWO HUNDRED... THOUSAND?',
+  3: '...FOOD... A WHOLE YEAR?',
+  4: '...MEN... EGYPT... KNIGHTS?',
+  5: '...GREEKS... CHURCH... ROME?',
 };
 
-/** 6.2: piece together young Alexios's promise, garbled on its way from the council tent. */
+/** 6.2: piece together young Alexios's offer (Villehardouin pp. 23-24), garbled on its way from the council tent. */
 export class RumourGame extends WordGame {
   private order: number[] = [];
   private placed: number[] = [];

@@ -217,14 +217,14 @@ export function parade(): RhythmGame {
   });
 }
 
-/** 4.5: the old rowing rhythm that brings the ship of 1202 back beneath his feet. */
+/** 4.3: rowing the galleys into the harbor of Zara, on the eve of Saint Martin. */
 export function rowing(): RhythmGame {
   const P = STORY.PARADE;
   return new RhythmGame({
     mode: 'single',
     beats: P.BEATS,
     bpm: P.BPM - 8,
-    title: 'THE OLD ROWING RHYTHM',
+    title: 'INTO THE HARBOR',
     need: P.NEED,
     cue: 'ROW',
     objective: 'ROW ON THE BEAT',

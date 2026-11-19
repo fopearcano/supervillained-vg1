@@ -14,7 +14,7 @@ export const SPEAKERS: Record<string, { name: string; color: string; portrait: C
   sbrimbrulon: { name: 'SBRIMBRULON', color: '#e08848', portrait: 'sbrimbrulon' },
   bagnaskiz: { name: 'BAGNASKIZ', color: C.orange, portrait: 'bagnaskiz' },
   marshal: { name: 'THE MARSHAL', color: C.orange, portrait: 'bagnaskizMarshal' },
-  emperor: { name: 'THE USURPER', color: '#c070f0', portrait: 'bagnaskizEmperor' },
+  emperor: { name: 'THE EMPEROR', color: '#c070f0', portrait: 'bagnaskizEmperor' },
   jack: { name: 'JACK', color: '#ff8ab8', portrait: 'jack' },
   watson: { name: 'WATSON', color: '#d8d4c8', portrait: 'watson' },
   santina: { name: 'SANTINA', color: C.hotPink, portrait: 'santina' },
@@ -29,7 +29,6 @@ export const SPEAKERS: Record<string, { name: string; color: string; portrait: C
   clerkB: { name: 'WHITE CLERK', color: '#ffffff', portrait: 'clerkB' },
   preacher: { name: 'THE PREACHER', color: '#d8b080', portrait: 'preacher' },
   stranger: { name: 'A BAREFOOT MAN', color: '#d8c0a0', portrait: 'stranger' },
-  fortune: { name: 'FORTUNE', color: '#e8c048', portrait: null },
   burgher: { name: 'A BURGHER', color: '#a8d0a8', portrait: 'burgher' },
   marquis: { name: 'THE MARQUIS', color: '#f08080', portrait: 'marquis' },
   prince: { name: 'THE PRINCE', color: '#f0e0b0', portrait: 'prince' },
@@ -38,6 +37,15 @@ export const SPEAKERS: Record<string, { name: string; color: string; portrait: C
   voice: { name: 'A VOICE', color: C.cyan, portrait: null },
   crowd: { name: 'THE CROWD', color: C.yellow, portrait: 'crowdA' },
   knight: { name: 'A KNIGHT', color: '#d0d8e8', portrait: 'knight' },
+  // The Fourth Crusade dream (docs/STORY.md).
+  fulk: { name: 'FULK OF NEUILLY', color: '#d8b080', portrait: 'preacher' },
+  clerk: { name: 'A CLERK', color: '#ffffff', portrait: 'clerkB' },
+  abbot: { name: 'THE ABBOT OF VAUX', color: '#f4f0e4', portrait: 'legate' },
+  envoy: { name: 'AN ENVOY', color: '#f4f0e4', portrait: 'legate' },
+  bishop: { name: 'A BISHOP', color: '#f4f0e4', portrait: 'legate' },
+  niketas: { name: 'NIKETAS', color: '#c890e0', portrait: 'greek' },
+  cook: { name: 'THE COOK', color: '#c8a070', portrait: 'cellarer' },
+  sailmaker: { name: 'A SAILMAKER', color: '#a8d0a8', portrait: 'crowdC' },
 };
 
 export function speakerOf(key: string): { name: string; color: string; portrait: CharacterKey | 'professor' | null } {

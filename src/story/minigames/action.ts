@@ -5,7 +5,7 @@ import { animationFrame } from '../../assets/animationTiming';
 import { CHARACTERS, textureName, type AnimName, type CharacterKey } from '../../assets/manifest';
 import { dreamSkin } from '../../campaign/state';
 import { PixelText } from '../../ui/pixelText';
-import { C, frameRect, hex, retroBox } from '../../ui/retro';
+import { C, frameRect, hex } from '../../ui/retro';
 import { STORY } from '../../config';
 import type { Autopilot } from '../autopilot';
 import type { StoryScene } from '../storyScene';
@@ -305,8 +305,9 @@ export class TugGame extends MiniGame {
 // ---------------------------------------------------------------------------- the boat
 
 /**
- * 4.2: lower the boat and ease alongside the parcel (Watson, floating on his back). Each stroke
- * brings the boat closer; strokes too close together slosh water in, and a full boat swamps.
+ * 4.2: ease a skiff alongside a ship (the horse transport, with hay and water for the horses).
+ * Each stroke brings the boat closer; strokes too close together slosh water in, and a full boat
+ * swamps. `bob` names an actor that rocks on the swell while the game runs.
  */
 export class BoatGame extends MiniGame {
   private readonly g = new Graphics();
@@ -316,9 +317,9 @@ export class BoatGame extends MiniGame {
   private lastStroke = -9;
   private swampedT = 0;
 
-  constructor() {
+  constructor(private readonly o: { objective: string; bob?: string } = { objective: 'EASE ALONGSIDE WITHOUT SWAMPING THE BOAT' }) {
     super();
-    this.objective = 'REACH WATSON WITHOUT SWAMPING THE BOAT';
+    this.objective = o.objective;
   }
 
   start(ctx: StoryScene): void {
@@ -351,8 +352,8 @@ export class BoatGame extends MiniGame {
       ctx.notice('SWAMPED! BAIL OUT AND TRY AGAIN', C.red);
       ctx.game.audio.play('hurt');
     }
-    const watson = ctx.actors.get('watson');
-    if (watson) watson.z = Math.sin(this.time * 2) * 1.5;
+    const rocking = this.o.bob ? ctx.actors.get(this.o.bob) : undefined;
+    if (rocking) rocking.z = Math.sin(this.time * 2) * 1.5;
     const { w, h } = this;
     const g = this.g;
     g.clear();
@@ -373,184 +374,5 @@ export class BoatGame extends MiniGame {
   override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
     const gap = STORY.BOAT.MIN_GAP * (1.05 + p.policy.skill * 0.4);
     p.every(ctx, 'boat', p.random() < 0.08 * (1 - p.policy.skill) ? gap * 0.6 : gap, 'confirm');
-  }
-}
-
-// ---------------------------------------------------------------------------- calm rescue
-
-/** 4.2: Watson floats overboard. Rescue him by NOT panicking: stay still and the rope reaches him. */
-export class CalmGame extends MiniGame {
-  private readonly g = new Graphics();
-  private readonly label = new PixelText('DO NOT PANIC. DO NOTHING.', { color: C.cyan, shadow: '#000000', align: 'center' }).setOrigin(0.5);
-  private calm = 0;
-  private panicT = 0;
-
-  constructor() {
-    super();
-    this.objective = 'RESCUE WATSON BY NOT PANICKING';
-  }
-
-  start(ctx: StoryScene): void {
-    ctx.setControls(false);
-    this.root.addChild(this.g, this.label);
-  }
-
-  update(dt: number, ctx: StoryScene): MiniResult {
-    const input = ctx.game.input;
-    const panicked = input.consumeTaps().length > 0 || act(ctx) || input.consume('up') || input.consume('down') || input.consume('left') || input.consume('right') || Math.hypot(input.move.x, input.move.y) > 0.1;
-    const K = STORY.CALM;
-    if (panicked) {
-      this.calm = Math.max(0, this.calm - K.PANIC_COST);
-      this.panicT = K.PANIC_TIME;
-      ctx.notice('PANIC! HE DRIFTS AWAY', C.red);
-    } else this.calm = Math.min(1, this.calm + dt * K.RATE);
-    this.panicT -= dt;
-    const watson = ctx.actors.get('watson');
-    if (watson && this.panicT > 0) watson.gx -= dt * 0.6;
-    const { w, h } = this;
-    const g = this.g;
-    g.clear();
-    const bw = w - 60;
-    g.rect(30, h - 110, bw, 8).fill({ color: 0x000000, alpha: 0.6 });
-    g.rect(31, h - 109, Math.round((bw - 2) * this.calm), 6).fill(0x5ac8ff);
-    frameRect(g, 30, h - 110, bw, 8, hex(C.yellow));
-    this.label.setText(this.panicT > 0 ? 'PANIC! STAY STILL...' : this.calm > 0.6 ? 'THE ROPE IS REACHING HIM...' : 'DO NOT PANIC. DO NOTHING.');
-    this.label.position.set(Math.round(w / 2), h - 124);
-    return this.calm >= 1 ? 'won' : 'running';
-  }
-
-  /** Autopilot: a nervous player taps once early on, then manages to do nothing. */
-  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
-    if (this.time > 1 && this.time < 1.05 && p.random() > p.policy.skill) p.press(ctx, 'confirm');
-  }
-}
-
-// ---------------------------------------------------------------------------- catapult
-
-/** 6.1: the count of Eu's toy catapult. Tap when the power is right; break the glasses. */
-export class CatapultGame extends MiniGame {
-  private readonly g = new Graphics();
-  private readonly label = new PixelText('TAP TO FIRE', { color: C.yellow, shadow: '#000000' }).setOrigin(0.5);
-  private glasses = [true, true, true, true, true];
-  private shots: number = STORY.CATAPULT.SHOTS;
-  private shot: { x: number; y: number; vx: number; vy: number } | null = null;
-  private power = 0;
-  private broken = 0;
-  private end = 0;
-
-  constructor() {
-    super();
-    this.hidesStage = true;
-    this.objective = 'BREAK THE GLASSES WITH THE LITTLE CATAPULT';
-  }
-
-  start(ctx: StoryScene): void {
-    ctx.setControls(false);
-    this.root.addChild(this.g, this.label);
-  }
-
-  update(dt: number, ctx: StoryScene): MiniResult {
-    const { w, h } = this;
-    const ground = h * 0.62;
-    const tableX = w * 0.55;
-    if (!this.shot && this.shots > 0) {
-      this.power = (Math.sin(this.time * STORY.CATAPULT.OSC) + 1) / 2;
-      const fired = ctx.game.input.consumeTaps().length > 0 || act(ctx);
-      if (fired) {
-        this.shots--;
-        this.shot = this.launch(this.power, ground);
-        ctx.game.audio.play('ball');
-      }
-    }
-    if (this.shot) {
-      const s = this.shot;
-      s.vy += STORY.CATAPULT.GRAVITY * dt;
-      s.x += s.vx * dt;
-      s.y += s.vy * dt;
-      const tableTop = ground - 26;
-      for (let k = 0; k < this.glasses.length; k++) {
-        const gx = tableX + 8 + k * 12;
-        if (this.glasses[k] && Math.abs(s.x - gx) < 6 && s.y > tableTop - 12 && s.y < tableTop) {
-          this.glasses[k] = false;
-          this.broken++;
-          ctx.game.audio.play('hit');
-          ctx.notice('DELIGHTFUL!', C.green);
-        }
-      }
-      if (s.y > ground || s.x > w) this.shot = null;
-    }
-    const g = this.g;
-    g.clear();
-    g.rect(0, 0, w, h).fill(0xdfe8f2);
-    g.rect(0, ground, w, h - ground).fill(0xeef4fa);
-    // Catapult
-    g.rect(20, ground - 6, 22, 6).fill(0x7a5430);
-    g.rect(28, ground - 18, 3, 12).fill(0x5a3a1c);
-    // Table with white linen and glasses
-    g.rect(tableX, ground - 26, 70, 4).fill(0xffffff);
-    g.rect(tableX + 4, ground - 22, 3, 22).fill(0x8a6a4a);
-    g.rect(tableX + 62, ground - 22, 3, 22).fill(0x8a6a4a);
-    this.glasses.forEach((on, k) => {
-      const x = tableX + 6 + k * 12;
-      if (on) g.rect(x, ground - 36, 5, 10).fill({ color: 0xa8e0f0, alpha: 0.9 }).stroke({ width: 1, color: 0x5a8aa0 });
-      else g.rect(x - 1, ground - 28, 7, 2).fill(0x8ac0d0);
-    });
-    if (this.shot) g.circle(this.shot.x, this.shot.y, 2.5).fill(0x4a4a4a);
-    // Power bar
-    const bw = w - 60;
-    g.rect(30, h - 80, bw, 8).fill(0x222222);
-    g.rect(31, h - 79, Math.round((bw - 2) * this.power), 6).fill(0xff7a1f);
-    frameRect(g, 30, h - 80, bw, 8, hex(C.red));
-    retroBox(g, 6, 70, w - 12, 18, C.yellow, C.red, 0.4);
-    this.label.setText(`SHOTS ${this.shots}  GLASSES ${this.broken}/5`);
-    this.label.position.set(Math.round(w / 2), 79);
-    // Out of shots, or nothing left to break.
-    if ((this.shots === 0 || this.broken === this.glasses.length) && !this.shot) {
-      this.end += dt;
-      if (this.end > 0.8) return this.broken >= 1 ? 'won' : 'lost';
-    }
-    return 'running';
-  }
-
-  private launch(power: number, ground: number): { x: number; y: number; vx: number; vy: number } {
-    const K = STORY.CATAPULT;
-    const p = K.MIN_POWER + power * K.POWER_RANGE;
-    return { x: 30, y: ground - 14, vx: K.VX * p, vy: -K.VY * p };
-  }
-
-  /** Index of the glass a shot at `power` would break, or -1 (same physics as update). */
-  private wouldHit(power: number): number {
-    const ground = this.h * 0.62;
-    const tableX = this.w * 0.55;
-    const tableTop = ground - 26;
-    const s = this.launch(power, ground);
-    const dt = 1 / 60;
-    for (let n = 0; n < 600; n++) {
-      s.vy += STORY.CATAPULT.GRAVITY * dt;
-      s.x += s.vx * dt;
-      s.y += s.vy * dt;
-      for (let k = 0; k < this.glasses.length; k++) {
-        const gx = tableX + 8 + k * 12;
-        if (this.glasses[k] && Math.abs(s.x - gx) < 6 && s.y > tableTop - 12 && s.y < tableTop) return k;
-      }
-      if (s.y > ground || s.x > this.w) return -1;
-    }
-    return -1;
-  }
-
-  /** Autopilot: fire when the power bar would hit a glass, reacting a little late. */
-  private fireAt = -1;
-  private aimT = 0;
-  override pilot(_dt: number, ctx: StoryScene, p: Autopilot): void {
-    if (this.shot || this.shots <= 0) return;
-    this.aimT += _dt;
-    // Fire when a shot would hit; after a full swing of the bar with no chance, fire anyway.
-    const chance = this.aimT > (2 * Math.PI) / STORY.CATAPULT.OSC || this.wouldHit(this.power) >= 0;
-    if (this.fireAt < 0 && chance) this.fireAt = this.time + Math.abs(p.gauss(0.02 + (1 - p.policy.skill) * 0.08));
-    if (this.fireAt >= 0 && this.time >= this.fireAt) {
-      this.fireAt = -1;
-      this.aimT = 0;
-      p.press(ctx, 'confirm');
-    }
   }
 }

@@ -3,7 +3,7 @@ import type { Point } from '../../entities/actor';
 import type { PropEntity } from '../../entities/prop';
 import { carry, dropCarried } from '../../story/carry';
 import { TugGame, mini } from '../../story/minigames';
-import { ask, blackHoleIn, blackHoleOut, branch, call, card, fx, say, sound, stage } from '../../story/steps';
+import { ask, branch, call, card, fx, say, sound, stage } from '../../story/steps';
 import type { StoryScene } from '../../story/storyScene';
 import { walk } from '../../story/walk';
 import { C } from '../../ui/retro';
@@ -17,37 +17,42 @@ function along(p: Point, start: Point, f: Point): number {
   return (p.x - start.x) * f.x + (p.y - start.y) * f.y;
 }
 
+/** The city's places that come back changed (7.4 → 7.9). */
+const COLUMN = '5';
+const HERCULES = '1';
+const DOORWAY = '9';
+
 /**
- * Level 7 — Constantinople (first siege, summer 1203; winter 1203–04 to April 1204). Zampanò is
- * Robert de Clari, a knight of very little consequence. The day he will remember for the rest of
- * his life is the one on which he manages to keep walking. Then the breach and the oath: the
- * same street has three narrators. Cast: Sbrimbrulon as Pierre d'Amiens; Bagnaskiz as Alexios III,
- * then Alexios V; Confusione as Aleaume; Jack; Santina at a window.
+ * Level 7 — Constantinople, June 1203 to May 1204: splendor, entry, conquest. Six phases: the
+ * approach and reciprocal astonishment; the July 1203 action (the Doge's banner, Pierre's walk);
+ * the restored city, open to visit; unpaid promises and fire; the coup and the April 1204
+ * assaults (Aleaume's breach); the sack and the unequal distribution. Clari's wonder and
+ * complaint meet Niketas Choniates's account of the same streets (docs/STORY.md, chapter 7).
  */
 export const CH7: ChapterDef = {
   number: 7,
   title: CHAPTER_TITLES[6],
-  intro: 'ZAMPANO IS ROBERT DE CLARI, A KNIGHT OF VERY LITTLE CONSEQUENCE. THE DAY HE WILL REMEMBER FOR THE REST OF HIS LIFE IS THE ONE ON WHICH HE MANAGES TO KEEP WALKING.',
-  cast: "SBRIMBRULON AS PIERRE D'AMIENS; BAGNASKIZ AS ALEXIOS III, THEN ALEXIOS V; CONFUSIONE AS ALEAUME; JACK; SANTINA AT A WINDOW",
+  intro: 'JUNE 1203 TO SPRING 1204. THE CITY FILLS THE SCREEN AND LOOKS BACK. IT WILL TAKE A YEAR, THREE EMPERORS CALLED ALEXIOS, A FIRE AND A HOLE IN A WALL BEFORE THE SMALL KNIGHT IS INSIDE IT. BY THEN IT IS NOT THE SAME CITY.',
+  cast: "SBRIMBRULON AS PIERRE D'AMIENS; CONFUSIONE AS ALEAUME; BAGNASKIZ AS THE MARSHAL, AND HIS FACE ON ALEXIOS III AND ALEXIOS V; THE YOUNG ALEXIOS IV; NIKETAS CHONIATES AS HIMSELF; WATSON; JACK; SANTINA AT A WINDOW",
   theme: 'constantinople',
   music: 'medieval',
   professor: {
-    after: '4C',
-    text: 'A FIGURE THE SIZE OF A GIRL LEANS OUT OF A WINDOW, AND THE WIND TAKES HER WORDS. ONLY AFTERWARDS, IN CLARI\'S TELLING, DO THE RIDERS LOOK LIKE ANGELS. WHO HEARD HER, I COULD NOT TELL YOU.',
+    text: 'CLARI SAYS NO HARM WAS DONE TO POOR OR RICH. NIKETAS SAYS NO ONE WAS WITHOUT A SHARE IN THE GRIEF. THEY WERE IN THE SAME CITY ON THE SAME DAYS, YOU UNDERSTAND. ONE OF THEM WAS STANDING IN HIS OWN DOORWAY.',
   },
   subLevels: [
     {
       id: '7.1',
       title: 'Looking both ways',
       happens:
-        "THE CITY FILLS THE SCREEN IN SATURATED COLOR. LOOK FROM THE CAMP TOWARDS THE DOMES, THEN THROUGH A RESIDENT'S WINDOW AT THE STRANGERS ACROSS THE WATER. ROW YOUNG ALEXIOS ALONG THE WALLS SO HIS SUPPOSED SUBJECTS CAN RECOGNIZE HIM. THE SHOUTING SENDS THE BOAT BACK. NO AMOUNT OF ROWING WILL MAKE HIM WELCOME.",
-      source: 'BARBERO, LA QUARTA CROCIATA: THE ARRIVAL; NIKETAS CHONIATES ON THE STRANGERS.',
+        "THE CITY FILLS THE SCREEN IN SATURATED COLOR, AND EVERY WALL AND ROOF IS FULL OF PEOPLE LOOKING BACK. LOOK AT THE WALLS, THE ROOFS AND THE DOMES. THEN ROW THE YOUNG ALEXIOS ALONG THE WALLS SO THE CITY CAN RECOGNIZE ITS PRINCE. NOBODY RECOGNIZES HIM.",
+      source:
+        "CLARI 40-41 (DEREMILITARI): THE PEOPLE WATCH FROM THE WALLS AND THE ROOFTOPS, AND THE CREWS LOOK ON THE CITY WITH WONDER; TEN GALLEYS SHOW THE YOUNG MAN AND THE CITY WILL NOT KNOW HIM. VILLEHARDOUIN PP. 35-36: THE SAME SHOWING. NIKETAS CHONIATES APPEARS AS HIMSELF; HIS LINES ARE ORIGINAL.",
       script: () => [
         call((ctx) => {
           ctx.setStage('city', { at: 'S' });
           ctx.bleach = -0.6;
         }),
-        card('CONSTANTINOPLE', 'THE CITY FILLS THE SCREEN', { color: C.yellow, seconds: 2 }),
+        card('CONSTANTINOPLE', 'THE CITY FILLS THE SCREEN, AND LOOKS BACK', { color: C.yellow, seconds: 2.2 }),
         walk({
           objective: 'LOOK FROM THE CAMP TOWARDS THE DOMES',
           action: 'LOOK',
@@ -58,12 +63,12 @@ export const CH7: ChapterDef = {
           ],
           onAction: (ctx) => ctx.say('OOOH.', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
         }),
-        card("THROUGH A RESIDENT'S WINDOW", 'THE STRANGERS ACROSS THE WATER', { color: '#c8a0ff', seconds: 2 }),
-        say('greek', 'IN THE YEAR SIX THOUSAND SEVEN HUNDRED AND ELEVEN, THE BEARDLESS STRANGERS CAME. THEY SHAVE. EVEN THEIR CHINS.'),
-        say('voice', 'ROW YOUNG ALEXIOS ALONG THE WALLS. HIS SUBJECTS WILL RECOGNIZE HIM.'),
-        mini(() => new TugGame({ objective: 'ROW YOUNG ALEXIOS ALONG THE WALLS', label: 'ROW! (TAP)', friend: 'prince' }), { lost: { commozione: 3 } }),
-        say('greek', 'WHO IS THAT? GO AWAY!'),
-        card('THE SHOUTING SENDS THE BOAT BACK', 'NO AMOUNT OF ROWING WILL MAKE HIM WELCOME', { color: C.red, seconds: 2.4 }),
+        card('NIKETAS CHONIATES', 'AN OFFICIAL OF THE EMPIRE, AND A HISTORIAN. NOBODY FROM THE LAWN: THE DREAM HAS NO FACE TO LEND HIM.', { color: '#c8a0ff', seconds: 3 }),
+        say('niketas', 'FROM OUR ROOFS THEY LOOK LIKE A FAIR THAT HAS LOST ITS WAY. WHO ARE THEY BRINGING US?'),
+        say('voice', 'ROW THE YOUNG ALEXIOS ALONG THE WALLS. HIS SUBJECTS WILL RECOGNIZE HIM.'),
+        mini(() => new TugGame({ objective: 'ROW THE YOUNG ALEXIOS ALONG THE WALLS', label: 'ROW! (TAP)', friend: 'prince' }), { lost: { commozione: 3 } }),
+        say('niketas', 'WHO IS THAT BOY? WE HAVE AN EMPEROR.'),
+        card('NOBODY KNOWS HIM', 'NO AMOUNT OF ROWING WILL MAKE HIM WELCOME', { color: C.red, seconds: 2.4 }),
         say('zampano', 'THERE WAS A PRINCE, AND NOBODY HAD EVER SEEN HIM.', { remembered: true }),
       ],
     },
@@ -71,8 +76,9 @@ export const CH7: ChapterDef = {
       id: '7.2',
       title: "The Doge's banner",
       happens:
-        "WATCH FOR THE BLIND DANDOLO'S BANNER AT THE PROW. FOLLOW IT THROUGH THE CONFUSION OF THE LANDING WHILE THE GALLEYS WORK THEIR LADDERS AND AXE-BEARING GUARDS APPEAR AT THE PARAPET. CARRY WORD TO THE LANDWARD CAMP: A MUCH LARGER FORCE HAS COME OUT TO MEET THEM.",
-      source: "BARBERO, LA QUARTA CROCIATA: DANDOLO'S LANDING.",
+        "17 JULY 1203, AT THE SEA WALLS. THE OLD, BLIND DOGE HAS HIMSELF PUT ASHORE WITH THE BANNER OF SAINT MARK. FOLLOW IT THROUGH THE LANDING WHILE AXE-BEARING GUARDS APPEAR AT THE PARAPET. THEN CARRY WORD TO THE LANDWARD CAMP: THE EMPEROR HAS COME OUT WITH A MUCH LARGER FORCE.",
+      source:
+        "VILLEHARDOUIN PP. 41-45: THE ASSAULT OF 17 JULY; THE DOGE LANDS WITH THE STANDARD OF SAINT MARK ('MORE THAN FORTY PEOPLE TOLD HIM': HE DID NOT SEE IT HIMSELF); THE VENETIANS TAKE TOWERS; ALEXIOS III COMES OUT. CLARI 44 AND 46: HIS ESTIMATE OF THE EMPEROR'S HORSEMEN (A CLAIM); THE VENETIANS FIRE PART OF THE CITY 'AS LARGE AS THE CITY OF ARRAS'.",
       script: () => {
         let banner: PropEntity | null = null;
         return [
@@ -81,8 +87,8 @@ export const CH7: ChapterDef = {
             ctx.addActor('doge', 'doge', { x: ctx.marker('S').x - 0.6, y: ctx.marker('S').y - 1 }, { kind: 'idle', face: 'N' });
             banner = placeObject(ctx, 'banner', { x: ctx.marker('S').x - 0.3, y: ctx.marker('S').y - 1.1 });
           }),
+          card('17 JULY 1203', 'THE SEA WALLS', { color: C.orange, seconds: 1.8 }),
           say('doge', 'I AM OLD AND BLIND. GIVE ME THE BANNER OF SAINT MARK AND PUT ME ASHORE.'),
-          card('THE LANDING', 'LADDERS FROM THE GALLEYS. CONFUSION EVERYWHERE.', { color: C.orange, seconds: 1.8 }),
           followLeader({
             objective: "FOLLOW THE DOGE'S BANNER THROUGH THE LANDING",
             leader: 'doge',
@@ -98,11 +104,12 @@ export const CH7: ChapterDef = {
               banner?.setPosition(d.gx + 0.3, d.gy - 0.1);
             },
           }),
+          say('marshal', "(LATER, IN THE MARSHAL'S BOOK) I DID NOT SEE THE BANNER ON THE TOWER MYSELF. MORE THAN FORTY PEOPLE TOLD ME."),
           say('doge', 'GO. TELL THE CAMP ON THE LAND SIDE. WHAT COMES OUT OF THAT GATE IS NOT SMALL.'),
           carry('WORD FOR THE CAMP'),
           walk({ objective: 'CARRY WORD TO THE LANDWARD CAMP', goal: { reach: '2', label: 'LANDWARD CAMP' } }),
           dropCarried(),
-          card('A MUCH LARGER FORCE', 'HAS COME OUT TO MEET THEM', { color: C.red, seconds: 2.2 }),
+          card('A MUCH LARGER FORCE', 'HAS COME OUT TO MEET THEM. CLARI WILL SAY A HUNDRED THOUSAND HORSEMEN.', { color: C.red, seconds: 2.4 }),
           say('zampano', 'THERE WAS A BANNER, AND A BLIND MAN WAS CARRYING IT.', { remembered: true }),
         ];
       },
@@ -111,13 +118,15 @@ export const CH7: ChapterDef = {
       id: '7.3',
       title: 'Stay beside Pierre',
       happens:
-        "BAGNASKIZ WEARS THE FACE OF ALEXIOS III. THE COUNT OF FLANDERS TURNS BACK. SBRIMBRULON, AS PIERRE D'AMIENS, AND THE COUNT OF SAINT-POL GO ON AT A WALK. HOLD ZAMPANO LEVEL WITH PIERRE'S SHOULDER; IF HE BOLTS OR DROPS BACK, EASE INTO STEP AGAIN. FLANDERS COMES ROUND AND REJOINS THEM. THE EMPEROR TURNS FOR THE CITY. NOBODY STRIKES A BLOW.",
-      source: "BARBERO, LA QUARTA CROCIATA: PIERRE'S WALK, THE WINDOWS. CLARI TELLS THE VANGUARD STORY.",
+        "BAGNASKIZ WEARS THE FACE OF THE EMPEROR ALEXIOS III. THE COUNT OF FLANDERS TURNS BACK. PIERRE AND THE COUNT OF SAINT-POL GO ON AT A WALK, AND EVEN THE COOKS COME OUT WITH POTS AND PESTLES. HOLD LEVEL WITH PIERRE'S SHOULDER. HIGH ON THE WALLS A WOMAN WITH SANTINA'S FACE IS WATCHING; THE WIND TAKES WHAT SHE SAYS. THE EMPEROR TURNS FOR THE CITY. NOBODY STRIKES A BLOW.",
+      source:
+        "CLARI 45-48 (DEREMILITARI): PETER OF AMIENS AND THE COUNT OF SAINT-POL IN THE SECOND BATTALION; GROOMS AND COOKS ARMED WITH 'COPPER POTS AND WITH PESTLES'; FLANDERS TURNS BACK, SAINT-POL AND PETER WILL NOT 'TURN BACK ONE STEP'; THE LADIES AT THE PALACE WINDOWS SAY 'IT SEEMED AS IF OUR WARRIORS WERE ANGELS' (47); FLANDERS SPURS ON AND RIDES BESIDE THEM (48). VILLEHARDOUIN PP. 43-45: ALEXIOS III RETIRES WITHOUT ATTACKING. THE WINDOW AND SANTINA'S FACE ARE ADAPTATION; THE OLD SOISSONS LINE IS REMOVED.",
       script: () => {
         const S = STORY.SHOULDER;
         let nerve = 1;
         let warnT = 0;
         let rejoined = false;
+        let pots = false;
         let windowT = 1.5;
         const reset = (ctx: StoryScene) => {
           const s0 = ctx.marker('S');
@@ -140,9 +149,10 @@ export const CH7: ChapterDef = {
             ctx.addActor('sbrim', 'sbrimbrulonKnight', { x: s0.x - 1, y: s0.y }, { kind: 'idle', face: 'N' });
             ctx.addActor('stpol', 'knight', { x: s0.x + 1, y: s0.y + 0.4 }, { kind: 'idle', face: 'N' });
           }),
+          card('A FAMILIAR FACE', 'BAGNASKIZ, AS THE EMPEROR ALEXIOS III, THE UNCLE ON THE THRONE', { color: '#c070f0', seconds: 2.2 }),
           say('emperor', 'I RIDE OUT. ALL OF YOU. AT THEM.'),
           card('CHARGE?', '', { color: C.red, seconds: 1 }),
-          say('knight', 'THE VANGUARD TURNS BACK! BACK TO THE CAMP!'),
+          say('knight', 'THE COUNT OF FLANDERS TURNS BACK! BACK TO THE CAMP!'),
           call((ctx) => ctx.actor('flanders').setBehavior({ kind: 'goto', to: ctx.marker('2'), speed: 3.2, run: true })),
           say('sbrimbrulon', 'WE WILL NOT TURN BACK AT ALL. WE GO ON. AT A WALK. STAY AT MY SHOULDER.'),
           call((ctx) => {
@@ -150,7 +160,7 @@ export const CH7: ChapterDef = {
             ctx.actor('stpol').setBehavior({ kind: 'follow', target: ctx.actor('sbrim'), distance: 2, speed: 2, side: 1.2 });
           }),
           walk({
-            objective: "HOLD LEVEL WITH PIERRE'S SHOULDER",
+            objective: 'STAY LEVEL WITH PIERRE',
             noRun: true,
             pilot: (ctx) => {
               const s = ctx.actor('sbrim');
@@ -174,6 +184,10 @@ export const CH7: ChapterDef = {
               }
               ctx.hud.setMode({ label: 'NERVE: LEVEL WITH PIERRE', value: nerve, color: 0xff7a1f });
               const done = along({ x: sb.gx, y: sb.gy }, s0, f) / fl;
+              if (!pots && done > 0.15) {
+                pots = true;
+                ctx.notice('THE GROOMS AND COOKS COME TOO, WITH POTS AND PESTLES', C.yellow);
+              }
               if (!rejoined && done > 0.45) {
                 rejoined = true;
                 ctx.actor('flanders').setBehavior({ kind: 'follow', target: sb, distance: 2.4, speed: 3, side: -1.2 });
@@ -199,93 +213,99 @@ export const CH7: ChapterDef = {
             ctx.apply({ supervillain: 15, value: 'Physical courage', flags: { vanguard: true } });
           }),
           card('THE EMPEROR TURNS FOR THE CITY', 'NOBODY STRIKES A BLOW', { color: C.cyan, seconds: 2.4 }),
-          say('marshal', 'EVERYONE WAS VERY GLAD.'),
           say('zampano', 'THERE WERE A LOT OF THEM, AND THEY WERE SHOUTING.'),
-          say('sbrimbrulon', "LET THEM SHOUT. BY GOD'S COIF, WE WILL TALK ABOUT TODAY IN THE LADIES' CHAMBERS."),
+          say('sbrimbrulon', 'LET THEM SHOUT. WE WALKED.'),
+          say('zampano', 'THE LADIES ON THE WALLS THOUGHT WE LOOKED LIKE ANGELS. ESPECIALLY ONE OF US.'),
+          say('sbrimbrulon', 'WHO TOLD YOU THAT?'),
+          say('zampano', 'I COULD TELL.'),
           say('zampano', 'THERE WAS A WINDOW, AND THE WIND TOOK WHAT SHE SAID.', { remembered: true }),
         ];
       },
     },
     {
       id: '7.4',
-      title: 'Tourists and fire',
+      title: 'A city to visit',
       happens:
-        'ALEXIOS III FLEES. ISAAC II IS RESTORED AND HIS SON BECOMES ALEXIOS IV. FOR A TIME THE PILGRIMS VISIT SHRINES. FIND A FAMILIAR TURN BY THE MOSQUE ON THE WAY TO A MARVEL. WHEN WESTERNERS ATTACK IT, MUSLIM RESIDENTS AND THEIR CHRISTIAN NEIGHBORS DEFEND IT TOGETHER. SMOKE CHOKES THE SIGHTSEEING ROUTE. LEAD A RESIDENT BACK ALONG THE STREET YOU LEARNED BEFORE THE FIRE.',
-      source: 'BARBERO, LA QUARTA CROCIATA: THE MOSQUE AND THE GREAT FIRE. NIKETAS CHONIATES GIVES THE FIRE A RESIDENT\'S ADDRESS.',
+        "ALEXIOS III HAS FLED. ISAAC II IS BROUGHT OUT OF PRISON AND HIS SON IS CROWNED ALEXIOS IV. FOR A WHILE THE PILGRIMS ARE VISITORS. WALK THE CITY WITH WATSON: THE PALACE OF THE LION'S MOUTH, A BRONZE HERCULES, A COLUMN CARVED WITH SHIPS NOBODY CAN READ, AND NIKETAS'S OWN COURTYARD, WITH A LAMP AND A PURPLE CUSHION LIKE THE ONE AT HOME. REMEMBER THE STREET.",
+      source:
+        "VILLEHARDOUIN PP. 45-48: ALEXIOS III FLEES; ISAAC IS ENTHRONED; THE YOUNG ALEXIUS IS CROWNED (1 AUGUST 1203). CLARI 80 NAMES THE PALACE OF THE LION'S MOUTH; CLARI 92: PILLARS ON WHICH THINGS TO COME WERE 'PORTRAYED AND WRITTEN', READABLE ONLY AFTERWARDS (THE STARTING POINT OF THE COLUMN). CHONIATES (DESTROYED MONUMENTS, PARA. 3): THE GREAT HERCULES. NIKETAS'S COURTYARD, THE LAMP AND THE VISIT ARE ADAPTATION.",
       script: () => [
-        stage('city', [{ name: 'watson', who: 'watson', at: { x: 19.5, y: 20.5 }, face: 'NW' }], { at: 'S' }),
-        card('ALEXIOS III FLEES', 'ISAAC II IS RESTORED. HIS SON BECOMES ALEXIOS IV.', { color: C.yellow, seconds: 2.2 }),
-        say('watson', 'MAN, IT IS PEACE. WE ARE TOURISTS NOW.'),
+        stage('city', [
+          { name: 'watson', who: 'watson', at: { x: 19.5, y: 20.5 }, face: 'NW' },
+          { name: 'niketas', who: 'greek', at: DOORWAY, face: 'E' },
+        ], { at: 'S' }),
+        card('ALEXIOS III FLEES', 'ISAAC II IS BROUGHT OUT OF PRISON. HIS SON IS CROWNED ALEXIOS IV.', { color: C.yellow, seconds: 2.4 }),
+        call((ctx) => ctx.actor('watson').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.4, speed: 3, side: -0.8 })),
+        say('watson', 'MAN, IT IS PEACE. WE ARE VISITORS NOW. DO NOT TOUCH ANYTHING.'),
         walk({
-          objective: 'SIGHTSEEING: TAKE THE TURN BY THE MOSQUE, ON TO THE MARVELS',
+          objective: 'VISIT THE CITY. LOOK AT EVERYTHING',
           action: 'LOOK',
           pickups: [
-            { at: '3', kind: 'spot', label: 'THE TURN BY THE MOSQUE', text: 'REMEMBER THIS STREET' },
-            { at: '5', kind: 'marvel', label: 'THE GOLDEN PALACE', text: 'FIVE HUNDRED HALLS, ALL IN GOLD MOSAIC', effects: { marvel: 'THE GOLDEN PALACE', commozione: 3 } },
-            { at: '8', kind: 'relic', label: 'THE CHAPEL OF RELICS', text: 'MORE RELICS THAN THERE ARE SAINTS', effects: { marvel: 'THE CHAPEL OF RELICS', commozione: 3 } },
+            { at: '8', kind: 'marvel', label: "THE PALACE OF THE LION'S MOUTH", text: 'A PALACE BY THE SEA, WITH MORE ROOMS THAN THE CAMP HAS TENTS', effects: { marvel: "THE PALACE OF THE LION'S MOUTH", commozione: 3 } },
+            { at: HERCULES, kind: 'marvel', label: 'THE BRONZE HERCULES', text: 'A BRONZE GIANT IN A LION SKIN, TIRED, LEANING ON NOTHING', effects: { marvel: 'THE BRONZE HERCULES', commozione: 3 } },
+            { at: COLUMN, kind: 'marvel', label: 'THE CARVED COLUMN', text: 'SHIPS, LADDERS, LITTLE MEN CLIMBING. NOBODY CAN SAY WHAT IT MEANS', effects: { marvel: 'THE CARVED COLUMN', commozione: 3 } },
+            { at: { x: 4.5, y: 20.5 }, kind: 'marvel', label: "NIKETAS'S COURTYARD", text: 'A LAMP, A FIG TREE, AND A PURPLE CUSHION EXACTLY LIKE THE ONE AT HOME', effects: { marvel: 'A LAMP IN A COURTYARD', commozione: 4 } },
           ],
           onAction: (ctx) => ctx.say('OOOH.', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
         }),
-        card('THE MOSQUE', 'WESTERNERS ATTACK IT. MUSLIM RESIDENTS AND THEIR CHRISTIAN NEIGHBORS DEFEND IT TOGETHER.', { color: C.cyan, seconds: 3 }),
-        call((ctx) => {
-          ctx.fog = STORY.SMOKE;
-          ctx.addActor('resident', 'greek', { x: ctx.player.gx + 0.8, y: ctx.player.gy + 0.4 }, { kind: 'follow', target: ctx.player, distance: 1, speed: 3, side: 0.5 });
-        }),
-        say('greek', 'THE SMOKE! I CANNOT SEE MY OWN STREET. YOU WALKED IT TODAY: TAKE ME BACK.'),
-        walk({
-          objective: 'LEAD THE RESIDENT BACK ALONG THE STREET YOU LEARNED',
-          goal: { reach: 'S', label: 'OUT' },
-          checkpoints: ['3'],
-          fire: { from: '1', spread: 0.35, startAfter: (w) => w.time > 0.6 },
-        }),
-        call((ctx) => (ctx.fog = 0)),
-        say('greek', 'THAT WAS MY HOUSE. IT HAD A VERY GOOD COURTYARD.'),
-        say('zampano', 'THERE WAS A CITY, AND IT WAS ON FIRE, AND I KNEW ONE STREET.', { remembered: true }),
+        say('niketas', 'YOU MAY LOOK. YOUR PRINCE HAS PROMISED YOUR PEOPLE A GREAT DEAL OF OUR MONEY. LOOK WHILE IT IS STILL HERE.'),
+        say('zampano', 'I HAVE A CUSHION LIKE THAT.'),
+        say('niketas', 'THEN YOU KNOW WHAT IT IS TO COME HOME TO ONE.'),
+        fx({ flags: { visitedCity: true } }),
+        say('zampano', 'THERE WAS A CITY, AND IT LET ME IN TO LOOK.', { remembered: true }),
       ],
     },
     {
       id: '7.5',
-      title: "The usurper's wedding night",
+      title: 'Unpaid promises',
       happens:
-        "A DOOR OPENS INTO CHRETIEN DE TROYES'S CLIGES. A DRUGGED EMPEROR EMBRACES EMPTY AIR. SLIP BY WITH THE PERFECTLY AWAKE BRIDE AND LISTEN FOR THE SOUND OF THE PREVIOUS ROOM. A COIN SPINNING TO A STOP TAKES ZAMPANO BACK TO THE COURT THAT CAN NO LONGER PAY.",
-      source: 'BARBERO, IL SOGNO NEL MEDIOEVO: THE WEDDING NIGHT IN CLIGES.',
-      blackHole: { where: 'A ROMANCE. A WEDDING NIGHT.', value: 'A dream embraces nothing' },
-      script: () => {
-        const clink = sounder('...CLINK...', C.yellow);
-        return [
-          ...blackHoleIn('A DOOR OPENS INTO A ROMANCE. CLIGES.'),
-          call((ctx) => {
-            ctx.setStage('palace');
-            const e = ctx.addActor('emperor', 'bagnaskizEmperor', '4', { kind: 'flail', speed: 1.6, center: ctx.marker('4'), radius: 2.4 });
-            e.sight = { range: 3, halfAngle: 0.6 };
-            ctx.addActor('bride', 'lady', '8', { kind: 'idle', face: 'SW' });
-          }),
-          say('voice', 'THE POTION WORKS. HE EMBRACES EMPTY AIR, AND BELIEVES ALL OF IT.'),
-          say('emperor', 'AH, MY LOVE! AH! MMMH! (HE IS HUGGING THE AIR.)'),
-          walk({ objective: 'SLIP BY TO THE BRIDE', goal: { reach: '8', label: 'THE BRIDE' }, noRun: true, caught: 'restart', caughtText: 'HE HUGGED YOU INSTEAD' }),
-          say('lady', 'I AM PERFECTLY AWAKE. LET US GO. LISTEN: THE PREVIOUS ROOM IS THAT WAY.'),
-          call((ctx) => ctx.actor('bride').setBehavior({ kind: 'follow', target: ctx.player, distance: 1, speed: 2.6, side: 0.4 })),
-          walk({
-            objective: 'LISTEN FOR THE SOUND OF THE PREVIOUS ROOM',
-            goal: { reach: '9', hidden: true },
-            noRun: true,
-            caught: 'restart',
-            caughtText: 'HE HUGGED YOU INSTEAD',
-            onUpdate: (ctx, _w, dt) => clink(ctx, ctx.marker('9'), dt),
-          }),
-          sound('coin'),
-          card('A COIN SPINS TO A STOP', 'BACK AT THE COURT THAT CAN NO LONGER PAY', { color: C.yellow, seconds: 2.2 }),
-          say('zampano', 'THERE WAS A BRIDE, AND SHE WAS THE ONLY ONE AWAKE.', { remembered: true }),
-          ...blackHoleOut('A dream embraces nothing'),
-        ];
-      },
+        "THE FIRST PAYMENT COMES; THE REST DOES NOT. CARRY THE CHESTS FROM THE PALACE AND WATCH THEM GET LIGHTER. THE DOGE TELLS THE YOUNG EMPEROR WHAT HE THINKS OF HIM FROM A GALLEY. THEN A QUARREL IN THE STREETS STARTS A FIRE THAT BURNS FOR TWO DAYS: LEAD A WOMAN OF NIKETAS'S HOUSEHOLD BACK TO HER COURTYARD ALONG THE STREET YOU LEARNED. SHE TELLS HIM NOT TO COME BACK.",
+      source:
+        "CLARI LVI AND LIX (MUNRO): A FIRST PAYMENT, THEN NO MORE; THE DOGE REBUKES THE YOUNG EMPEROR FROM HIS GALLEYS. VILLEHARDOUIN PP. 48-53: ALEXIUS CANNOT PAY; A RIOT BETWEEN GREEKS AND LATINS, A FIRE THAT BURNS TWO DAYS, THE LATINS OF THE CITY FLEE TO THE CAMP, 'THUS WAS THERE DIVISION BETWEEN THE GREEKS AND THE FRANKS'. REPLACES THE OLD CLIGES EPISODE. THE CHESTS AND THE WOMAN ARE ADAPTATION.",
+      script: () => [
+        stage('city', [], { at: '8' }),
+        say('voice', 'THE FIRST PAYMENT. ALEXIOS IV SENDS IT OUT OF THE PALACE IN CHESTS.'),
+        carry('A CHEST'),
+        walk({
+          objective: 'CARRY THE CHESTS OUT OF THE PALACE',
+          pickups: [
+            { at: { x: 11.5, y: 6.5 }, kind: 'coin', label: 'A CHEST', text: 'FULL. HALF OF IT IS ALREADY THE VENETIANS\'.' },
+            { at: { x: 9.5, y: 8.5 }, kind: 'coin', label: 'ANOTHER CHEST', text: 'HALF FULL. "THE REST AFTER THE HARVEST."' },
+            { at: { x: 12.5, y: 9.5 }, kind: 'coin', label: 'THE LAST CHEST', text: 'EMPTY, WITH AN APOLOGY IN IT.' },
+          ],
+        }),
+        dropCarried(),
+        call((ctx) => ctx.addActor('doge', 'doge', { x: ctx.player.gx - 1.2, y: ctx.player.gy - 0.8 }, { kind: 'idle', face: 'player' })),
+        say('doge', '(FROM HIS GALLEY, TO THE YOUNG EMPEROR) WE PULLED YOU OUT OF THE MUD, BOY. WE CAN PUT YOU BACK IN IT.'),
+        call((ctx) => ctx.removeActor('doge')),
+        card('A QUARREL IN THE STREETS', 'THEN A FIRE. IT BURNS FOR TWO DAYS.', { color: C.red, seconds: 2.4 }),
+        call((ctx) => {
+          ctx.player.setPosition(ctx.marker('3').x, ctx.marker('3').y);
+          ctx.world!.snapCamera();
+          ctx.fog = STORY.SMOKE;
+          ctx.addActor('woman', 'lady', { x: ctx.player.gx + 0.8, y: ctx.player.gy + 0.4 }, { kind: 'follow', target: ctx.player, distance: 1, speed: 3, side: 0.5 });
+        }),
+        say('lady', "(A WOMAN OF NIKETAS'S HOUSEHOLD) I CANNOT SEE MY OWN STREET. YOU WALKED IT WITH YOUR SAILOR. TAKE ME BACK TO THE COURTYARD."),
+        walk({
+          objective: 'LEAD HER BACK TO THE COURTYARD ALONG THE STREET YOU LEARNED',
+          goal: { reach: DOORWAY, label: 'THE COURTYARD' },
+          checkpoints: ['2'],
+          fire: { from: '1', spread: 0.35, startAfter: (w) => w.time > 0.6 },
+        }),
+        call((ctx) => (ctx.fog = 0)),
+        say('lady', 'THE FIG TREE IS GONE. THE LAMP IS STILL HERE.'),
+        say('lady', 'YOUR PEOPLE ARE LEAVING THE CITY FOR YOUR CAMP. GO WITH THEM. DO NOT COME BACK.'),
+        card('DIVISION', 'BETWEEN THE GREEKS AND THE FRANKS, AS THE MARSHAL WILL PUT IT', { color: '#c8a0ff', seconds: 2.2 }),
+        say('zampano', 'THERE WAS A CITY, AND IT WAS ON FIRE, AND I KNEW ONE STREET.', { remembered: true }),
+      ],
     },
     {
       id: '7.6',
       title: 'A third Alexios',
       happens:
-        'WALK INTO THE THRONE ROOM WITH THE ENVOYS, LISTEN TO THE FORMAL CHALLENGE OVER THE UNPAID PROMISES AND WALK OUT AT THE SAME PACE. SOON ISAAC II IS DEAD, ALEXIOS IV IS KILLED AND ALEXIOS V HOLDS POWER. BAGNASKIZ APPEARS IN HIS THIRD ROLE, WEARING A DIFFERENT CROWN. THE GATES CLOSE TO THE PILGRIMS.',
-      source: 'BARBERO, LA QUARTA CROCIATA: THE EMBASSY AND THE COUP.',
+        'THE MARSHAL IS ONE OF THE ENVOYS WHO CARRY THE DEFIANCE TO THE PALACE: WALK IN WITH THEM, HEAR IT AND WALK OUT AT THE SAME PACE. FIRE-SHIPS COME DOWN ON THE FLEET AT NIGHT. THEN MOURTZOUPHLOS TAKES THE THRONE AS ALEXIOS V AND THE YOUNG ALEXIOS IV IS STRANGLED. THE DREAM RUNS OUT OF FACES: BAGNASKIZ AGAIN, UNDER A DIFFERENT CROWN.',
+      source:
+        "VILLEHARDOUIN PP. 53-56: THE DEFIANCE DELIVERED IN BLACHERNAE BY CONON OF BETHUNE, GEOFFROI DE VILLEHARDOUIN AND MILES OF BRABANT WITH THREE VENETIANS; THE FIRE-SHIPS; MOURZUPHLES SEIZES POWER (JANUARY 1204), ALEXIOS IV IS STRANGLED, ISAAC DIES. CLARI 61-62: MOURZUPHLES HAS BOTH STRANGLED (HIS VERSION). THE WALKING RULE IS ADAPTATION.",
       script: () => {
         const runCheck = (ctx: StoryScene) => {
           if (!ctx.player.running) return;
@@ -297,21 +317,23 @@ export const CH7: ChapterDef = {
             ctx.setStage('palace');
             ctx.addActor('alexios', 'prince', '1', { kind: 'idle', face: 'S' });
             ['2', '3', '5', '6'].forEach((m, k) => ctx.addActor(`g${k}`, 'varangian', m, { kind: 'idle', face: 'player' }));
-            ctx.addActor('envoy', 'knight', { x: ctx.marker('S').x - 0.8, y: ctx.marker('S').y }, { kind: 'follow', target: ctx.player, distance: 1, speed: 2.2, side: -0.8 });
-            ctx.addActor('envoy2', 'marquis', { x: ctx.marker('S').x + 0.8, y: ctx.marker('S').y }, { kind: 'follow', target: ctx.player, distance: 1, speed: 2.2, side: 0.8 });
+            ctx.addActor('envoy', 'bagnaskizMarshal', { x: ctx.marker('S').x - 0.8, y: ctx.marker('S').y }, { kind: 'follow', target: ctx.player, distance: 1, speed: 2.2, side: -0.8 });
+            ctx.addActor('envoy2', 'knight', { x: ctx.marker('S').x + 0.8, y: ctx.marker('S').y }, { kind: 'follow', target: ctx.player, distance: 1, speed: 2.2, side: 0.8 });
           }),
-          say('voice', 'THE EMPERORS HAVE STOPPED PAYING. WALK IN WITH THE ENVOYS. WALK OUT AT THE SAME PACE.'),
+          say('marshal', 'HE HAS NOT PAID. WE GO IN AND TELL HIM SO. WALK IN WITH US. WALK OUT AT THE SAME PACE.'),
           walk({ objective: 'WALK INTO THE THRONE ROOM WITH THE ENVOYS', goal: { reach: '4', radius: 1 }, onUpdate: (ctx) => runCheck(ctx) }),
-          say('knight', '(THE ENVOY) YOU SWORE TO PAY. YOU HAVE NOT PAID. FROM NOW ON, WE ARE NO LONGER FRIENDS. THAT IS OUR CHALLENGE.'),
-          say('prince', '...'),
+          say('marshal', 'YOU SWORE TO PAY. YOU HAVE NOT PAID. FROM NOW ON WE ARE NO LONGER YOUR FRIENDS. THAT IS OUR CHALLENGE.'),
+          say('prince', '(ALEXIOS IV) ...'),
           walk({ objective: 'WALK OUT AT THE SAME PACE. DO NOT RUN', goal: { reach: 'S', radius: 1 }, onUpdate: (ctx) => runCheck(ctx) }),
           card('ALIVE', 'THEY WALK OUT ALIVE. NOBODY CAN BELIEVE IT.', { color: C.green, seconds: 2 }),
-          card('SOON', 'ISAAC II IS DEAD. ALEXIOS IV IS KILLED. ALEXIOS V HOLDS POWER.', { color: '#c070f0', seconds: 2.6 }),
+          card('AT NIGHT', 'SHIPS ON FIRE COME DRIFTING DOWN ON THE FLEET. THE VENETIANS TOW THEM AWAY.', { color: C.red, seconds: 2.4 }),
+          card('JANUARY 1204', 'MOURTZOUPHLOS TAKES THE THRONE AS ALEXIOS V. ALEXIOS IV IS STRANGLED. ISAAC II DIES.', { color: '#c070f0', seconds: 2.8 }),
           call((ctx) => {
             const u = ctx.addActor('usurper', 'bagnaskizEmperor', { x: ctx.player.gx - 1.4, y: ctx.player.gy - 1 }, { kind: 'idle', face: 'player' });
             u.sprite.tint = 0xffd890;
           }),
-          say('emperor', 'A DIFFERENT CROWN, LITTLE KNIGHT. SAME FACE. THE GATES ARE CLOSED.'),
+          card('THE DREAM RUNS OUT OF FACES', 'BAGNASKIZ AGAIN, UNDER A DIFFERENT CROWN: MOURTZOUPHLOS, ALEXIOS V', { color: '#c070f0', seconds: 2.4 }),
+          say('emperor', 'A DIFFERENT CROWN, LITTLE KNIGHT. LEAVE MY LAND IN EIGHT DAYS.'),
           card('THE GATES CLOSE', 'TO THE PILGRIMS', { color: C.red, seconds: 2 }),
           say('zampano', 'THERE WAS A THRONE, AND I WALKED OUT OF IT AT A WALK.', { remembered: true }),
         ];
@@ -321,8 +343,9 @@ export const CH7: ChapterDef = {
       id: '7.7',
       title: 'The hole in the wall',
       happens:
-        "HEAR THE PILGRIMS SWEAR TO RESPECT WOMEN, SPARE CHURCHES AND POOL THE SPOILS. THE FIRST APRIL ASSAULT FAILS. ON THE NEXT ATTEMPT CONFUSIONE, AS CLARI'S CLERIC BROTHER ALEAUME, SQUEEZES INTO A BREACH. TRY TO HOLD HIM BY A HIND LEG: HE WRIGGLES FREE. IF ZAMPANO KEPT VIGIL, THE CAT CALLS BACK TO HIM; OTHERWISE FOLLOW THE RATTLE OF HIS MAIL. WITHIN THE WALL, THE LITTLE CAT WAITS FOR HIM.",
-      source: "BARBERO, LA QUARTA CROCIATA: ALEAUME'S BREACH.",
+        "BEFORE THE ASSAULT EVERYONE SWEARS: ALL BOOTY TO BE BROUGHT IN AND DECLARED, AND NO HAND ON WOMEN OR CLERGY. THE FIRST ASSAULT FAILS AND THE WALLS ECHO WITH MOCKERY. ON THE MONDAY, PIERRE'S MEN HACK A HOLE IN A WALLED-UP GATE AND NOBODY DARES GO IN. ALEAUME DOES. TRY TO HOLD HIM BACK BY THE FOOT: HE WRIGGLES FREE. FOLLOW HIM IN.",
+      source:
+        "CLARI 68 (THE AGREEMENT: BOOTY DECLARED UNDER OATH, WOMEN AND CLERGY PROTECTED), 70-71 (THE FRIDAY ASSAULT FAILS, THE GREEKS MOCK), 72-73 (ABSOLUTION; THE WOMEN SENT AWAY), 75-76 (PETER OF AMIENS AT THE FALSE POSTERN; ALEAUME OF CLARI, A CLERK, GOES IN ON HANDS AND FEET WHILE HIS BROTHER ROBERT HOLDS HIM BY THE FOOT), 77-79. VILLEHARDOUIN PP. 59-63: THE COVENANT; THE ASSAULTS; 12 APRIL 1204. CONFUSIONE PLAYS ALEAUME; THE DEED IS ALEAUME'S, NOT ZAMPANO'S.",
       script: () => {
         const rattle = sounder('...RATTLE...', '#b8b8c8');
         return [
@@ -331,26 +354,27 @@ export const CH7: ChapterDef = {
             { name: 'conf', who: 'confusione', at: '4', face: 'SW' },
             { name: 'jack', who: 'jack', at: { x: 9.5, y: 10.5 }, face: 'N' },
           ]),
-          say('legate', 'SWEAR. NO WOMAN TOUCHED. NO CHURCH ROBBED. ALL SPOILS IN COMMON.'),
-          ask('legate', 'SWEAR.', [{ label: 'SO HELP ME GOD.', effects: { grace: 5, flags: { sworn: true } } }]),
+          say('bishop', 'SWEAR IT. EVERYTHING TAKEN IS BROUGHT IN AND DECLARED. NO HAND ON A WOMAN. NO HAND ON A PRIEST OR A NUN.'),
+          ask('bishop', 'SWEAR.', [{ label: 'SO HELP ME GOD.', effects: { grace: 5, flags: { sworn: true } } }]),
           say('jack', 'SO HELP ME GOD. (HE IS CROSSING HIS FINGERS.)'),
           call((ctx) => {
-            if (ctx.state.flags.clothRoute) ctx.notice('ALL SPOILS IN COMMON: LIKE THE BOLT OF CLOTH AT ZARA', C.yellow);
+            if (ctx.state.flags.clothRoute) ctx.notice('EVERYTHING BROUGHT IN: LIKE THE BOLT OF CLOTH AT ZARA', C.yellow);
           }),
-          card('THE FIRST APRIL ASSAULT FAILS', '', { color: C.orange, seconds: 2 }),
-          card('THE NEXT ATTEMPT', 'A HOLE IN THE WALL. NOBODY DARES ENTER.', { color: C.yellow, seconds: 2 }),
+          card('THE FRIDAY ASSAULT FAILS', 'FROM THE WALLS: "WOOF! WOOF!" THEY ARE MOCKING HIS BARK, LIKE JACK AT THE GATE.', { color: C.orange, seconds: 2.6 }),
+          card('SUNDAY', 'THE BISHOPS ABSOLVE THE HOST AND SEND THE WOMEN AWAY FROM THE CAMP', { color: '#f0d8a0', seconds: 2.4 }),
+          card('MONDAY', "PIERRE'S MEN HACK A HOLE IN A WALLED-UP GATE. ON THE OTHER SIDE, A CROWD. NOBODY DARES GO IN.", { color: C.yellow, seconds: 2.6 }),
           say('confusione', 'I DARE. ON HANDS AND FEET.'),
           mini(() => new TugGame(), { lost: { commozione: 6 } }),
           call((ctx) => ctx.actor('conf').setBehavior({ kind: 'goto', to: ctx.marker('2'), speed: 2.6 })),
-          say('zampano', 'I HAD HIS HIND LEG. I HAD IT.'),
+          say('zampano', 'I HAD HIS FOOT. I HAD IT.'),
           branch(
             (s) => s.flags.comradeship === true,
             [
-              say('confusione', '(FROM INSIDE THE WALL) ZAMPANO! YOU SAT BY THE BODY AT THE WAKE. THIS WAY.'),
+              say('confusione', '(FROM INSIDE THE WALL) BROTHER! YOU SPLIT YOUR HALF LOAF WITH ME AT ZARA. THIS WAY. FOLLOW MY VOICE.'),
               walk({ objective: 'FOLLOW HIS VOICE IN', goal: { reach: '2', radius: 0.9 }, noRun: true }),
             ],
             [
-              say('voice', 'HE IS GONE INTO THE DARK. ONLY HIS MAIL RATTLES.'),
+              say('voice', 'HE IS GONE INTO THE DARK WITHOUT A WORD. ONLY HIS MAIL RATTLES.'),
               walk({
                 objective: 'FOLLOW THE RATTLE OF HIS MAIL',
                 goal: { reach: '2', radius: 0.9, hidden: true },
@@ -363,8 +387,9 @@ export const CH7: ChapterDef = {
             ],
           ),
           fx({ supervillain: 10, value: 'Comradeship', flags: { followed: true } }),
-          card('WITHIN THE WALL', 'THE LITTLE CAT WAITS FOR HIM', { color: C.cyan, seconds: 2 }),
-          say('zampano', 'THERE WAS A HOLE, AND MY FRIEND WAS IN IT.', { remembered: true }),
+          card('WITHIN THE WALL', 'ALEAUME WAITS FOR HIM. BEHIND THEM, A GATE IS BROKEN OPEN.', { color: C.cyan, seconds: 2.2 }),
+          card('THAT NIGHT', 'MOURTZOUPHLOS FLEES THE CITY', { color: '#c070f0', seconds: 2 }),
+          say('zampano', 'THERE WAS A HOLE, AND MY BROTHER WAS IN IT. HE IS NOT MY BROTHER.', { remembered: true }),
         ];
       },
     },
@@ -372,29 +397,29 @@ export const CH7: ChapterDef = {
       id: '7.8',
       title: 'Whose street was it?',
       happens:
-        "DURING THE THREE DAYS OF PLUNDER, CLARI FINDS WONDERS TO FILL HIS BOOK AND REMEMBERS AN ORDERLY SACK. TURN THE PAGE: THE SAME DOORWAY NOW BELONGS TO NIKETAS'S HOUSEHOLD, LEAVING UNDER A VENETIAN FRIEND'S PROTECTION. JACK DRAGS A GIRL OUT OF THE GROUP. WAIT FOR A LULL AND CALL THE OTHER PILGRIMS TO THEIR OATH, OR STAND SILENT WHILE NIKETAS CALLS THEM HIMSELF. THEY FREE HER. LATER THE GOLD IS MISSING FROM THE COMMON PILE.",
-      source: "BARBERO, LA QUARTA CROCIATA: CLARI'S MARVELS AND NIKETAS'S FLIGHT. JACK'S ROLE IS A GAME ADAPTATION.",
+        "THE CITY IS TAKEN. CLARI WILL WRITE THAT NO HARM WAS DONE TO POOR OR RICH, AND FILL HIS BOOK WITH WONDERS. TURN THE PAGE: THE SAME STREETS, AS NIKETAS WILL WRITE THEM, AND HIS OWN DOORWAY. HIS HOUSEHOLD IS LEAVING; JACK DRAGS A GIRL OUT OF THE GROUP. WAIT FOR A LULL AND CALL THE PILGRIMS TO THEIR OATH, OR STAND SILENT WHILE NIKETAS CALLS THEM HIMSELF. EITHER WAY THEY LET HER GO.",
+      source:
+        "CLARI 80 (THE TAKING; 'NO MISCHIEF WAS DONE TO POOR OR TO RICH'; THE HIGH MEN SEIZE THE BEST HOUSES). CHONIATES, THE SACK (MUNRO PP. 15-16): IMAGES TRODDEN, THE ALTAR OF THE GREAT CHURCH BROKEN AND SHARED OUT, MULES IN THE SANCTUARY, 'NO ONE WAS WITHOUT A SHARE IN THE GRIEF'. THE TWO ACCOUNTS ARE KEPT APART. NIKETAS'S FLIGHT AND THE GIRL ARE ADAPTATION (A CHONIATES EPISODE NOT VERIFIED IN THE CONSULTED EXCERPTS); JACK'S ROLE IS INVENTED.",
       script: () => {
         let called = false;
         return [
           fx({ flags: { oath: 'undecided' } }),
           stage('city', [], { at: 'S' }),
-          card('THREE DAYS', 'CLARI REMEMBERS AN ORDERLY SACK, AND FILLS HIS BOOK', { color: C.orange, seconds: 2.2 }),
+          card('THE CITY IS TAKEN', '"NO HARM WAS DONE TO POOR OR RICH," THE SMALL KNIGHT WILL WRITE. HE FILLS HIS BOOK.', { color: C.orange, seconds: 2.8 }),
           walk({
             objective: 'FILL THE BOOK OF MARVELS',
             action: 'LOOK',
             pickups: [
-              { at: '1', kind: 'marvel', label: 'THE GREAT CHURCH', text: 'A DOME HUNG FROM HEAVEN BY A CHAIN', effects: { marvel: 'THE GREAT CHURCH', commozione: 5 } },
-              { at: '7', kind: 'marvel', label: 'THE HIPPODROME', text: 'THIRTY TIERS OF SEATS, AND NOBODY RACING', effects: { marvel: 'THE HIPPODROME', commozione: 5 } },
-              { at: '2', kind: 'marvel', label: 'THE STATUES', text: 'BRONZE PEOPLE, BRONZE BEASTS, ALL STARING', effects: { marvel: 'THE STATUES', commozione: 5 } },
+              { at: '0', kind: 'marvel', label: 'THE GREAT CHURCH', text: 'A DOME LIKE THE SKY, HUNG ON NOTHING', effects: { marvel: 'THE GREAT CHURCH', commozione: 5 } },
+              { at: '7', kind: 'marvel', label: 'THE HIPPODROME', text: 'TIERS OF SEATS, AND BRONZE FIGURES EVERYWHERE', effects: { marvel: 'THE HIPPODROME', commozione: 5 } },
             ],
             onAction: (ctx) => ctx.say('OOOH.', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
           }),
           sound('glitch'),
           call((ctx) => ctx.game.transition.play(null, 0.6, 1)),
-          card('TURN THE PAGE', "THE SAME DOORWAY NOW BELONGS TO NIKETAS'S HOUSEHOLD", { color: '#c8a0ff', seconds: 2.4 }),
+          card('TURN THE PAGE', "THE SAME STREETS, AS NIKETAS WILL WRITE THEM: MULES LED INTO THE GREAT CHURCH, ITS ALTAR BROKEN UP AND SHARED OUT, NO ONE WITHOUT A SHARE IN THE GRIEF.", { color: '#c8a0ff', seconds: 3.4 }),
           call((ctx) => {
-            ctx.addActor('niketas', 'greek', '9', { kind: 'idle', face: 'E' });
+            ctx.addActor('niketas', 'greek', DOORWAY, { kind: 'idle', face: 'E' });
             ctx.addActor('venetian', 'crowdB', { x: 4.5, y: 20.5 }, { kind: 'idle', face: 'E' });
             ctx.addActor('family', 'crowdC', { x: 3.5, y: 21.5 }, { kind: 'idle', face: 'E' });
             const jack = ctx.addActor('jack', 'jack', { x: 4.5, y: 19.5 }, { kind: 'goto', to: { x: 7.5, y: 16.5 }, speed: 0.45 });
@@ -404,7 +429,7 @@ export const CH7: ChapterDef = {
             ctx.player.setPosition(10.5, 17.5);
             ctx.world!.snapCamera();
           }),
-          say('voice', 'NIKETAS AND HIS HOUSEHOLD ARE LEAVING, UNDER A VENETIAN FRIEND\'S PROTECTION. JACK DRAGS A GIRL OUT OF THE GROUP.'),
+          say('voice', "NIKETAS'S DOORWAY, WHERE THE LAMP WAS. HIS HOUSEHOLD IS LEAVING ON FOOT, WITH A VENETIAN FRIEND IN FRONT. JACK DRAGS A GIRL OUT OF THE GROUP."),
           lullWalk({
             objective: 'WAIT FOR A LULL AND CALL THE PILGRIMS TO THEIR OATH, OR STAND SILENT',
             action: 'CALL',
@@ -414,19 +439,19 @@ export const CH7: ChapterDef = {
             noise: ['LOOT!', 'THIS WAY!', 'GOLD!', 'WHO HAS A SACK?'],
             noiseLabel: 'THE STREET IS LOUD',
             drowned: 'NOBODY HEARS HIM OVER THE LOOTING. WAIT FOR A LULL',
-            actText: 'NO WOMAN TOUCHED! YOU SWORE!',
+            actText: 'NO HAND ON A WOMAN! YOU SWORE!',
             need: 1,
             pilotActs: (p) => p.policy.ending === 'knight',
             onGood: (ctx) => {
               if (!spend(ctx.state, 'commozione', STORY.COST.OATH_BARK)) ctx.notice('IT TAKES ALL HE HAS LEFT', C.orange);
               else ctx.notice(`-${STORY.COST.OATH_BARK} COMMOZIONE`, C.red);
               called = true;
-              ctx.apply({ flags: { oath: 'enforced' }, supervillain: 15, grace: 5, standing: -6, value: 'Kept oaths', remembered: 'NO WOMAN TOUCHED! YOU SWORE! (IN HIS OWN WORDS)' });
+              ctx.apply({ flags: { oath: 'enforced' }, supervillain: 15, grace: 5, standing: -6, value: 'Kept oaths', remembered: 'NO HAND ON A WOMAN! YOU SWORE! (IN HIS OWN WORDS)' });
             },
             onUpdate: (ctx, w) => {
               // Silence: Niketas calls them himself.
               if (!called && w.time > 16) {
-                ctx.say('YOU SWORE AN OATH! LET HER GO!', ctx.marker('9'), '#f0f0f0');
+                ctx.say('YOU SWORE AN OATH! LET HER GO!', ctx.marker(DOORWAY), '#f0f0f0');
                 ctx.apply({ flags: { oath: 'silent' }, remembered: '"YOU SWORE AN OATH! LET HER GO!" (NIKETAS, OVERHEARD)' });
                 w.complete = true;
               }
@@ -441,20 +466,66 @@ export const CH7: ChapterDef = {
             [say('knight', '(THE PILGRIMS) HE IS RIGHT. WE SWORE. LET HER GO, JACK.'), say('jack', 'ALL RIGHT! ALL RIGHT! I WAS ONLY... CARRYING HER. FOR SAFETY.')],
             [say('knight', '(THE PILGRIMS) THE GREEK IS RIGHT. WE SWORE. LET HER GO, JACK.'), say('voice', 'ZAMPANO SAID NOTHING. HE HEARD EVERY WORD.')],
           ),
-          say('greek', 'SHE IS BACK WITH HER FAMILY. I WILL WRITE DOWN WHO SPOKE.'),
-          walk({ objective: 'GO TO THE COMMON PILE', goal: { reach: '0', label: 'THE PILE' } }),
-          call((ctx) => {
-            if (ctx.state.flags.clothRoute) ctx.notice('LIKE THE BOLT OF CLOTH AT ZARA: FROM A HOUSE TO THE PILE', C.yellow);
-          }),
-          card('THE COMMON PILE', 'THE GOLD IS MISSING. THE POOR KNIGHTS RECEIVE SILVER.', { color: '#d8d8e8', seconds: 2.4 }),
-          fx({ coins: 2 }),
-          say('zampano', 'THERE WAS GOLD, AND THEN THERE WAS SILVER, AND THEN THERE WAS ME.', { remembered: true }),
-          sound('glitch'),
-          card('JERUSALEM', 'LOADING...', { color: '#f6c0e0', seconds: 2.4, dim: 0.9 }),
-          card('', 'THE PASTEL CITY NEVER LOADS', { color: '#b070ff', seconds: 2, dim: 0.95, flash: true }),
+          say('niketas', 'SHE IS BACK WITH HER FAMILY. OUR HOUSE IS NOT. I WILL WRITE DOWN WHO SPOKE, AND WHO DID NOT.'),
+          say('zampano', 'THERE WAS A DOORWAY, AND IT WAS SOMEBODY ELSE\'S.', { remembered: true }),
         ];
       },
     },
+    {
+      id: '7.9',
+      title: 'The common pile',
+      happens:
+        "THE LAMP FROM NIKETAS'S COURTYARD IS LYING IN THE STREET. BRING IT TO THE COMMON PILE, AS SWORN, OR KEEP IT UNDER YOUR CLOAK. ON THE WAY, THE BRONZE HERCULES IS GONE FROM ITS PEDESTAL, AND THE CARVED COLUMN NOW SEEMS TO SAY WHAT EVERYONE KNEW ALL ALONG. AT THE PILE THE GOLD AND SILK STAY UNDER GUARD, AND THE POOR KNIGHTS RECEIVE THE COARSE SILVER.",
+      source:
+        "CLARI 81 (THE TREASURE GUARDED IN AN ABBEY; THE BEST TAKEN BY THE GUARDS AND THE RICH; THE POOR KNIGHTS GET ONLY THE COARSE SILVER), 92 (THE PILLARS, READ AFTER THE EVENT), 98 (ALEAUME CLAIMS A KNIGHT'S SHARE AND SAINT-POL ALLOWS IT), 105 (THE POOR KNIGHTS' COMPLAINT). VILLEHARDOUIN PP. 65-66 (COVETOUSNESS; THINGS KEPT BACK; THE COUNT OF SAINT-POL HANGS A KNIGHT WITH HIS SHIELD AT HIS NECK). CHONIATES, DESTROYED MONUMENTS (PARAS. 2-3): BRONZE STATUES THROWN INTO THE FIRE AND TURNED INTO COINAGE; THE HERCULES THROWN DOWN. THE LAMP AND THE CHOICE ARE ADAPTATION.",
+      script: () => [
+        stage('city', [{ name: 'conf', who: 'confusione', at: { x: 6.5, y: 19.5 }, face: 'W' }], { at: { x: 5.5, y: 18.5 } }),
+        walk({
+          objective: 'THE LAMP IS LYING IN THE STREET. PICK IT UP',
+          pickups: [{ at: { x: 4.5, y: 20.5 }, kind: 'spot', label: "THE LAMP FROM NIKETAS'S COURTYARD", text: 'STILL WARM FROM LAST NIGHT' }],
+        }),
+        carry('A LAMP'),
+        ask('confusione', 'WE SWORE TO BRING EVERYTHING IN, BROTHER. EVERYTHING. EVEN LAMPS.', [
+          {
+            label: '(CARRY IT TO THE COMMON PILE, AS SWORN.)',
+            effects: { grace: 6, flags: { lamp: 'declared' }, value: 'An honest share' },
+            then: [say('confusione', 'IT WILL END UP IN SOMEBODY ELSE\'S HOUSE. BUT NOT BY US.')],
+          },
+          {
+            label: '(HIDE IT UNDER YOUR CLOAK.)',
+            effects: { grace: -8, coins: 3, flags: { lamp: 'kept' } },
+            then: [
+              // Out of sight: the label goes, the lamp stays under the cloak.
+              dropCarried(),
+              card('', 'THAT AFTERNOON THE COUNT OF SAINT-POL HANGS A KNIGHT WHO KEPT THINGS BACK, WITH HIS SHIELD AT HIS NECK', { color: C.red, seconds: 2.8 }),
+              say('zampano', '(UNDER THE CLOAK, THE LAMP IS VERY HEAVY.)'),
+            ],
+          },
+        ]),
+        walk({
+          objective: 'GO BY THE PLACES YOU VISITED',
+          action: 'LOOK',
+          pickups: [
+            { at: HERCULES, kind: 'marvel', label: 'AN EMPTY PEDESTAL', text: 'THE BRONZE HERCULES IS GONE. THROWN DOWN, AND MELTED FOR COIN, THEY SAY', effects: { marvel: 'AN EMPTY PEDESTAL', commozione: 4 } },
+            { at: COLUMN, kind: 'spot', label: 'THE CARVED COLUMN', text: 'SHIPS, LADDERS, LITTLE MEN CLIMBING. NOW EVERYONE SAYS THEY KNEW WHAT IT MEANT', effects: { flags: { columnAgain: true } } },
+          ],
+          onAction: (ctx) => ctx.say('...', { x: ctx.player.gx, y: ctx.player.gy }),
+        }),
+        walk({ objective: 'GO TO THE COMMON PILE', goal: { reach: '0', label: 'THE PILE' } }),
+        // Declared: he puts the lamp on the pile (kept: there is nothing over his head to drop).
+        dropCarried(),
+        call((ctx) => {
+          if (ctx.state.flags.clothRoute) ctx.notice('LIKE THE BOLT OF CLOTH AT ZARA: FROM A HOUSE TO THE PILE', C.yellow);
+        }),
+        card('THE COMMON PILE', 'THE GOLD AND THE SILK STAY UNDER GUARD. THE POOR KNIGHTS RECEIVE THE COARSE SILVER.', { color: '#d8d8e8', seconds: 2.6 }),
+        say('confusione', 'A CLERK WANTS A KNIGHT\'S SHARE. THE COUNT OF SAINT-POL SAYS CLERKS SHARE LIKE KNIGHTS. SO DO I.'),
+        say('zampano', 'THEY DIVIDED THE HOUSES WHILE WE WERE AT THE WALLS. EVEN THE GOOD ONES. ESPECIALLY THE GOOD ONES.'),
+        fx({ coins: 2 }),
+        say('zampano', 'THERE WAS GOLD, AND THEN THERE WAS SILVER, AND THEN THERE WAS ME.', { remembered: true }),
+        sound('glitch'),
+        card('JERUSALEM', 'LOADING...', { color: '#f6c0e0', seconds: 2.4, dim: 0.9 }),
+        card('', 'THE PASTEL CITY NEVER LOADS', { color: '#b070ff', seconds: 2, dim: 0.95, flash: true }),
+      ],
+    },
   ],
 };
-
