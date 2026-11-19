@@ -82,7 +82,7 @@ export const CH5: ChapterDef = {
           mini(() => new LaddersGame(16, false, skin), { won: { supervillain: 4 } }),
           call((ctx) => {
             ctx.setStage('zara', { at: { x: 9.5, y: 5.5 } });
-            ctx.addActor('sbrim', 'sbrimbrulon', { x: 10.5, y: 5.5 }, { kind: 'idle', face: 'W' });
+            ctx.addActor('sbrim', 'sbrimbrulonKnight', { x: 10.5, y: 5.5 }, { kind: 'idle', face: 'W' });
           }),
           say('sbrimbrulon', 'HOLD IT STEADY, LITTLE ONE. THE NEXT ONE IS EVEN SMALLER THAN YOU.'),
           walk({

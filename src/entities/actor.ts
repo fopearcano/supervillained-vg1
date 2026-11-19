@@ -1,6 +1,7 @@
 import { Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
-import { spriteName, type CharacterKey } from '../assets/manifest';
+import { CHARACTERS, spriteName, type AnimName, type CharacterKey } from '../assets/manifest';
+import { animationDuration } from '../assets/animationTiming';
 import { dirFromGridVector, dirToGridVector, type Dir8 } from '../iso/projection';
 import { fleeDirection } from '../systems/threatLogic';
 import type { GameMap } from '../world/map';
@@ -57,7 +58,9 @@ export class Actor extends Entity {
   private readonly special: SpecialFigure | null;
   private radius = 0.25;
   private emoteLeft = 0;
-  private emoteAnim: 'bark' | 'hurt' = 'bark';
+  private emoteAnim: AnimName = 'bark';
+  private actionLocksMovement = false;
+  private idleSeconds = 0;
 
   constructor(
     readonly name: string,
@@ -113,6 +116,10 @@ export class Actor extends Entity {
   /** Logic step: moves according to the behavior. */
   step(dt: number, map: GameMap, player: Entity): void {
     this.time += dt;
+    if (this.actionLocksMovement && this.emoteLeft > 0) {
+      this.animate(dt, false, false);
+      return;
+    }
     const b = this.behavior;
     let vx = 0;
     let vy = 0;
@@ -246,9 +253,15 @@ export class Actor extends Entity {
     const dir = dirFromGridVector(this.facing.x, this.facing.y, this.animator?.dir ?? 'S');
     if (this.animator) {
       if (this.emoteLeft > 0) {
-        this.emoteLeft -= dt;
+        this.emoteLeft = Math.max(0, this.emoteLeft - dt);
+        this.idleSeconds = 0;
         this.animator.play(this.emoteAnim, dir);
-      } else this.animator.play(moving ? (running ? 'run' : 'walk') : 'idle', dir);
+      } else {
+        this.actionLocksMovement = false;
+        this.idleSeconds = moving ? 0 : this.idleSeconds + dt;
+        const hasSit = CHARACTERS[this.animator.key].anims.sit !== undefined;
+        this.animator.play(moving ? (running ? 'run' : 'walk') : hasSit && this.idleSeconds >= 3 ? 'sit' : 'idle', dir);
+      }
       this.animator.update(dt);
       return;
     }
@@ -261,10 +274,29 @@ export class Actor extends Entity {
     if (Math.abs(sx) > 0.2) this.sprite.scale.x = sx < 0 ? -1 : 1;
   }
 
-  /** Plays a bark/hurt animation for flavor (critters only). */
+  /** Plays a bark/hurt gesture while allowing the actor's existing movement. */
   emote(anim: 'bark' | 'hurt', seconds = 0.6): void {
+    this.beginAction(anim, seconds, false);
+  }
+
+  /** Plays an authored action in place, then resumes the actor's behavior.
+   * One-shots use their complete clip duration by default; loops play one cycle.
+   */
+  playAction(anim: AnimName, seconds?: number): void {
+    if (!this.animator) return;
+    const clip = CHARACTERS[this.animator.key].anims[anim];
+    if (!clip) return;
+    this.beginAction(anim, seconds ?? animationDuration(clip), true);
+  }
+
+  private beginAction(anim: AnimName, seconds: number, lockMovement: boolean): void {
+    if (!this.animator || !CHARACTERS[this.animator.key].anims[anim]) return;
+    if (!Number.isFinite(seconds) || seconds <= 0) return;
     this.emoteAnim = anim;
     this.emoteLeft = seconds;
-    this.animator?.play(anim, this.animator.dir, true);
+    this.actionLocksMovement = lockMovement;
+    this.idleSeconds = 0;
+    this.animator.speed = 1;
+    this.animator.play(anim, this.animator.dir, true);
   }
 }

@@ -7,17 +7,29 @@ import { CHARACTERS, textureName, type AnimName, type CharacterKey } from '../as
 import type { Dir8 } from '../iso/projection';
 import { PixelText } from '../ui/pixelText';
 
-/** Five representative directions fit the portrait sprite viewer. */
-const VIEW_DIRS: Dir8[] = ['S', 'SE', 'E', 'NE', 'N'];
+/** Four distinct source profiles; the runtime atlases retain all eight facing directions. */
+const VIEW_DIRS: readonly Dir8[] = ['S', 'W', 'E', 'N'];
 
-/**
- * Debug page (`?debug=sprites&char=zampano`): every animation x direction of a character,
- * animated. Handy when dropping in final art.
- */
+/** Fit complete frames into a portrait table without overlapping adjacent rows. */
+export function spriteViewerLayout(width: number, height: number, rows: number, frameW: number, frameH: number) {
+  const margin = 2;
+  const labelWidth = 44;
+  const top = 28;
+  const columnWidth = Math.max(1, (width - margin * 2 - labelWidth) / VIEW_DIRS.length);
+  const rowHeight = Math.max(1, (height - top - margin) / Math.max(1, rows));
+  const scale = Math.max(0.01, Math.min(1, (columnWidth - 4) / frameW, (rowHeight - 2) / frameH));
+  return { margin, labelWidth, top, columnWidth, rowHeight, scale };
+}
+
+/** Debug page: every action playing in front, left, right and back views. */
 export class SpriteViewerScene implements Scene {
   readonly root = new Container();
   readonly pausesBelow = true;
-  private readonly cells: Array<{ sprite: Sprite; anim: AnimName; dir: Dir8 }> = [];
+  private readonly background = new Graphics();
+  private readonly title: PixelText;
+  private readonly labels: PixelText[] = [];
+  private readonly headings: PixelText[] = [];
+  private readonly cells: Array<{ sprite: Sprite; anim: AnimName; dir: Dir8; row: number; col: number }> = [];
   private time = 0;
 
   constructor(
@@ -25,36 +37,56 @@ export class SpriteViewerScene implements Scene {
     readonly key: CharacterKey,
   ) {
     const def = CHARACTERS[key];
-    const bg = new Graphics().rect(0, 0, 2000, 2000).fill(0x3fcf1f);
-    this.root.addChild(bg);
-    const title = new PixelText(key.toUpperCase(), { color: '#ffe23a', outline: '#000000' });
-    title.position.set(2, 2);
-    this.root.addChild(title);
-    const anims = Object.keys(def.anims) as AnimName[];
-    const cw = def.frameW;
-    const ch = def.frameH;
-    // Rows overlap a little when a character has many anims (Zampanò: 11), to fit the screen.
-    const rowH = Math.min(ch - 4, Math.floor((game.height - 18) / anims.length));
-    anims.forEach((anim, row) => {
-      const label = new PixelText(anim.slice(0, 4), { color: '#ffffff', outline: '#000000' });
-      label.position.set(1, 14 + row * rowH + ch / 2 - 4);
+    this.root.addChild(this.background);
+    this.title = new PixelText(key.toUpperCase(), { color: '#ffe23a', outline: '#000000' });
+    this.root.addChild(this.title);
+    VIEW_DIRS.forEach((dir) => {
+      const heading = new PixelText(dir, { color: '#ffffff', outline: '#000000' });
+      this.root.addChild(heading);
+      this.headings.push(heading);
+    });
+    (Object.keys(def.anims) as AnimName[]).forEach((anim, row) => {
+      const label = new PixelText(anim.toUpperCase(), { color: '#ffffff', outline: '#000000' });
       this.root.addChild(label);
+      this.labels.push(label);
       VIEW_DIRS.forEach((dir, col) => {
         const sprite = new Sprite(textures.get(textureName(key, anim, dir, 0)));
-        sprite.position.set(36 + col * (cw - 6) + def.anchorX - 4, 14 + row * rowH + def.anchorY);
+        sprite.roundPixels = true;
         this.root.addChild(sprite);
-        this.cells.push({ sprite, anim, dir });
+        this.cells.push({ sprite, anim, dir, row, col });
       });
     });
+    this.resize(game.width, game.height);
+  }
+
+  resize(width: number, height: number): void {
+    const def = CHARACTERS[this.key];
+    const layout = spriteViewerLayout(width, height, this.labels.length, def.frameW, def.frameH);
+    const { margin, labelWidth, top, columnWidth, rowHeight, scale } = layout;
+    this.background.clear().rect(0, 0, width, height).fill(0x3fcf1f);
+    this.title.scale.set(Math.min(1, (width - margin * 2) / this.title.texture.frame.width));
+    this.title.position.set(margin, margin);
+    this.headings.forEach((heading, col) => {
+      const centerX = margin + labelWidth + (col + 0.5) * columnWidth;
+      heading.position.set(Math.round(centerX - heading.width / 2), 16);
+    });
+    this.labels.forEach((label, row) => {
+      label.position.set(margin, Math.round(top + row * rowHeight + (rowHeight - label.height) / 2));
+    });
+    for (const { sprite, row, col } of this.cells) {
+      const left = margin + labelWidth + col * columnWidth + (columnWidth - def.frameW * scale) / 2;
+      const y = top + row * rowHeight + (rowHeight - def.frameH * scale) / 2;
+      sprite.scale.set(scale);
+      sprite.position.set(Math.round(left + def.anchorX * scale), Math.round(y + def.anchorY * scale));
+    }
   }
 
   update(dt: number): void {
     this.time += dt;
     const anims = CHARACTERS[this.key].anims;
     for (const c of this.cells) {
-      const a = anims[c.anim]!;
-      const f = animationFrame(a, this.time, true);
-      c.sprite.texture = textures.get(textureName(this.key, c.anim, c.dir, f));
+      const frame = animationFrame(anims[c.anim]!, this.time, true);
+      c.sprite.texture = textures.get(textureName(this.key, c.anim, c.dir, frame));
     }
   }
 }

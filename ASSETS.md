@@ -10,18 +10,22 @@ manifest are relative to `public/`, e.g. `sheet: 'sprites/zampano.png'` → `pub
 If a file is missing or broken the placeholder is used and a warning is printed in the console.
 
 Tip: open the game with `?debug=sprites&char=zampano` (or `bagnaskiz`, `cat`, any cast key) to
-see every animation and direction of a character playing side by side.
+see every animation of a character playing side by side, facing S, W, E and N (the frames scale
+to fit, so no row overlaps the next).
 
 ## Delivered art
 
 The game ships only the latest delivered art (in `public/sprites/`): the armoured Zampanò
 animations (the knight) and the Zampanò animation integration (plain Zampanò) over sprite update 2
-(the rag cross) over update 1 (the cast). The art
+(the rag cross), the Sbrimbrulòn normal and armoured animations, and update 1 (the rest of the
+cast). The art
 each delivery replaced is kept in `art-archive/` (not bundled). The zips are kept at the repo root
 as delivered (`Supervillained_VG1_Zampano_Animation_Integration.zip` has a labelled chart of every
 action in `preview/actions.png` and the motion in `preview/animations.gif`;
 `Supervillained_VG1_Armoured_Zampano_Animations.zip` has the knight's 256 px source sheets in
-five views, their timings in `animations.json` and a contact sheet in `preview/`).
+five views, their timings in `animations.json` and a contact sheet in `preview/`; the two
+`Supervillained_VG1_Sbrimbrulon_*_Animations.zip` the same for Sbrimbrulòn, plain and armoured,
+whose installer script and patch were not run: the integration was merged by hand).
 
 | file in `public/sprites/` | size | what it is |
 |---|---|---|
@@ -29,7 +33,8 @@ five views, their timings in `animations.json` and a contact sheet in `preview/`
 | `zampanoCross.png`, `zampanoCross-tired.png` | 160 × 3200, 80 × 320 | with the rag cross, worn from 1.5 (update 2) |
 | `zampanoKnight.png`, `zampanoKnight-tired.png` | 320 × 3520, 80 × 320 | the knight (conical helm, shoulder plates, mail coat, red cross on the back), from 2.5: the same 11 animations + tired as plain Zampanò (armoured animations) |
 | `bagnaskiz.png` | 160 × 1600 | fawn pug, black ears, yellow eyes (update 1) |
-| `sbrimbrulon.png` | 160 × 1600 | long-haired tricolour Shih-tzu (update 1) |
+| `sbrimbrulon.png`, `sbrimbrulon-tired.png` | 320 × 3520, 80 × 320 | Sbrimbrulòn, long-haired rust, dark and white Shih-tzu: the same 12 actions as Zampanò (Sbrimbrulòn animations) |
+| `sbrimbrulonKnight.png`, `sbrimbrulonKnight-tired.png` | 320 × 3520, 80 × 320 | Sbrimbrulòn armoured (helm with nose guard, shoulder plates, mail, red cross on the back), in the dream: 3.1, 5.2, 7.3 |
 | `jack.png` | 160 × 1600 | black chihuahua, pink-lined ears (update 1) |
 | `watson.png` | 160 × 1600 | white-and-orange Jack Russell, teal cap, cigar (update 1) |
 | `confusione.png` | 160 × 1600 | orange tabby fighting cat (update 1) |
@@ -90,7 +95,7 @@ anchor (20, 36), animations **idle 2, walk 4, run 4, bark 2, hurt 2** (same shee
 | key | role in the VG1 design |
 |-----|------------------------|
 | `zampanoCross`, `zampanoKnight` | Zampanò with the rag cross (1.5) / in armour (2.5 onwards) |
-| `sbrimbrulon` | Shih-tzu; Pierre d'Amiens in 7.3 |
+| `sbrimbrulon`, `sbrimbrulonKnight` | Shih-tzu, on the lawn / armoured in the dream (3.1, 5.2; Pierre d'Amiens in 7.3). Both have Zampanò's 12 actions: standing still 3 s he sits, and `Actor.playAction(anim, seconds?)` plays any action in place |
 | `jack`, `watson`, `santina`, `confusione` | the band and friends (Jack the absent general / looter, Watson the sailor, Santina the purple-born princess, Confusione as Aleaume) |
 | `bagnaskizMarshal`, `bagnaskizEmperor` | Bagnaskiz's masks: Villehardouin, then the usurpers |
 | `doge`, `king`, `emir`, `legate`, `cellarer`, `preacher`, `stranger`, `marquis`, `prince`, `burgher`, `lady`, `greek`, `knight`, `varangian`, `clerkA`, `clerkB` | supporting cast |

@@ -137,7 +137,7 @@ export const CH7: ChapterDef = {
             ctx.addActor('flanders', 'knight', '3', { kind: 'idle', face: 'N' });
             ctx.addActor('window', 'santina', { x: 13.5, y: 7.5 }, { kind: 'idle', face: 'SW' });
             const s0 = ctx.marker('S');
-            ctx.addActor('sbrim', 'sbrimbrulon', { x: s0.x - 1, y: s0.y }, { kind: 'idle', face: 'N' });
+            ctx.addActor('sbrim', 'sbrimbrulonKnight', { x: s0.x - 1, y: s0.y }, { kind: 'idle', face: 'N' });
             ctx.addActor('stpol', 'knight', { x: s0.x + 1, y: s0.y + 0.4 }, { kind: 'idle', face: 'N' });
           }),
           say('emperor', 'I RIDE OUT. ALL OF YOU. AT THEM.'),

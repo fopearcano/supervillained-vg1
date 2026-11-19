@@ -85,7 +85,8 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   `autopilot.ts` (automated player: steps and
   mini-games implement an optional `pilot()` that drives the real inputs).
 - `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
-  sight cones, hostile contact).
+  sight cones, hostile contact; a character with a `sit` animation sits after 3 s still;
+  `playAction(anim, seconds?)` plays an action in place, then the behavior resumes).
 - `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims, delivered `sheet`/`animSheets`),
   `build.ts` (load the delivered PNGs or generate placeholders), `placeholders/*` (procedural
   pixel art for the cast without delivered sheets), `fonts/`.

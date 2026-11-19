@@ -36,6 +36,13 @@ export const CAST_SPECS: Record<string, CritterSpec> = {
     muzzle: '#7a5430',
     topknot: '#e02040',
   },
+  /** Fallback only; the delivered PNG supplies the reference-matching knight art. */
+  sbrimbrulonKnight: {
+    ...ZAMPANO_SPEC,
+    colors: { ...ZAMPANO_SPEC.colors, ...recolor('#bc7836', '#473022', '#071e1b', '#071e1b') },
+    marks: 'patches', markColor: '#fff3d9', muzzle: '#fff3d9', eyes: 'big',
+    costume: 'tabard', hat: 'helm', hatColor: '#99959a',
+  },
   /** Mad chihuahua: small, fawn, huge pointy ears, big eyes. */
   jack: {
     ...DOG,

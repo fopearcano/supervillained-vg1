@@ -67,6 +67,7 @@ export const CAST_KEYS = [
   'zampanoCross',
   'zampanoKnight',
   'sbrimbrulon',
+  'sbrimbrulonKnight',
   'jack',
   'watson',
   'santina',
@@ -110,7 +111,8 @@ const DELIVERED: Partial<Record<string, Pick<CharacterDef, 'sheet' | 'animSheets
   zampanoCross: { sheet: 'sprites/zampanoCross.png', animSheets: tired('sprites/zampanoCross-tired.png') },
   zampanoKnight: { sheet: 'sprites/zampanoKnight.png', animSheets: tired('sprites/zampanoKnight-tired.png') },
   bagnaskiz: { sheet: 'sprites/bagnaskiz.png' },
-  sbrimbrulon: { sheet: 'sprites/sbrimbrulon.png' },
+  sbrimbrulon: { sheet: 'sprites/sbrimbrulon.png', animSheets: tired('sprites/sbrimbrulon-tired.png') },
+  sbrimbrulonKnight: { sheet: 'sprites/sbrimbrulonKnight.png', animSheets: tired('sprites/sbrimbrulonKnight-tired.png') },
   jack: { sheet: 'sprites/jack.png' },
   watson: { sheet: 'sprites/watson.png' },
   confusione: { sheet: 'sprites/confusione.png' },
@@ -135,6 +137,17 @@ const ZAMPANO_ANIMS = {
   tired: { frames: 2, fps: 4, loop: true },
 } satisfies Partial<Record<AnimName, AnimDef>>;
 
+/**
+ * Sbrimbrulòn, plain and armoured (the Sbrimbrulòn animation deliveries): Zampanò's twelve
+ * actions and holds, in the same atlas row order, except that fetch and hurt play once (an actor
+ * plays them as actions and then goes back to what it was doing).
+ */
+const SBRIMBRULON_ANIMS = {
+  ...ZAMPANO_ANIMS,
+  fetch: { frames: 4, fps: 13, loop: false },
+  hurt: { frames: 2, fps: 10, loop: false },
+} satisfies Partial<Record<AnimName, AnimDef>>;
+
 /** Story characters: idle / walk / run / bark, 40x40, anchored like Zampanò. */
 function castDefs<K extends string>(keys: readonly K[]): Record<K, CharacterDef> {
   const out = {} as Record<K, CharacterDef>;
@@ -149,6 +162,8 @@ function castDefs<K extends string>(keys: readonly K[]): Record<K, CharacterDef>
       anims:
         key === 'zampanoKnight'
           ? ZAMPANO_ANIMS
+          : key === 'sbrimbrulon' || key === 'sbrimbrulonKnight'
+          ? SBRIMBRULON_ANIMS
           : key === 'zampanoCross'
           ? {
               idle: { frames: 2, fps: 3, loop: true },

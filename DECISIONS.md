@@ -685,3 +685,18 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
   the tug of war (the knight's run). With 8-frame cycles that showed half the cycle; they now use
   the sheet's frame count (one walk cycle every four rungs, as before) and the run's authored
   timing.
+
+## Sbrimbrulòn, plain and armoured
+
+- `Supervillained_VG1_Sbrimbrulon_Normal_Animations.zip` and `..._Armoured_Animations.zip` replace
+  update 1's Sbrimbrulòn (5 animations, moved to `art-archive/sprites-update-1/`) with the same 12
+  actions as Zampanò, and add an armoured variant, `sbrimbrulonKnight` (helm with nose guard,
+  shoulder plates, mail coat, red cross on the back). Both share Zampanò's table except fetch and
+  hurt, which play once (`SBRIMBRULON_ANIMS`).
+- The zips carried an installer script and a patch against an earlier commit. The script was not
+  run; the patch was read and merged by hand on top of the armoured Zampanò update: the manifest by
+  hand, the rest (`Actor.playAction`, actors sitting after 3 s still when their sheet has `sit`,
+  the fitted sprite viewer with S/W/E/N columns, the placeholder spec, its tests) as delivered.
+- Where the armour is worn: the delivery left that to the story. Sbrimbrulòn is armoured in the
+  dream, where he is a crusader (3.1 the Venice quay, 5.2 the wall of Zara, 7.3 Pierre at the
+  walls), and plain on the lawn (1.3, 8.3). His dialogue portrait stays plain, as Zampanò's does.

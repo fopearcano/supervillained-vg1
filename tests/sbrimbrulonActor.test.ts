@@ -1,0 +1,82 @@
+import { describe, expect, it, vi } from 'vitest';
+import { Actor } from '../src/entities/actor';
+import type { Entity } from '../src/entities/entity';
+import type { GameMap } from '../src/world/map';
+import { animationDuration } from '../src/assets/animationTiming';
+import { CHARACTERS } from '../src/assets/manifest';
+
+vi.mock('pixi.js', () => {
+  class Container {
+    addChild(_child: unknown): void {}
+    destroy(_options: unknown): void {}
+  }
+  class Sprite {
+    roundPixels = false;
+    constructor(public texture: unknown) {}
+  }
+  return { Container, Sprite };
+});
+vi.mock('../src/core/assets', () => ({ textures: { get: (name: string) => name } }));
+
+function context(key: 'sbrimbrulon' | 'sbrimbrulonKnight') {
+  const actor = new Actor('sbrim', key, 0, 0);
+  const map = {
+    moveCircle: vi.fn((x: number, y: number, dx: number, dy: number) => ({ x: x + dx, y: y + dy, blocked: false })),
+  };
+  const player = { gx: 10, gy: 10 } as Entity;
+  const step = (dt: number) => actor.step(dt, map as unknown as GameMap, player);
+  return { actor, map, step };
+}
+
+describe.each(['sbrimbrulon', 'sbrimbrulonKnight'] as const)('%s actor action selection', (key) => {
+  it('walks, stands when stopping, sits after three seconds, and stands again on movement', () => {
+    const { actor, step } = context(key);
+    actor.setBehavior({ kind: 'goto', to: { x: 3, y: 0 }, speed: 1 });
+    step(0.1);
+    expect(actor.animator!.anim).toBe('walk');
+    actor.setBehavior({ kind: 'idle' });
+    step(1);
+    expect(actor.animator!.anim).toBe('idle');
+    step(1);
+    expect(actor.animator!.anim).toBe('idle');
+    step(1);
+    expect(actor.animator!.anim).toBe('sit');
+    actor.setBehavior({ kind: 'goto', to: { x: 3, y: 0 }, speed: 1 });
+    step(0.1);
+    expect(actor.animator!.anim).toBe('walk');
+  });
+
+  it.each(['pee', 'poop', 'bark', 'fetch', 'hurt'] as const)('plays all of %s in place before resuming movement', (action) => {
+    const { actor, map, step } = context(key);
+    actor.setBehavior({ kind: 'goto', to: { x: 3, y: 0 }, speed: 1 });
+    actor.playAction(action);
+    const duration = animationDuration(CHARACTERS[key].anims[action]!);
+    step(duration * 0.5);
+    expect(actor.animator!.anim).toBe(action);
+    expect(actor.animator!.finished).toBe(false);
+    step(duration * 0.5);
+    expect(actor.animator!.anim).toBe(action);
+    expect(actor.animator!.finished).toBe(true);
+    expect(map.moveCircle).not.toHaveBeenCalled();
+    expect([actor.gx, actor.gy]).toEqual([0, 0]);
+    step(0.01);
+    expect(actor.animator!.anim).toBe('walk');
+    expect(map.moveCircle).toHaveBeenCalledOnce();
+    expect(actor.gx).toBeGreaterThan(0);
+  });
+
+  it('plays the tired clip and returns to standing instead of a stale seated animation', () => {
+    const { actor, step } = context(key);
+    step(3);
+    expect(actor.animator!.anim).toBe('sit');
+    actor.playAction('tired', 0.5);
+    step(0.1);
+    expect(actor.animator!.anim).toBe('tired');
+    const first = actor.animator!.sprite.texture;
+    step(0.25);
+    expect(actor.animator!.sprite.texture).not.toBe(first);
+    step(0.2);
+    step(0.01);
+    expect(actor.animator!.anim).toBe('idle');
+  });
+});

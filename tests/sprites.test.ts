@@ -17,7 +17,7 @@ const withSheet = defs.filter((d) => d.sheet);
 describe('sprite sheets match the manifest layout', () => {
   it('the characters with delivered art', () => {
     expect(withSheet.map((d) => d.key).sort()).toEqual(
-      ['bagnaskiz', 'confusione', 'jack', 'sbrimbrulon', 'watson', 'zampano', 'zampanoCross', 'zampanoKnight'].sort(),
+      ['bagnaskiz', 'confusione', 'jack', 'sbrimbrulon', 'sbrimbrulonKnight', 'watson', 'zampano', 'zampanoCross', 'zampanoKnight'].sort(),
     );
   });
 

@@ -44,7 +44,7 @@ export const CH3: ChapterDef = {
       script: () => [
         call((ctx) => {
           ctx.setStage('venice', { at: 'S' });
-          ctx.addActor('sbrim', 'sbrimbrulon', { x: ctx.marker('S').x - 0.8, y: ctx.marker('S').y - 0.6 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('sbrim', 'sbrimbrulonKnight', { x: ctx.marker('S').x - 0.8, y: ctx.marker('S').y - 0.6 }, { kind: 'idle', face: 'player' });
         }),
         say('sbrimbrulon', 'STAY BEHIND ME, LITTLE ONE. AND LOOK AT THOSE SHIPS.'),
         followLeader({
