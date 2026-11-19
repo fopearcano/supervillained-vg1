@@ -1,0 +1,70 @@
+# Builds the iOS app on a GitHub-hosted Mac (this repository is public, so it costs nothing).
+# iPhone apps can only be compiled on macOS; the project itself (ios/) is made on any machine
+# with `npx cap add ios` / `npm run ios:sync`.
+#
+# Artifacts (Actions → this run → Artifacts):
+#  - SUPERVILLAINED-ios-unsigned.ipa: the device build, NOT signed. Install it on an iPhone with a
+#    sideloading tool that signs with your own Apple ID (for example Sideloadly or AltStore), or
+#    open ios/App/App.xcodeproj in Xcode on a Mac, pick your team under Signing & Capabilities
+#    and run it on the phone.
+#  - SUPERVILLAINED-ios-simulator.zip: App.app for the iOS Simulator (unzip, drag onto it).
+name: iOS build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'claude/**']
+    paths:
+      - 'ios/**'
+      - 'src/**'
+      - 'public/**'
+      - 'assets/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.ts'
+      - '.github/workflows/ios.yml'
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Web build (typecheck + Vite) and copy into the iOS project
+        run: |
+          npm run build
+          npx cap sync ios
+
+      - name: Device build (unsigned)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/device \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          mkdir -p out/Payload
+          cp -R build/device/Build/Products/Release-iphoneos/App.app out/Payload/
+          (cd out && zip -qry SUPERVILLAINED-ios-unsigned.ipa Payload)
+
+      - name: Simulator build
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build/sim \
+            CODE_SIGNING_ALLOWED=NO build
+          (cd build/sim/Build/Products/Release-iphonesimulator && zip -qry "$GITHUB_WORKSPACE/out/SUPERVILLAINED-ios-simulator.zip" App.app)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SUPERVILLAINED-ios
+          path: |
+            out/SUPERVILLAINED-ios-unsigned.ipa
+            out/SUPERVILLAINED-ios-simulator.zip
+          retention-days: 30

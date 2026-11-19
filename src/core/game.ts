@@ -1,7 +1,7 @@
 import { Container, type Application } from 'pixi.js';
 import { ScreenTransition } from '../fx/transition';
 import { AudioEngine } from './audio';
-import { computeViewport, type Viewport } from './display';
+import { computeViewport, safeAreaInsets, type Viewport } from './display';
 import { Input } from './input';
 import { GameLoop } from './loop';
 import { SceneManager, type Scene } from './scene';
@@ -89,7 +89,11 @@ export class Game {
   resize(): void {
     const w = window.visualViewport?.width ?? window.innerWidth;
     const h = window.visualViewport?.height ?? window.innerHeight;
-    const v = computeViewport(w, h, window.devicePixelRatio || 1);
+    // Inside the safe area (notch, rounded corners, home indicator).
+    const ins = safeAreaInsets();
+    const v = computeViewport(Math.max(1, w - ins.left - ins.right), Math.max(1, h - ins.top - ins.bottom), window.devicePixelRatio || 1);
+    v.cssLeft += ins.left;
+    v.cssTop += ins.top;
     this.view = v;
     this.app.renderer.resize(v.width, v.height);
     const s = this.canvas.style;

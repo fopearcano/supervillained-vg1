@@ -9,7 +9,11 @@
  *  - ic_launcher_foreground.png  adaptive icon: the shape inside the 66 dp safe zone
  *    (the background colour is set to white);
  *  - splash.png             white screen with the logo in the middle;
- * and the web icons in public/ (favicon, Apple touch icon, 192/512 for installs).
+ * the web icons in public/ (favicon, Apple touch icon, 192/512 for installs) and, when the iOS
+ * project exists, its app icon (1024 px, opaque as the App Store requires) and launch images
+ * (2732 px squares shown "aspect fill", so the logo stays inside the part a phone shows).
+ *
+ *   npm run ios:icons      (the same script)
  * No dependencies: a small PNG decoder/encoder over node:zlib and an area-average resize.
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -17,6 +21,7 @@ import { join } from 'node:path';
 import zlib from 'node:zlib';
 
 const RES = 'android/app/src/main/res';
+const IOS_ASSETS = 'ios/App/App/Assets.xcassets';
 const LOGO = 'branding/logo.png';
 const PUBLIC = 'public';
 const WHITE = [255, 255, 255, 255];
@@ -252,4 +257,15 @@ for (const [file, size] of [
   writeFileSync(join(PUBLIC, file), encodePng(makers['ic_launcher.png'](size, size)));
   count++;
 }
+// iOS: one 1024 px icon (Xcode makes the other sizes) and the three launch images.
+if (existsSync(IOS_ASSETS)) {
+  writeFileSync(join(IOS_ASSETS, 'AppIcon.appiconset/AppIcon-512@2x.png'), encodePng(makers['ic_launcher.png'](1024, 1024)));
+  count++;
+  for (const name of ['splash-2732x2732.png', 'splash-2732x2732-1.png', 'splash-2732x2732-2.png']) {
+    const file = join(IOS_ASSETS, 'Splash.imageset', name);
+    // Aspect fill on a tall phone shows only the middle ~45 % of the width: keep the logo inside.
+    writeFileSync(file, encodePng(pasteCentered(blank(2732, 2732, WHITE), logoIn(logo, 2732 * 0.3, 2732 * 0.3))));
+    count++;
+  }
+} else console.warn(`${IOS_ASSETS} not found: iOS icons skipped (run "npx cap add ios" first).`);
 console.log(`wrote ${count} images from ${LOGO}`);

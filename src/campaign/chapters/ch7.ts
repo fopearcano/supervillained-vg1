@@ -64,10 +64,11 @@ export const CH7: ChapterDef = {
           onAction: (ctx) => ctx.say('OOOH.', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
         }),
         card('NIKETAS CHONIATES', 'AN OFFICIAL OF THE EMPIRE, AND A HISTORIAN. NOBODY FROM THE LAWN: THE DREAM HAS NO FACE TO LEND HIM.', { color: '#c8a0ff', seconds: 3 }),
-        say('niketas', 'FROM OUR ROOFS THEY LOOK LIKE A FAIR THAT HAS LOST ITS WAY. WHO ARE THEY BRINGING US?'),
+        say('niketas', 'THE BEGINNING OF JULY, IN THE YEAR 6711 SINCE THE CREATION OF THE WORLD. FROM OUR ROOFS THEY LOOK LIKE A FAIR THAT HAS LOST ITS WAY.'),
+        say('niketas', 'THOSE OF THE WEST. LATINS. BARBARIANS WITH SHAVEN CHEEKS, SO THEY ALL LOOK YOUNG. WHO ARE THEY BRINGING US?'),
         say('voice', 'ROW THE YOUNG ALEXIOS ALONG THE WALLS. HIS SUBJECTS WILL RECOGNIZE HIM.'),
         mini(() => new TugGame({ objective: 'ROW THE YOUNG ALEXIOS ALONG THE WALLS', label: 'ROW! (TAP)', friend: 'prince' }), { lost: { commozione: 3 } }),
-        say('niketas', 'WHO IS THAT BOY? WE HAVE AN EMPEROR.'),
+        say('niketas', 'WHO IS THAT BOY? WE ROMANS HAVE AN EMPEROR.'),
         card('NOBODY KNOWS HIM', 'NO AMOUNT OF ROWING WILL MAKE HIM WELCOME', { color: C.red, seconds: 2.4 }),
         say('zampano', 'THERE WAS A PRINCE, AND NOBODY HAD EVER SEEN HIM.', { remembered: true }),
       ],
@@ -97,7 +98,7 @@ export const CH7: ChapterDef = {
             onReach: (ctx, k) => {
               if (k !== 1) return;
               ['8', '9', '7'].forEach((m, n) => ctx.addActor(`v${n}`, 'varangian', m, { kind: 'idle', face: 'S' }));
-              ctx.notice('AXE-BEARING GUARDS AT THE PARAPET', C.red);
+              ctx.notice('THE AXE-BEARING BARBARIANS, DANES AND ENGLISH, AT THE PARAPET', C.red);
             },
             onUpdate: (ctx) => {
               const d = ctx.actor('doge');
@@ -154,7 +155,8 @@ export const CH7: ChapterDef = {
           card('CHARGE?', '', { color: C.red, seconds: 1 }),
           say('knight', 'THE COUNT OF FLANDERS TURNS BACK! BACK TO THE CAMP!'),
           call((ctx) => ctx.actor('flanders').setBehavior({ kind: 'goto', to: ctx.marker('2'), speed: 3.2, run: true })),
-          say('sbrimbrulon', 'WE WILL NOT TURN BACK AT ALL. WE GO ON. AT A WALK. STAY AT MY SHOULDER.'),
+          say('sbrimbrulon', 'WE WILL NOT TURN BACK AT ALL. LORDS, RIDE ON, IN GOD\'S NAME. AT A WALK. STAY AT MY SHOULDER, LITTLE ONE.'),
+          say('knight', '(BEHIND THEM, THE CAMP) LORD GOD, KEEP THEM TODAY, AND ALL THEIR COMPANY!'),
           call((ctx) => {
             ctx.actor('sbrim').setBehavior({ kind: 'goto', to: { x: ctx.marker('1').x - 1, y: ctx.marker('1').y }, speed: S.SPEED });
             ctx.actor('stpol').setBehavior({ kind: 'follow', target: ctx.actor('sbrim'), distance: 2, speed: 2, side: 1.2 });
@@ -259,9 +261,9 @@ export const CH7: ChapterDef = {
       id: '7.5',
       title: 'Unpaid promises',
       happens:
-        "THE FIRST PAYMENT COMES; THE REST DOES NOT. CARRY THE CHESTS FROM THE PALACE AND WATCH THEM GET LIGHTER. THE DOGE TELLS THE YOUNG EMPEROR WHAT HE THINKS OF HIM FROM A GALLEY. THEN A QUARREL IN THE STREETS STARTS A FIRE THAT BURNS FOR TWO DAYS: LEAD A WOMAN OF NIKETAS'S HOUSEHOLD BACK TO HER COURTYARD ALONG THE STREET YOU LEARNED. SHE TELLS HIM NOT TO COME BACK.",
+        "THE FIRST PAYMENT COMES; THE REST DOES NOT. CARRY THE CHESTS FROM THE PALACE AND WATCH THEM GET LIGHTER. THE DOGE TELLS THE YOUNG EMPEROR WHAT HE THINKS OF HIM FROM A GALLEY. THEN SOME PILGRIMS GO TO BURN THE MOSQUE OF THE CITY'S MUSLIMS, THEIR GREEK NEIGHBOURS COME TO DEFEND IT, AND IN THE FIGHT A FIRE STARTS THAT BURNS FOR TWO DAYS: LEAD A WOMAN OF NIKETAS'S HOUSEHOLD BACK TO HER COURTYARD ALONG THE STREET YOU LEARNED. SHE TELLS HIM NOT TO COME BACK.",
       source:
-        "CLARI LVI AND LIX (MUNRO): A FIRST PAYMENT, THEN NO MORE; THE DOGE REBUKES THE YOUNG EMPEROR FROM HIS GALLEYS. VILLEHARDOUIN PP. 48-53: ALEXIUS CANNOT PAY; A RIOT BETWEEN GREEKS AND LATINS, A FIRE THAT BURNS TWO DAYS, THE LATINS OF THE CITY FLEE TO THE CAMP, 'THUS WAS THERE DIVISION BETWEEN THE GREEKS AND THE FRANKS'. REPLACES THE OLD CLIGES EPISODE. THE CHESTS AND THE WOMAN ARE ADAPTATION.",
+        "CLARI LVI AND LIX (MUNRO): A FIRST PAYMENT, THEN NO MORE; THE DOGE REBUKES THE YOUNG EMPEROR FROM HIS GALLEYS. VILLEHARDOUIN PP. 48-53: ALEXIUS CANNOT PAY; A RIOT BETWEEN GREEKS AND LATINS, A FIRE THAT BURNS TWO DAYS, THE LATINS OF THE CITY FLEE TO THE CAMP, 'THUS WAS THERE DIVISION BETWEEN THE GREEKS AND THE FRANKS'. BARBERO'S LECTURE ON THE FOURTH CRUSADE: CRUSADERS SET OUT TO BURN THE MOSQUE, THE GREEKS DEFEND THEIR MUSLIM NEIGHBOURS, THE FIRE BURNS THE FORUM OF CONSTANTINE AND PART OF THE HIPPODROME; NIKETAS LOSES HIS PALACE IN IT. REPLACES THE OLD CLIGES EPISODE. THE CHESTS AND THE WOMAN ARE ADAPTATION.",
       script: () => [
         stage('city', [], { at: '8' }),
         say('voice', 'THE FIRST PAYMENT. ALEXIOS IV SENDS IT OUT OF THE PALACE IN CHESTS.'),
@@ -278,7 +280,7 @@ export const CH7: ChapterDef = {
         call((ctx) => ctx.addActor('doge', 'doge', { x: ctx.player.gx - 1.2, y: ctx.player.gy - 0.8 }, { kind: 'idle', face: 'player' })),
         say('doge', '(FROM HIS GALLEY, TO THE YOUNG EMPEROR) WE PULLED YOU OUT OF THE MUD, BOY. WE CAN PUT YOU BACK IN IT.'),
         call((ctx) => ctx.removeActor('doge')),
-        card('A QUARREL IN THE STREETS', 'THEN A FIRE. IT BURNS FOR TWO DAYS.', { color: C.red, seconds: 2.4 }),
+        card('THE MOSQUE', "SOME PILGRIMS GO TO BURN THE MOSQUE OF THE CITY'S MUSLIMS. THEIR GREEK NEIGHBOURS COME TO DEFEND IT. IN THE FIGHT, A FIRE. IT BURNS FOR TWO DAYS.", { color: C.red, seconds: 3 }),
         call((ctx) => {
           ctx.player.setPosition(ctx.marker('3').x, ctx.marker('3').y);
           ctx.world!.snapCamera();
@@ -293,7 +295,7 @@ export const CH7: ChapterDef = {
           fire: { from: '1', spread: 0.35, startAfter: (w) => w.time > 0.6 },
         }),
         call((ctx) => (ctx.fog = 0)),
-        say('lady', 'THE FIG TREE IS GONE. THE LAMP IS STILL HERE.'),
+        say('lady', 'THE HOUSE HAS BURNED. THE FIG TREE IS GONE. THE LAMP IS STILL HERE.'),
         say('lady', 'YOUR PEOPLE ARE LEAVING THE CITY FOR YOUR CAMP. GO WITH THEM. DO NOT COME BACK.'),
         card('DIVISION', 'BETWEEN THE GREEKS AND THE FRANKS, AS THE MARSHAL WILL PUT IT', { color: '#c8a0ff', seconds: 2.2 }),
         say('zampano', 'THERE WAS A CITY, AND IT WAS ON FIRE, AND I KNEW ONE STREET.', { remembered: true }),
@@ -354,7 +356,7 @@ export const CH7: ChapterDef = {
             { name: 'conf', who: 'confusione', at: '4', face: 'SW' },
             { name: 'jack', who: 'jack', at: { x: 9.5, y: 10.5 }, face: 'N' },
           ]),
-          say('bishop', 'SWEAR IT. EVERYTHING TAKEN IS BROUGHT IN AND DECLARED. NO HAND ON A WOMAN. NO HAND ON A PRIEST OR A NUN.'),
+          say('bishop', 'SWEAR IT ON THE SAINTS. EVERYTHING TAKEN IS BROUGHT IN AND DECLARED. NO HAND ON A WOMAN. NO HAND ON A PRIEST OR A NUN.'),
           ask('bishop', 'SWEAR.', [{ label: 'SO HELP ME GOD.', effects: { grace: 5, flags: { sworn: true } } }]),
           say('jack', 'SO HELP ME GOD. (HE IS CROSSING HIS FINGERS.)'),
           call((ctx) => {
@@ -399,7 +401,7 @@ export const CH7: ChapterDef = {
       happens:
         "THE CITY IS TAKEN. CLARI WILL WRITE THAT NO HARM WAS DONE TO POOR OR RICH, AND FILL HIS BOOK WITH WONDERS. TURN THE PAGE: THE SAME STREETS, AS NIKETAS WILL WRITE THEM, AND HIS OWN DOORWAY. HIS HOUSEHOLD IS LEAVING; JACK DRAGS A GIRL OUT OF THE GROUP. WAIT FOR A LULL AND CALL THE PILGRIMS TO THEIR OATH, OR STAND SILENT WHILE NIKETAS CALLS THEM HIMSELF. EITHER WAY THEY LET HER GO.",
       source:
-        "CLARI 80 (THE TAKING; 'NO MISCHIEF WAS DONE TO POOR OR TO RICH'; THE HIGH MEN SEIZE THE BEST HOUSES). CHONIATES, THE SACK (MUNRO PP. 15-16): IMAGES TRODDEN, THE ALTAR OF THE GREAT CHURCH BROKEN AND SHARED OUT, MULES IN THE SANCTUARY, 'NO ONE WAS WITHOUT A SHARE IN THE GRIEF'. THE TWO ACCOUNTS ARE KEPT APART. NIKETAS'S FLIGHT AND THE GIRL ARE ADAPTATION (A CHONIATES EPISODE NOT VERIFIED IN THE CONSULTED EXCERPTS); JACK'S ROLE IS INVENTED.",
+        "CLARI 80 (THE TAKING; 'NO MISCHIEF WAS DONE TO POOR OR TO RICH'; THE HIGH MEN SEIZE THE BEST HOUSES). CHONIATES, THE SACK (MUNRO PP. 15-16): IMAGES TRODDEN, THE ALTAR OF THE GREAT CHURCH BROKEN AND SHARED OUT, MULES IN THE SANCTUARY, 'NO ONE WAS WITHOUT A SHARE IN THE GRIEF'. THE TWO ACCOUNTS ARE KEPT APART. NIKETAS'S FLIGHT AS BARBERO TELLS IT FROM NIKETAS (LECTURE ON THE FOURTH CRUSADE): THE HOUSE WITH A DARK ENTRANCE, THE VENETIAN FRIEND WHO KEEPS THE LOOTERS AWAY, THE GIRLS WITH MUD ON THEIR FACES, A GIRL DRAGGED INTO A HOUSE AND LET GO WHEN NIKETAS REMINDS HER CAPTOR OF THE OATH, 'THESE ABOMINATIONS'. ZAMPANO'S CALL AND JACK'S ROLE ARE INVENTED.",
       script: () => {
         let called = false;
         return [
@@ -413,7 +415,7 @@ export const CH7: ChapterDef = {
               { at: '0', kind: 'marvel', label: 'THE GREAT CHURCH', text: 'A DOME LIKE THE SKY, HUNG ON NOTHING', effects: { marvel: 'THE GREAT CHURCH', commozione: 5 } },
               { at: '7', kind: 'marvel', label: 'THE HIPPODROME', text: 'TIERS OF SEATS, AND BRONZE FIGURES EVERYWHERE', effects: { marvel: 'THE HIPPODROME', commozione: 5 } },
             ],
-            onAction: (ctx) => ctx.say('OOOH.', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
+            onAction: (ctx) => ctx.say('MERVEILLE!', { x: ctx.player.gx, y: ctx.player.gy }, C.yellow),
           }),
           sound('glitch'),
           call((ctx) => ctx.game.transition.play(null, 0.6, 1)),
@@ -429,7 +431,7 @@ export const CH7: ChapterDef = {
             ctx.player.setPosition(10.5, 17.5);
             ctx.world!.snapCamera();
           }),
-          say('voice', "NIKETAS'S DOORWAY, WHERE THE LAMP WAS. HIS HOUSEHOLD IS LEAVING ON FOOT, WITH A VENETIAN FRIEND IN FRONT. JACK DRAGS A GIRL OUT OF THE GROUP."),
+          say('voice', "NIKETAS'S HOUSE BURNED IN THE FIRE; HE AND HIS FRIENDS HAVE SHELTERED IN ONE WITH A DARK ENTRANCE, AND THE LAMP CAME WITH THEM. NOW THE HOUSEHOLD IS LEAVING ON FOOT, A VENETIAN FRIEND IN FRONT, THE GIRLS IN THE MIDDLE WITH MUD ON THEIR FACES. JACK DRAGS ONE OF THEM OUT OF THE GROUP."),
           lullWalk({
             objective: 'WAIT FOR A LULL AND CALL THE PILGRIMS TO THEIR OATH, OR STAND SILENT',
             action: 'CALL',
@@ -466,7 +468,7 @@ export const CH7: ChapterDef = {
             [say('knight', '(THE PILGRIMS) HE IS RIGHT. WE SWORE. LET HER GO, JACK.'), say('jack', 'ALL RIGHT! ALL RIGHT! I WAS ONLY... CARRYING HER. FOR SAFETY.')],
             [say('knight', '(THE PILGRIMS) THE GREEK IS RIGHT. WE SWORE. LET HER GO, JACK.'), say('voice', 'ZAMPANO SAID NOTHING. HE HEARD EVERY WORD.')],
           ),
-          say('niketas', 'SHE IS BACK WITH HER FAMILY. OUR HOUSE IS NOT. I WILL WRITE DOWN WHO SPOKE, AND WHO DID NOT.'),
+          say('niketas', 'SHE IS BACK WITH HER FAMILY. OUR HOUSE IS NOT. THESE THINGS THE ARMIES OF THE WEST DID TO A CHRISTIAN PEOPLE. I WILL WRITE DOWN WHO SPOKE, AND WHO DID NOT.'),
           say('zampano', 'THERE WAS A DOORWAY, AND IT WAS SOMEBODY ELSE\'S.', { remembered: true }),
         ];
       },
@@ -520,6 +522,7 @@ export const CH7: ChapterDef = {
         card('THE COMMON PILE', 'THE GOLD AND THE SILK STAY UNDER GUARD. THE POOR KNIGHTS RECEIVE THE COARSE SILVER.', { color: '#d8d8e8', seconds: 2.6 }),
         say('confusione', 'A CLERK WANTS A KNIGHT\'S SHARE. THE COUNT OF SAINT-POL SAYS CLERKS SHARE LIKE KNIGHTS. SO DO I.'),
         say('zampano', 'THEY DIVIDED THE HOUSES WHILE WE WERE AT THE WALLS. EVEN THE GOOD ONES. ESPECIALLY THE GOOD ONES.'),
+        say('zampano', 'THE GOLD WENT TO LI RIKE HOMME. LI POVRE CHEVALIER GOT THE SILVER.'),
         fx({ coins: 2 }),
         say('zampano', 'THERE WAS GOLD, AND THEN THERE WAS SILVER, AND THEN THERE WAS ME.', { remembered: true }),
         sound('glitch'),

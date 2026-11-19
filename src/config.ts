@@ -508,6 +508,16 @@ export const STORY = {
   SHOULDER: { BAND: 1.2, LOSE: 0.2, GAIN: 0.12, SPEED: 1.5 },
   /** 7.4: how thick the smoke gets on the sightseeing route (0..1). */
   SMOKE: 0.82,
+  /**
+   * The dialogue box: its bottom edge sits BOTTOM px above the screen's bottom; it is MIN_H tall
+   * (four lines) and grows upwards for longer lines (text height + PAD for the name and margins).
+   */
+  DIALOGUE_BOX: { BOTTOM: 18, MIN_H: 74, PAD: 32 },
+  /**
+   * Speech above a character (ctx.say) is kept this far inside the view: from the sides, and
+   * from the top (below the story HUD), so a speaker at the edge of the screen is read in full.
+   */
+  SAY_INSET: { SIDE: 4, TOP: 76 },
   /** Hidden goals heard rather than seen (7.5 the previous room, 7.7 the rattle of mail): seconds between sounds. */
   HEAR_EVERY: 1.6,
   RUMOUR: { ARRIVE_EVERY: 1.2 },

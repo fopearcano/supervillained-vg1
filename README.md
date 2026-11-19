@@ -101,6 +101,39 @@ After changing game code, `npm run android:sync` is enough before rebuilding.
 App icons, splash screens and web icons are generated from the logo (`branding/logo.png`) with
 `npm run android:icons`.
 
+## iPhone / iPad (iOS)
+
+The iOS app is the same Capacitor shell (`ios/`, Swift Package Manager, no CocoaPods): portrait
+locked, fullscreen, screen kept on, the SUPERVOID EDITIONS link opens Safari. iOS apps do not
+close themselves, so QUIT shows the goodbye card, as in a browser. The game is laid out inside
+the safe area (notch / Dynamic Island, home indicator).
+
+iPhone apps can only be compiled on a Mac, so there are two ways to get one:
+
+- **Without a Mac — GitHub Actions.** Every push that touches the game or `ios/` runs the
+  *iOS build* workflow (`.github/workflows/ios.yml`) on a GitHub-hosted Mac; it can also be
+  started by hand from the Actions tab (*Run workflow*, once the workflow is on the default
+  branch). Its artifact *SUPERVILLAINED-ios* holds `SUPERVILLAINED-ios-unsigned.ipa` (an
+  unsigned device build) and `SUPERVILLAINED-ios-simulator.zip`. Apple only runs signed apps on a
+  phone: install the `.ipa` with a sideloading tool that signs it with your own Apple ID (for
+  example Sideloadly or AltStore; a free Apple ID's signature lasts 7 days), or sign it as below.
+- **With a Mac (Xcode 16+).**
+
+  ```bash
+  npm run ios:sync
+  ```
+
+  ```bash
+  npm run ios:open
+  ```
+
+  In Xcode select the *App* target → *Signing & Capabilities* → your Team (a free Apple ID works
+  for your own phone), plug in the iPhone, pick it as the run destination and press Run. For
+  TestFlight / the App Store: *Product → Archive* with a paid developer account.
+
+After changing game code, `npm run ios:sync` copies the new web build into the project. Icons
+and launch images come from the logo too: `npm run ios:icons` (the same script as Android).
+
 ## Develop
 
 ```bash

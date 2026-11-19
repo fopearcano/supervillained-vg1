@@ -93,7 +93,7 @@ export const CH2: ChapterDef = {
             crowd.forEach((m, k) => ctx.addActor(`c${k}`, (['crowdA', 'crowdB', 'crowdC'] as const)[k % 3], m, { kind: 'idle', face: 'N' }));
           }),
           card('A TOURNAMENT IN CHAMPAGNE', 'A PREACHER HAS TAKEN OVER THE FIELD', { color: C.yellow, seconds: 2 }),
-          say('fulk', 'TAKE THE CROSS! WHOEVER GOES, GOES FORGIVEN. LORDS FIRST, AND THEN EVERYBODY.'),
+          say('fulk', 'TAKE THE CROSS! THE HOLY VOYAGE, THE GENERAL PASSAGE! WHOEVER GOES, GOES FORGIVEN. LORDS FIRST, AND THEN EVERYBODY.'),
           lullWalk({
             objective: 'SHOUT YOUR VOW IN THE PAUSES BETWEEN HIS PHRASES',
             action: 'VOW',
@@ -126,7 +126,7 @@ export const CH2: ChapterDef = {
           }),
           say('voice', 'THEN THE COUNTS OF CHAMPAGNE AND BLOIS TAKE THE CROSS ON THE PLATFORM, AND EVERY HEAD TURNS TO THEM.'),
           call((ctx) => ctx.addActor('clerk', 'clerkB', { x: 11.5, y: 8.5 }, { kind: 'idle', face: 'player' })),
-          say('clerk', '(A CLERK, WRITING) THE COUNTS. THEIR KNIGHTS. THEIR KNIGHTS\' KNIGHTS. AND YOU ARE?'),
+          say('clerk', '(A CLERK, WRITING) CRUCESIGNATI: SIGNED WITH THE CROSS. THE COUNTS. THEIR KNIGHTS. THEIR KNIGHTS\' KNIGHTS. AND YOU ARE?'),
           ask('clerk', 'NAME, AND WHOSE MAN YOU ARE.', [
             {
               label: 'A KNIGHT OF PICARDY. PUT ME NEAR THE TOP.',
@@ -191,6 +191,8 @@ export const CH2: ChapterDef = {
         }),
         card('A FAMILIAR FACE', "SBRIMBRULON IS PIERRE D'AMIENS HERE: THE LORD WHOSE MEN HE RIDES WITH", { color: C.cyan, seconds: 2.4 }),
         say('sbrimbrulon', 'THAT WAS A FINE CHARGE AT NOTHING, LITTLE ONE. NOW WALK. VENICE IS A LONG WAY.'),
+        say('zampano', 'YES, MESSIRE PIERRE. TO THE CRUSADE!'),
+        say('confusione', 'NOBODY SAYS CRUSADE, BROTHER. IT IS THE HOLY VOYAGE. AND WE ARE PILGRIMS.'),
         followLeader({
           objective: "FALL IN BEHIND PIERRE. TO VENICE",
           leader: 'pierre',

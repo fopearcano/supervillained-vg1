@@ -7,6 +7,7 @@ import { spriteName, textureName, CHARACTERS, type CharacterKey } from '../asset
 import type { CampaignState } from '../campaign/state';
 import { PixelText } from '../ui/pixelText';
 import { C, frameRect, hex, retroBox } from '../ui/retro';
+import { withOldWords } from './names';
 
 /** Speaker names, colors and portraits. */
 export const SPEAKERS: Record<string, { name: string; color: string; portrait: CharacterKey | 'professor' | null }> = {
@@ -68,6 +69,10 @@ export class DialogueBox {
   private readonly name = new PixelText('', { shadow: '#000000' });
   private readonly text = new PixelText('', { color: C.white, shadow: '#000000', lineGap: 3 });
   private readonly more = new PixelText('>', { color: C.yellow, shadow: '#000000' });
+  /** Off-screen copy of the text style: measures a whole line before it is typed. */
+  private readonly measure = new PixelText('', { color: C.white, shadow: '#000000', lineGap: 3 });
+  /** Box height: at least the classic four lines, taller (upwards) for a longer line. */
+  private boxH: number = STORY.DIALOGUE_BOX.MIN_H;
   private readonly choices = new Container();
   private choiceRows: Array<{ g: Graphics; t: PixelText; x: number; y: number; w: number; h: number; locked: boolean }> = [];
   private full = '';
@@ -97,18 +102,22 @@ export class DialogueBox {
   }
 
   private boxTop(): number {
-    return this.h - 92;
+    return this.h - STORY.DIALOGUE_BOX.BOTTOM - this.boxH;
   }
 
   private redrawBox(): void {
+    const B = STORY.DIALOGUE_BOX;
+    // The whole line must fit: the box grows upwards (its bottom edge stays where it is).
+    this.measure.setStyle({ maxWidth: this.w - 62 }).setText(this.full);
+    this.boxH = Math.max(B.MIN_H, this.measure.textHeight + B.PAD);
     const top = this.boxTop();
     this.bg.clear();
-    retroBox(this.bg, 3, top, this.w - 6, 74, C.yellow, C.red, 0.78);
+    retroBox(this.bg, 3, top, this.w - 6, this.boxH, C.yellow, C.red, 0.78);
     this.portrait.position.set(8, top + 6);
     this.name.position.set(this.portrait.texture === null ? 8 : 52, top + 6);
     this.text.position.set(52, top + 18);
     this.text.setStyle({ maxWidth: this.w - 62 });
-    this.more.position.set(this.w - 14, top + 62);
+    this.more.position.set(this.w - 14, top + this.boxH - 12);
   }
 
   private portraitToken = 0;
@@ -149,7 +158,7 @@ export class DialogueBox {
   /** Reveals the whole line at once. */
   finish(): void {
     this.shown = this.full.length;
-    this.text.setText(this.full);
+    this.text.setText(withOldWords(this.full, this.full.length, C.white));
   }
 
   setChoices(options: ChoiceView[]): void {
@@ -230,7 +239,7 @@ export class DialogueBox {
     this.time += dt;
     if (this.shown < this.full.length) {
       this.shown = Math.min(this.full.length, this.shown + dt * this.cps);
-      this.text.setText(this.full.slice(0, Math.floor(this.shown)));
+      this.text.setText(withOldWords(this.full, Math.floor(this.shown), C.white));
     }
     this.more.visible = !this.typing && !this.choiceRows.length && Math.floor(this.time * 3) % 2 === 0;
     if (this.choiceRows.length) this.drawChoices();

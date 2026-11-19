@@ -158,7 +158,7 @@ export class Flow {
     );
   }
 
-  /** QUIT: closes the app on Android; a browser tab cannot close itself, so it says goodbye. */
+  /** QUIT: closes the app on Android; a browser tab or an iOS app cannot close itself, so it says goodbye. */
   private quit(): void {
     this.game.audio.play('click');
     if (quitApp()) return;

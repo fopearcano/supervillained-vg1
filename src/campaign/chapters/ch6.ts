@@ -59,6 +59,7 @@ export const CH6: ChapterDef = {
         }),
         walk({ objective: 'THE LAST TENT', goal: { reach: '3', radius: 1.4, label: 'ALEAUME' } }),
         say('confusione', '(SHIVERING) I GAVE MINE TO A BOY FROM ARRAS. CLERKS ARE NOT MEANT TO BE HUNGRY. WE ARE MEANT TO BE WISE.'),
+        say('confusione', 'LI RIKE HOMME, THE RICH MEN, HAVE WINE IN THEIR TENTS. WE ARE LI POVRE CHEVALIER, THE POOR KNIGHTS. WE HAVE THIS.'),
         say('jack', '(FROM THE FIRE) DICE! DICE! THE WINNER EATS TWICE! MAGNIFICENT!'),
         ask('confusione', '(ALEAUME LOOKS AT YOUR HALF LOAF, THEN AWAY.)', [
           {
@@ -96,7 +97,7 @@ export const CH6: ChapterDef = {
         const spot = (k: number): Pickup => ({ at: NAME_TRAIL[k]!.at, kind: 'spot', label: '"BONIFACE"', text: NAME_TRAIL[k]!.text });
         return [
           stage('winter', [{ name: 'cook', who: 'cellarer', at: { x: 4.5, y: 11.5 }, face: 'E' }], { at: 'S' }),
-          say('cook', 'THE GOOD WINE IS FOR THE MARQUIS BONIFACE. HE HAS GUESTS FROM GERMANY.'),
+          say('cook', 'THE GOOD WINE IS FOR THE MARQUIS BONIFACE, THE LOMBARD. HE HAS GUESTS FROM GERMANY.'),
           walk({
             objective: "FOLLOW THE TALK TO THE COUNCIL TENT",
             pickups: [spot(0)],

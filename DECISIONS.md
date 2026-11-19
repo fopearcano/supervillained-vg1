@@ -768,3 +768,51 @@ save migration in [`docs/STORY-SOURCES.md`](docs/STORY-SOURCES.md).
   editions listed in `docs/STORY-SOURCES.md`; invented material is marked ADAPTATION. Episodes
   not verifiable in those editions (Niketas's flight with a Venetian protector; the mosque of 1203)
   are either marked as adaptation or omitted.
+
+## Period words, the mosque, Niketas's flight; speech kept on screen
+
+- **Barbero's lecture on the Fourth Crusade** (Italian transcript, `barbero - 4a crociata.txt` in the repository root) is now a
+  consulted source. From it the dream's characters speak about twenty **period words** — the holy
+  voyage, the general passage, *crucesignati*, pilgrims, *messire*, dromons, *uissiers*, a weight
+  of silver, our company, in thrall to the Turks, Outremer, the Lombard, *li rike homme*, *li povre
+  chevalier*, in God's name, those of the West, Latins, barbarians, Romans, the year 6711, on the
+  saints, *merveille* — each given to the character who would use it (`docs/STORY-SOURCES.md`,
+  "Period words"). The dialogue box colours them amber as they are typed (`OLD_WORDS` and
+  `withOldWords` in `story/names.ts`, tested); names in the cards stay yellow.
+- **7.5** now says how the fire of 1203 started, as Barbero tells it: pilgrims set out to burn the
+  mosque, the Greeks defend their Muslim neighbours. Niketas's house burns in it.
+- **7.8** follows Niketas's flight as Barbero tells it from Niketas (the house with a dark
+  entrance, the Venetian friend, mud on the girls' faces, the oath recalled); it is no longer
+  "unverified". The second transcript (*Il sogno nel Medioevo*) is still not available.
+- **Speech on screen**: text over a character (`ctx.say`) is kept inside the view and below the
+  HUD (`Popups.keepIn`, `STORY.SAY_INSET`), so a speaker at the edge of the screen (the woman on
+  the walls in 7.3) is read in full.
+- **Dialogue box fits the line**: it was a fixed four-line box, and many lines of the rewrite are
+  longer, so their end ran out of the box. It now measures the whole line and grows upwards
+  (`STORY.DIALOGUE_BOX`); its bottom edge and short lines are unchanged, and choices still stack
+  above it.
+
+## iOS: the same Capacitor shell, built on GitHub's Macs
+
+- **`@capacitor/ios` 8.6.2** (new dependency, the iOS counterpart of `@capacitor/android`, same
+  version) and the generated `ios/` project, with Swift Package Manager (no CocoaPods, so the
+  project can be generated and synced on Linux).
+- **Native bits mirror Android**: `MainViewController` (a `CAPBridgeViewController` subclass)
+  registers the app's `AppQuit` plugin, disables the idle timer (screen kept on), hides the status
+  bar and the home indicator, and allows portrait only; `Info.plist` adds portrait-only
+  orientations, `UIRequiresFullScreen`, `UIStatusBarHidden`, `arm64` and no export-compliance
+  question. `AppQuitPlugin.swift` opens web links in Safari; `quit` is unavailable because iOS
+  apps must not close themselves (Apple's guidelines), so `quitApp()` returns false on iOS and the
+  title's QUIT shows the goodbye card, as in a browser.
+- **Safe area**: the canvas is laid out inside `env(safe-area-inset-*)` (read through a probe
+  element, `safeAreaInsets()`), so the HUD is not under an iPhone's notch or Dynamic Island and
+  the bottom buttons stay clear of the home indicator. All insets are 0 on desktop browsers;
+  Android phones with a camera cutout benefit too.
+- **Icons**: `scripts/gen-android-assets.mjs` also writes the iOS app icon (1024 px, opaque) and the
+  three 2732 px launch images, with the logo small enough to survive "aspect fill" on a tall phone.
+- **Building without a Mac**: this container is Linux, and iPhone apps compile only on macOS.
+  `.github/workflows/ios.yml` builds on a GitHub-hosted Mac (free for this public repository) an
+  unsigned device `.ipa` and a simulator `.app`, uploaded as the *SUPERVILLAINED-ios* artifact.
+  Installing on a phone still needs a signature: a sideloading tool with the user's Apple ID, or
+  Xcode with a team selected. A shared `App` scheme is committed so `xcodebuild -scheme App` works
+  without opening Xcode first.

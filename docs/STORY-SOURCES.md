@@ -8,12 +8,18 @@ each scene is history, and what happened to old saves.
 
 - **The brief** for the rewrite (Robert de Clari as the viewpoint; Villehardouin and Niketas
   Choniates as supplementary voices; the list of episodes to remove).
-- **Not available:** the two lecture transcripts the brief names, `barbero - 4a crociata(1).txt`
-  and `barbero - sogno nel medioevo(1).txt`. They are not in this repository, not on the `main`
-  branch and not anywhere on the build machine. Nothing in the game is attributed to those
-  lectures any more: every old `source` that cited them was replaced by chronicle references or
-  by "ADAPTATION". The Professor's lines are original writing in a lecturer's voice, not
-  quotations of any lecturer.
+- **Alessandro Barbero's lecture on the Fourth Crusade** (an Italian transcript, `barbero - 4a
+  crociata.txt` in the repository root, added after the first version of this rewrite; the text
+  is in it twice, one copy after the other). It
+  tells the crusade through the same three witnesses and is used for: the **period words** the
+  dream's characters speak (below), the start of the fire of 1203 at the mosque (7.5) and
+  Niketas's flight from the city (7.8). Barbero renders the chronicles in Italian; lines the game
+  takes from those renderings are English versions of his Italian, marked "after Barbero" below,
+  not quotations of an edition.
+- **Not available:** the second transcript the brief names, `barbero - sogno nel medioevo(1).txt`
+  (not in the repository, on `main` or on the build machine). Nothing in the game relies on it.
+  The Professor's lines are original writing in a lecturer's voice, not quotations of any
+  lecturer.
 - **The chronicles**, read online in English translation (below). Page and chapter references in
   the game are to these editions only. Where a passage could not be checked, it is marked
   unverified here and the game treats the scene as adaptation.
@@ -82,13 +88,52 @@ said by a historical person in the game is original dialogue.
 The Doge's rebuke of Alexios IV (Clari LIX, "wretched boy, we have raised you from the mire") is
 paraphrased in 7.5, not quoted.
 
-### Unverified, and treated as adaptation
+### Period words (after Barbero)
 
-- Niketas's flight from the city with his household, a Venetian protector and a girl saved from
-  the crusaders: a well-known Choniates episode, but not in the excerpts consulted. 7.8 uses the
-  shape of it (his doorway, the household leaving, a girl let go) and says so in its source.
-- The mosque attacked during the riot of 1203 (the old 7.4): not checked, and omitted.
-- Niketas visiting with the crusaders, his courtyard, the lamp and the purple cushion: invented.
+Words and turns of phrase the witnesses use, as Barbero explains or renders them in his lecture.
+They are coloured amber in the dialogue box (`OLD_WORDS` in `src/story/names.ts`; a test checks
+that each is spoken in the dream).
+
+| Word | What Barbero says | Who says it in the game |
+|---|---|---|
+| THE HOLY VOYAGE, THE GENERAL PASSAGE | "Crusade" is a modern word; they said *il santo viaggio* or *il passaggio generale* | Fulk (2.2); Aleaume (2.3) |
+| CRUCESIGNATI | The Latin sources' *crucesignati*, "signed with the cross": a cross sewn on the clothes when you vow to go | The clerk at the list (2.2) |
+| PILGRIMS | What the witnesses called themselves | Aleaume (2.3) and throughout |
+| MESSIRE | *Messer* Pierre d'Amiens, as Clari names his lord | Zampanò (2.3) |
+| DROMONS, UISSIERS | Clari's technical names for the ships at Venice: "the rich ships, the great dromons and the *uissiers* to carry the horses, and the galleys" | Pierre (3.1); the transports' marvel text; Watson (4.2) |
+| A WEIGHT OF SILVER | The mark was not a coin but a weight of silver (about a quarter of a kilo) | The marshal (3.2) |
+| OUR COMPANY | The Doge's offer, after Villehardouin: "as long as our company lasts", conquests and booty shared half and half | The marshal (3.2) |
+| IN THRALL TO THE TURKS, OUTREMER | The envoys' plea at Saint Mark's, after Villehardouin: Jerusalem "in servaggio dei Turchi", "the Holy Land of Oltremare" | The marshal; the weeping in 3.3 |
+| THE LOMBARD | Boniface of Montferrat, "a Lombard, as they would have said" | The cook (6.2) |
+| LI RIKE HOMME, LI POVRE CHEVALIER | Clari's two worlds in his northern French: the rich men, and "we", the poor knights | Aleaume (6.1); Zampanò at the pile (7.9) |
+| IN GOD'S NAME (AT A WALK) | Pierre d'Amiens to his men, after Clari: "ride, in God's name, at a walk" | Pierre (7.3) |
+| THOSE OF THE WEST, LATINS, BARBARIANS | Niketas's names for the crusaders; they shave, so they look young | Niketas (7.1) |
+| ROMANS | What the Byzantines call themselves | Niketas (7.1) |
+| THE YEAR 6711 | Niketas dates the arrival "the beginning of July 6711", counting from the creation of the world | Niketas (7.1) |
+| ON THE SAINTS | Before the last assault they made everyone swear "on the saints" | The bishop (7.7) |
+| MERVEILLE | Clari's word, coming back again and again in his pages on the city | Zampanò, looking (7.8) |
+
+Lines taken from Barbero's renderings: the Doge's "for a year and a half no merchant of mine has
+traded" (3.4, after Clari); "Lord God, keep them today, and all their company" (7.3, the camp
+watching Pierre, after Clari); the axe-bearing barbarians, Danes and English (7.2, Niketas's name
+for the Varangian guard); "these things the armies of the West did to a Christian people" (7.8,
+after Niketas).
+
+### Told by Barbero, not checked in an edition
+
+- Niketas's flight from the city (7.8), from Niketas's account as Barbero tells it: his palace
+  burned in 1203, so he shelters with friends in a house with a dark entrance; a Venetian friend
+  keeps the looters away and leads them out; the girls smear mud on their faces and walk in the
+  middle; a crusader drags a girl into a house; other crusaders who speak a little Greek help;
+  Niketas reminds the man of the oath to leave women alone and he lets her go. The game keeps
+  that shape; Zampanò's call and Jack's part are invented.
+- The start of the fire of 1203 (7.5): crusaders set out to burn the mosque of the city's Muslim
+  quarter, the Greeks come to defend their Muslim neighbours, and in the fight the fire starts
+  that burns the Forum of Constantine and part of the Hippodrome.
+
+### Invented
+
+- Niketas visiting with the crusaders, his courtyard, the lamp and the purple cushion.
 
 ### Scene-by-scene status
 
@@ -117,10 +162,10 @@ paraphrased in 7.5, not quoted.
 | 7.2 | 17 July 1203; the Doge and the standard (Villehardouin pp. 41–45); Arras-sized fire (Clari 46) | Following the banner; carrying word. |
 | 7.3 | Pierre and Saint-Pol go on; pots and pestles; the ladies; Flanders rejoins (Clari 45–48); Alexios III retires (Villehardouin pp. 43–45) | The nerve gauge; Santina's face. |
 | 7.4 | Alexios III flees; Isaac restored; Alexios IV crowned 1 August 1203 (Villehardouin pp. 45–48); the Lion's Mouth palace (Clari 80); the pillars (Clari 92); the Hercules (Choniates) | The visit; the courtyard and lamp. |
-| 7.5 | Unpaid sums; the Doge's rebuke (Clari LVI, LIX); riot and two-day fire (Villehardouin pp. 48–53) | The chests; the woman led home. |
+| 7.5 | Unpaid sums; the Doge's rebuke (Clari LVI, LIX); riot and two-day fire (Villehardouin pp. 48–53); the mosque (Barbero) | The chests; the woman led home. |
 | 7.6 | The defiance at Blachernae; fire-ships; Mourtzouphlos's coup (Villehardouin pp. 53–56; Clari 61–62) | The walking rule; Bagnaskiz's crown. |
 | 7.7 | The oath on booty, women and clergy (Clari 68); the failed Friday, absolution, the breach and the foot (Clari 70–79); 12 April 1204 (Villehardouin pp. 59–63) | The tug; the voice or the rattle. |
-| 7.8 | Clari 80; Choniates's sack | Niketas's doorway; Jack; the girl; the call. |
+| 7.8 | Clari 80; Choniates's sack; Niketas's flight and the girl let go (Barbero, after Niketas) | Zampanò's call; Jack. |
 | 7.9 | Treasure under guard, coarse silver for poor knights (Clari 81, 105); Aleaume's share (Clari 98); a knight hanged for keeping things back (Villehardouin pp. 65–66); statues melted (Choniates) | The lamp; the walk; the pile scene. |
 | 8.1–8.4 | Clari's "strict truth" (8.2) | All. |
 

@@ -286,7 +286,7 @@ export class StoryScene implements Scene {
   /** A text popup above a world position (grid). */
   say(text: string, at: Point, color: string = C.white): void {
     const s = gridToScreen(at.x, at.y);
-    this.popups.text(text, s.x, s.y - 40, { color, glow: 'self', glowAlpha: 0.3, align: 'center', maxWidth: Math.min(150, this.w - 24) }, 1.2, -16);
+    this.popups.text(text, s.x, s.y - 40, { color, glow: 'self', glowAlpha: 0.3, align: 'center', maxWidth: Math.min(150, this.w - 24) }, 1.2, -16, true);
   }
 
   flash(color = 0xffffff, alpha = 0.9): void {
@@ -344,6 +344,12 @@ export class StoryScene implements Scene {
       this.world.endStep(dt);
     }
     this.particles.update(dt);
+    if (this.world) {
+      // Speech stays readable: inside the view's sides and below the HUD.
+      const v = this.world.camera.viewRect();
+      const k = STORY.SAY_INSET;
+      this.popups.keepIn = { x: v.x + k.SIDE, y: v.y + k.TOP, w: v.w - k.SIDE * 2, h: v.h - k.TOP };
+    } else this.popups.keepIn = null;
     this.popups.update(dt);
     this.dialogue.update(dt);
     this.cards.update(dt);

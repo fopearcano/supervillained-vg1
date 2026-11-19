@@ -37,7 +37,12 @@ npm run playtest -- --skill 0.4 --ending alpha --choice random --from 5.1 --out 
 npm run playtest -- --from 3.1 --to 3.4          # one level
 npm run android:apk  # web build + cap sync + Gradle debug APK (needs JDK 21 + Android SDK 36)
 npm run android:release  # the same, shrunk with R8 (about 23 MB less code): the APK to hand out
+npm run ios:sync     # web build + cap sync ios (the Xcode project in ios/; building it needs a Mac)
+npm run ios:open     # open it in Xcode (macOS)
+npm run ios:icons    # app icon + launch images from branding/logo.png (same script as android:icons)
 ```
+iOS without a Mac: `.github/workflows/ios.yml` builds an unsigned `.ipa` and a simulator app on a
+GitHub-hosted Mac at every push that touches the game or `ios/` (artifact *SUPERVILLAINED-ios*).
 
 Debug URLs: `?skip=game` (straight into the Green Zone walk, outside the story), `?story=7.3` (straight into a story
 sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
@@ -87,7 +92,7 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   `screens.ts` (story menu, level's sub-level list, cards, pause, Meraviglia book), `storyFlow.ts`
   (menu → cards → sub-level → Professor aside → ending; saves progress; replays on a copy),
   `maps.ts` (story stages + palettes/themes), `carry.ts` (what he carries, shown over his head),
-  `names.ts` (names shown in yellow in the card texts),
+  `names.ts` (names shown in yellow in the card texts; the period words, `OLD_WORDS`, coloured in the dialogue box),
   `autopilot.ts` (automated player: steps and
   mini-games implement an optional `pilot()` that drives the real inputs).
 - `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
@@ -99,6 +104,11 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
 - Repo-root `assets/music` and `assets/sounds` — recorded audio, wired in `src/fx/audioFiles.ts`
   (table in `ASSETS.md`); `core/audio.ts` plays them (sfx decoded, music streamed) alongside the
   synthesized sounds of `fx/sounds.ts`.
+- `ios/` — Capacitor iOS project (committed; Swift Package Manager). Custom bits:
+  `MainViewController.swift` (registers the plugin, screen kept on, no status bar, portrait),
+  `AppQuitPlugin.swift` (`openUrl` → Safari; `quit` unavailable, iOS apps do not close),
+  portrait/fullscreen keys in `Info.plist`, the shared `App` scheme. `App/App/public` is generated.
+  The canvas is laid out inside the safe area (`safeAreaInsets` in `core/display.ts`).
 - `android/` — Capacitor project (committed). Custom bits: `MainActivity.java` (immersive
   fullscreen, keep-screen-on, back button → `svback` window event), portrait lock in
   `AndroidManifest.xml`, fullscreen themes in `res/values/styles.xml`, icons/splash generated from

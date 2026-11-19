@@ -275,3 +275,32 @@ describe('saved stories', () => {
     expect(loadCampaign().completed).toEqual([]);
   });
 });
+
+describe('period words in the dialogue', () => {
+  it('colours whole period words only, longest first, as the line is typed', async () => {
+    const { oldWordRanges, withOldWords, OLD_WORD_COLOR } = await import('../src/story/names');
+    const line = 'NOBODY SAYS CRUSADE, BROTHER. IT IS THE HOLY VOYAGE. AND WE ARE PILGRIMS.';
+    const r = oldWordRanges(line);
+    expect(r.map(([a, b]) => line.slice(a, b))).toEqual(['THE HOLY VOYAGE', 'PILGRIMS']);
+    // Not inside another word.
+    expect(oldWordRanges('UNROMANSLIKE LATINSKI')).toEqual([]);
+    const all = withOldWords(line, line.length, '#fff');
+    expect(all.map((s) => s.text).join('')).toBe(line);
+    expect(all.filter((s) => s.color === OLD_WORD_COLOR).map((s) => s.text)).toEqual(['THE HOLY VOYAGE', 'PILGRIMS']);
+    // Half typed: the visible part of the word is already coloured.
+    const half = withOldWords(line, line.indexOf('VOYAGE'), '#fff');
+    expect(half.map((s) => s.text).join('')).toBe(line.slice(0, line.indexOf('VOYAGE')));
+    expect(half[half.length - 1]).toEqual({ text: 'THE HOLY ', color: OLD_WORD_COLOR });
+  });
+
+  it('every period word is spoken somewhere in the dream', () => {
+    const dir = 'src/campaign/chapters';
+    const all = readdirSync(dir)
+      .map((f) => readFileSync(`${dir}/${f}`, 'utf8'))
+      .join('\n')
+      .replace(/\\'/g, "'");
+    return import('../src/story/names').then(({ OLD_WORDS }) => {
+      for (const w of OLD_WORDS) expect(all, w).toContain(w);
+    });
+  });
+});

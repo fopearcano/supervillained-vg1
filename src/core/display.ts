@@ -43,3 +43,31 @@ export function computeViewport(cssW: number, cssH: number, dpr: number): Viewpo
     cssTop: Math.floor((cssH - cssHeight) / 2),
   };
 }
+
+export interface Insets {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+let probe: HTMLDivElement | null = null;
+
+/**
+ * The screen's safe-area insets in CSS px (an iPhone's notch or Dynamic Island, rounded
+ * corners, the home indicator; a camera cutout on Android), read from CSS `env()`; all 0 where
+ * the browser has none. The game is laid out inside them, the black page fills the rest.
+ */
+export function safeAreaInsets(): Insets {
+  if (typeof document === 'undefined') return { top: 0, right: 0, bottom: 0, left: 0 };
+  if (!probe) {
+    probe = document.createElement('div');
+    probe.style.cssText =
+      'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;' +
+      'padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+    document.body.appendChild(probe);
+  }
+  const cs = getComputedStyle(probe);
+  const px = (v: string) => Math.max(0, parseFloat(v) || 0);
+  return { top: px(cs.paddingTop), right: px(cs.paddingRight), bottom: px(cs.paddingBottom), left: px(cs.paddingLeft) };
+}

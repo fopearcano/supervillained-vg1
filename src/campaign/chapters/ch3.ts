@@ -40,7 +40,7 @@ export const CH3: ChapterDef = {
           ctx.setStage('venice', { at: 'S' });
           ctx.addActor('sbrim', 'sbrimbrulonKnight', { x: ctx.marker('S').x - 0.8, y: ctx.marker('S').y - 0.6 }, { kind: 'idle', face: 'player' });
         }),
-        say('sbrimbrulon', 'STAY BEHIND ME, LITTLE ONE. AND LOOK AT THOSE SHIPS.'),
+        say('sbrimbrulon', 'STAY BEHIND ME, LITTLE ONE. AND LOOK AT THOSE SHIPS: THE RICH SHIPS, THE GREAT DROMONS, THE UISSIERS THAT CARRY THE HORSES, AND THE GALLEYS.'),
         followLeader({
           objective: 'WALK THE QUAY BEHIND SBRIMBRULON',
           leader: 'sbrim',
@@ -62,7 +62,7 @@ export const CH3: ChapterDef = {
           objective: 'LOOK AT THE SHIPS',
           action: 'LOOK',
           pickups: [
-            { at: '1', kind: 'marvel', label: 'THE HORSE TRANSPORTS', text: 'A DOOR IN THE SIDE. THE HORSES WALK IN; ONE DAY THE KNIGHTS WILL RIDE OUT OF IT', effects: { marvel: 'THE HORSE TRANSPORTS', commozione: 3 } },
+            { at: '1', kind: 'marvel', label: 'THE HORSE TRANSPORTS', text: 'THE UISSIERS. A DOOR IN THE SIDE. THE HORSES WALK IN; ONE DAY THE KNIGHTS WILL RIDE OUT OF IT', effects: { marvel: 'THE HORSE TRANSPORTS', commozione: 3 } },
             { at: '2', kind: 'marvel', label: 'THE GALLEYS', text: 'LONG, LOW AND ALL OARS', effects: { marvel: 'THE GALLEYS', commozione: 3 } },
             { at: '3', kind: 'marvel', label: 'THE GREAT SHIPS', text: 'TALLER THAN THE CHURCH AT HOME', effects: { marvel: 'THE GREAT SHIPS', commozione: 3 } },
           ],
@@ -96,6 +96,7 @@ export const CH3: ChapterDef = {
           ctx.addActor('marshal', 'bagnaskizMarshal', '9', { kind: 'idle', face: 'player' });
         }),
         say('marshal', 'I SIGNED IT MYSELF. FOUR MARKS A HORSE, TWO A MAN, FOOD FOR NINE MONTHS. EIGHTY-FIVE THOUSAND MARKS. WE PROMISED THE WHOLE ARMY WOULD COME.'),
+        say('marshal', 'A MARK IS NOT A COIN, LITTLE KNIGHT. IT IS A WEIGHT OF SILVER. AND WHATEVER WE WIN, WE SHARE HALF AND HALF WITH VENICE, AS LONG AS OUR COMPANY LASTS.'),
         say('marshal', 'THE WHOLE ARMY DID NOT COME. TAKE THE BOWL AROUND.'),
         carry('COLLECTING BOWL'),
         walk({ objective: 'ROUND ONE: THE PILGRIMS PAY THEIR FARES', pickups: tents(['1', '2', '3', '4', '5', '6'], 'A PILGRIM', () => 'WHAT HE HAS') }),
@@ -132,7 +133,7 @@ export const CH3: ChapterDef = {
             SQUARE.forEach((m, k) => ctx.addActor(`v${k}`, (['crowdA', 'crowdB', 'crowdC'] as const)[k % 3], m, { kind: 'idle', face: 'player' }));
             ctx.addActor('trumpet', 'crowdB', '4', { kind: 'idle', face: 'S' });
           }),
-          say('marshal', 'I WAS AT THE FRONT. WE HAD NO MONEY, ONLY OUR CASE. YOU TELL IT. TAKE MY PLACE.'),
+          say('marshal', 'I WAS AT THE FRONT. WE HAD NO MONEY, ONLY OUR CASE: OUTREMER, AND JERUSALEM IN THRALL TO THE TURKS. YOU TELL IT. TAKE MY PLACE.'),
           walk({ objective: 'TAKE HIS PLACE AT THE FRONT OF THE ENVOYS', goal: { reach: { x: 14.5, y: 11.5 }, label: 'THE FRONT' } }),
           lullWalk({
             objective: 'KNEEL. WAIT UNTIL THE SQUARE FALLS QUIET, THEN WEEP',
@@ -143,7 +144,7 @@ export const CH3: ChapterDef = {
             noise: ['TA-RAAA!', 'THE DOGE! THE DOGE!', 'TA-RA-RAAA!', 'MAKE WAY!'],
             noiseLabel: 'TRUMPETS',
             drowned: 'A SOB UNDER A TRUMPET GETS LOST. WAIT',
-            actText: '(HE KNEELS AND WEEPS) FOR JERUSALEM...',
+            actText: '(HE KNEELS AND WEEPS) PITY FOR JERUSALEM, IN THRALL TO THE TURKS!',
             need: 2,
             onGood: (ctx, _w, n) => {
               ctx.apply({ commozione: 5 });
@@ -187,7 +188,7 @@ export const CH3: ChapterDef = {
             ctx.setStage('lido');
             ctx.addActor('doge', 'doge', '2', { kind: 'idle', face: 'player' });
           }),
-          say('doge', 'YOU ORDERED SHIPS FOR AN ARMY. I BUILT THEM. NOW PAY WHAT YOU PROMISED.'),
+          say('doge', 'YOU ORDERED SHIPS FOR AN ARMY. I BUILT THEM. FOR A YEAR AND A HALF NO MERCHANT OF MINE HAS TRADED. NOW PAY WHAT YOU PROMISED.'),
           say('voice', 'NOBODY LEAVES THE ISLAND. THE CAMP COUNTS ITS BREAD.'),
           call((ctx) => {
             ctx.removeActor('doge');

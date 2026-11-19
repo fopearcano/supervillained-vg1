@@ -53,7 +53,7 @@ export const CH4: ChapterDef = {
         'ADAPTATION: AN INVENTED CONNECTIVE SCENE. CLARI 10 AND 13 NAME THE TRANSPORTS THAT CARRY THE HORSES (EACH GREAT MAN HAS HIS OWN); NOTHING HERE IS CLAIMED AS SOMETHING CLARI RECORDS HIMSELF DOING.',
       script: () => [
         stage('ship', [{ name: 'watson', who: 'watson', at: '5', face: 'W' }], { at: '1' }),
-        say('watson', 'THE HORSES ARE THIRSTY, MAN. THE SKIFF IS ALREADY LOADED. GENTLY.'),
+        say('watson', 'THE HORSES ARE IN THE UISSIERS, MAN, AND THEY ARE THIRSTY. THE SKIFF IS ALREADY LOADED. GENTLY.'),
         mini(() => new BoatGame({ objective: 'EASE THE SKIFF ALONGSIDE THE TRANSPORT WITHOUT SWAMPING IT', bob: 'watson' }), { won: { commozione: 4 } }),
         carry('HAY AND WATER'),
         walk({

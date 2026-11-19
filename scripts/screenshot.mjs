@@ -304,6 +304,21 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /** The period words coloured in the dialogue box (7.1: Niketas on those of the West). */
+  async words(browser) {
+    const page = await openGame(browser, '?story=7.1');
+    await page.evaluate(() => localStorage.clear());
+    for (let k = 0; k < 80; k++) {
+      const line = await page.evaluate(() => window.__sv.top().dialogue?.full ?? '');
+      if (line.includes('THOSE OF THE WEST')) break;
+      await page.evaluate(() => window.__sv.top().debugSkip());
+      await wait(150);
+    }
+    await wait(4500);
+    await page.screenshot({ path: `${OUT}/c7-period-words.png` });
+    await page.close();
+  },
+
   /** The title's GLOSSARY card (the ring around the verb drawn), and the publisher link. */
   async glossary(browser) {
     const page = await openGame(browser, '');
