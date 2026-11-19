@@ -1,4 +1,6 @@
 import { Sprite } from 'pixi.js';
+import { COMBAT } from '../config';
+import type { Foe } from '../systems/combat';
 import { textures } from '../core/assets';
 import { CHARACTERS, spriteName, type AnimName, type CharacterKey } from '../assets/manifest';
 import { animationDuration } from '../assets/animationTiming';
@@ -19,7 +21,7 @@ export interface Point {
 export type Behavior =
   | { kind: 'idle'; face?: 'player' | Dir8 }
   | { kind: 'patrol'; points: Point[]; speed: number; pause?: number }
-  | { kind: 'chase'; speed: number; radius: number; home?: Point; leash?: number }
+  | { kind: 'chase'; speed: number; radius: number; home?: Point; leash?: number; stopAt?: number }
   | { kind: 'flee'; speed: number; radius: number }
   | { kind: 'follow'; target?: Entity; distance: number; speed: number; side?: number }
   | { kind: 'wander'; speed: number; center: Point; radius: number }
@@ -46,6 +48,13 @@ export class Actor extends Entity {
   hostile = false;
   /** Detection level 0..1 (sight cones fill it). */
   alert = 0;
+  /** In a fight (story/combat.ts): HP, stagger, swing. Null for everyone else. */
+  foe: Foe | null = null;
+  /** Pushed back by a blow or a bark (tiles/s, decaying). */
+  private knockX = 0;
+  private knockY = 0;
+  /** Seconds left of the red flash of a blow. */
+  private hitFlash = 0;
   /** Arrived at a 'goto' target. */
   arrived = false;
   speedScale = 1;
@@ -113,9 +122,38 @@ export class Actor extends Entity {
     this.pauseLeft = 0;
   }
 
+  /** A blow or a bark pushes them away (tiles/s along vx, vy, decaying). */
+  knock(vx: number, vy: number): void {
+    this.knockX = vx;
+    this.knockY = vy;
+  }
+
+  /** A short red flash (hit). */
+  flash(seconds = 0.15): void {
+    this.hitFlash = seconds;
+  }
+
   /** Logic step: moves according to the behavior. */
   step(dt: number, map: GameMap, player: Entity): void {
     this.time += dt;
+    if (Math.abs(this.knockX) + Math.abs(this.knockY) > 0.05) {
+      const r = map.moveCircle(this.gx, this.gy, this.knockX * dt, this.knockY * dt, this.radius);
+      this.gx = r.x;
+      this.gy = r.y;
+      const k = Math.exp(-COMBAT.FOE.KNOCK_DECAY * dt);
+      this.knockX *= k;
+      this.knockY *= k;
+    }
+    if (this.hitFlash > 0) {
+      this.hitFlash = Math.max(0, this.hitFlash - dt);
+      this.sprite.tint = this.hitFlash > 0 ? 0xff8080 : 0xffffff;
+    }
+    // A fighter staggered or swinging stands its ground, turned to him.
+    if (this.foe && !this.foe.routed && (this.foe.stun > 0 || this.foe.windup > 0)) {
+      if (this.foe.windup > 0) this.faceToward(player.gx, player.gy);
+      this.animate(dt, false, false);
+      return;
+    }
     if (this.actionLocksMovement && this.emoteLeft > 0) {
       this.animate(dt, false, false);
       return;
@@ -158,7 +196,7 @@ export class Actor extends Entity {
         const home = b.home ?? { x: this.gx, y: this.gy };
         const fromHome = Math.hypot(player.gx - home.x, player.gy - home.y);
         if (dp < b.radius && (b.leash === undefined || fromHome < b.leash)) {
-          toward({ x: player.gx, y: player.gy }, b.speed, 0.3);
+          toward({ x: player.gx, y: player.gy }, b.speed, b.stopAt ?? 0.3);
           running = true;
         } else toward(home, b.speed * 0.6);
         break;

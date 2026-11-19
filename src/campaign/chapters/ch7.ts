@@ -77,9 +77,9 @@ export const CH7: ChapterDef = {
       id: '7.2',
       title: "The Doge's banner",
       happens:
-        "17 JULY 1203, AT THE SEA WALLS. THE OLD, BLIND DOGE HAS HIMSELF PUT ASHORE WITH THE BANNER OF SAINT MARK. FOLLOW IT THROUGH THE LANDING WHILE AXE-BEARING GUARDS APPEAR AT THE PARAPET. THEN CARRY WORD TO THE LANDWARD CAMP: THE EMPEROR HAS COME OUT WITH A MUCH LARGER FORCE.",
+        "17 JULY 1203, AT THE SEA WALLS. THE OLD, BLIND DOGE HAS HIMSELF PUT ASHORE WITH THE BANNER OF SAINT MARK. FOLLOW IT THROUGH THE LANDING WHILE AXE-BEARING GUARDS APPEAR AT THE PARAPET. THEY COME DOWN: HOLD YOUR GROUND BY THE BANNER, SHIELD UP, UNTIL THE VENETIANS HOLD THE TOWERS. THEN CARRY WORD TO THE LANDWARD CAMP: THE EMPEROR HAS COME OUT WITH A MUCH LARGER FORCE.",
       source:
-        "VILLEHARDOUIN PP. 41-45: THE ASSAULT OF 17 JULY; THE DOGE LANDS WITH THE STANDARD OF SAINT MARK ('MORE THAN FORTY PEOPLE TOLD HIM': HE DID NOT SEE IT HIMSELF); THE VENETIANS TAKE TOWERS; ALEXIOS III COMES OUT. CLARI 44 AND 46: HIS ESTIMATE OF THE EMPEROR'S HORSEMEN (A CLAIM); THE VENETIANS FIRE PART OF THE CITY 'AS LARGE AS THE CITY OF ARRAS'.",
+        "VILLEHARDOUIN PP. 41-45: THE ASSAULT OF 17 JULY; THE DOGE LANDS WITH THE STANDARD OF SAINT MARK ('MORE THAN FORTY PEOPLE TOLD HIM': HE DID NOT SEE IT HIMSELF); THE VENETIANS TAKE TOWERS; ALEXIOS III COMES OUT. CLARI 44 AND 46: HIS ESTIMATE OF THE EMPEROR'S HORSEMEN (A CLAIM); THE VENETIANS FIRE PART OF THE CITY 'AS LARGE AS THE CITY OF ARRAS'. THE STAND BY THE BANNER AGAINST THE AXE-MEN IS ADAPTATION.",
       script: () => {
         let banner: PropEntity | null = null;
         return [
@@ -105,6 +105,33 @@ export const CH7: ChapterDef = {
               banner?.setPosition(d.gx + 0.3, d.gy - 0.1);
             },
           }),
+          call((ctx) => {
+            // (They appeared at the parapet during the landing; a skipped landing still has them.)
+            ['8', '9', '7'].forEach((m, n) => {
+              const a = ctx.actors.get(`v${n}`) ?? ctx.addActor(`v${n}`, 'varangian', m, { kind: 'idle', face: 'S' });
+              a.setBehavior({ kind: 'idle', face: 'player' });
+            });
+          }),
+          card('THE AXES COME DOWN', 'THE GUARDS LEAVE THE PARAPET. STAND BY THE BANNER, SHIELD UP, UNTIL THE VENETIANS HOLD THE TOWERS.', { color: C.red, seconds: 2.6 }),
+          walk({
+            objective: 'HOLD YOUR GROUND BY THE BANNER',
+            survive: 18,
+            fight: {
+              foes: ['v0', 'v1', 'v2'],
+              rout: 0,
+              hp: 3,
+              speed: 1.2,
+              radius: 6,
+              leash: 9,
+              parry: true,
+              routLines: ['BACK TO THE WALL!', 'TO THE EMPEROR!', 'THE TOWERS ARE LOST!'],
+              knockedText: 'UP AGAIN. THE RING UNDER AN AXE-MAN FILLS: SHIELD UP.',
+            },
+          }),
+          call((ctx) => {
+            for (const n of ['v0', 'v1', 'v2']) ctx.actor(n).setBehavior({ kind: 'goto', to: { x: ctx.actor(n).gx, y: 3.5 }, speed: 1.6 });
+          }),
+          card('THE TOWERS', 'THE VENETIANS TAKE TOWERS ALONG THE SEA WALL. THE AXE-MEN FALL BACK.', { color: C.orange, seconds: 2.2 }),
           say('marshal', "(LATER, IN THE MARSHAL'S BOOK) I DID NOT SEE THE BANNER ON THE TOWER MYSELF. MORE THAN FORTY PEOPLE TOLD ME."),
           say('doge', 'GO. TELL THE CAMP ON THE LAND SIDE. WHAT COMES OUT OF THAT GATE IS NOT SMALL.'),
           carry('WORD FOR THE CAMP'),

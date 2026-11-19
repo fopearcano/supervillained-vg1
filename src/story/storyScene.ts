@@ -11,7 +11,7 @@ import { Popups } from '../fx/popups';
 import { gridToScreen, type Dir8 } from '../iso/projection';
 import { PixelText } from '../ui/pixelText';
 import { C } from '../ui/retro';
-import { TouchControls } from '../ui/touchControls';
+import { TouchControls, type ActionMode } from '../ui/touchControls';
 import { parseAsciiMap } from '../world/level';
 import { World } from '../world/world';
 import { STORY_MAPS, THEMES, type MapKey } from './maps';
@@ -119,8 +119,10 @@ export class StoryScene implements Scene {
     this.dialogue.layout(w, h);
     this.cards.layout(w, h);
     this.world?.camera.setView(w, h);
-    this.game.input.joystickZone = { x: 0, y: 70, w: w * 0.62, h: h - 70 };
-    this.controls.setLayout({ peeX: w - 60, peeY: h - 50, peeR: 15, barkX: w - 26, barkY: h - 40, barkR: 19, runX: w - 45, runY: h - 80, runR: 15 });
+    this.controls.setLayout(
+      { peeX: w - 60, peeY: h - 50, peeR: 15, barkX: w - 26, barkY: h - 40, barkR: 19, runX: w - 45, runY: h - 80, runR: 15, switchX: w - 66, switchY: h - 30, switchR: 10 },
+      { w, h, top: 70 },
+    );
   }
 
   // ------------------------------------------------------------------ steps
@@ -231,12 +233,29 @@ export class StoryScene implements Scene {
     return this.world!.player;
   }
 
-  /** Lets the joystick / action button (and RUN, unless walking pace only) drive Zampanò. */
-  setControls(on: boolean, action = 'BARK', run = true): void {
+  /** Zampanò wears the knight's costume: the SWORD and the SHIELD are his. */
+  get knighted(): boolean {
+    return this.world?.player.animator.key === 'zampanoKnight';
+  }
+
+  /**
+   * Lets the joystick / action button (and RUN, unless walking pace only) drive Zampanò.
+   * `own`: the scene has its own action (LOOK, VOW...), first among the action button's modes;
+   * `fight`: start on the SWORD (knights) or BARK.
+   */
+  setControls(on: boolean, action = 'BARK', run = true, opts: { own?: boolean; fight?: boolean; keepMode?: boolean } = {}): void {
     this.controlsWanted = on;
     this.controlsAction = action;
     this.controlsRun = run;
-    this.controls.configure({ pee: false, action, run });
+    this.controlsOpts = opts;
+    this.controls.configure({ pee: false, action, run, story: true });
+    const modes: ActionMode[] = [];
+    if (opts.own || action !== 'BARK') modes.push('scene');
+    modes.push('bark');
+    if (this.knighted) modes.push('sword', 'shield');
+    this.actionModes = modes;
+    const keep = opts.keepMode && modes.includes(this.actionMode);
+    this.setActionMode(keep ? this.actionMode : opts.fight ? (this.knighted ? 'sword' : 'bark') : modes[0]!);
     this.controls.setEnabled(on);
     if (!on) {
       this.game.input.joystick.active = false;
@@ -247,6 +266,30 @@ export class StoryScene implements Scene {
   private controlsWanted = false;
   private controlsAction = 'BARK';
   private controlsRun = true;
+  private controlsOpts: { own?: boolean; fight?: boolean } = {};
+  /** What the action button can do in this walk, and what it does now (the switcher cycles). */
+  actionModes: ActionMode[] = ['bark'];
+  actionMode: ActionMode = 'bark';
+
+  setActionMode(mode: ActionMode): void {
+    if (!this.actionModes.includes(mode)) return;
+    this.actionMode = mode;
+    const label = mode === 'scene' ? this.controlsAction : mode === 'bark' ? 'BARK' : mode === 'sword' ? 'SWORD' : 'SHIELD';
+    this.controls.setActionMode(mode, label, this.actionModes.indexOf(mode), this.actionModes.length);
+  }
+
+  /** The switcher (button, Q / Tab, or a gesture): the action button's next mode. */
+  cycleActionMode(): void {
+    const m = this.actionModes;
+    if (m.length < 2) return;
+    this.setActionMode(m[(m.indexOf(this.actionMode) + 1) % m.length]!);
+    this.game.audio.play('click');
+    // Without the touch buttons on screen, say it.
+    if (!this.game.input.usingTouch) {
+      const label = this.actionMode === 'scene' ? this.controlsAction : this.actionMode.toUpperCase();
+      this.notice(`J: ${label}`, '#9ad8ff');
+    }
+  }
 
   /** Pause menu opened: freeze input without forgetting what the step wanted. */
   suspendControls(): void {
@@ -259,7 +302,7 @@ export class StoryScene implements Scene {
   resumeAfterPause(): void {
     this.game.input.clearPending();
     this.hud.setMenuEnabled(true);
-    if (this.controlsWanted) this.setControls(true, this.controlsAction, this.controlsRun);
+    if (this.controlsWanted) this.setControls(true, this.controlsAction, this.controlsRun, { ...this.controlsOpts, keepMode: true });
   }
 
   requestMenu(): void {
@@ -374,7 +417,7 @@ export class StoryScene implements Scene {
 
   render(alpha: number, frameDt: number): void {
     this.world?.render(alpha, frameDt);
-    this.controls.update();
+    this.controls.update(frameDt);
     if (this.world) this.controls.setEnergy(this.player.energy.fraction, this.player.canRun);
     this.hud.update(frameDt, this.state);
     const g = this.overlayG;

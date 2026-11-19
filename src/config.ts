@@ -227,6 +227,21 @@ export const INPUT = {
    * threshold (STORY.PACE.CHARGE_MAG). Holding Shift pushes it to 1 (and runs).
    */
   KEYBOARD_WALK_MAG: 0.8,
+  /**
+   * Gestures on the right-hand side, over the action buttons (not on them): a swipe up / down
+   * (at least SWIPE_MIN px, mostly vertical, within SWIPE_MAX_TIME s) or a double tap (two taps
+   * within DOUBLE_TAP_TIME s and DOUBLE_TAP_DIST px). What each one does is a CONTROLS setting.
+   */
+  SWIPE_MIN: 16,
+  SWIPE_MAX_TIME: 0.45,
+  /** |dy| must be at least this many times |dx|. */
+  SWIPE_RATIO: 1.2,
+  DOUBLE_TAP_TIME: 0.32,
+  DOUBLE_TAP_DIST: 18,
+  /** A press longer than this is not a tap for the double tap. */
+  TAP_MAX_TIME: 0.3,
+  /** Seconds the gesture's streak and label stay on screen. */
+  GESTURE_FLASH: 0.5,
 } as const;
 
 export const OCCLUSION = {
@@ -550,4 +565,65 @@ export const STORY = {
     /** Path costs: near a hostile, seen by a guard, next to fire. */
     DANGER: { HOSTILE_RADIUS: 2.2, HOSTILE_COST: 25, SEEN: 40, NEAR_FIRE: 6 },
   },
+} as const;
+
+/**
+ * Fighting in the story (story/combat.ts, rules in systems/combat.ts): BARK from the start, the
+ * SWORD and the SHIELD once Zampanò is a knight (2.3). Nobody dies: a foe who runs out of
+ * HP is routed (runs off); Zampanò at 0 HEALTH is knocked down and the walk starts again.
+ * Distances in tiles, times in seconds, angles in radians.
+ */
+export const COMBAT = {
+  /** Zampanò's hearts in a fight walk (a fight may set its own). */
+  HEALTH: 5,
+  SWORD: {
+    RANGE: 1.45,
+    /** Half the swing's arc in front of him. */
+    HALF_ARC: 1.15,
+    DAMAGE: 1,
+    /** Shorter than the cooldown: one opening, one blow (no chains). */
+    STUN: 0.3,
+    /** Speed the blow pushes a foe back (tiles/s, decaying). */
+    KNOCK: 2.6,
+    COOLDOWN: 0.42,
+    /** A parried blow (a guarded foe): both step back a little. */
+    PARRY_KNOCK: 1.6,
+    /** The swing's pose and its arc on screen. */
+    ACTION_TIME: 0.22,
+  },
+  /** A bark is never parried, but staggers only briefly: a bark-only fight is a slow one. */
+  BARK: { RADIUS: 2.3, DAMAGE: 0.5, STUN: 0.3, KNOCK: 3.2, COOLDOWN: 1.1 },
+  SHIELD: {
+    /** Blows from within this half-angle of where he faces are blocked. */
+    HALF_ARC: 1.35,
+    /** Walking speed with the shield up. */
+    SPEED: 0.55,
+    /** A tap (button, swipe, I pressed once) raises it this long; holding keeps it up. */
+    PULSE: 0.8,
+    /** Raising it shoves whoever is right in front (no stagger). */
+    BASH_RANGE: 1.2,
+    BASH_KNOCK: 4,
+    /** A blocked blow staggers the attacker. */
+    BLOCK_STUN: 0.6,
+    BLOCK_KNOCK: 3,
+  },
+  FOE: {
+    HP: 2,
+    CHASE_SPEED: 1.6,
+    CHASE_RADIUS: 5,
+    /** They stop this close to him and swing. */
+    STOP_AT: 0.75,
+    ATTACK_RANGE: 0.95,
+    /** A swing lands if he is still this close when it comes down. */
+    REACH: 1.25,
+    /** The raised arm before the blow (the ring under them fills): time to raise the shield. */
+    WINDUP: 0.5,
+    COOLDOWN: 1.5,
+    /** Right after a swing they are open (no parry) this long. */
+    RECOVER: 0.6,
+    KNOCK_DECAY: 9,
+  },
+  HURT: { KNOCK: 4.5, INVULN: 0.9, TIME: 0.3 },
+  /** Autopilot: how often it swings, how close it goes, how often it raises the shield in time (× skill). */
+  PILOT: { STRIKE_EVERY: 0.42, CLOSE: 0.95, GUARD_REACT: 0.9 },
 } as const;

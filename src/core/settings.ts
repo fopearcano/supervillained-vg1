@@ -7,6 +7,46 @@ import { storage } from './storage';
 export type TextSpeed = 'slow' | 'normal' | 'fast' | 'instant';
 export const TEXT_SPEEDS: readonly TextSpeed[] = ['slow', 'normal', 'fast', 'instant'];
 
+/** What a gesture does (CONTROLS): the action button, BARK, the SWORD, the SHIELD, the mode switcher, RUN on/off. */
+export type GestureBinding = 'off' | 'action' | 'bark' | 'sword' | 'shield' | 'switch' | 'run';
+export const GESTURE_BINDINGS: readonly GestureBinding[] = ['off', 'action', 'bark', 'sword', 'shield', 'switch', 'run'];
+
+export interface ControlSettings {
+  /** Right-hand gestures over the buttons. */
+  swipeUp: GestureBinding;
+  swipeDown: GestureBinding;
+  doubleTap: GestureBinding;
+  /** RUN button: hold it to run, or tap it to switch running on and off. */
+  run: 'hold' | 'toggle';
+  /** The small switcher next to the action button (changes what the action button does). */
+  switcher: boolean;
+  /** Which hand the buttons are for: right (joystick on the left) or left (mirrored). */
+  hand: 'right' | 'left';
+}
+
+export const DEFAULT_CONTROLS: ControlSettings = {
+  swipeUp: 'sword',
+  swipeDown: 'shield',
+  doubleTap: 'bark',
+  run: 'hold',
+  switcher: true,
+  hand: 'right',
+};
+
+/** Fills gaps and drops unknown values (old saves, hand-edited storage). Pure (tested). */
+export function validControls(raw: unknown): ControlSettings {
+  const c = (raw && typeof raw === 'object' ? raw : {}) as Partial<Record<keyof ControlSettings, unknown>>;
+  const binding = (v: unknown, d: GestureBinding): GestureBinding => (GESTURE_BINDINGS.includes(v as GestureBinding) ? (v as GestureBinding) : d);
+  return {
+    swipeUp: binding(c.swipeUp, DEFAULT_CONTROLS.swipeUp),
+    swipeDown: binding(c.swipeDown, DEFAULT_CONTROLS.swipeDown),
+    doubleTap: binding(c.doubleTap, DEFAULT_CONTROLS.doubleTap),
+    run: c.run === 'toggle' ? 'toggle' : 'hold',
+    switcher: typeof c.switcher === 'boolean' ? c.switcher : DEFAULT_CONTROLS.switcher,
+    hand: c.hand === 'left' ? 'left' : 'right',
+  };
+}
+
 export interface Settings {
   muted: boolean;
   volume: number;
@@ -14,6 +54,8 @@ export interface Settings {
   textSpeed: TextSpeed;
   /** Lives for the Green Zone walk (the title's counter): more lives, less speed. */
   lives: number;
+  /** Buttons and gestures (OPTIONS > CONTROLS). */
+  controls: ControlSettings;
 }
 
 export interface LevelRecord {
@@ -29,6 +71,7 @@ export function loadSettings(): Settings {
     volume: typeof s.volume === 'number' ? Math.max(0, Math.min(1, s.volume)) : AUDIO.DEFAULT_VOLUME,
     textSpeed: TEXT_SPEEDS.includes(s.textSpeed as TextSpeed) ? (s.textSpeed as TextSpeed) : 'normal',
     lives: clampLives(typeof s.lives === 'number' ? s.lives : LIVES.START),
+    controls: validControls(s.controls),
   };
 }
 

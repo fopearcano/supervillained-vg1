@@ -18,7 +18,7 @@ import type { StageOptions, StoryScene } from './storyScene';
 function tapped(ctx: StoryScene, guard: number, t: number): boolean {
   const input = ctx.game.input;
   const taps = input.consumeTaps().length > 0;
-  const key = input.consume('confirm') || input.consume('bark') || input.consume('pee');
+  const key = input.consumeAny(['confirm', 'action', 'pee']);
   return t > guard && (taps || key);
 }
 

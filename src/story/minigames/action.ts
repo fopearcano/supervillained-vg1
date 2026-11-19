@@ -20,7 +20,7 @@ function cycleFrame(key: CharacterKey, anim: AnimName, k: number): number {
 /** Reads "pressed this step" for the common actions. */
 function act(ctx: StoryScene): boolean {
   const i = ctx.game.input;
-  return i.consume('bark') || i.consume('pee') || i.consume('confirm');
+  return i.consumeAny(['action', 'pee', 'confirm']);
 }
 
 // ---------------------------------------------------------------------------- ladders

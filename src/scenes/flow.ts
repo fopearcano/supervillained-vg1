@@ -15,6 +15,7 @@ import {
   GoodbyeScene,
   LevelEndScene,
   OptionsScene,
+  ControlsScene,
   PauseScene,
   TitleScene,
   type LevelResult,
@@ -150,6 +151,7 @@ export class Flow {
           saveSettings(s);
         },
         textSpeed: () => s.textSpeed.toUpperCase(),
+        controls: () => this.game.scenes.push(new ControlsScene(this.game, () => this.game.scenes.pop())),
         // The character art: the new sheets, or the old version they replaced.
         levels: () => this.glitch(() => this.story.openMenu()),
         book: () => this.game.scenes.push(new BookScene(this.game, this.story.state, () => this.game.scenes.pop())),
@@ -274,7 +276,7 @@ export class Flow {
     const top = this.game.scenes.top;
     if (top instanceof PauseScene) this.resume();
     else if (top === this.gameScene) this.pause();
-    else if (top instanceof BookScene || top instanceof GlossaryScene || top instanceof CouchScene) this.game.scenes.pop();
+    else if (top instanceof BookScene || top instanceof GlossaryScene || top instanceof CouchScene || top instanceof ControlsScene) this.game.scenes.pop();
     else if (top instanceof OptionsScene || top instanceof ConfirmScene || top instanceof GoodbyeScene) this.closeOverTitle();
     else if (top instanceof TitleScene) this.quit();
   }

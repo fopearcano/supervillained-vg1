@@ -9,6 +9,7 @@ import { Autopilot, type PilotPolicy } from './autopilot';
 import { StoryScene } from './storyScene';
 import { withNames } from './names';
 import { SupervillainedScene } from '../scenes/supervillainedScene';
+import { ControlsScene } from '../scenes/overlays';
 
 /**
  * Story flow: menu → level card → sub-level card → sub-level → … → the Professor's aside →
@@ -353,6 +354,7 @@ export class StoryFlow {
           saveSettings(s);
         },
         textSpeedLabel: () => this.game.settings.textSpeed.toUpperCase(),
+        controls: () => this.game.scenes.push(new ControlsScene(this.game, () => this.game.scenes.pop())),
         menu: () => this.backToTitle(),
       }),
     );
@@ -389,6 +391,10 @@ export class StoryFlow {
   /** Android back / app hidden: pause a running sub-level. */
   back(): boolean {
     const top = this.game.scenes.top;
+    if (top instanceof ControlsScene) {
+      this.game.scenes.pop();
+      return true;
+    }
     if (top instanceof StoryPauseScene || top instanceof BookScene) {
       this.game.scenes.pop();
       const s = this.active;

@@ -2,7 +2,7 @@ import { Container, Graphics, Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import { spriteName, type SpriteKey } from '../assets/manifest';
 import { unshakeable, type Effects } from '../campaign/state';
-import { STORY } from '../config';
+import { COMBAT, STORY } from '../config';
 import { Entity } from '../entities/entity';
 import type { Actor, Point } from '../entities/actor';
 import { gridToScreen } from '../iso/projection';
@@ -11,6 +11,9 @@ import type { GameMap } from '../world/map';
 import { card, call } from './steps';
 import type { Autopilot } from './autopilot';
 import type { Step, StepStatus } from './step';
+import { Combat, type FightDef } from './combat';
+import { isOpen } from '../systems/combat';
+import type { ActionMode } from '../ui/touchControls';
 import type { StoryScene } from './storyScene';
 
 /**
@@ -87,6 +90,8 @@ export interface WalkDef {
   checkpoints?: Array<string | Point>;
   /** Autopilot advice for objectives it cannot infer from goal and pickups. */
   pilot?: (ctx: StoryScene, w: WalkState, p: Autopilot) => PilotHint | null;
+  /** A fight: these actors swing at him; he has hearts (story/combat.ts). */
+  fight?: FightDef;
 }
 
 const PICKUP_SPRITE: Record<Pickup['kind'], SpriteKey | null> = {
@@ -176,8 +181,14 @@ class WalkStep implements Step {
   private fireT = 0;
   private fireOn = false;
   private passed = new Set<string>();
+  private readonly combat: Combat;
+  private resumed = false;
+  /** Autopilot: for each foe's swing, whether it saw it coming (decided once per swing). */
+  private readonly reacts = new Map<Actor, boolean>();
 
-  constructor(private readonly def: WalkDef) {}
+  constructor(private readonly def: WalkDef) {
+    this.combat = new Combat(def.fight ?? null);
+  }
 
   start(ctx: StoryScene): void {
     const world = ctx.world;
@@ -207,12 +218,29 @@ class WalkStep implements Step {
     ctx.hud.setObjective(this.def.objective);
     ctx.player.speedMul = this.def.speed ?? 1;
     ctx.player.noRun = !!this.def.noRun || !!this.def.pace;
+    this.combat.start(ctx);
+    this.combat.onKnockedDown = () => {
+      this.reset(ctx);
+      this.combat.reset(ctx);
+    };
     this.resume(ctx);
   }
 
   resume(ctx: StoryScene): void {
-    ctx.setControls(true, this.def.action ?? 'BARK', !this.def.noRun && !this.def.pace);
+    // After a card or a line, the action button keeps the mode it had.
+    ctx.setControls(true, this.def.action ?? 'BARK', !this.def.noRun && !this.def.pace, { own: !!this.def.onAction, fight: !!this.def.fight, keepMode: this.resumed });
+    this.resumed = true;
     ctx.hud.setObjective(this.def.objective);
+  }
+
+  /** The action button (in this mode), or BARK / SWORD / SHIELD directly. */
+  private perform(ctx: StoryScene, mode: ActionMode): void {
+    if (mode === 'scene') {
+      if (this.def.onAction) this.def.onAction(ctx, this.w);
+      else this.combat.bark(ctx);
+    } else if (mode === 'bark') this.combat.bark(ctx);
+    else if (mode === 'sword') this.combat.strike(ctx);
+    else this.combat.raiseShield(ctx);
   }
 
   /** Back to the start of the walk (after being caught). */
@@ -243,14 +271,15 @@ class WalkStep implements Step {
     }
     p.setIntent(mx, my, input.runHeld);
 
-    if (input.consume('bark') || input.consume('pee')) {
-      if (this.def.onAction) this.def.onAction(ctx, w);
-      else {
-        p.startAction('bark', 0.3);
-        ctx.game.audio.play('bark');
-        ctx.say('WOOF!', { x: p.gx, y: p.gy });
-      }
-    }
+    // The action button does what its mode says; Space always does the scene's own action;
+    // B / U / I and the gestures go straight to BARK / SWORD / SHIELD.
+    if (input.consume('switch')) ctx.cycleActionMode();
+    if (input.consume('action')) this.perform(ctx, ctx.actionMode);
+    if (input.consume('pee')) this.perform(ctx, 'scene');
+    if (input.consume('bark')) this.perform(ctx, 'bark');
+    if (input.consume('strike')) this.perform(ctx, 'sword');
+    if (input.consume('guard')) this.perform(ctx, 'shield');
+    this.combat.update(dt, ctx, input.guardHeld || (ctx.actionMode === 'shield' && input.actionHeld));
 
     // Pickups
     for (let k = this.pickups.length - 1; k >= 0; k--) {
@@ -290,7 +319,10 @@ class WalkStep implements Step {
     const reached = !this.goal || Math.hypot(this.goal.x - p.gx, this.goal.y - p.gy) < (this.def.goal?.radius ?? STORY.GOAL_RADIUS);
     const survived = this.def.survive === undefined || w.time >= this.def.survive;
     const counted = need === 0 ? true : w.collected >= need;
-    if (w.complete || (reached && survived && counted && (this.goal || need > 0 || this.def.survive !== undefined))) return 'done';
+    const fought = this.combat.won;
+    // A fight with nothing else to do (a stand: `survive`) also ends when everyone has run.
+    if (this.combat.active && !this.goal && need === 0 && this.combat.routed >= this.combat.foes.length) return 'done';
+    if (w.complete || (reached && survived && counted && fought && (this.goal || need > 0 || this.def.survive !== undefined || this.combat.active))) return 'done';
     void map;
     return 'running';
   }
@@ -301,7 +333,8 @@ class WalkStep implements Step {
     let caught = false;
     this.cones.clear();
     for (const a of ctx.actors.values()) {
-      if (a.hostile && Math.hypot(a.gx - p.gx, a.gy - p.gy) < STORY.HOSTILE_TOUCH) caught = true;
+      // Fighters (story/combat.ts) swing instead of catching him.
+      if (a.hostile && !a.foe && Math.hypot(a.gx - p.gx, a.gy - p.gy) < STORY.HOSTILE_TOUCH) caught = true;
       if (!a.sight) continue;
       const seen = canSee(world.map, a, p.gx, p.gy);
       a.alert = Math.max(0, Math.min(1, a.alert + (seen ? dt * STORY.ALERT_GAIN : -dt * STORY.ALERT_DECAY)));
@@ -517,10 +550,19 @@ class WalkStep implements Step {
   pilot(_dt: number, ctx: StoryScene, pl: Autopilot): void {
     const world = ctx.world;
     if (!world) return;
-    const p = ctx.player;
     const hint = this.def.pilot?.(ctx, this.w, pl) ?? null;
-    if (hint?.act) pl.every(ctx, 'walk-act', 0.35, 'bark');
-    let target: Point | null = hint?.target ?? null;
+    // Space: the scene's own action, whatever mode the action button is in.
+    if (hint?.act) pl.every(ctx, 'walk-act', 0.35, 'pee');
+    const fight = this.combat.active ? this.pilotFight(ctx, pl) : { target: null, guard: false };
+    this.pilotMove(ctx, pl, hint, fight);
+    // After the movement (which sets the override): the shield.
+    if (fight.guard && ctx.game.input.override) ctx.game.input.override.guard = true;
+  }
+
+  private pilotMove(ctx: StoryScene, pl: Autopilot, hint: PilotHint | null, fight: { target: Point | null; guard: boolean }): void {
+    const world = ctx.world!;
+    const p = ctx.player;
+    let target: Point | null = hint?.target ?? fight.target;
     if (!target && this.pickups.length) {
       let best = this.pickups[0]!;
       for (const e of this.pickups) if (Math.hypot(e.gx - p.gx, e.gy - p.gy) < Math.hypot(best.gx - p.gx, best.gy - p.gy)) best = e;
@@ -531,7 +573,8 @@ class WalkStep implements Step {
     if (hint?.hold && Math.hypot(target.x - p.gx, target.y - p.gy) < 0.6) return;
     const map = world.map;
     const guards = [...ctx.actors.values()].filter((a) => a.sight);
-    const hostiles = [...ctx.actors.values()].filter((a) => a.hostile);
+    // Foes he is going for are not obstacles.
+    const hostiles = [...ctx.actors.values()].filter((a) => a.hostile && !(fight.target && a.foe));
     const fire = this.fire;
     const D = STORY.PILOT.DANGER;
     const danger = (i: number, j: number): number => {
@@ -545,11 +588,51 @@ class WalkStep implements Step {
       for (const g of guards) if (canSee(map, g, i + 0.5, j + 0.5)) d += D.SEEN;
       return d;
     };
-    const run = !this.def.pace && !this.def.noRun && (hostiles.length > 0 || this.fireOn);
-    pl.navigate(ctx, target, { run, danger, scramble: this.scrambleAngle, cautious: guards.length > 0, arrive: hint?.hold ? 0.5 : 0.3 });
+    const run = !this.def.pace && !this.def.noRun && !fight.guard && (hostiles.length > 0 || this.fireOn);
+    const arrive = hint?.hold ? 0.5 : fight.target ? COMBAT.PILOT.CLOSE : 0.3;
+    pl.navigate(ctx, target, { run, danger, scramble: this.scrambleAngle, cautious: guards.length > 0, arrive });
+  }
+
+  /**
+   * Autopilot in a fight: go for the nearest foe while some still have to be routed, swing (or
+   * bark) when one is in reach, and raise the shield when a swing is coming (if it saw it: skill).
+   */
+  private pilotFight(ctx: StoryScene, pl: Autopilot): { target: Point | null; guard: boolean } {
+    const p = ctx.player;
+    const c = this.combat;
+    const knight = ctx.knighted;
+    const active = c.foes.filter((a) => a.foe && !a.foe.routed);
+    let nearest: Actor | null = null;
+    let nd = Infinity;
+    for (const a of active) {
+      const d = Math.hypot(a.gx - p.gx, a.gy - p.gy);
+      if (d < nd) {
+        nd = d;
+        nearest = a;
+      }
+    }
+    let guard = false;
+    for (const a of active) {
+      const f = a.foe!;
+      if (f.windup <= 0) {
+        this.reacts.delete(a);
+        continue;
+      }
+      if (!this.reacts.has(a)) this.reacts.set(a, pl.random() < COMBAT.PILOT.GUARD_REACT * (0.5 + 0.5 * pl.policy.skill));
+      if (knight && this.reacts.get(a) && Math.hypot(a.gx - p.gx, a.gy - p.gy) < COMBAT.FOE.REACH + 0.4) guard = true;
+    }
+    if (nearest && !guard) {
+      const reach = knight ? COMBAT.SWORD.RANGE * 0.9 : COMBAT.BARK.RADIUS * 0.8;
+      // Against a foe who parries, strike only when he is open.
+      const open = !this.def.fight?.parry || isOpen(nearest.foe!);
+      if (nd <= reach && (!knight || open)) pl.every(ctx, 'fight-hit', COMBAT.PILOT.STRIKE_EVERY, knight ? 'strike' : 'bark');
+    }
+    const chasing = c.routed < c.need && nearest !== null;
+    return { target: chasing ? { x: nearest!.gx, y: nearest!.gy } : null, guard };
   }
 
   stop(ctx: StoryScene): void {
+    this.combat.stop(ctx);
     ctx.setControls(false);
     ctx.hud.setMode(null);
     ctx.player.speedMul = 1;

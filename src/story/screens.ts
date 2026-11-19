@@ -70,7 +70,7 @@ export class StoryCardScene implements Scene {
     this.tap.visible = this.time > 0.8 && Math.floor(this.time * 2.5) % 2 === 0;
     const input = this.game.input;
     const taps = input.consumeTaps().length > 0;
-    if (this.time > 0.6 && (taps || input.consume('confirm') || input.consume('bark') || input.consume('pee'))) this.onDone();
+    if (this.time > 0.6 && (taps || input.consumeAny(['confirm', 'action', 'pee']))) this.onDone();
   }
 }
 
@@ -203,6 +203,7 @@ export class StoryPauseScene implements Scene {
       muted: () => boolean;
       textSpeed: () => void;
       textSpeedLabel: () => string;
+      controls: () => void;
       skip: () => void;
       menu: () => void;
     },
@@ -229,6 +230,7 @@ export class StoryPauseScene implements Scene {
           },
           color: C.cyan,
         },
+        { label: 'CONTROLS', action: actions.controls, color: C.green },
         { label: 'QUIT TO TITLE', action: actions.menu, color: C.white },
       ],
       140,

@@ -57,7 +57,10 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   autopilot). Never hardcode gameplay numbers elsewhere (per-scene values in chapter scripts are
   level data).
 - `core/` — `game.ts` (services: renderer, input, scenes, loop, resize), `loop.ts` (fixed 60 Hz
-  step + interpolation), `input.ts` (keyboard, floating joystick, touch buttons, taps),
+  step + interpolation), `input.ts` (keyboard, floating joystick, touch buttons, taps, right-hand
+  gestures: swipe up / down and double tap, bound by the CONTROLS settings; RUN held or toggled;
+  actions `action` (the round button), `bark`, `strike`, `guard`, `switch`), `settings.ts`
+  (sound, text speed, lives, `controls`),
   `scene.ts` (scene stack), `display.ts` (logical resolution + integer scale), `assets.ts`
   (texture registry + atlas packer), `storage.ts` (guarded localStorage), `rng.ts`.
 - `iso/` — `projection.ts` (grid↔screen, screen-direction → grid, 8 directions), `depth.ts`
@@ -69,7 +72,8 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
 - `entities/` — `Entity` base (grid position, interpolation, view), `CharacterAnimator`,
   `Zampano`, `PropEntity`, …
 - `systems/` — gameplay rules as small, mostly pure classes (unit-tested).
-- `ui/` — `pixelFont.ts` + `pixelText.ts` (crisp bitmap text with glow/outline), HUD, touch controls,
+- `ui/` — `pixelFont.ts` + `pixelText.ts` (crisp bitmap text with glow/outline), HUD, touch controls
+  (`touchControls.ts`: the action button's modes, the switcher, gesture hints, left-hand mirror),
   `titleArt.ts` / `titleAnim.ts` (title portrait: the animated GIF decoded with `ImageDecoder`).
 - `fx/` — particles, popups, screen effects, glitch filter.
 - `scenes/` — `flow.ts` (title → new game / continue / options / quit; plays the 1.0 walk for the
@@ -89,6 +93,8 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   card, stage, move, walk, mini, branch, fx…), `walk.ts` (dream walk: reach,
   pickups, sight cones, pace/nerve, thirst, scramble, fire), `minigames/`, `storyScene.ts` (runs a
   script over a World stage), `ui.ts` (dialogue box + choice wheel, cards, story HUD with meters),
+  `combat.ts` (BARK / SWORD / SHIELD in every walk; `walk({ fight })` makes foes swing back; rules
+  in `systems/combat.ts`, numbers in `COMBAT`),
   `screens.ts` (story menu, level's sub-level list, cards, pause, Meraviglia book), `storyFlow.ts`
   (menu → cards → sub-level → Professor aside → ending; saves progress; replays on a copy),
   `maps.ts` (story stages + palettes/themes), `carry.ts` (what he carries, shown over his head),
@@ -140,6 +146,9 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
 - Scripted characters walk in straight lines (no pathfinding): give `followLeader` paths whose
   segments stay on walkable ground, and test a level with `npm run playtest -- --from 3.1 --to 3.4`.
 - A new walk objective the autopilot can't infer from `goal`/`pickups` gets a `pilot` hint in the
-  `walk()` definition; a new mini-game gets a `pilot()` strategy. After gameplay changes run
+  `walk()` definition; a new mini-game gets a `pilot()` strategy. Fights (`fight`) are piloted by
+  the walk itself (go for foes, shield up when a ring fills, strike when open).
+- Fights are non-lethal (foes are routed, Zampanò is knocked down and retries); sword and shield
+  only while he wears the knight's costume. Mark new fights ADAPTATION in `docs/STORY.md`. After gameplay changes run
   `npm run playtest` and read the report.
 - After each milestone: `npm run build`, `npm test`, `npm run screens`, look at the PNGs, commit.

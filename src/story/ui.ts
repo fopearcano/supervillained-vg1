@@ -379,10 +379,14 @@ export class StoryHud {
     if (m) {
       const bw = Math.min(120, this.w - 80);
       const x = Math.round(this.w / 2 - bw / 2);
+      // Below the objective, however many lines it took.
+      const top = Math.max(56, Math.round(this.objective.y + this.objective.textHeight + 3));
+      const by = top + 10;
       this.modeLabel.setText(m.label);
-      this.modeBar.rect(x, 66, bw, 6).fill({ color: 0x000000, alpha: 0.6 });
-      this.modeBar.rect(x + 1, 67, Math.max(0, Math.round((bw - 2) * Math.max(0, Math.min(1, m.value)))), 4).fill(m.color);
-      frameRect(this.modeBar, x, 66, bw, 6, hex(C.red));
+      this.modeLabel.y = top;
+      this.modeBar.rect(x, by, bw, 6).fill({ color: 0x000000, alpha: 0.6 });
+      this.modeBar.rect(x + 1, by + 1, Math.max(0, Math.round((bw - 2) * Math.max(0, Math.min(1, m.value)))), 4).fill(m.color);
+      frameRect(this.modeBar, x, by, bw, 6, hex(C.red));
     }
   }
 }

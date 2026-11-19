@@ -11,7 +11,7 @@ import { Menu, type MenuItem } from '../ui/menu';
 import { PixelText, type Span } from '../ui/pixelText';
 import { logoTexture, logoWidth, type LogoStyle } from '../ui/logo';
 import { C, frameRect, hex, retroBox } from '../ui/retro';
-import { saveSettings } from '../core/settings';
+import { DEFAULT_CONTROLS, GESTURE_BINDINGS, saveSettings, type GestureBinding } from '../core/settings';
 import { clampLives, nextLives } from '../systems/lives';
 import { spriteName } from '../assets/manifest';
 import type { LevelDef } from '../world/level';
@@ -694,6 +694,7 @@ export class OptionsScene extends Overlay {
       volume: () => number;
       cycleTextSpeed: () => void;
       textSpeed: () => string;
+      controls: () => void;
       levels: () => void;
       book: () => void;
       back: () => void;
@@ -727,6 +728,7 @@ export class OptionsScene extends Overlay {
           },
           color: C.cyan,
         },
+        { label: 'CONTROLS', action: actions.controls, color: C.green },
         { label: 'LEVELS (REPLAY)', action: actions.levels, color: C.yellow },
         { label: 'MERAVIGLIA BOOK', action: actions.book, color: C.pink },
         { label: 'BACK', action: actions.back, color: C.white },
@@ -747,6 +749,113 @@ export class OptionsScene extends Overlay {
   override update(dt: number): void {
     super.update(dt);
     if (this.time > 0.25) this.menu.update(dt, this.game.input);
+  }
+}
+
+const BINDING_LABEL: Record<GestureBinding, string> = {
+  off: 'OFF',
+  action: 'ACTION BUTTON',
+  bark: 'BARK',
+  sword: 'SWORD',
+  shield: 'SHIELD',
+  switch: 'SWITCH',
+  run: 'RUN ON/OFF',
+};
+
+/**
+ * OPTIONS > CONTROLS (also in the story's pause menu): what the right-hand gestures do, RUN held
+ * or switched, the action button's switcher, and the buttons for the right or the left hand.
+ * Changes apply at once (Game.onSettingsChanged → Input.applyControls) and are saved.
+ */
+export class ControlsScene extends Overlay {
+  private readonly heading = big('CONTROLS', C.yellow, 2);
+  private readonly help: PixelText;
+  private readonly menu: Menu;
+
+  constructor(
+    game: Game,
+    private readonly onBack: () => void,
+  ) {
+    // Opaque: it opens over OPTIONS or the pause menu.
+    super(game, 1);
+    const c = () => game.settings.controls;
+    const changed = () => {
+      saveSettings(game.settings);
+      game.onSettingsChanged();
+      game.audio.play('click');
+      this.menu.refreshLabels();
+    };
+    const cycle = (key: 'swipeUp' | 'swipeDown' | 'doubleTap') => () => {
+      const list = GESTURE_BINDINGS;
+      c()[key] = list[(list.indexOf(c()[key]) + 1) % list.length]!;
+      changed();
+    };
+    this.menu = new Menu(
+      [
+        { label: () => `SWIPE UP: ${BINDING_LABEL[c().swipeUp]}`, action: cycle('swipeUp'), color: C.cyan },
+        { label: () => `SWIPE DOWN: ${BINDING_LABEL[c().swipeDown]}`, action: cycle('swipeDown'), color: C.cyan },
+        { label: () => `DOUBLE TAP: ${BINDING_LABEL[c().doubleTap]}`, action: cycle('doubleTap'), color: C.cyan },
+        {
+          label: () => (c().run === 'toggle' ? 'RUN: TAP ON/OFF' : 'RUN: HOLD'),
+          action: () => {
+            c().run = c().run === 'toggle' ? 'hold' : 'toggle';
+            changed();
+          },
+          color: C.green,
+        },
+        {
+          label: () => (c().switcher ? 'SWITCHER: ON' : 'SWITCHER: OFF'),
+          action: () => {
+            c().switcher = !c().switcher;
+            changed();
+          },
+          color: C.yellow,
+        },
+        {
+          label: () => (c().hand === 'left' ? 'BUTTONS: LEFT HAND' : 'BUTTONS: RIGHT HAND'),
+          action: () => {
+            c().hand = c().hand === 'left' ? 'right' : 'left';
+            changed();
+          },
+          color: C.yellow,
+        },
+        {
+          label: 'DEFAULTS',
+          action: () => {
+            game.settings.controls = { ...DEFAULT_CONTROLS };
+            changed();
+          },
+          color: C.pink,
+        },
+        { label: 'BACK', action: () => this.onBack(), color: C.white },
+      ],
+      176,
+      16,
+      4,
+    );
+    this.help = new PixelText(
+      'GESTURES: ON THE BUTTON SIDE, ABOVE THE BUTTONS. SWORD AND SHIELD ONCE HE IS A KNIGHT.\n\nKEYS: J ACTION   B BARK\nU SWORD   I SHIELD (HOLD)\nQ SWITCH   K RUN',
+      { color: '#9aa4c0', shadow: '#000000', align: 'center', maxWidth: 196, lineGap: 3 },
+    ).setOrigin(0.5, 0);
+    this.root.addChild(this.heading, this.menu.root, this.help);
+  }
+
+  protected layout(): void {
+    const { w, h } = this;
+    const top = Math.round(Math.max(64, h * 0.2));
+    this.heading.position.set(Math.round(w / 2), top - 22);
+    this.menu.layout(w / 2, top);
+    this.help.position.set(Math.round(w / 2), top + this.menu.height + 10);
+  }
+
+  override update(dt: number): void {
+    super.update(dt);
+    const input = this.game.input;
+    if (input.consume('menu') || input.consume('back')) {
+      this.onBack();
+      return;
+    }
+    if (this.time > 0.25) this.menu.update(dt, input);
   }
 }
 

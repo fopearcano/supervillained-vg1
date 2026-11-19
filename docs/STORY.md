@@ -41,7 +41,7 @@ strangled January 1204) and Alexios V Mourtzouphlos (who takes the throne in 120
 | Sbrimbrulòn | Pierre d'Amiens, his lord | The walk beside Pierre (7.3) is the dream's emotional centre. |
 | Bagnaskiz | the marshal, Geoffroi de Villehardouin; also the faces of Alexios III and Alexios V | "The dream runs out of faces": the bully gets every crown. |
 | Watson | a Venetian sailor; a companion in the city | Still says "MAN". |
-| Jack | rumours on deck, the dice at Zara, crossed fingers at the oath, the looter in 7.8 | The camp's worst impulses; invented. |
+| Jack | the lad who wants the helmet on the road (2.3), rumours on deck, the dice at Zara, crossed fingers at the oath, the looter in 7.8 | The camp's worst impulses; invented. |
 | Santina | a woman on the walls (7.3) | Her words are lost in the wind; answered at her gate (8.4). |
 | The Professor | himself; asides at the end of each level | Lecture voice: "YOU UNDERSTAND". |
 | — | the Doge Enrico Dandolo, "an old, blind, very shrewd dog" | |
@@ -66,6 +66,11 @@ strangled January 1204) and Alexios V Mourtzouphlos (who takes the throne in 120
 - **Costumes**: the rag cross (1.5, real), the borrowed armour (2.3, dream). The vow (2.2) is
   recorded as the `sermon` mark.
 - **Remembered lines** ("THERE WAS A …, AND IT WAS …"): the dream's grammar, collected in the book.
+- **Fighting** (adaptation): BARK from the start, SWORD and SHIELD once he wears the borrowed
+  armour (2.3). Nobody dies: beaten foes are *routed*, and a knocked-down Zampanò starts the
+  fight again. Fights: Jack's lads and Pierre's squires (2.3), the Zara brawl, where a sword blow
+  on a Christian costs Grace (5.3), the stand by the Doge's banner (7.2). The assault on the
+  emperor's army (7.3) stays without a blow, and the breach (7.7) stays Aleaume's deed.
 - **Period words**: the dream's characters speak a few of the witnesses' own words (the holy
   voyage, *crucesignati*, pilgrims, *messire*, dromons and *uissiers*, *li rike homme* and *li
   povre chevalier*, Latins and barbarians, the year 6711, *merveille*…), taken from Barbero's
@@ -94,7 +99,7 @@ references in `STORY-SOURCES.md`); what the dream makes of it. *Adaptation* = in
 |---|---|---|---|
 | 2.1 One step from Jerusalem | Walk to Jerusalem's gate, always one step away; behind a door, "Babylon… Egypt first". | The leaders' real objective was Egypt; the people were told "overseas" (Villehardouin). | Prologue image; the helmet is the bucket. Jerusalem never loads, to the end. |
 | 2.2 Names on a list | Shout his vow in the pauses of Fulk's preaching (unlock `sermon`, Grace +5, flag `vow`); the counts take the cross; a clerk lists names by rank, his at the bottom; the marshal leaves for Venice. | Fulk of Neuilly; the tourney of Écri; six envoys (Villehardouin). | The list and the vow-in-the-lull are adaptation. |
-| 2.3 A coat of mail too big | Pick up borrowed helmet, mail and shield (unlock `knight`); try the charge; fall in behind Pierre. | Clari's lord (Pierre d'Amiens) and brother (Aleaume, a clerk). | Invented road; Confusione becomes Aleaume, Sbrimbrulòn Pierre. |
+| 2.3 A coat of mail too big | Bark Jack and two lads off the road (the first fight, bark only); pick up borrowed helmet, mail and shield (unlock `knight`); try the charge; spar with Pierre's squires (sword and shield; they parry); fall in behind Pierre. | Clari's lord (Pierre d'Amiens) and brother (Aleaume, a clerk). | Invented road, lads and sparring; Confusione becomes Aleaume, Sbrimbrulòn Pierre. |
 
 ### Level 3 — Venice (1201–1202)
 
@@ -119,7 +124,7 @@ references in `STORY-SOURCES.md`); what the dream makes of it. *Adaptation* = in
 |---|---|---|---|
 | 5.1 A small favor for Venice | The abbot of Vaux reads the prohibition; the Doge refuses; carry messages between the two parties, then say one aloud: "We took the cross for Jerusalem" (costs Commozione; Standing −12, Supervillain +5, Grace +4, flag `dissent`) or "the host falls apart unless we help the Doge" (Standing +5). | The abbot of Vaux "on the part of the Pope of Rome" (Villehardouin); Zara's letter from Rome (Clari). | Messenger role is adaptation. |
 | 5.2 A cross above the wall | Climb the ladder, steady it for the next; follow one bolt of red cloth to the common pile (flag `clothRoute`). | Siege, surrender, the city divided (Villehardouin). | The cloth prepares 7.9's pile. |
-| 5.3 Whose orders? | Get Aleaume past the street fight; hear what the abbot, the marshal and a Venetian say he owes; tell Aleaume which one he believes (`zaraOwe`: pope Grace +5 / host Standing +4 / debt Grace −3). | The fray between Venetians and pilgrims (Villehardouin, Clari). | Three speeches are adaptation. Replaces the old penitential/Urban II excursus. |
+| 5.3 Whose orders? | Hear what the abbot, the marshal and a Venetian say he owes; tell Aleaume which one he believes (`zaraOwe`: pope Grace +5 / host Standing +4 / debt Grace −3); get Aleaume back to their quarters through the brawl (a fight: bark or shield the brawlers aside; every sword blow that lands costs Grace −1). | The fray between Venetians and pilgrims (Villehardouin, Clari); the pope's prohibition (5.1). | Three speeches, the fight and its Grace cost are adaptation. Replaces the old penitential/Urban II excursus. |
 | 5.4 A letter for Rome | Assemble the barons' account (LetterGame); the absolution comes back in two versions: the marshal's (the pilgrims) and the camp's (everyone, Venetians too). | Villehardouin vs Clari on whom the pope absolved. | No papal words quoted. |
 | 5.5 Winter at Zara | Carry the last sail into store; chalk the balance: 36,000 still owed; someone has written JERUSALEM at the top. | Wintering at Zara; no money for Egypt (Clari). | The board is adaptation. |
 
@@ -136,7 +141,7 @@ references in `STORY-SOURCES.md`); what the dream makes of it. *Adaptation* = in
 | Scene | Play → consequence | Basis | Dream / invention |
 |---|---|---|---|
 | 7.1 Looking both ways | LOOK at the walls, the roofs, the domes (three marvels); Niketas watches back; row the young Alexios along the walls — nobody recognises him. | The city watching; the showing of the prince (Clari, Villehardouin). | Niketas has no lawn face. |
-| 7.2 The Doge's banner | 17 July 1203: follow the banner of Saint Mark through the landing; carry word that the emperor has come out. | The Doge with the standard; "more than forty people told him" (Villehardouin). | The marshal admits he did not see it. |
+| 7.2 The Doge's banner | 17 July 1203: follow the banner of Saint Mark through the landing; the axe-men come down from the parapet: hold your ground by the banner (a fight, 18 s, shield up) until the Venetians take the towers; carry word that the emperor has come out. | The Doge with the standard; "more than forty people told him"; the Venetians take towers (Villehardouin). | The marshal admits he did not see it. The stand is adaptation. |
 | 7.3 Stay beside Pierre | Alexios III comes out (Bagnaskiz's face); Flanders turns back; hold level with Pierre's shoulder at a walk until Flanders comes round; cooks with pots and pestles; a woman with Santina's face on the walls, her words lost. The emperor turns back; no blow. Value *Physical courage*, flag `vanguard`. | Pierre and Saint-Pol refuse to turn back; pots and pestles; the ladies who thought them angels; Flanders rides up beside them again (Clari 45–48). | The window and Santina's face are adaptation. |
 | 7.4 A city to visit | Alexios III has fled; Isaac restored, Alexios IV crowned. Visit with Watson: the Palace of the Lion's Mouth, the bronze Hercules, the carved column, a lamp in Niketas's courtyard (four marvels; flag `visitedCity`). | Clari's palace and pillars; Choniates's Hercules. | **The column**: carved scenes nobody can read yet. |
 | 7.5 Unpaid promises | Carry the chests, lighter each time; the Doge's rebuke; some pilgrims go to burn the mosque, the Greek neighbours defend it, and a fire burns for two days; lead a woman of Niketas's household home along the street you learned (the house has burned). She tells him not to come back. | The unpaid sums; the fire; "division between the Greeks and the Franks" (Villehardouin, Clari); the mosque (Barbero). | Replaces the old Cligès episode. |

@@ -39,6 +39,8 @@ export class Game {
     this.transition = new ScreenTransition(app.stage);
     this.audio = new AudioEngine(this.settings);
     this.settingsListeners.push((st) => this.audio.applySettings(st));
+    this.settingsListeners.push((st) => this.input.applyControls(st.controls));
+    this.input.applyControls(this.settings.controls);
     this.scenes = new SceneManager(this.sceneLayer, this.view);
     this.scenes.onChange = () => this.input.clearPending();
     this.input.attach(canvas, (cx, cy) => this.toLogical(cx, cy));

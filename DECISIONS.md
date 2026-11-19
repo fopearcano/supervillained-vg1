@@ -817,3 +817,42 @@ save migration in [`docs/STORY-SOURCES.md`](docs/STORY-SOURCES.md).
   Installing on a phone still needs a signature: a sideloading tool with the user's Apple ID, or
   Xcode with a team selected. A shared `App` scheme is committed so `xcodebuild -scheme App` works
   without opening Xcode first.
+
+## Fighting, the action button's modes, gestures and the CONTROLS settings
+
+- **Three fight actions.** BARK from the start (an area push, never parried, barely staggers);
+  the SWORD and the SHIELD once Zampanò wears the knight's costume (`StoryScene.knighted`, from
+  2.3 to 7.9; the plain dog of level 8 has neither). Rules are pure and tested
+  (`systems/combat.ts`); the scene side is `story/combat.ts`, run by every walk, with numbers in
+  `COMBAT` (config.ts). A walk becomes a fight with `fight: { foes, rout, health, parry, ... }`.
+- **Non-lethal.** A foe with no HP left is *routed* (runs off shouting); Zampanò at 0 HEALTH is
+  *knocked down* and the walk starts again with everyone back in place. The story stays about a
+  small knight who witnesses: no deaths, and 7.3 keeps "nobody strikes a blow".
+- **Readable timing.** A foe winds up for half a second before each blow, drawn as a red ring
+  filling under him: time to raise the shield. The shield takes blows from the front (it turns to
+  the nearest threat) and a blocked blow staggers the attacker. Armed foes (`parry`) parry the
+  sword unless staggered, mid-swing or just after a swing, and one blow uses up the opening
+  (its stagger is shorter than the sword's cooldown; an interrupted swing still costs the foe its
+  cooldown). This removed the stun-locks the first tuning had: the autopilot cleared 2.3 in three
+  seconds without being touched. Raising the shield shoves foes back but opens nobody.
+- **Where the fights are** (all ADAPTATION, in `docs/STORY.md`): 2.3 Jack's lads on the road
+  (bark only, before the armour) and the sparring with Pierre's squires (the sword-and-shield
+  tutorial); 5.3 through the Zara brawl, where every sword blow that lands costs Grace (the pope's
+  prohibition: bark or shield instead); 7.2 a stand by the Doge's banner against the axe-men
+  (survive 18 s). The breach (7.7) stays Aleaume's deed.
+- **The action button has modes**: the scene's own action (LOOK, VOW...), BARK, and for a knight
+  SWORD and SHIELD. A small switcher button next to it (or Q / Tab) cycles them; Space always does
+  the scene's action and B / U / I go straight to bark / sword / shield. A fight walk starts on
+  the SWORD (knights) or BARK. The input action of the button became `action` (it was `bark`):
+  dialogue, menus and mini-games accept it as before.
+- **Gestures** on the button side of the screen, above the buttons (not on them, so a press on a
+  button stays instant): swipe up (default SWORD), swipe down (SHIELD), double tap (BARK). A swipe
+  fires as soon as it is one, a double tap on the second press. Hints with the current bindings
+  sit over the buttons in story walks, and a streak with the word shows where a gesture was made.
+- **OPTIONS > CONTROLS** (also in the story's pause menu): what each gesture does (off, the action
+  button, bark, sword, shield, switch, RUN on/off), RUN held or tapped on/off, the switcher on or
+  off, and the buttons for the right or the left hand (everything mirrored: joystick on the right,
+  buttons and gestures on the left). Saved with the settings (`validControls` repairs old or bad
+  values); no new dependency.
+- **Sounds**: a synthesized swish (sword) and clang (shield, parry) join `fx/sounds.ts`.
+- The playtest's "caught" column now also counts blows taken in fights.

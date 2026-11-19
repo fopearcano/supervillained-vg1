@@ -122,7 +122,7 @@ try {
     `Game time ${(total / 60).toFixed(1)} min over ${rows.length} sub-levels. Ending reached: ${ending ? ending.ending.toUpperCase() : 'no'}.`,
     `Sub-levels not finished: ${fails}. Flagged: ${warns}. Page errors: ${errors.length}.`,
     '',
-    'Columns: game seconds; restarts of a walk (caught, nerve broken, fell back); times caught; nerve broken; mini-game results; meters after (Commozione/Supervillain/Grace/Standing).',
+    'Columns: game seconds; restarts of a walk (caught, nerve broken, fell back, knocked down); times caught or hit in a fight; nerve broken; mini-game results; meters after (Commozione/Supervillain/Grace/Standing).',
     '',
     '| Sub | s | Restarts | Caught | Nerve | Mini-games | Meters | Notes |',
     '|-----|---|----------|--------|-------|------------|--------|-------|',

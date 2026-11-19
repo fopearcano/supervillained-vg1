@@ -152,9 +152,9 @@ export const CH2: ChapterDef = {
       id: '2.3',
       title: 'A coat of mail too big',
       happens:
-        "ON THE ROAD SOUTH, PICK UP A BORROWED HELMET, A MAIL COAT AND A SHIELD PAINTED LAST NIGHT: ZAMPANO IS A KNIGHT, HEAVY AND MAGNIFICENT. CONFUSIONE IS ALEAUME, A CLERK WHO CALLS HIM BROTHER. TRY THE CHARGE ACROSS THE ROAD. THEN FALL IN BEHIND SBRIMBRULON, WHO IS PIERRE D'AMIENS, HIS LORD. A MUCH HARDER TRICK WILL BE TO WALK.",
+        "ON THE ROAD SOUTH, JACK AND TWO LADS OF THE ROAD WANT THE BORROWED HELMET: BARK THEM OFF. PICK UP THE HELMET, A MAIL COAT AND A SHIELD PAINTED LAST NIGHT: ZAMPANO IS A KNIGHT, HEAVY AND MAGNIFICENT. CONFUSIONE IS ALEAUME, A CLERK WHO CALLS HIM BROTHER. TRY THE CHARGE ACROSS THE ROAD, THEN SPAR WITH THE SQUIRES OF SBRIMBRULON, WHO IS PIERRE D'AMIENS, HIS LORD: SWORD AND SHIELD. A MUCH HARDER TRICK WILL BE TO WALK.",
       source:
-        "ADAPTATION. CLARI SIGNS HIMSELF 'ROBERT OF CLARI, KNIGHT' (CLARI 120) AND RIDES IN PIERRE D'AMIENS'S BATTALION (CLARI 45-47, 75); ALEAUME OF CLARI, A CLERK, IS ROBERT'S BROTHER (CLARI 75-76). THE BORROWED ARMOUR AND THE ROAD ARE INVENTED.",
+        "ADAPTATION. CLARI SIGNS HIMSELF 'ROBERT OF CLARI, KNIGHT' (CLARI 120) AND RIDES IN PIERRE D'AMIENS'S BATTALION (CLARI 45-47, 75); ALEAUME OF CLARI, A CLERK, IS ROBERT'S BROTHER (CLARI 75-76). THE BORROWED ARMOUR, THE ROAD, JACK'S LADS AND THE SPARRING ARE INVENTED.",
       script: () => [
         call((ctx) => {
           ctx.setStage('road', { at: 'S' });
@@ -162,6 +162,22 @@ export const CH2: ChapterDef = {
         }),
         card('A FAMILIAR FACE', "CONFUSIONE IS ALEAUME HERE: ROBERT OF CLARI'S BROTHER, A CLERK. IN THE DREAM HE CALLS ZAMPANO BROTHER. ON THE LAWN HE NEVER WOULD.", { color: C.cyan, seconds: 3 }),
         say('confusione', 'BROTHER. YOU CANNOT GO TO JERUSALEM IN A RAG. THE ARMOURER LEFT THINGS ALONG THE ROAD.'),
+        // The first fight: barking only (he is not a knight yet).
+        call((ctx) => {
+          ctx.addActor('jack', 'jack', { x: 8.5, y: 21.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('lad1', 'crowdA', { x: 6.5, y: 23.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('lad2', 'crowdC', { x: 5.5, y: 25.5 }, { kind: 'idle', face: 'player' });
+        }),
+        say('jack', 'A DOG IN A RAG, GOING TO JERUSALEM? THE ARMOURER\'S THINGS ARE OURS NOW. LIKE THE GATE.'),
+        card('BARK!', 'THE ROUND BUTTON, A DOUBLE TAP OVER THE BUTTONS, OR B. A BARK PUSHES BACK EVERYONE NEAR.', { color: C.cyan, seconds: 3 }),
+        walk({
+          objective: 'BARK JACK AND HIS LADS OFF THE ROAD',
+          fight: { foes: ['jack', 'lad1', 'lad2'], hp: 1, speed: 1.4, routLines: ['MAD DOG!', 'KEEP YOUR RAG!', 'ALL RIGHT! ALL RIGHT!'] },
+        }),
+        call((ctx) => {
+          for (const n of ['jack', 'lad1', 'lad2']) ctx.removeActor(n);
+        }),
+        say('confusione', 'THEY WILL BE BACK, BROTHER. THEIR KIND ALWAYS COMES BACK.'),
         walk({
           objective: 'PICK UP THE HELMET, THE MAIL COAT AND THE SHIELD',
           pickups: [
@@ -190,7 +206,24 @@ export const CH2: ChapterDef = {
           ctx.addActor('pierre', 'sbrimbrulonKnight', { x: ctx.player.gx + 1, y: ctx.player.gy - 0.6 }, { kind: 'idle', face: 'player' });
         }),
         card('A FAMILIAR FACE', "SBRIMBRULON IS PIERRE D'AMIENS HERE: THE LORD WHOSE MEN HE RIDES WITH", { color: C.cyan, seconds: 2.4 }),
-        say('sbrimbrulon', 'THAT WAS A FINE CHARGE AT NOTHING, LITTLE ONE. NOW WALK. VENICE IS A LONG WAY.'),
+        say('sbrimbrulon', 'THAT WAS A FINE CHARGE AT NOTHING, LITTLE ONE. NOW TRY SOMETHING THAT HITS BACK. MY SQUIRES HAVE STICKS.'),
+        // The second fight: sword and shield, against wooden swords.
+        call((ctx) => {
+          ctx.addActor('sq1', 'crowdA', { x: 10.5, y: 9.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('sq2', 'crowdB', { x: 5.5, y: 11.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('sq3', 'crowdC', { x: 10.5, y: 12.5 }, { kind: 'idle', face: 'player' });
+          ctx.actor('pierre').setBehavior({ kind: 'idle', face: 'player' });
+        }),
+        card('SWORD AND SHIELD', 'SWIPE UP OVER THE BUTTONS TO STRIKE (U), SWIPE DOWN TO RAISE THE SHIELD (I, HOLD IT). THE SMALL BUTTON BY THE ROUND ONE SWITCHES WHAT IT DOES (Q).', { color: C.cyan, seconds: 3.6 }),
+        card('THE RING', 'WHEN THE RING UNDER A SQUIRE FILLS RED, HIS STICK IS COMING DOWN: SHIELD UP, THEN STRIKE WHILE HE STAGGERS. SQUIRES PARRY A BLOW THEY SEE COMING.', { color: C.yellow, seconds: 3.2 }),
+        walk({
+          objective: 'SPAR UNTIL ALL THREE SQUIRES YIELD',
+          fight: { foes: ['sq1', 'sq2', 'sq3'], hp: 2, speed: 1.2, health: 6, parry: true, routLines: ['I YIELD!', 'MERCY, SIR DOG!', 'ENOUGH, MESSIRE!'] },
+        }),
+        call((ctx) => {
+          for (const n of ['sq1', 'sq2', 'sq3']) ctx.removeActor(n);
+        }),
+        say('sbrimbrulon', 'GOOD. THE SWORD IS THE EASY PART. NOW WALK. VENICE IS A LONG WAY.'),
         say('zampano', 'YES, MESSIRE PIERRE. TO THE CRUSADE!'),
         say('confusione', 'NOBODY SAYS CRUSADE, BROTHER. IT IS THE HOLY VOYAGE. AND WE ARE PILGRIMS.'),
         followLeader({

@@ -149,7 +149,7 @@ export class RhythmGame extends MiniGame {
     for (const t of taps) if (t.y > h - 120) pressed = this.o.mode === 'single' ? 0 : t.x < w / 2 ? 0 : 1;
     if (input.consume('left')) pressed = 0;
     if (input.consume('right')) pressed = 1;
-    if (input.consume('confirm') || input.consume('bark') || input.consume('pee') || input.consume('up')) pressed = this.o.mode === 'single' ? 0 : pressed;
+    if (input.consumeAny(['confirm', 'action', 'pee', 'up'])) pressed = this.o.mode === 'single' ? 0 : pressed;
     if (pressed >= 0) {
       if (inWindow) {
         const b = this.layoutBeats[near]!;

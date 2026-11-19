@@ -135,9 +135,9 @@ export const CH5: ChapterDef = {
       id: '5.3',
       title: 'Whose orders?',
       happens:
-        "INSIDE THE CITY, VENETIANS AND PILGRIMS FIGHT IN THE STREETS ALL NIGHT. GET ALEAUME BACK TO THEIR QUARTERS PAST THE BRAWL, AND ON THE WAY HEAR WHAT THREE PEOPLE SAY HE OWES: THE ABBOT, THE MARSHAL AND A VENETIAN. ALEAUME WANTS TO KNOW WHICH OF THEM HE BELIEVES.",
+        "INSIDE THE CITY, VENETIANS AND PILGRIMS FIGHT IN THE STREETS ALL NIGHT. ON THE WAY HEAR WHAT THREE PEOPLE SAY HE OWES: THE ABBOT, THE MARSHAL AND A VENETIAN. ALEAUME WANTS TO KNOW WHICH OF THEM HE BELIEVES. THEN GET HIM BACK TO THEIR QUARTERS THROUGH THE BRAWL: BARK OR SHIELD THE BRAWLERS ASIDE. THE POPE FORBADE THEM TO ATTACK CHRISTIANS, AND EVERY SWORD BLOW THAT LANDS COSTS GRACE.",
       source:
-        "VILLEHARDOUIN P. 22 (A FRAY BETWEEN VENETIANS AND FRANKS; PEACE AFTER A WEEK) AND PP. 20-21; CLARI 15 (A GREAT CONTENTION BETWEEN THE VENETIANS AND THE BASER SORT OF PILGRIMS, A NIGHT AND HALF A DAY). REPLACES THE OLD PENITENTIAL/URBAN II EXCURSUS. THE THREE SPEECHES AND THE CHOICE ARE ADAPTATION.",
+        "VILLEHARDOUIN P. 22 (A FRAY BETWEEN VENETIANS AND FRANKS; PEACE AFTER A WEEK) AND PP. 20-21; CLARI 15 (A GREAT CONTENTION BETWEEN THE VENETIANS AND THE BASER SORT OF PILGRIMS, A NIGHT AND HALF A DAY). REPLACES THE OLD PENITENTIAL/URBAN II EXCURSUS. THE THREE SPEECHES, THE CHOICE, THE FIGHT THROUGH THE BRAWL AND THE GRACE IT COSTS TO USE THE SWORD ARE ADAPTATION.",
       script: () => {
         let brawlT = 0;
         return [
@@ -185,7 +185,27 @@ export const CH5: ChapterDef = {
               then: [say('confusione', 'AT LEAST MONEY CAN BE COUNTED.')],
             },
           ]),
-          walk({ objective: 'GET BACK TO YOUR QUARTERS', goal: { reach: 'S', label: 'QUARTERS' } }),
+          call((ctx) => {
+            ctx.addActor('b3', 'crowdA', { x: 12.5, y: 12.5 }, { kind: 'idle', face: 'player' });
+            ctx.notice('THE BRAWL SPILLS INTO YOUR STREET', C.orange);
+          }),
+          say('confusione', 'THE POPE FORBADE US TO DRAW ON CHRISTIANS, BROTHER. A BARK, A SHIELD. NOT THE SWORD.'),
+          walk({
+            objective: 'GET BACK TO YOUR QUARTERS THROUGH THE BRAWL',
+            goal: { reach: 'S', label: 'QUARTERS' },
+            fight: {
+              foes: ['b1', 'b2', 'b3'],
+              rout: 0,
+              hp: 2,
+              speed: 1.3,
+              radius: 3.5,
+              leash: 5,
+              routLines: ['VENICE!', 'PICARDY!', 'NOT WORTH IT!'],
+              swordCost: { grace: -1 },
+              swordCostText: 'A SWORD ON A CHRISTIAN, AT ZARA: THE FORBIDDEN THING',
+              knockedText: 'UP AGAIN. BARK THEM BACK OR RAISE THE SHIELD AND PUSH THROUGH.',
+            },
+          }),
           card('A WEEK LATER', 'THE STREETS MAKE PEACE. NOBODY MAKES PEACE WITH THE DEBT.', { color: '#9aa4c0', seconds: 2.2 }),
           say('zampano', 'THERE WERE THREE DEBTS, AND I COULD ONLY PAY ONE.', { remembered: true }),
         ];

@@ -46,15 +46,30 @@ Open the printed `Local` URL on the computer, or the `Network` URL on a phone on
 | Action | Touch | Keyboard |
 |--------|-------|----------|
 | Move   | virtual joystick (appears under your thumb, left side) | WASD / arrow keys |
-| Run    | hold RUN (only while the energy ring around it has energy) | hold Shift or K |
-| Pee    | PEE button | Space |
-| Bark   | BARK button | J or X |
+| Run    | hold RUN, or tap it on/off (OPTIONS > CONTROLS); only while the energy ring has energy | hold Shift or K |
+| Pee    | PEE button (Green Zone) | Space |
+| Action button | the round button: BARK in the Green Zone; in the story the scene's action, BARK, SWORD or SHIELD | J or X |
+| Switch the action button | the small ⇄ button next to it | Q or Tab |
+| Bark   | double tap over the buttons | B |
+| Sword (once a knight) | swipe up over the buttons | U |
+| Shield (once a knight) | swipe down over the buttons (or hold the round button in SHIELD mode) | hold I |
 | Menu   | MENU (top right) | Esc |
 | Story: next line / choose | tap the line / tap an option | Space or Enter / arrows + Space |
 
-In the story the right button changes name with the scene (LOOK, SNIFF, BARK, PLACE…). The
-pause menu sets the text speed; the story menu opens each level's scene list, where any finished
-scene can be replayed without changing your campaign.
+In the story the round button changes name with the scene (LOOK, SNIFF, VOW, PLACE…); the switcher
+cycles it through the scene's action, BARK and, once Zampanò is a knight (2.3), SWORD and SHIELD.
+The gestures are read on the button side of the screen, above the buttons; what each one does,
+RUN held or switched, the switcher and a left-hand layout (buttons on the left, joystick on the
+right) are in OPTIONS > CONTROLS (also in the story's pause menu). The pause menu sets the text
+speed; the story menu opens each level's scene list, where any finished scene can be replayed
+without changing your campaign.
+
+**Fights** (2.3, 5.3, 7.2): the foes come at him and swing; a red ring filling under one means a
+blow is coming. Raise the shield (it takes blows from the front), then strike while he staggers;
+armed foes parry a blow they see coming. A bark pushes back everyone near and is never parried,
+but barely staggers. Nobody dies: a beaten foe runs off ("routed"), and at 0 HEALTH Zampanò is
+knocked down and the fight starts again. At Zara (5.3) the pope has forbidden attacks on
+Christians: every sword blow that lands costs Grace.
 
 ## Play on a phone (browser)
 

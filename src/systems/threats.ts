@@ -51,7 +51,8 @@ export class Threats {
   update(dt: number, input: Input): void {
     const { player, map, events } = this.world;
     if (this.barkCooldown > 0) this.barkCooldown -= dt;
-    if (input.consume('bark')) this.tryBark();
+    // The action button (labelled BARK here) or a bark gesture / B.
+    if (input.consumeAny(['action', 'bark'])) this.tryBark();
 
     // Delayed bark hits (the sound wave travels).
     for (let k = this.pendingHits.length - 1; k >= 0; k--) {

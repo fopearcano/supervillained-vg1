@@ -319,6 +319,93 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /**
+   * Fighting with the touch controls (2.3, the sparring): a swipe up over the buttons (SWORD), a
+   * swipe down (SHIELD), a squire's swing coming (the ring), the switcher, and the left-hand layout.
+   */
+  async fight(browser) {
+    const page = await openGame(browser, '?story=2.3');
+    await page.evaluate(() => {
+      localStorage.clear();
+      window.__sv.game.input.usingTouch = true;
+    });
+    const st = await skipTo(page, 'WalkStep', 4);
+    console.log('sparring:', JSON.stringify(st && st.player));
+    // (The skipped walks left him at the start: put him where the charge ends, among the squires.)
+    await page.evaluate(() => {
+      const s = window.__sv.top();
+      s.player.setPosition(8.5, 10.5);
+      s.world.snapCamera();
+    });
+    await wait(500);
+    // Logical px → page px.
+    const box = await page.evaluate(() => {
+      const r = window.__sv.game.canvas.getBoundingClientRect();
+      return { x: r.left, y: r.top, k: r.width / window.__sv.game.width };
+    });
+    const at = (x, y) => [box.x + x * box.k, box.y + y * box.k];
+    const zone = await page.evaluate(() => window.__sv.game.input.gestureZone);
+    const swipe = async (dir) => {
+      const [x, y] = at(zone.x + zone.w / 2, zone.y + zone.h * 0.45);
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x, y + dir * 70, { steps: 4 });
+      await page.mouse.up();
+    };
+    await swipe(-1);
+    await wait(60);
+    await page.screenshot({ path: `${OUT}/f-swipe-sword.png` });
+    console.log('gesture:', JSON.stringify(await page.evaluate(() => window.__sv.game.input.lastGesture)));
+    await wait(700);
+    await swipe(1);
+    await wait(150);
+    await page.screenshot({ path: `${OUT}/f-swipe-shield.png` });
+    // Wait for a squire's swing to come (the red ring filling under him).
+    for (let k = 0; k < 40; k++) {
+      const winding = await page.evaluate(() => window.__sv.top().current?.combat?.foes.some((a) => a.foe && a.foe.windup > 0 && a.foe.windup < 0.3));
+      if (winding) break;
+      await wait(60);
+    }
+    await page.screenshot({ path: `${OUT}/f-ring.png` });
+    // The switcher: SWORD → SHIELD.
+    const sw = await page.evaluate(() => {
+      const b = window.__sv.game.input.buttons.get('switch');
+      return { x: b.x, y: b.y, enabled: b.enabled };
+    });
+    await page.touchscreen.tap(...at(sw.x, sw.y));
+    await wait(250);
+    console.log('switcher', JSON.stringify(sw), 'mode now', await page.evaluate(() => window.__sv.top().actionMode));
+    await page.screenshot({ path: `${OUT}/f-switcher.png` });
+    // Left hand: the buttons and the gestures move to the left, the joystick to the right.
+    await page.evaluate(() => {
+      const g = window.__sv.game;
+      g.settings.controls.hand = 'left';
+      g.onSettingsChanged();
+    });
+    await wait(400);
+    await page.screenshot({ path: `${OUT}/f-left-hand.png` });
+    console.log('fight state', JSON.stringify(await page.evaluate(() => {
+      const c = window.__sv.top().current?.combat;
+      return c ? { health: c.health, routed: c.routed, foes: c.foes.map((a) => a.foe && +a.foe.hp.toFixed(1)) } : null;
+    })));
+    await page.close();
+  },
+
+  /** OPTIONS > CONTROLS. */
+  async controls(browser) {
+    const page = await openGame(browser, '');
+    await page.evaluate(() => localStorage.clear());
+    await wait(1200);
+    await page.evaluate(() => window.__sv.top().actions.options());
+    await wait(500);
+    await page.screenshot({ path: `${OUT}/p-options.png` });
+    await page.evaluate(() => window.__sv.top().menu.rows.find((r) => r.text.text === 'CONTROLS' || String(r.item.label) === 'CONTROLS').item.action());
+    await wait(600);
+    await page.screenshot({ path: `${OUT}/p-controls.png` });
+    console.log('top:', await page.evaluate(() => window.__sv.top().constructor.name));
+    await page.close();
+  },
+
   /** The title's GLOSSARY card (the ring around the verb drawn), and the publisher link. */
   async glossary(browser) {
     const page = await openGame(browser, '');

@@ -2,7 +2,7 @@ import { Sprite } from 'pixi.js';
 import { textures } from '../core/assets';
 import { animationDuration } from '../assets/animationTiming';
 import { CHARACTERS, spriteName, type AnimName, type CharacterKey } from '../assets/manifest';
-import { PLAYER } from '../config';
+import { COMBAT, PLAYER } from '../config';
 import { Energy, type EnergyEvent } from '../systems/needs';
 import { dirFromGridVector, dirToGridVector, screenDirToGrid, type Dir8 } from '../iso/projection';
 import type { GameMap } from '../world/map';
@@ -100,6 +100,9 @@ export class Zampano extends Entity {
     this.animator.update(0);
   }
 
+  /** The shield is up (story fights): slower, no running, facing held (story/combat.ts). */
+  guarding = false;
+
   get controllable(): boolean {
     return !LOCKS_MOVEMENT[this.state];
   }
@@ -180,8 +183,9 @@ export class Zampano extends Entity {
       const mag = Math.min(1, Math.hypot(this.intentX, this.intentY));
       if (mag > 0.01) {
         const dir = screenDirToGrid(this.intentX, this.intentY);
-        this.running = this.runWanted === 'scripted' || (this.runWanted && this.canRun);
-        const speed = (this.running ? PLAYER.RUN_SPEED : PLAYER.WALK_SPEED * Math.min(1, mag / 0.55)) * this.speedMul;
+        this.running = !this.guarding && (this.runWanted === 'scripted' || (this.runWanted && this.canRun));
+        const guard = this.guarding ? COMBAT.SHIELD.SPEED : 1;
+        const speed = (this.running ? PLAYER.RUN_SPEED : PLAYER.WALK_SPEED * Math.min(1, mag / 0.55)) * this.speedMul * guard;
         const terrain = this.terrainFactor(map);
         tx = dir.x * speed * terrain;
         ty = dir.y * speed * terrain;
@@ -217,8 +221,8 @@ export class Zampano extends Entity {
     const activity = !this.moving ? 'idle' : this.running && this.runWanted === true ? 'run' : 'walk';
     this.energyEvent = this.energy.update(dt, activity);
 
-    // Facing follows the velocity (but not while knocked back).
-    if (Math.hypot(this.vx, this.vy) > 0.3 && this.state !== 'hurt') {
+    // Facing follows the velocity (but not while knocked back, nor behind a raised shield).
+    if (Math.hypot(this.vx, this.vy) > 0.3 && this.state !== 'hurt' && !this.guarding) {
       const d = dirFromGridVector(this.vx, this.vy, this.facing);
       if (this.state === 'fetch' || this.controllable) this.facing = d;
     }

@@ -20,6 +20,14 @@ export const SOUNDS = {
     { at: 0, def: { wave: 'noise', freq: 2400, freqEnd: 300, attack: 0.002, sustain: 0.05, decay: 0.12, volume: 0.35 } },
     { at: 0, def: { wave: 'square', duty: 0.5, freq: 900, freqEnd: 200, attack: 0.002, sustain: 0.04, decay: 0.08, volume: 0.3 } },
   ],
+  /** The sword's swing (story fights). */
+  swish: { wave: 'noise', freq: 2200, freqEnd: 500, attack: 0.01, sustain: 0.05, decay: 0.09, volume: 0.22 },
+  /** A blow on the raised shield. */
+  clang: [
+    { at: 0, def: { wave: 'square', duty: 0.125, freq: 1480, freqEnd: 1380, attack: 0.001, sustain: 0.03, decay: 0.28, volume: 0.22 } },
+    { at: 0, def: { wave: 'triangle', freq: 2230, attack: 0.001, sustain: 0.02, decay: 0.35, volume: 0.2, vibratoRate: 30, vibratoDepth: 0.01 } },
+    { at: 0, def: { wave: 'noise', freq: 4000, freqEnd: 1500, attack: 0.001, sustain: 0.02, decay: 0.05, volume: 0.25 } },
+  ],
   flee: { wave: 'square', duty: 0.25, freq: 300, freqEnd: 1600, attack: 0.01, sustain: 0.25, decay: 0.2, volume: 0.25, vibratoRate: 20, vibratoDepth: 0.06 },
   saved: [
     { at: 0, def: { wave: 'square', duty: 0.25, freq: noteFreq('G5'), attack: 0.005, sustain: 0.08, decay: 0.04, volume: 0.28 } },

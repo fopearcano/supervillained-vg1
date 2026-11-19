@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { addCoins, bestFor, loadCoins, loadSettings, saveRecord, saveSettings } from '../src/core/settings';
+import { addCoins, bestFor, DEFAULT_CONTROLS, loadCoins, loadSettings, saveRecord, saveSettings, validControls } from '../src/core/settings';
 import { storage } from '../src/core/storage';
 
 class MemoryStorage {
@@ -49,8 +49,23 @@ describe('settings, records and coins', () => {
     expect(loadSettings().muted).toBe(false);
     expect(loadSettings().textSpeed).toBe('normal');
     expect(loadSettings().lives).toBe(2);
-    saveSettings({ muted: true, volume: 0.3, textSpeed: 'fast', lives: 5 });
-    expect(loadSettings()).toEqual({ muted: true, volume: 0.3, textSpeed: 'fast', lives: 5 });
+    saveSettings({ muted: true, volume: 0.3, textSpeed: 'fast', lives: 5, controls: DEFAULT_CONTROLS });
+    expect(loadSettings()).toEqual({ muted: true, volume: 0.3, textSpeed: 'fast', lives: 5, controls: DEFAULT_CONTROLS });
+  });
+
+  it('persists the controls, and old saves get the default controls', () => {
+    expect(loadSettings().controls).toEqual(DEFAULT_CONTROLS);
+    const mine = { swipeUp: 'bark', swipeDown: 'off', doubleTap: 'switch', run: 'toggle', switcher: false, hand: 'left' } as const;
+    saveSettings({ ...loadSettings(), controls: { ...mine } });
+    expect(loadSettings().controls).toEqual(mine);
+  });
+
+  it('repairs unknown control values one by one', () => {
+    expect(validControls({ swipeUp: 'laser', swipeDown: 'run', run: 'sometimes', switcher: 'yes', hand: 'both' })).toEqual({
+      ...DEFAULT_CONTROLS,
+      swipeDown: 'run',
+    });
+    expect(validControls(null)).toEqual(DEFAULT_CONTROLS);
   });
 
   it('falls back to normal text speed for unknown values', () => {
