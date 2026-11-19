@@ -799,7 +799,8 @@ save migration in [`docs/STORY-SOURCES.md`](docs/STORY-SOURCES.md).
   project can be generated and synced on Linux).
 - **Native bits mirror Android**: `MainViewController` (a `CAPBridgeViewController` subclass)
   registers the app's `AppQuit` plugin, disables the idle timer (screen kept on), hides the status
-  bar and the home indicator, and allows portrait only; `Info.plist` adds portrait-only
+  bar and allows portrait only (the home indicator stays: Capacitor's controller does not let a
+  subclass override `prefersHomeIndicatorAutoHidden`, and the safe area keeps the game above it); `Info.plist` adds portrait-only
   orientations, `UIRequiresFullScreen`, `UIStatusBarHidden`, `arm64` and no export-compliance
   question. `AppQuitPlugin.swift` opens web links in Safari; `quit` is unavailable because iOS
   apps must not close themselves (Apple's guidelines), so `quitApp()` returns false on iOS and the
