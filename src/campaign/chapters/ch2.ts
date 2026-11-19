@@ -152,44 +152,44 @@ export const CH2: ChapterDef = {
       id: '2.3',
       title: 'A coat of mail too big',
       happens:
-        "ON THE ROAD SOUTH, JACK AND TWO LADS OF THE ROAD WANT THE BORROWED HELMET: BARK THEM OFF. PICK UP THE HELMET, A MAIL COAT AND A SHIELD PAINTED LAST NIGHT: ZAMPANO IS A KNIGHT, HEAVY AND MAGNIFICENT. CONFUSIONE IS ALEAUME, A CLERK WHO CALLS HIM BROTHER. TRY THE CHARGE ACROSS THE ROAD, THEN SPAR WITH THE SQUIRES OF SBRIMBRULON, WHO IS PIERRE D'AMIENS, HIS LORD: SWORD AND SHIELD. A MUCH HARDER TRICK WILL BE TO WALK.",
+        "ON THE ROAD SOUTH, IN A COAT OF MAIL TWO SIZES TOO BIG, ZAMPANO STILL HAS NO ARMS. JACK AND TWO LADS OF THE ROAD WANT WHAT THE ARMOURER LEFT ON THE ROAD: BARK THEM OFF. PICK UP A SWORD, A SHIELD PAINTED LAST NIGHT AND A SWORD BELT: ZAMPANO IS A KNIGHT, HEAVY AND MAGNIFICENT. CONFUSIONE IS ALEAUME, A CLERK WHO CALLS HIM BROTHER. TRY THE CHARGE ACROSS THE ROAD, THEN SPAR WITH THE SQUIRES OF SBRIMBRULON, WHO IS PIERRE D'AMIENS, HIS LORD: SWORD AND SHIELD. A MUCH HARDER TRICK WILL BE TO WALK.",
       source:
-        "ADAPTATION. CLARI SIGNS HIMSELF 'ROBERT OF CLARI, KNIGHT' (CLARI 120) AND RIDES IN PIERRE D'AMIENS'S BATTALION (CLARI 45-47, 75); ALEAUME OF CLARI, A CLERK, IS ROBERT'S BROTHER (CLARI 75-76). THE BORROWED ARMOUR, THE ROAD, JACK'S LADS AND THE SPARRING ARE INVENTED.",
+        "ADAPTATION. CLARI SIGNS HIMSELF 'ROBERT OF CLARI, KNIGHT' (CLARI 120) AND RIDES IN PIERRE D'AMIENS'S BATTALION (CLARI 45-47, 75); ALEAUME OF CLARI, A CLERK, IS ROBERT'S BROTHER (CLARI 75-76). THE BORROWED ARMOUR AND ARMS, THE ROAD, JACK'S LADS AND THE SPARRING ARE INVENTED.",
       script: () => [
         call((ctx) => {
           ctx.setStage('road', { at: 'S' });
           ctx.addActor('conf', 'confusione', { x: 9.5, y: 26.5 }, { kind: 'follow', target: ctx.player, distance: 1.4, speed: 3, side: -0.8 });
         }),
         card('A FAMILIAR FACE', "CONFUSIONE IS ALEAUME HERE: ROBERT OF CLARI'S BROTHER, A CLERK. IN THE DREAM HE CALLS ZAMPANO BROTHER. ON THE LAWN HE NEVER WOULD.", { color: C.cyan, seconds: 3 }),
-        say('confusione', 'BROTHER. YOU CANNOT GO TO JERUSALEM IN A RAG. THE ARMOURER LEFT THINGS ALONG THE ROAD.'),
-        // The first fight: barking only (he is not a knight yet).
+        say('confusione', 'BROTHER. A COAT OF MAIL IS NOT A KNIGHT. A KNIGHT CARRIES A SWORD AND A SHIELD. THE ARMOURER LEFT THEM ALONG THE ROAD.'),
+        // The first fight: barking only (no sword and no shield yet).
         call((ctx) => {
           ctx.addActor('jack', 'jack', { x: 8.5, y: 21.5 }, { kind: 'idle', face: 'player' });
           ctx.addActor('lad1', 'pilgrim', { x: 6.5, y: 23.5 }, { kind: 'idle', face: 'player' });
           ctx.addActor('lad2', 'pilgrim', { x: 5.5, y: 25.5 }, { kind: 'idle', face: 'player' });
         }),
-        say('jack', 'A DOG IN A RAG, GOING TO JERUSALEM? THE ARMOURER\'S THINGS ARE OURS NOW. LIKE THE GATE.'),
+        say('jack', 'A DOG IN A TIN COAT, GOING TO JERUSALEM? THE ARMOURER\'S THINGS ARE OURS NOW. LIKE THE GATE.'),
         card('BARK!', 'THE ROUND BUTTON, A DOUBLE TAP OVER THE BUTTONS, OR B. A BARK PUSHES BACK EVERYONE NEAR.', { color: C.cyan, seconds: 3 }),
         walk({
           objective: 'BARK JACK AND HIS LADS OFF THE ROAD',
-          fight: { foes: ['jack', 'lad1', 'lad2'], hp: 1, speed: 1.4, routLines: ['MAD DOG!', 'KEEP YOUR RAG!', 'ALL RIGHT! ALL RIGHT!'] },
+          fight: { foes: ['jack', 'lad1', 'lad2'], hp: 1, speed: 1.4, routLines: ['MAD DOG!', 'KEEP YOUR TIN COAT!', 'ALL RIGHT! ALL RIGHT!'] },
         }),
         call((ctx) => {
           for (const n of ['jack', 'lad1', 'lad2']) ctx.removeActor(n);
         }),
         say('confusione', 'THEY WILL BE BACK, BROTHER. THEIR KIND ALWAYS COMES BACK.'),
         walk({
-          objective: 'PICK UP THE HELMET, THE MAIL COAT AND THE SHIELD',
+          objective: 'PICK UP THE SWORD, THE SHIELD AND THE BELT',
           pickups: [
-            { at: '2', kind: 'spot', label: 'A HELMET', text: 'BORROWED. IT FITS LIKE THE BUCKET.' },
-            { at: '3', kind: 'spot', label: 'A COAT OF MAIL', text: 'TWO SIZES TOO BIG. IT CLINKS.' },
-            { at: '4', kind: 'spot', label: 'A SHIELD', text: 'PAINTED LAST NIGHT. STILL WET.' },
+            { at: '2', kind: 'spot', label: 'A SWORD', text: 'BORROWED. BLUNT. HE HOLDS IT LIKE A BONE.', sprite: 'sword' },
+            { at: '3', kind: 'spot', label: 'A SWORD BELT', text: 'TWO SIZES TOO BIG, LIKE THE MAIL. IT CLINKS.', sprite: 'belt' },
+            { at: '4', kind: 'spot', label: 'A SHIELD', text: 'PAINTED LAST NIGHT. STILL WET.', sprite: 'shieldItem' },
           ],
         }),
         fx({ unlock: 'knight', supervillain: 8 }),
         sound('star'),
         skin('zampanoKnight'),
-        card('A KNIGHT', 'HEAVY, CLINKING AND MAGNIFICENT', { color: C.cyan, seconds: 2.2 }),
+        card('A KNIGHT', 'ARMED, HEAVY, CLINKING AND MAGNIFICENT', { color: C.cyan, seconds: 2.2 }),
         emote('zampano', 'bark'),
         say('zampano', 'WOOF. (DEEPER.)'),
         say('confusione', 'IT IS THE HELMET. IT ECHOES.'),

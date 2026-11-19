@@ -917,3 +917,23 @@ save migration in [`docs/STORY-SOURCES.md`](docs/STORY-SOURCES.md).
   ways (the chapter palette and floor design join the player-skin choice, `costume()`). The
   overlay's sources had Windows line endings and were converted to the repository's; the
   environment PNGs and `manifest.json` are byte-identical to the delivery.
+
+## Armour in the whole dream; things you pick up are drawn
+
+- **No more rag-cross sprite.** Sprite update 2's rag-cross sheet (`zampanoCross`, a 4-frame white
+  dog with a red cross) still showed from the end of 1.5 to 2.3. In the dream Zampanò now wears
+  the armour from 2.1 on (`dreamSkin`: the cross is enough), which the scenes already described
+  ("his helmet is far too big", "a small knight of Picardy now"); the old sheet is archived and
+  the `zampanoCross` key points at the knight's sheet, so it can never come back. On the lawn
+  (1.5) he stays the plain dog and carries the rag on his back (a carried label): no armour in
+  reality. Sword and shield still come with the `knight` mark at 2.3, so `knighted` now needs the
+  armour *and* the mark; 2.3 hands him a sword, a sword belt and a shield instead of armour he
+  is already wearing.
+- **Spots you could not see.** `spot` pickups had no sprite: the red cloth (1.5), the arms (2.3),
+  the empty berths (3.1), the horses (4.2), the lamp (7.9) were invisible, so a player could walk
+  around looking for nothing and the scene seemed to hang. Every spot now has a pulsing ring on
+  the ground, things lying there have a sprite (`Pickup.sprite`: `rag`, `sword`, `belt`,
+  `shieldItem`, `lamp`, code-drawn in `placeholders/storyArt.ts`), and the three horses of 4.2
+  stand where he feeds them (`horse`, three coats).
+- The Color Ink frames were checked for the same symptom: none is blank and none ends above its
+  ground anchor (nothing in the delivered banks floats).

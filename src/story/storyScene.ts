@@ -239,10 +239,13 @@ export class StoryScene implements Scene {
     return this.world!.player;
   }
 
-  /** He wears armour (Zampanò's, or the armour of the dog played instead): the SWORD and the SHIELD are his. */
+  /**
+   * He wears armour (Zampanò's, or the armour of the dog played instead) and has been armed
+   * (the `knight` ability, 2.3): the SWORD and the SHIELD are his.
+   */
   get knighted(): boolean {
     const key = this.world?.player.animator.key;
-    return !!key && ARMOURED_SKINS.has(key);
+    return !!key && ARMOURED_SKINS.has(key) && this.state.abilities.includes('knight');
   }
 
   /** Who the player controls (`?as=`): Zampanò by default. */

@@ -12,7 +12,8 @@ Kept here for reference, outside `public/`, so it is not bundled.
 - `sprites-update-2/` — sprite update 2's plain Zampanò and knight (`zampano.png`,
   `zampanoKnight.png`: 10 animations of 4 frames, and their `-tired.png`), replaced by the Zampanò
   animation integration and the armoured Zampanò animations (8-frame cycles and the seated idle).
-  The rag cross (`zampanoCross`) is still update 2's and still in `public/sprites/`.
+  The rag cross (`zampanoCross.png`, `zampanoCross-tired.png`, update 2) is archived here too: in
+  the dream Zampanò wears the armour from 2.1, and the costume key points at the knight's sheet.
 - `directions-before-8way/` — the four-view sheets of plain and armoured Zampanò and Sbrimbrulòn
   (`zampano`, `zampanoKnight`, `sbrimbrulon`, `sbrimbrulonKnight`, each with its `-tired.png`),
   whose NE/SE rows repeated E and NW/SW repeated W; replaced by the 8-directions update, which

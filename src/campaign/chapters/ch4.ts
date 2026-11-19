@@ -56,6 +56,10 @@ export const CH4: ChapterDef = {
         say('watson', 'THE HORSES ARE IN THE UISSIERS, MAN, AND THEY ARE THIRSTY. THE SKIFF IS ALREADY LOADED. GENTLY.'),
         mini(() => new BoatGame({ objective: 'EASE THE SKIFF ALONGSIDE THE TRANSPORT WITHOUT SWAMPING IT', bob: 'watson' }), { won: { commozione: 4 } }),
         carry('HAY AND WATER'),
+        call((ctx) => {
+          // The horses stand where he feeds them: grey, bay, and Pierre's tall chestnut.
+          ['8', '2', '7'].forEach((m, k) => placeObject(ctx, 'horse', m, undefined, k));
+        }),
         walk({
           objective: 'FEED THE HORSES BELOW DECK',
           pickups: [

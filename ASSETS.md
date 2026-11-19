@@ -75,7 +75,7 @@ whose installer script and patch were not run: the integration was merged by han
 | file in `public/sprites/` | size | what it is |
 |---|---|---|
 | `zampano.png`, `zampano-tired.png` | 320 × 3520, 80 × 320 | plain Zampanò: 11 animations (8-frame idle, walk, run, pee, poop, eat, sit) + tired (animation integration) |
-| `zampanoCross.png`, `zampanoCross-tired.png` | 160 × 3200, 80 × 320 | with the rag cross, worn from 1.5 (update 2) |
+| (`zampanoCross`) | — | the crusader costume is the knight's sheet; update 2's rag-cross sheet is in `art-archive/sprites-update-2/` |
 | `zampanoKnight.png`, `zampanoKnight-tired.png` | 320 × 3520, 80 × 320 | the knight (conical helm, shoulder plates, mail coat, red cross on the back), from 2.5: the same 11 animations + tired as plain Zampanò (armoured animations) |
 | `bagnaskiz.png`, `bagnaskiz-tired.png` | 320 × 3520, 80 × 320 | fawn pug, black ears, yellow eyes: twelve actions in eight directions (Bagnaskiz 8-directions; update 1's 160 × 1600 sheet is archived) |
 | `bagnaskizArmoured.png`, `bagnaskizArmoured-tired.png` | 320 × 3520, 80 × 320 | Bagnaskiz in Byzantine armour, the emperors' face (`bagnaskizEmperor`) |
@@ -159,7 +159,7 @@ anchor (20, 36), animations **idle 2, walk 4, run 4, bark 2, hurt 2** (same shee
 
 | key | role in the VG1 design |
 |-----|------------------------|
-| `zampanoCross`, `zampanoKnight` | Zampanò with the rag cross (1.5) / in armour (2.5 onwards) |
+| `zampanoCross`, `zampanoKnight` | Zampanò in armour, in the dream (2.1 onwards; `zampanoCross` is an alias of the knight's sheet) |
 | `sbrimbrulon`, `sbrimbrulonKnight` | Shih-tzu, on the lawn / armoured in the dream (3.1, 5.2; Pierre d'Amiens in 7.3). Both have Zampanò's 12 actions: standing still 3 s he sits, and `Actor.playAction(anim, seconds?)` plays any action in place |
 | `jack`, `watson`, `santina`, `confusione` | the band and friends (Jack the absent general / looter, Watson the sailor, Santina the purple-born princess, Confusione as Aleaume) |
 | `bagnaskizMarshal`, `bagnaskizEmperor` | Bagnaskiz's masks: Villehardouin, then the usurpers |

@@ -511,7 +511,7 @@ export const CH7: ChapterDef = {
         stage('city', [{ name: 'conf', who: 'confusione', at: { x: 6.5, y: 19.5 }, face: 'W' }], { at: { x: 5.5, y: 18.5 } }),
         walk({
           objective: 'THE LAMP IS LYING IN THE STREET. PICK IT UP',
-          pickups: [{ at: { x: 4.5, y: 20.5 }, kind: 'spot', label: "THE LAMP FROM NIKETAS'S COURTYARD", text: 'STILL WARM FROM LAST NIGHT' }],
+          pickups: [{ at: { x: 4.5, y: 20.5 }, kind: 'spot', label: "THE LAMP FROM NIKETAS'S COURTYARD", text: 'STILL WARM FROM LAST NIGHT', sprite: 'lamp' }],
         }),
         carry('A LAMP'),
         ask('confusione', 'WE SWORE TO BRING EVERYTHING IN, BROTHER. EVERYTHING. EVEN LAMPS.', [

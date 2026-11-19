@@ -123,7 +123,7 @@ export async function buildGlobalTextures(): Promise<void> {
     [S.peeIcon, () => items.drawPeeIcon()],
     [S.barkIcon, () => items.drawBarkIcon()],
     [S.drop, (v) => items.drawDrop(v)],
-    ...(['legs', 'fortune', 'falcon', 'stag', 'shard', 'relic', 'bowl', 'banner', 'flame', 'professorFace', 'bee', 'tear', 'mask', 'halo'] as const).map(
+    ...(['legs', 'fortune', 'falcon', 'stag', 'shard', 'relic', 'bowl', 'banner', 'flame', 'professorFace', 'bee', 'tear', 'mask', 'halo', 'rag', 'sword', 'shieldItem', 'belt', 'lamp', 'horse'] as const).map(
       (k) => [S[k], (v: number) => drawSpecial(k, v)] as [SpriteDef, (v: number) => PixelBuffer],
     ),
     [S.pole, () => props.drawPole()],

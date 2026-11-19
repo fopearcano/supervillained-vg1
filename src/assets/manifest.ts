@@ -152,7 +152,8 @@ const tired = (path: string) => ({ tired: path });
  */
 const DELIVERED: Partial<Record<string, Pick<CharacterDef, 'sheet' | 'animSheets'>>> = {
   zampano: { sheet: 'sprites/zampano.png', animSheets: tired('sprites/zampano-tired.png') },
-  zampanoCross: { sheet: 'sprites/zampanoCross.png', animSheets: tired('sprites/zampanoCross-tired.png') },
+  // The crusader costume is the armour: the old rag-cross sheet (sprite update 2) is archived.
+  zampanoCross: { sheet: 'sprites/zampanoKnight.png', animSheets: tired('sprites/zampanoKnight-tired.png') },
   zampanoKnight: { sheet: 'sprites/zampanoKnight.png', animSheets: tired('sprites/zampanoKnight-tired.png') },
   // The Bagnaskiz 8-directions delivery, in full colour (the pixel cast's 32-colour copies lose
   // his yellow eyes); the Byzantine armour is the emperors' face (Alexios III and V).
@@ -215,25 +216,10 @@ function castDefs<K extends string>(keys: readonly K[]): Record<K, CharacterDef>
       anchorY: 36,
       ...(DELIVERED[key] ?? {}),
       anims:
-        key === 'zampanoKnight'
+        key === 'zampanoKnight' || key === 'zampanoCross'
           ? ZAMPANO_ANIMS
           : key === 'sbrimbrulon' || key === 'sbrimbrulonKnight' || key === 'bagnaskizEmperor'
           ? SBRIMBRULON_ANIMS
-          : key === 'zampanoCross'
-          ? {
-              idle: { frames: 2, fps: 3, loop: true },
-              walk: { frames: 4, fps: 9, loop: true },
-              run: { frames: 4, fps: 13, loop: true },
-              sniff: { frames: 2, fps: 5, loop: true },
-              pee: { frames: 2, fps: 6, loop: true },
-              poop: { frames: 2, fps: 3, loop: true },
-              eat: { frames: 2, fps: 8, loop: true },
-              bark: { frames: 2, fps: 10, loop: false },
-              fetch: { frames: 4, fps: 13, loop: true },
-              hurt: { frames: 2, fps: 10, loop: true },
-              // Standing still out of breath (sprite update 2; older art shows idle).
-              tired: { frames: 2, fps: 4, loop: true },
-            }
           : {
               idle: { frames: 2, fps: 3, loop: true },
               walk: { frames: 4, fps: 9, loop: true },
@@ -353,6 +339,14 @@ export const SPRITES = {
   tear: { key: 'tear', w: 5, h: 7, anchorX: 2, anchorY: 3, variants: 1 },
   mask: { key: 'mask', w: 9, h: 7, anchorX: 4, anchorY: 3, variants: 1 },
   halo: { key: 'halo', w: 9, h: 7, anchorX: 4, anchorY: 3, variants: 1 },
+  // Things to pick up or tend in the story walks (code-drawn): the rag of 1.5, the arms of 2.3,
+  // the horses of 4.2, the lamp of 7.5 and 7.9.
+  rag: { key: 'rag', w: 14, h: 9, anchorX: 7, anchorY: 7, variants: 1 },
+  sword: { key: 'sword', w: 20, h: 12, anchorX: 10, anchorY: 10, variants: 1 },
+  shieldItem: { key: 'shieldItem', w: 14, h: 17, anchorX: 7, anchorY: 16, variants: 1 },
+  belt: { key: 'belt', w: 16, h: 9, anchorX: 8, anchorY: 7, variants: 1 },
+  lamp: { key: 'lamp', w: 14, h: 13, anchorX: 7, anchorY: 11, variants: 1 },
+  horse: { key: 'horse', w: 40, h: 34, anchorX: 20, anchorY: 31, variants: 3 },
 } satisfies Record<string, SpriteDef>;
 
 export type SpriteKey = keyof typeof SPRITES;

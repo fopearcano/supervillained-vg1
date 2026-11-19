@@ -41,8 +41,9 @@ describe('campaign state rules', () => {
     applyEffects(s, { flags: { oath: 'enforced' } });
     expect(ending(s)).toBe('knight');
     expect(dreamSkin(s)).toBe('zampano');
+    // Taking the cross (1.5) is enough for the dream to put him in armour; arms come at 2.3.
     applyEffects(s, { unlock: 'cross' });
-    expect(dreamSkin(s)).toBe('zampanoCross');
+    expect(dreamSkin(s)).toBe('zampanoKnight');
     applyEffects(s, { unlock: 'knight' });
     expect(dreamSkin(s)).toBe('zampanoKnight');
     expect(unshakeable(s)).toBe(false);

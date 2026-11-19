@@ -29,6 +29,8 @@ export interface Pickup {
   /** Short line shown with the name. */
   text?: string;
   effects?: Effects;
+  /** A thing lying there, drawn on the ground (a spot is otherwise only marked by a ring). */
+  sprite?: SpriteKey;
 }
 
 export interface PaceDef {
@@ -112,7 +114,8 @@ class PickupEntity extends Entity {
     y: number,
   ) {
     super();
-    const key = PICKUP_SPRITE[def.kind];
+    const key = def.sprite ?? PICKUP_SPRITE[def.kind];
+    this.lying = !!def.sprite;
     this.sprite = key ? new Sprite(textures.get(spriteName(key))) : null;
     if (this.sprite) {
       const sh = new Sprite(textures.get(spriteName('shadowSmall')));
@@ -123,8 +126,14 @@ class PickupEntity extends Entity {
     this.bounds = { x: -8, y: -24, w: 16, h: 26 };
     this.depthBias = -0.2;
   }
+  /** A thing on the ground (sword, lamp...): it lies still instead of floating like a token. */
+  private readonly lying: boolean;
   override update(dt: number): void {
     this.t += dt;
+    if (this.sprite && this.lying) {
+      this.sprite.y = 0;
+      return;
+    }
     if (this.sprite) {
       this.sprite.y = -6 - Math.round((Math.sin(this.t * 3) + 1) * 2);
       if (this.def.kind === 'marvel') this.sprite.alpha = 0.6 + 0.4 * Math.sin(this.t * 6);
@@ -521,6 +530,15 @@ class WalkStep implements Step {
       let best = this.pickups[0]!;
       for (const e of this.pickups) if (Math.hypot(e.gx - p.gx, e.gy - p.gy) < Math.hypot(best.gx - p.gx, best.gy - p.gy)) best = e;
       targets.push({ x: best.gx, y: best.gy });
+    }
+    // Spots (a person to hear, a horse to feed, an empty berth, a thing to pick up): a ring on
+    // the ground, so the place is always visible.
+    for (const e of this.pickups) {
+      if (e.def.kind !== 'spot') continue;
+      const s = gridToScreen(e.gx, e.gy);
+      const pulse = 7 + Math.sin(ctx.time * 5 + e.gx) * 1.5;
+      r.ellipse(s.x, s.y, pulse * 1.6, pulse * 0.8).stroke({ width: 1, color: 0xfff36a, alpha: 0.85 });
+      r.ellipse(s.x, s.y, pulse * 0.9, pulse * 0.45).fill({ color: 0xfff36a, alpha: 0.18 });
     }
     for (const t of targets) {
       const s = gridToScreen(t.x, t.y);

@@ -72,7 +72,8 @@ describe('authored Zampanò timing', () => {
   it('uses the complete authored layout for the knight costume', () => {
     expect(CHARACTERS.zampanoKnight.anims).toEqual(CHARACTERS.zampano.anims);
     expect(CHARACTERS.zampanoKnight.anims.sit!.frames).toBe(8);
-    expect(CHARACTERS.zampanoCross.anims.sit).toBeUndefined();
-    expect(CHARACTERS.zampanoCross.anims.pee!.frames).toBe(2);
+    // The old rag-cross sheet is retired: the crusader costume is the armour.
+    expect(CHARACTERS.zampanoCross.sheet).toBe(CHARACTERS.zampanoKnight.sheet);
+    expect(CHARACTERS.zampanoCross.anims).toEqual(CHARACTERS.zampanoKnight.anims);
   });
 });

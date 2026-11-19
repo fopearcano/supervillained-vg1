@@ -137,7 +137,7 @@ export class Combat {
     if (ctx.knighted) return true;
     if (!this.told.has(what)) {
       this.told.add(what);
-      ctx.notice(`NO ${what} YET: HE IS NOT A KNIGHT`, '#9aa4c0');
+      ctx.notice(`NO ${what} YET: THE ARMOURER LEFT THEM ON THE ROAD (2.3)`, '#9aa4c0');
     }
     return false;
   }

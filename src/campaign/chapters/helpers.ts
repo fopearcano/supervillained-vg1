@@ -263,9 +263,9 @@ export function sounder(text: string, color: string = C.cyan, every: number = ST
 // ------------------------------------------------------------------ objects on the stage
 
 /** A loose object on the stage (the red ball, the water bowl, a crate): returned so it can move. */
-export function placeObject(ctx: StoryScene, key: SpriteKey, where: string | Point, tint?: number): PropEntity {
+export function placeObject(ctx: StoryScene, key: SpriteKey, where: string | Point, tint?: number, variant = 0): PropEntity {
   const p = ctx.marker(where);
-  const e = new PropEntity(key, 0, p.x, p.y, null, false);
+  const e = new PropEntity(key, variant, p.x, p.y, null, false);
   if (tint !== undefined) e.sprite.tint = tint;
   ctx.world!.addEntity(e);
   return e;

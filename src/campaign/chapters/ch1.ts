@@ -1,7 +1,7 @@
 import { STORY } from '../../config';
 import type { PropEntity } from '../../entities/prop';
 import { carry, dropCarried } from '../../story/carry';
-import { ask, call, card, face, flash, fx, move, prof, say, shake, skin, sound, stage, wait } from '../../story/steps';
+import { ask, call, card, face, flash, fx, move, prof, say, shake, sound, stage, wait } from '../../story/steps';
 import type { StoryScene } from '../../story/storyScene';
 import { walk } from '../../story/walk';
 import { C } from '../../ui/retro';
@@ -348,7 +348,7 @@ export const CH1: ChapterDef = {
         stage('neighborhood', [], { skin: 'plain', at: '8', face: 'W' }),
         walk({
           objective: 'TAKE THE SCRAP OF RED CLOTH CAUGHT IN THE HEDGE',
-          pickups: [{ at: { x: 20.5, y: 5.5 }, kind: 'spot', label: 'A SCRAP OF RED CLOTH' }],
+          pickups: [{ at: { x: 20.5, y: 5.5 }, kind: 'spot', label: 'A SCRAP OF RED CLOTH', sprite: 'rag' }],
         }),
         carry('RED CLOTH'),
         walk({ objective: 'FOLLOW THE FAMILIAR LANE HOME', goal: { reach: 'S', label: 'HOME' } }),
@@ -372,7 +372,8 @@ export const CH1: ChapterDef = {
             then: [say('confusione', 'NOBODY IS LOOKING, ZAMPANO.')],
           },
         ]),
-        skin('zampanoCross'),
+        // The rag rides on his back (no armour on the lawn: the dream will make it a coat of mail).
+        carry('A RAG CROSS ON HIS BACK'),
         sound('star'),
         call((ctx) => ctx.actor('prof').setBehavior({ kind: 'goto', to: { x: ctx.player.gx + 1.2, y: ctx.player.gy - 0.8 }, speed: 1.2 })),
         wait(1.4),

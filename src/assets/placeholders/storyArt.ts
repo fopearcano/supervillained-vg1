@@ -504,6 +504,102 @@ export function drawSpecial(kind: string, variant: number): PixelBuffer {
       pb.set(41, 12, rgba('#111111'));
       return outline(pb);
     }
+    case 'rag': {
+      // A scrap of red cloth, crumpled on the ground (1.5).
+      const pb = new PixelBuffer(14, 9);
+      const R = rgba('#c42a2a');
+      const Rd = rgba('#8a1818');
+      const Rl = rgba('#e85a4a');
+      pb.ellipse(7, 5, 6, 3, R);
+      pb.rect(2, 3, 4, 2, Rd);
+      pb.rect(8, 6, 4, 1, Rd);
+      pb.rect(4, 2, 3, 1, Rl);
+      pb.rect(9, 3, 2, 1, Rl);
+      pb.set(12, 7, R);
+      pb.set(1, 6, R);
+      return outline(pb, '#3a0a0a');
+    }
+    case 'sword': {
+      // A borrowed sword lying on the road (2.3): blade, crossguard, grip, pommel.
+      const pb = new PixelBuffer(20, 12);
+      const Bl = rgba('#d8e0ec');
+      const Bs = rgba('#8a96a8');
+      pb.line(5, 9, 17, 2, Bl);
+      pb.line(6, 10, 18, 3, Bs);
+      pb.line(2, 7, 6, 11, rgba('#c89a30'));
+      pb.line(1, 10, 3, 11, rgba('#5a3a1c'));
+      pb.set(0, 11, rgba('#f0d060'));
+      return outline(pb, '#1a1c24');
+    }
+    case 'shieldItem': {
+      // A kite shield, painted last night (2.3): blue with a white cross, gold rim.
+      const pb = new PixelBuffer(14, 17);
+      const Bl = rgba('#3050c0');
+      for (let y = 0; y < 15; y++) {
+        const half = y < 9 ? 6 : Math.max(0, 6 - Math.round((y - 8) * 0.9));
+        for (let x = 7 - half; x <= 6 + half; x++) pb.set(x, y + 1, Bl);
+      }
+      const G = rgba('#e8c040');
+      for (let x = 1; x <= 12; x++) pb.set(x, 1, G);
+      pb.rect(6, 2, 2, 11, rgba('#f4f4f4'));
+      pb.rect(3, 5, 8, 2, rgba('#f4f4f4'));
+      pb.rect(9, 2, 2, 1, rgba('#7a9af0'));
+      return outline(pb, '#141a3a');
+    }
+    case 'belt': {
+      // A sword belt, two sizes too big (2.3): a coiled strap with a buckle.
+      const pb = new PixelBuffer(16, 9);
+      const L = rgba('#7a4a24');
+      const Ld = rgba('#4e2e14');
+      pb.ellipse(8, 5, 6, 3, L);
+      pb.ellipse(8, 5, 4, 1, Ld);
+      pb.rect(10, 3, 3, 3, rgba('#e8c040'));
+      pb.set(11, 4, Ld);
+      return outline(pb, '#2a1808');
+    }
+    case 'lamp': {
+      // The bronze oil lamp from Niketas's courtyard (7.5, 7.9), still lit.
+      const pb = new PixelBuffer(14, 13);
+      const Br = rgba('#b8862c');
+      const Bd = rgba('#7a5418');
+      const Bl = rgba('#f0c860');
+      pb.ellipse(6, 9, 5, 2, Br);
+      pb.rect(9, 8, 4, 2, Br);
+      pb.rect(2, 9, 8, 1, Bd);
+      pb.rect(3, 8, 4, 1, Bl);
+      pb.rect(5, 11, 3, 1, Bd);
+      pb.set(0, 8, Br);
+      pb.set(1, 7, Br);
+      pb.rect(12, 5, 1, 3, rgba('#ffcf40'));
+      pb.set(12, 4, rgba('#fff4b0'));
+      pb.set(11, 6, rgba('#ff8a20'));
+      return outline(pb, '#2a1a08');
+    }
+    case 'horse': {
+      // A horse below deck (4.2): grey, bay, and Pierre's tall chestnut.
+      const coat = ['#b8b8c0', '#8a4a24', '#a0582c'][variant] ?? '#b8b8c0';
+      const mane = ['#e8e8ec', '#1a1410', '#5a2a10'][variant] ?? '#e8e8ec';
+      const pb = new PixelBuffer(40, 34);
+      const B = rgba(coat);
+      const Bd = rgba(mixHex(coat, '#000000', 0.3));
+      const M = rgba(mane);
+      pb.ellipse(18, 18, 11, 6, B);
+      pb.rect(10, 17, 17, 5, B);
+      for (const [x, d] of [[10, 0], [13, 1], [23, 0], [26, 1]] as const) pb.rect(x, 22, 2, 9, d ? Bd : B);
+      for (const x of [10, 13, 23, 26]) pb.rect(x, 30, 2, 1, rgba('#2a2a2a'));
+      pb.line(27, 16, 32, 7, B);
+      pb.line(28, 17, 33, 8, B);
+      pb.line(26, 15, 31, 6, B);
+      pb.ellipse(34, 7, 4, 3, B);
+      pb.rect(35, 7, 4, 3, B);
+      pb.line(26, 13, 31, 4, M);
+      pb.set(31, 3, B);
+      pb.set(33, 6, rgba('#111111'));
+      pb.set(38, 9, rgba('#2a1a10'));
+      pb.line(7, 16, 4, 24, M);
+      pb.line(8, 17, 5, 25, M);
+      return outline(pb);
+    }
     case 'shard': {
       const pb = new PixelBuffer(9, 13);
       for (let y = 0; y < 12; y++) {

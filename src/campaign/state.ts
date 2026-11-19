@@ -175,10 +175,13 @@ export function ending(state: CampaignState): Ending {
   return state.flags.oath === 'enforced' ? 'knight' : 'alpha';
 }
 
-/** Skin Zampanò wears in the dream given his unlocked costume. */
+/**
+ * Skin Zampanò wears in the dream: the armour as soon as he has taken the cross (1.5; the dream
+ * makes the rag a crusader's coat of mail), plain before. The sword and the shield come later,
+ * with the `knight` ability (2.3).
+ */
 export function dreamSkin(state: CampaignState): 'zampano' | 'zampanoCross' | 'zampanoKnight' {
-  if (state.abilities.includes('knight')) return 'zampanoKnight';
-  if (state.abilities.includes('cross')) return 'zampanoCross';
+  if (state.abilities.includes('knight') || state.abilities.includes('cross')) return 'zampanoKnight';
   return 'zampano';
 }
 

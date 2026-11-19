@@ -63,8 +63,10 @@ strangled January 1204) and Alexios V Mourtzouphlos (who takes the throne in 120
 - **Meraviglia**, the book of marvels (opened in 3.1): what he looks at with wonder. In 8.2 every
   marvel turns out to be furniture of the study that the dream borrowed (`campaign/home.ts`). The
   book's last marvel is **an empty pedestal**: splendour becomes something taken, melted, missing.
-- **Costumes**: the rag cross (1.5, real), the borrowed armour (2.3, dream). The vow (2.2) is
-  recorded as the `sermon` mark.
+- **Costumes**: the rag cross (1.5, real: he carries it on his back); in the dream it becomes a
+  coat of mail two sizes too big, worn from 2.1 (the helmet that slips is the bucket of 1.1); the
+  arms, a sword and a shield, come at 2.3 (the `knight` mark: sword and shield in fights). The
+  vow (2.2) is recorded as the `sermon` mark.
 - **Remembered lines** ("THERE WAS A …, AND IT WAS …"): the dream's grammar, collected in the book.
 - **Fighting** (adaptation): BARK from the start, SWORD and SHIELD once he wears the borrowed
   armour (2.3). Nobody dies: beaten foes are *routed*, and a knocked-down Zampanò starts the
@@ -99,7 +101,7 @@ references in `STORY-SOURCES.md`); what the dream makes of it. *Adaptation* = in
 |---|---|---|---|
 | 2.1 One step from Jerusalem | Walk to Jerusalem's gate, always one step away; behind a door, "Babylon… Egypt first". | The leaders' real objective was Egypt; the people were told "overseas" (Villehardouin). | Prologue image; the helmet is the bucket. Jerusalem never loads, to the end. |
 | 2.2 Names on a list | Shout his vow in the pauses of Fulk's preaching (unlock `sermon`, Grace +5, flag `vow`); the counts take the cross; a clerk lists names by rank, his at the bottom; the marshal leaves for Venice. | Fulk of Neuilly; the tourney of Écri; six envoys (Villehardouin). | The list and the vow-in-the-lull are adaptation. |
-| 2.3 A coat of mail too big | Bark Jack and two lads off the road (the first fight, bark only); pick up borrowed helmet, mail and shield (unlock `knight`); try the charge; spar with Pierre's squires (sword and shield; they parry); fall in behind Pierre. | Clari's lord (Pierre d'Amiens) and brother (Aleaume, a clerk). | Invented road, lads and sparring; Confusione becomes Aleaume, Sbrimbrulòn Pierre. |
+| 2.3 A coat of mail too big | Already in mail but unarmed: bark Jack and two lads off the road (the first fight, bark only); pick up a borrowed sword, a sword belt and a shield painted last night (unlock `knight`); try the charge; spar with Pierre's squires (sword and shield; they parry); fall in behind Pierre. | Clari's lord (Pierre d'Amiens) and brother (Aleaume, a clerk). | Invented road, arms, lads and sparring; Confusione becomes Aleaume, Sbrimbrulòn Pierre. |
 
 ### Level 3 — Venice (1201–1202)
 
