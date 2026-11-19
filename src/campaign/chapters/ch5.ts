@@ -36,8 +36,8 @@ export const CH5: ChapterDef = {
       script: () => [
         stage('zara', [
           { name: 'k1', who: 'knight', at: '8', face: 'E' },
-          { name: 'k2', who: 'crowdA', at: { x: 4.5, y: 9.5 }, face: 'E' },
-          { name: 'abbot', who: 'legate', at: { x: 6.5, y: 7.5 }, face: 'SE' },
+          { name: 'k2', who: 'pilgrim', at: { x: 4.5, y: 9.5 }, face: 'E' },
+          { name: 'abbot', who: 'abbot', at: { x: 6.5, y: 7.5 }, face: 'SE' },
           { name: 'marshal', who: 'bagnaskizMarshal', at: '9', face: 'W' },
           { name: 'doge', who: 'doge', at: { x: 15.5, y: 8.2 }, face: 'W' },
         ]),
@@ -143,11 +143,11 @@ export const CH5: ChapterDef = {
         return [
           stage('zara', [
             { name: 'conf', who: 'confusione', at: { x: 14.5, y: 15.5 }, face: 'NW' },
-            { name: 'b1', who: 'crowdB', at: { x: 10.5, y: 11.5 }, face: 'E' },
+            { name: 'b1', who: 'venetian', at: { x: 10.5, y: 11.5 }, face: 'E' },
             { name: 'b2', who: 'knight', at: { x: 11.5, y: 11.5 }, face: 'W' },
-            { name: 'abbot', who: 'legate', at: '6', face: 'S' },
+            { name: 'abbot', who: 'abbot', at: '6', face: 'S' },
             { name: 'marshal', who: 'bagnaskizMarshal', at: '2', face: 'S' },
-            { name: 'venetian', who: 'crowdB', at: '1', face: 'S' },
+            { name: 'venetian', who: 'venetian', at: '1', face: 'S' },
           ]),
           call((ctx) => {
             ctx.actor('conf').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.2, speed: 3, side: 0.8 });
@@ -186,7 +186,7 @@ export const CH5: ChapterDef = {
             },
           ]),
           call((ctx) => {
-            ctx.addActor('b3', 'crowdA', { x: 12.5, y: 12.5 }, { kind: 'idle', face: 'player' });
+            ctx.addActor('b3', 'pilgrim', { x: 12.5, y: 12.5 }, { kind: 'idle', face: 'player' });
             ctx.notice('THE BRAWL SPILLS INTO YOUR STREET', C.orange);
           }),
           say('confusione', 'THE POPE FORBADE US TO DRAW ON CHRISTIANS, BROTHER. A BARK, A SHIELD. NOT THE SWORD.'),
@@ -219,7 +219,7 @@ export const CH5: ChapterDef = {
       source:
         "VILLEHARDOUIN PP. 26-27: ENVOYS TO ROME; THE POPE ABSOLVES THE PILGRIMS. THE ENVOYS NAMED BY VILLEHARDOUIN: NEVELON BISHOP OF SOISSONS, JOHN OF NOYON, JOHN OF FRIAIZE AND ROBERT OF BOVES (WHO DOES NOT COME BACK). CLARI 15: LETTERS 'WHEREBY ALL THE PILGRIMS AND ALL THE VENETIANS WERE ABSOLVED'. THE TWO ACCOUNTS DIFFER AND THE SCENE KEEPS BOTH. NO PAPAL WORDS ARE QUOTED. THE WRITING TABLE IS ADAPTATION.",
       script: () => [
-        stage('zara', [{ name: 'envoy', who: 'legate', at: '7', face: 'SE' }], { at: '1' }),
+        stage('zara', [{ name: 'envoy', who: 'envoy', at: '7', face: 'SE' }], { at: '1' }),
         say('envoy', "THE BARONS' WRITING TABLE. THE WORDS ARE ALL THERE. YOU READ IT ALOUD, LITTLE ONE; YOUR VOICE IS THE BIGGEST THING ABOUT YOU."),
         mini(() => new LetterGame(), { won: { grace: 4 } }),
         call((ctx) => ctx.notice(ctx.state.flags.letter === 'named' ? 'HE NAMED THE CITY AND THE DEBT' : 'HE SAID "NECESSITY"', C.yellow)),
@@ -237,7 +237,7 @@ export const CH5: ChapterDef = {
       source:
         'CLARI 13 AND 16: IT IS WINTER; THE PILGRIMS WINTER AT ZARA AND LOSE HEART; THEY CANNOT REACH BABYLON OR ALEXANDRIA WITHOUT MONEY AND FOOD (CLARI XVI, MUNRO). THE SAIL, THE STOREHOUSE AND THE BOARD ARE ADAPTATION.',
       script: () => [
-        stage('zara', [{ name: 'sailmaker', who: 'crowdC', at: '9', face: 'W' }], { at: 'S' }),
+        stage('zara', [{ name: 'sailmaker', who: 'sailmaker', at: '9', face: 'W' }], { at: 'S' }),
         say('sailmaker', 'THE LAST SAIL. NOBODY SAILS IN WINTER. TAKE IT TO THE STOREHOUSE.'),
         carry('THE LAST ROLLED SAIL'),
         walk({ objective: 'CARRY THE LAST SAIL INTO THE STOREHOUSE', goal: { reach: '3', label: 'STOREHOUSE' } }),

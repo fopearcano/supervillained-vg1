@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Actor } from '../src/entities/actor';
+import { Bagnaskiz } from '../src/entities/critters';
+import { BAGNASKIZ } from '../src/config';
 import type { Entity } from '../src/entities/entity';
 import type { GameMap } from '../src/world/map';
 import { animationDuration } from '../src/assets/animationTiming';
@@ -18,7 +20,9 @@ vi.mock('pixi.js', () => {
 });
 vi.mock('../src/core/assets', () => ({ textures: { get: (name: string) => name } }));
 
-function context(key: 'sbrimbrulon' | 'sbrimbrulonKnight') {
+const actionActors = ['sbrimbrulon', 'sbrimbrulonKnight', 'bagnaskiz', 'bagnaskizEmperor'] as const;
+
+function context(key: (typeof actionActors)[number]) {
   const actor = new Actor('sbrim', key, 0, 0);
   const map = {
     moveCircle: vi.fn((x: number, y: number, dx: number, dy: number) => ({ x: x + dx, y: y + dy, blocked: false })),
@@ -28,7 +32,7 @@ function context(key: 'sbrimbrulon' | 'sbrimbrulonKnight') {
   return { actor, map, step };
 }
 
-describe.each(['sbrimbrulon', 'sbrimbrulonKnight'] as const)('%s actor action selection', (key) => {
+describe.each(actionActors)('%s actor action selection', (key) => {
   it('walks, stands when stopping, sits after three seconds, and stands again on movement', () => {
     const { actor, step } = context(key);
     actor.setBehavior({ kind: 'goto', to: { x: 3, y: 0 }, speed: 1 });
@@ -56,7 +60,7 @@ describe.each(['sbrimbrulon', 'sbrimbrulonKnight'] as const)('%s actor action se
     expect(actor.animator!.finished).toBe(false);
     step(duration * 0.5);
     expect(actor.animator!.anim).toBe(action);
-    expect(actor.animator!.finished).toBe(true);
+    expect(actor.animator!.finished).toBe(!(key === 'bagnaskiz' && action === 'hurt'));
     expect(map.moveCircle).not.toHaveBeenCalled();
     expect([actor.gx, actor.gy]).toEqual([0, 0]);
     step(0.01);
@@ -79,4 +83,24 @@ describe.each(['sbrimbrulon', 'sbrimbrulonKnight'] as const)('%s actor action se
     step(0.01);
     expect(actor.animator!.anim).toBe('idle');
   });
+});
+
+it('keeps the Green Zone pug flinching throughout the stun and then resumes roaming', () => {
+  const pug = new Bagnaskiz(0, 0);
+  const map = {
+    moveCircle: (x: number, y: number, dx: number, dy: number) => ({ x: x + dx, y: y + dy, blocked: false }),
+    stampDirt: vi.fn(),
+  } as unknown as GameMap;
+  pug.hit(-1, 0);
+  pug.step(0.15, map, -10, 0, () => ({ x: 10, y: 0 }));
+  const first = pug.animator.sprite.texture;
+  pug.step(0.1, map, -10, 0, () => ({ x: 10, y: 0 }));
+  expect(pug.state).toBe('stunned');
+  expect(pug.animator.anim).toBe('hurt');
+  expect(pug.animator.sprite.texture).not.toBe(first);
+  expect(pug.animator.finished).toBe(false);
+  pug.step(BAGNASKIZ.STUN_TIME, map, -10, 0, () => ({ x: 10, y: 0 }));
+  pug.step(0.01, map, -10, 0, () => ({ x: 10, y: 0 }));
+  expect(pug.state).toBe('roam');
+  expect(pug.animator.anim).toBe('walk');
 });

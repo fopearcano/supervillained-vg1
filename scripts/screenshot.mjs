@@ -391,6 +391,46 @@ const SCENARIOS = {
     await page.close();
   },
 
+  /**
+   * The pixel cast and Bagnaskiz's eight directions: the sprite viewer for a few keys, and story
+   * scenes with the new faces (2.2 Fulk and the pilgrims, 7.3 the emperor and the axe-men,
+   * 7.8 Niketas's doorway), plus 2.3 played as Sbrimbrulòn (?as=).
+   */
+  async cast(browser) {
+    for (const key of ['bagnaskiz', 'bagnaskizEmperor', 'bagnaskizMarshal', 'niketas', 'santina', 'jack']) {
+      const page = await openGame(browser, `?debug=sprites&char=${key}`);
+      await wait(900);
+      await page.screenshot({ path: `${OUT}/s-${key}.png` });
+      await page.close();
+    }
+    const scenes = [
+      ['2.2', 'SayStep', 1, 'c2-fulk'],
+      ['7.3', 'SayStep', 2, 'c7-emperor'],
+      ['7.8', 'WalkStep', 2, 'c7-doorway'],
+    ];
+    for (const [id, kind, nth, name] of scenes) {
+      const page = await openGame(browser, `?story=${id}`);
+      await page.evaluate(() => localStorage.clear());
+      await skipTo(page, kind, nth);
+      await wait(1600);
+      await page.screenshot({ path: `${OUT}/${name}.png` });
+      await page.close();
+    }
+    const page = await openGame(browser, '?story=2.3&as=sbrimbrulon');
+    await skipTo(page, 'WalkStep', 4);
+    await page.evaluate(() => {
+      const s = window.__sv.top();
+      s.player.setPosition(8.5, 10.5);
+      s.world.snapCamera();
+    });
+    await wait(1500);
+    await page.keyboard.press('KeyU');
+    await wait(80);
+    await page.screenshot({ path: `${OUT}/c2-as-sbrimbrulon.png` });
+    console.log('as sbrimbrulon:', await page.evaluate(() => ({ skin: window.__sv.top().player.animator.key, knighted: window.__sv.top().knighted })));
+    await page.close();
+  },
+
   /** OPTIONS > CONTROLS. */
   async controls(browser) {
     const page = await openGame(browser, '');

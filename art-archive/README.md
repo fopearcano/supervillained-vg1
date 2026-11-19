@@ -17,3 +17,5 @@ Kept here for reference, outside `public/`, so it is not bundled.
   (`zampano`, `zampanoKnight`, `sbrimbrulon`, `sbrimbrulonKnight`, each with its `-tired.png`),
   whose NE/SE rows repeated E and NW/SW repeated W; replaced by the 8-directions update, which
   keeps their N, E, S and W frames pixel for pixel.
+- `sprites-update-1-cast/` — update 1's Bagnaskiz (`bagnaskiz.png`, 5 animations, four views),
+  Jack, Watson and Confusione, replaced by the Bagnaskiz 8-directions delivery and the pixel cast.

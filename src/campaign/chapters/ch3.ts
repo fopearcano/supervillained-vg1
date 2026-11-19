@@ -130,8 +130,8 @@ export const CH3: ChapterDef = {
             ctx.addActor('marshal', 'bagnaskizMarshal', '7', { kind: 'idle', face: 'N' });
             ctx.addActor('e1', 'knight', { x: 15.5, y: 15.5 }, { kind: 'idle', face: 'N' });
             ctx.addActor('e2', 'knight', { x: 12.5, y: 15.5 }, { kind: 'idle', face: 'N' });
-            SQUARE.forEach((m, k) => ctx.addActor(`v${k}`, (['crowdA', 'crowdB', 'crowdC'] as const)[k % 3], m, { kind: 'idle', face: 'player' }));
-            ctx.addActor('trumpet', 'crowdB', '4', { kind: 'idle', face: 'S' });
+            SQUARE.forEach((m, k) => ctx.addActor(`v${k}`, 'venetian', m, { kind: 'idle', face: 'player' }));
+            ctx.addActor('trumpet', 'venetian', '4', { kind: 'idle', face: 'S' });
           }),
           say('marshal', 'I WAS AT THE FRONT. WE HAD NO MONEY, ONLY OUR CASE: OUTREMER, AND JERUSALEM IN THRALL TO THE TURKS. YOU TELL IT. TAKE MY PLACE.'),
           walk({ objective: 'TAKE HIS PLACE AT THE FRONT OF THE ENVOYS', goal: { reach: { x: 14.5, y: 11.5 }, label: 'THE FRONT' } }),
@@ -192,7 +192,7 @@ export const CH3: ChapterDef = {
           say('voice', 'NOBODY LEAVES THE ISLAND. THE CAMP COUNTS ITS BREAD.'),
           call((ctx) => {
             ctx.removeActor('doge');
-            ctx.addActor('seller', 'burgher', '7', { kind: 'idle', face: 'player' });
+            ctx.addActor('seller', 'venetian', '7', { kind: 'idle', face: 'player' });
             const g = ctx.addActor('g1', 'knight', '5', patrol(ctx, ['5', '8'], 1, 1.2));
             g.sight = { range: 3, halfAngle: 0.5 };
           }),

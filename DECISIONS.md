@@ -856,3 +856,37 @@ save migration in [`docs/STORY-SOURCES.md`](docs/STORY-SOURCES.md).
   values); no new dependency.
 - **Sounds**: a synthesized swish (sword) and clang (shield, parry) join `fx/sounds.ts`.
 - The playtest's "caught" column now also counts blows taken in fights.
+
+## The pixel cast and Bagnaskiz in eight directions
+
+- **Two deliveries on main.** `Supervillained_VG1_Bagnaskiz_Normal_8_Directions.zip` /
+  `..._Armoured_8_Directions.zip` (Bagnaskiz plain and in Byzantine armour, the twelve dog actions
+  in eight real directions) and the pixel cast (`Supervillained_Pixel_Game_Integration.zip`, with
+  `..._Animals.zip` and `..._Humans.zip` for single frames, source grids and previews): 24 new or
+  refreshed character sheets. The zips are kept at the repo root as delivered.
+- **How it went in.** Neither installer was run (`apply_to_game.py`, the Bagnaskiz rebuild
+  scripts). The cast's `INTEGRATION.patch`, made against this branch's previous commit, was read in
+  full (code only: manifest, placeholder fallbacks, cast keys in the chapters, speaking gestures,
+  player-skin types, tests) and applied with `git apply`; the PNGs were copied by hand.
+- **Bagnaskiz in full colour.** The cast delivery re-quantized the Bagnaskiz and Sbrimbrulòn
+  sheets to 32 colours "for a consistent palette". Compared on the pixels: same silhouettes, but
+  Bagnaskiz loses his yellow eyes and open mouth, his trademark. The game uses the 8-directions
+  zips' full-colour sheets for Bagnaskiz and the emperors and keeps Sbrimbrulòn's current sheets;
+  a test checks the yellow eyes. The French marshal is the cast's own sheet.
+- **Dedicated roles.** Fulk, the clerk, the abbot, the envoy, the bishop, Niketas, the cook, the
+  sailmaker, the woman of Niketas's household, pilgrims, Venetians, a Greek citizen, the knight,
+  the Varangian guard, Boniface, the young Alexios, the Doge, Santina, the Professor (his face for
+  the dialogue box; the legs under the desk stay) now have their own art, replacing the code-drawn
+  crowd and the shared `legate` / `greek` / `crowdA..C` stand-ins in the dream. The secondary cast
+  is drawn as people, as delivered. Code-drawn figures remain only where no sheet exists (the
+  neighbourhood dogs on the lawn, Santina's friend, the porter at Zara, the Green Zone cat) and as
+  fallbacks if a sheet fails to load. The fights' lads and squires (2.3) use the pilgrim and
+  knight sheets.
+- **Speaking gestures** (delivered): a human speaker on stage plays his gesture once when his
+  line starts, if he is standing idle.
+- **Player-ready dogs.** The player skin accepts Sbrimbrulòn and Bagnaskiz in all their costumes.
+  No story section was written for them (the delivery added none, and the story stays Zampanò's);
+  `?as=sbrimbrulon|bagnaskiz` plays the story's scenes as the other dog in his own costumes, and
+  every armoured skin carries the sword and the shield (`ARMOURED_SKINS`).
+- **Notices** in the story now start below the HUD (a long objective with a progress bar pushed the
+  bar under them).

@@ -1,6 +1,6 @@
 import { ColorMatrixFilter, Container, Graphics } from 'pixi.js';
 import { ensureCharacters } from '../assets/build';
-import type { CharacterKey } from '../assets/manifest';
+import { ARMOURED_SKINS, costumeFor, type CharacterKey, type PlayAs, type PlayableCharacterKey } from '../assets/manifest';
 import { applyEffects, dreamSkin, fadeCommozione, saveCampaign, type CampaignState, type Effects } from '../campaign/state';
 import type { ChapterDef, SubLevelDef } from '../campaign/types';
 import type { Game } from '../core/game';
@@ -28,8 +28,8 @@ export interface StoryHooks {
 
 export interface StageOptions {
   skin?: 'plain' | 'dream';
-  /** Forces a costume (e.g. the armour of the 1.1 dream). */
-  skinKey?: 'zampano' | 'zampanoCross' | 'zampanoKnight';
+  /** Explicit player-ready dog skin; existing chapters keep Zampanò's costumes. */
+  skinKey?: PlayableCharacterKey;
   /** Where Zampanò starts (marker); default S. */
   at?: string | Point;
   face?: Dir8;
@@ -171,7 +171,7 @@ export class StoryScene implements Scene {
     this.actors.clear();
     const def = STORY_MAPS[key];
     const level = parseAsciiMap(def.rows, { base: def.base, requireExit: false });
-    const skin = opts.skinKey ?? (opts.skin === 'plain' ? 'zampano' : dreamSkin(this.state));
+    const skin = this.costume(opts.skinKey ?? (opts.skin === 'plain' ? 'zampano' : dreamSkin(this.state)));
     ensureCharactersNow([skin]);
     const world = new World(level, THEMES[def.theme], { playerSkin: skin, forest: true });
     this.world = world;
@@ -233,9 +233,18 @@ export class StoryScene implements Scene {
     return this.world!.player;
   }
 
-  /** Zampanò wears the knight's costume: the SWORD and the SHIELD are his. */
+  /** He wears armour (Zampanò's, or the armour of the dog played instead): the SWORD and the SHIELD are his. */
   get knighted(): boolean {
-    return this.world?.player.animator.key === 'zampanoKnight';
+    const key = this.world?.player.animator.key;
+    return !!key && ARMOURED_SKINS.has(key);
+  }
+
+  /** Who the player controls (`?as=`): Zampanò by default. */
+  playAs: PlayAs = 'zampano';
+
+  /** The skin for one of Zampanò's costumes, for whoever is played. */
+  costume(key: PlayableCharacterKey): PlayableCharacterKey {
+    return costumeFor(this.playAs, key);
   }
 
   /**
@@ -404,7 +413,7 @@ export class StoryScene implements Scene {
         this.notices.splice(k, 1);
       }
     }
-    let y = 84;
+    let y = Math.max(84, Math.round(this.hud.bottom + 6));
     for (const n of this.notices) {
       n.t.visible = n.life < 2;
       if (!n.t.visible) continue;

@@ -107,3 +107,14 @@ export const CAST_SPECS: Record<string, CritterSpec> = {
   },
   hound: dog(recolor('#9a7a5a', '#7a5c40', '#563e28'), { marks: 'patches', markColor: '#3a2618', eyes: 'sleepy' }),
 };
+
+// Emergency fallbacks for the dedicated delivered cast. The new PNGs provide their authored
+// human/dog identities; these existing generic silhouettes keep a broken download playable.
+const PIXEL_CAST_FALLBACKS: Record<string, string> = {
+  professor: 'clerkA', niketas: 'greek', fulk: 'preacher', clerk: 'clerkB',
+  abbot: 'cellarer', envoy: 'burgher', bishop: 'legate', cook: 'cellarer',
+  sailmaker: 'crowdC', householdWoman: 'lady', pilgrim: 'crowdA', venetian: 'crowdB',
+};
+for (const [key, source] of Object.entries(PIXEL_CAST_FALLBACKS)) {
+  CAST_SPECS[key] = { ...CAST_SPECS[source]!, colors: { ...CAST_SPECS[source]!.colors } };
+}

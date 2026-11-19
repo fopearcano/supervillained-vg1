@@ -4,7 +4,7 @@ import { Game } from './core/game';
 import { levelByNumber } from './levels';
 import { Flow } from './scenes/flow';
 import { SpriteViewerScene } from './scenes/spriteViewerScene';
-import type { CharacterKey } from './assets/manifest';
+import { PLAY_AS, type CharacterKey } from './assets/manifest';
 import { loadPixelFont } from './ui/pixelFont';
 import { loadTitleArt } from './ui/titleArt';
 import { titleFrames } from './ui/titleAnim';
@@ -66,6 +66,9 @@ async function boot(): Promise<void> {
         choice: (['first', 'last', 'random'] as const).find((c) => c === params.get('choice')) ?? 'first',
       };
     }
+    // ?as=sbrimbrulon|bagnaskiz: the story's scenes played as another dog (his own costumes).
+    const as = PLAY_AS.find((k) => k === params.get('as'));
+    if (as) flow.story.playAs = as;
     if (params.get('skip') === 'game') flow.play(level.number);
     else if (sub) flow.story.debugPlay(sub);
     else flow.toTitle();

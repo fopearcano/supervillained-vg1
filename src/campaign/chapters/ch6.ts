@@ -43,8 +43,8 @@ export const CH6: ChapterDef = {
       script: () => [
         stage('winter', [
           { name: 'k1', who: 'knight', at: '4', face: 'SE' },
-          { name: 'k2', who: 'crowdA', at: '5', face: 'SW' },
-          { name: 'k3', who: 'crowdC', at: '9', face: 'E' },
+          { name: 'k2', who: 'knight', at: '5', face: 'SW' },
+          { name: 'k3', who: 'pilgrim', at: '9', face: 'E' },
           { name: 'jack', who: 'jack', at: '7', face: 'W' },
           { name: 'conf', who: 'confusione', at: '3', face: 'NE' },
         ]),
@@ -96,7 +96,7 @@ export const CH6: ChapterDef = {
         let next = 1;
         const spot = (k: number): Pickup => ({ at: NAME_TRAIL[k]!.at, kind: 'spot', label: '"BONIFACE"', text: NAME_TRAIL[k]!.text });
         return [
-          stage('winter', [{ name: 'cook', who: 'cellarer', at: { x: 4.5, y: 11.5 }, face: 'E' }], { at: 'S' }),
+          stage('winter', [{ name: 'cook', who: 'cook', at: { x: 4.5, y: 11.5 }, face: 'E' }], { at: 'S' }),
           say('cook', 'THE GOOD WINE IS FOR THE MARQUIS BONIFACE, THE LOMBARD. HE HAS GUESTS FROM GERMANY.'),
           walk({
             objective: "FOLLOW THE TALK TO THE COUNCIL TENT",

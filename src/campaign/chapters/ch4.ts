@@ -89,8 +89,8 @@ export const CH4: ChapterDef = {
         "VILLEHARDOUIN P. 8 (THE LEADERS' REAL OBJECTIVE: BABYLON, THAT IS EGYPT) AND PP. 16, 19-20 (ZARA, HELD BY THE KING OF HUNGARY; ARRIVAL ON THE EVE OF SAINT MARTIN, 10 NOVEMBER 1202). CLARI 13-14: WINTER; ZARA; ARRIVAL ON THE NIGHT OF SAINT MARTIN. THE RUMOURS AND THE ROWING ARE ADAPTATION.",
       script: () => [
         stage('ship', [
-          { name: 'm1', who: 'crowdA', at: '8', face: 'S' },
-          { name: 'm2', who: 'crowdB', at: '1', face: 'E' },
+          { name: 'm1', who: 'knight', at: '8', face: 'S' },
+          { name: 'm2', who: 'pilgrim', at: '1', face: 'E' },
           { name: 'jack', who: 'jack', at: '2', face: 'W' },
           { name: 'm4', who: 'knight', at: '7', face: 'N' },
           { name: 'marshal', who: 'bagnaskizMarshal', at: '3', face: 'S' },

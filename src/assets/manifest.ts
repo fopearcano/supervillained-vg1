@@ -96,9 +96,53 @@ export const CAST_KEYS = [
   'bear',
   'leopard',
   'hound',
+  // Dedicated portraits and actors from the character-list pixel-art delivery.
+  'professor',
+  'niketas',
+  'fulk',
+  'clerk',
+  'abbot',
+  'envoy',
+  'bishop',
+  'cook',
+  'sailmaker',
+  'householdWoman',
+  'pilgrim',
+  'venetian',
 ] as const;
 export type CastKey = (typeof CAST_KEYS)[number];
 export type CharacterKey = 'zampano' | 'bagnaskiz' | 'cat' | CastKey;
+
+/** Skins with the complete action set needed by the player controller.
+ * Campaign scripts still select Zampanò's costumes; the other dogs are ready for authored
+ * playable sections without adding or changing any story progression here.
+ */
+export const PLAYABLE_CHARACTER_KEYS = [
+  'zampano', 'zampanoCross', 'zampanoKnight',
+  'sbrimbrulon', 'sbrimbrulonKnight',
+  'bagnaskiz', 'bagnaskizEmperor',
+] as const satisfies readonly CharacterKey[];
+export type PlayableCharacterKey = (typeof PLAYABLE_CHARACTER_KEYS)[number];
+
+/** Zampanò's costumes, as the campaign hands them out (plain, rag cross, knight). */
+export type ZampanoCostume = 'zampano' | 'zampanoCross' | 'zampanoKnight';
+/** Who the player controls: Zampanò, or (`?as=`, for authored sections and testing) another dog. */
+export type PlayAs = 'zampano' | 'sbrimbrulon' | 'bagnaskiz';
+export const PLAY_AS: readonly PlayAs[] = ['zampano', 'sbrimbrulon', 'bagnaskiz'];
+
+/** The skins in armour: they carry the sword and the shield (story/combat.ts). */
+export const ARMOURED_SKINS: ReadonlySet<CharacterKey> = new Set(['zampanoKnight', 'sbrimbrulonKnight', 'bagnaskizEmperor']);
+
+/**
+ * The skin for a costume of Zampanò's when someone else is played: Sbrimbrulòn wears his own
+ * armour in the dream, Bagnaskiz the Byzantine one (he is the emperors' face). Pure (tested).
+ */
+export function costumeFor(playAs: PlayAs, costume: PlayableCharacterKey): PlayableCharacterKey {
+  if (playAs === 'zampano' || !(['zampano', 'zampanoCross', 'zampanoKnight'] as const).includes(costume as ZampanoCostume)) return costume;
+  const armoured = costume === 'zampanoKnight';
+  if (playAs === 'sbrimbrulon') return armoured ? 'sbrimbrulonKnight' : 'sbrimbrulon';
+  return armoured ? 'bagnaskizEmperor' : 'bagnaskiz';
+}
 
 const tired = (path: string) => ({ tired: path });
 
@@ -110,12 +154,23 @@ const DELIVERED: Partial<Record<string, Pick<CharacterDef, 'sheet' | 'animSheets
   zampano: { sheet: 'sprites/zampano.png', animSheets: tired('sprites/zampano-tired.png') },
   zampanoCross: { sheet: 'sprites/zampanoCross.png', animSheets: tired('sprites/zampanoCross-tired.png') },
   zampanoKnight: { sheet: 'sprites/zampanoKnight.png', animSheets: tired('sprites/zampanoKnight-tired.png') },
-  bagnaskiz: { sheet: 'sprites/bagnaskiz.png' },
+  // The Bagnaskiz 8-directions delivery, in full colour (the pixel cast's 32-colour copies lose
+  // his yellow eyes); the Byzantine armour is the emperors' face (Alexios III and V).
+  bagnaskiz: { sheet: 'sprites/bagnaskiz.png', animSheets: tired('sprites/bagnaskiz-tired.png') },
+  bagnaskizMarshal: { sheet: 'sprites/pixel-cast/bagnaskizMarshal.png' },
+  bagnaskizEmperor: { sheet: 'sprites/bagnaskizArmoured.png', animSheets: tired('sprites/bagnaskizArmoured-tired.png') },
   sbrimbrulon: { sheet: 'sprites/sbrimbrulon.png', animSheets: tired('sprites/sbrimbrulon-tired.png') },
   sbrimbrulonKnight: { sheet: 'sprites/sbrimbrulonKnight.png', animSheets: tired('sprites/sbrimbrulonKnight-tired.png') },
-  jack: { sheet: 'sprites/jack.png' },
-  watson: { sheet: 'sprites/watson.png' },
-  confusione: { sheet: 'sprites/confusione.png' },
+  jack: { sheet: 'sprites/pixel-cast/jack.png' },
+  watson: { sheet: 'sprites/pixel-cast/watson.png' },
+  confusione: { sheet: 'sprites/pixel-cast/confusione.png' },
+  varangian: { sheet: 'sprites/pixel-cast/varangian.png' },
+  marquis: { sheet: 'sprites/pixel-cast/marquis.png' },
+  ...Object.fromEntries([
+    'santina', 'professor', 'doge', 'niketas', 'fulk', 'clerk', 'abbot', 'envoy',
+    'bishop', 'cook', 'sailmaker', 'prince', 'householdWoman', 'knight', 'pilgrim',
+    'venetian', 'greek',
+  ].map((key) => [key, { sheet: `sprites/pixel-cast/${key}.png` }])),
 };
 
 /** RUN button icon (sprite update 1; without it the button draws chevrons in code). */
@@ -162,7 +217,7 @@ function castDefs<K extends string>(keys: readonly K[]): Record<K, CharacterDef>
       anims:
         key === 'zampanoKnight'
           ? ZAMPANO_ANIMS
-          : key === 'sbrimbrulon' || key === 'sbrimbrulonKnight'
+          : key === 'sbrimbrulon' || key === 'sbrimbrulonKnight' || key === 'bagnaskizEmperor'
           ? SBRIMBRULON_ANIMS
           : key === 'zampanoCross'
           ? {
@@ -209,11 +264,9 @@ export const CHARACTERS = {
     anchorY: 36,
     ...DELIVERED.bagnaskiz,
     anims: {
-      idle: { frames: 2, fps: 3, loop: true },
-      walk: { frames: 4, fps: 9, loop: true },
-      run: { frames: 4, fps: 13, loop: true },
-      bark: { frames: 2, fps: 8, loop: true },
-      hurt: { frames: 2, fps: 10, loop: true },
+      ...SBRIMBRULON_ANIMS,
+      // The Green Zone bully remains stunned for longer than this two-frame clip.
+      hurt: { ...SBRIMBRULON_ANIMS.hurt, loop: true },
     },
   },
   cat: {
@@ -295,7 +348,7 @@ export const SPRITES = {
   bowl: { key: 'bowl', w: 14, h: 8, anchorX: 7, anchorY: 6, variants: 1 },
   banner: { key: 'banner', w: 12, h: 26, anchorX: 2, anchorY: 25, variants: 2 },
   flame: { key: 'flame', w: 16, h: 22, anchorX: 8, anchorY: 20, variants: 3 },
-  professorFace: { key: 'professorFace', w: 24, h: 24, anchorX: 0, anchorY: 0, variants: 1 },
+  professorFace: { key: 'professorFace', w: 24, h: 24, anchorX: 0, anchorY: 0, variants: 1, file: 'sprites/pixel-cast/professorFace.png' },
   bee: { key: 'bee', w: 5, h: 4, anchorX: 2, anchorY: 2, variants: 1 },
   tear: { key: 'tear', w: 5, h: 7, anchorX: 2, anchorY: 3, variants: 1 },
   mask: { key: 'mask', w: 9, h: 7, anchorX: 4, anchorY: 3, variants: 1 },

@@ -1,6 +1,7 @@
 import { CHAPTERS } from '../campaign/chapters';
 import { applyEffects, ending, endingNotes, isComplete, loadCampaign, markComplete, resetCampaign, saveCampaign, type CampaignState } from '../campaign/state';
 import type { ChapterDef, SubLevelDef } from '../campaign/types';
+import type { PlayAs } from '../assets/manifest';
 import type { Game } from '../core/game';
 import { saveSettings, TEXT_SPEEDS } from '../core/settings';
 import { C } from '../ui/retro';
@@ -30,6 +31,8 @@ export class StoryFlow {
   state: CampaignState = loadCampaign();
   /** Automated playtest: when set, every sub-level is played by an Autopilot and they chain without cards. */
   autopilot: PilotPolicy | null = null;
+  /** Who the player controls in the story scenes (`?as=sbrimbrulon|bagnaskiz`; Zampanò otherwise). */
+  playAs: PlayAs = 'zampano';
   /** One entry per finished sub-level while the autopilot is on. */
   readonly log: PlaytestEntry[] = [];
   /** Replaying a finished sub-level: it plays on a copy of the campaign and nothing is saved. */
@@ -246,6 +249,7 @@ export class StoryFlow {
     });
     scene.persist = !this.replaying;
     scene.fade = !restart;
+    scene.playAs = this.playAs;
     if (this.autopilot) scene.pilot = new Autopilot({ ...this.autopilot, seed: (this.autopilot.seed ?? 1) + this.log.length });
     this.game.scenes.replaceAll(scene);
   }

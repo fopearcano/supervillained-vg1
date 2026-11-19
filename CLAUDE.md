@@ -45,7 +45,9 @@ iOS without a Mac: `.github/workflows/ios.yml` builds an unsigned `.ipa` and a s
 GitHub-hosted Mac at every push that touches the game or `ios/` (artifact *SUPERVILLAINED-ios*).
 
 Debug URLs: `?skip=game` (straight into the Green Zone walk, outside the story), `?story=7.3` (straight into a story
-sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`), `?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
+sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|alpha&choice=first|last|random`),
+`?as=sbrimbrulon|bagnaskiz` (the story's scenes played as that dog, in his own costumes),
+`?debug=sprites&char=zampano|bagnaskiz|cat|<cast key>`.
 `window.__sv` exposes the game for automation (`__sv.scene()` = top scene, `__sv.top()`,
 `__sv.storyIds()`, `__sv.flow.story.debugPlay(id)`; a `StoryScene` has `debugState()`,
 `debugSkip()`, `marker(m)`).
@@ -99,12 +101,14 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   (menu → cards → sub-level → Professor aside → ending; saves progress; replays on a copy),
   `maps.ts` (story stages + palettes/themes), `carry.ts` (what he carries, shown over his head),
   `names.ts` (names shown in yellow in the card texts; the period words, `OLD_WORDS`, coloured in the dialogue box),
+  `dialogueGestures.ts` (a human speaker on stage gestures when his line starts),
   `autopilot.ts` (automated player: steps and
   mini-games implement an optional `pilot()` that drives the real inputs).
 - `entities/actor.ts` — scripted characters (idle/patrol/chase/flee/follow/wander/flail/goto/fly,
   sight cones, hostile contact; a character with a `sit` animation sits after 3 s still;
   `playAction(anim, seconds?)` plays an action in place, then the behavior resumes).
-- `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims, delivered `sheet`/`animSheets`),
+- `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims, delivered `sheet`/`animSheets`;
+  `PLAYABLE_CHARACTER_KEYS`, `costumeFor`, `ARMOURED_SKINS` for the player-ready dogs),
   `build.ts` (load the delivered PNGs or generate placeholders), `placeholders/*` (procedural
   pixel art for the cast without delivered sheets), `fonts/`.
 - Repo-root `assets/music` and `assets/sounds` — recorded audio, wired in `src/fx/audioFiles.ts`

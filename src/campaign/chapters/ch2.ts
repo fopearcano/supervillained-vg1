@@ -89,8 +89,8 @@ export const CH2: ChapterDef = {
         return [
           call((ctx) => {
             ctx.setStage('fair', { at: 'S' });
-            ctx.addActor('fulk', 'preacher', '0', { kind: 'idle', face: 'SE' });
-            crowd.forEach((m, k) => ctx.addActor(`c${k}`, (['crowdA', 'crowdB', 'crowdC'] as const)[k % 3], m, { kind: 'idle', face: 'N' }));
+            ctx.addActor('fulk', 'fulk', '0', { kind: 'idle', face: 'SE' });
+            crowd.forEach((m, k) => ctx.addActor(`c${k}`, 'pilgrim', m, { kind: 'idle', face: 'N' }));
           }),
           card('A TOURNAMENT IN CHAMPAGNE', 'A PREACHER HAS TAKEN OVER THE FIELD', { color: C.yellow, seconds: 2 }),
           say('fulk', 'TAKE THE CROSS! THE HOLY VOYAGE, THE GENERAL PASSAGE! WHOEVER GOES, GOES FORGIVEN. LORDS FIRST, AND THEN EVERYBODY.'),
@@ -125,7 +125,7 @@ export const CH2: ChapterDef = {
             for (let k = 0; k < 6; k++) ctx.actors.get(`c${k}`)?.faceToward(8.5, 5.5);
           }),
           say('voice', 'THEN THE COUNTS OF CHAMPAGNE AND BLOIS TAKE THE CROSS ON THE PLATFORM, AND EVERY HEAD TURNS TO THEM.'),
-          call((ctx) => ctx.addActor('clerk', 'clerkB', { x: 11.5, y: 8.5 }, { kind: 'idle', face: 'player' })),
+          call((ctx) => ctx.addActor('clerk', 'clerk', { x: 11.5, y: 8.5 }, { kind: 'idle', face: 'player' })),
           say('clerk', '(A CLERK, WRITING) CRUCESIGNATI: SIGNED WITH THE CROSS. THE COUNTS. THEIR KNIGHTS. THEIR KNIGHTS\' KNIGHTS. AND YOU ARE?'),
           ask('clerk', 'NAME, AND WHOSE MAN YOU ARE.', [
             {
@@ -165,8 +165,8 @@ export const CH2: ChapterDef = {
         // The first fight: barking only (he is not a knight yet).
         call((ctx) => {
           ctx.addActor('jack', 'jack', { x: 8.5, y: 21.5 }, { kind: 'idle', face: 'player' });
-          ctx.addActor('lad1', 'crowdA', { x: 6.5, y: 23.5 }, { kind: 'idle', face: 'player' });
-          ctx.addActor('lad2', 'crowdC', { x: 5.5, y: 25.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('lad1', 'pilgrim', { x: 6.5, y: 23.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('lad2', 'pilgrim', { x: 5.5, y: 25.5 }, { kind: 'idle', face: 'player' });
         }),
         say('jack', 'A DOG IN A RAG, GOING TO JERUSALEM? THE ARMOURER\'S THINGS ARE OURS NOW. LIKE THE GATE.'),
         card('BARK!', 'THE ROUND BUTTON, A DOUBLE TAP OVER THE BUTTONS, OR B. A BARK PUSHES BACK EVERYONE NEAR.', { color: C.cyan, seconds: 3 }),
@@ -209,9 +209,9 @@ export const CH2: ChapterDef = {
         say('sbrimbrulon', 'THAT WAS A FINE CHARGE AT NOTHING, LITTLE ONE. NOW TRY SOMETHING THAT HITS BACK. MY SQUIRES HAVE STICKS.'),
         // The second fight: sword and shield, against wooden swords.
         call((ctx) => {
-          ctx.addActor('sq1', 'crowdA', { x: 10.5, y: 9.5 }, { kind: 'idle', face: 'player' });
-          ctx.addActor('sq2', 'crowdB', { x: 5.5, y: 11.5 }, { kind: 'idle', face: 'player' });
-          ctx.addActor('sq3', 'crowdC', { x: 10.5, y: 12.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('sq1', 'knight', { x: 10.5, y: 9.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('sq2', 'pilgrim', { x: 5.5, y: 11.5 }, { kind: 'idle', face: 'player' });
+          ctx.addActor('sq3', 'knight', { x: 10.5, y: 12.5 }, { kind: 'idle', face: 'player' });
           ctx.actor('pierre').setBehavior({ kind: 'idle', face: 'player' });
         }),
         card('SWORD AND SHIELD', 'SWIPE UP OVER THE BUTTONS TO STRIKE (U), SWIPE DOWN TO RAISE THE SHIELD (I, HOLD IT). THE SMALL BUTTON BY THE ROUND ONE SWITCHES WHAT IT DOES (Q).', { color: C.cyan, seconds: 3.6 }),

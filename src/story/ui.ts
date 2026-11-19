@@ -39,14 +39,17 @@ export const SPEAKERS: Record<string, { name: string; color: string; portrait: C
   crowd: { name: 'THE CROWD', color: C.yellow, portrait: 'crowdA' },
   knight: { name: 'A KNIGHT', color: '#d0d8e8', portrait: 'knight' },
   // The Fourth Crusade dream (docs/STORY.md).
-  fulk: { name: 'FULK OF NEUILLY', color: '#d8b080', portrait: 'preacher' },
-  clerk: { name: 'A CLERK', color: '#ffffff', portrait: 'clerkB' },
-  abbot: { name: 'THE ABBOT OF VAUX', color: '#f4f0e4', portrait: 'legate' },
-  envoy: { name: 'AN ENVOY', color: '#f4f0e4', portrait: 'legate' },
-  bishop: { name: 'A BISHOP', color: '#f4f0e4', portrait: 'legate' },
-  niketas: { name: 'NIKETAS', color: '#c890e0', portrait: 'greek' },
-  cook: { name: 'THE COOK', color: '#c8a070', portrait: 'cellarer' },
-  sailmaker: { name: 'A SAILMAKER', color: '#a8d0a8', portrait: 'crowdC' },
+  fulk: { name: 'FULK OF NEUILLY', color: '#d8b080', portrait: 'fulk' },
+  clerk: { name: 'A CLERK', color: '#ffffff', portrait: 'clerk' },
+  abbot: { name: 'THE ABBOT OF VAUX', color: '#f4f0e4', portrait: 'abbot' },
+  envoy: { name: 'AN ENVOY', color: '#f4f0e4', portrait: 'envoy' },
+  bishop: { name: 'A BISHOP', color: '#f4f0e4', portrait: 'bishop' },
+  niketas: { name: 'NIKETAS', color: '#c890e0', portrait: 'niketas' },
+  cook: { name: 'THE COOK', color: '#c8a070', portrait: 'cook' },
+  sailmaker: { name: 'A SAILMAKER', color: '#a8d0a8', portrait: 'sailmaker' },
+  householdWoman: { name: 'A WOMAN OF THE HOUSEHOLD', color: '#d8a8f0', portrait: 'householdWoman' },
+  pilgrim: { name: 'A PILGRIM', color: '#c8b090', portrait: 'pilgrim' },
+  venetian: { name: 'A VENETIAN', color: '#d8b080', portrait: 'venetian' },
 };
 
 export function speakerOf(key: string): { name: string; color: string; portrait: CharacterKey | 'professor' | null } {
@@ -348,6 +351,16 @@ export class StoryHud {
 
   setObjective(text: string): void {
     this.objective.setText(text);
+    this.objectiveShown = text.length > 0;
+  }
+
+  private objectiveShown = false;
+
+  /** The lowest HUD line on screen (the objective, or the mode bar under it): notices go below. */
+  get bottom(): number {
+    const obj = this.objectiveShown ? this.objective.y + this.objective.textHeight : 0;
+    if (!this.mode) return obj;
+    return Math.max(56, Math.round(obj + 3)) + 16;
   }
 
   setMode(m: { label: string; value: number; color: number } | null): void {

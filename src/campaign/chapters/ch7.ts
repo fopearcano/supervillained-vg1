@@ -261,7 +261,7 @@ export const CH7: ChapterDef = {
       script: () => [
         stage('city', [
           { name: 'watson', who: 'watson', at: { x: 19.5, y: 20.5 }, face: 'NW' },
-          { name: 'niketas', who: 'greek', at: DOORWAY, face: 'E' },
+          { name: 'niketas', who: 'niketas', at: DOORWAY, face: 'E' },
         ], { at: 'S' }),
         card('ALEXIOS III FLEES', 'ISAAC II IS BROUGHT OUT OF PRISON. HIS SON IS CROWNED ALEXIOS IV.', { color: C.yellow, seconds: 2.4 }),
         call((ctx) => ctx.actor('watson').setBehavior({ kind: 'follow', target: ctx.player, distance: 1.4, speed: 3, side: -0.8 })),
@@ -312,9 +312,9 @@ export const CH7: ChapterDef = {
           ctx.player.setPosition(ctx.marker('3').x, ctx.marker('3').y);
           ctx.world!.snapCamera();
           ctx.fog = STORY.SMOKE;
-          ctx.addActor('woman', 'lady', { x: ctx.player.gx + 0.8, y: ctx.player.gy + 0.4 }, { kind: 'follow', target: ctx.player, distance: 1, speed: 3, side: 0.5 });
+          ctx.addActor('woman', 'householdWoman', { x: ctx.player.gx + 0.8, y: ctx.player.gy + 0.4 }, { kind: 'follow', target: ctx.player, distance: 1, speed: 3, side: 0.5 });
         }),
-        say('lady', "(A WOMAN OF NIKETAS'S HOUSEHOLD) I CANNOT SEE MY OWN STREET. YOU WALKED IT WITH YOUR SAILOR. TAKE ME BACK TO THE COURTYARD."),
+        say('householdWoman', "(A WOMAN OF NIKETAS'S HOUSEHOLD) I CANNOT SEE MY OWN STREET. YOU WALKED IT WITH YOUR SAILOR. TAKE ME BACK TO THE COURTYARD."),
         walk({
           objective: 'LEAD HER BACK TO THE COURTYARD ALONG THE STREET YOU LEARNED',
           goal: { reach: DOORWAY, label: 'THE COURTYARD' },
@@ -322,8 +322,8 @@ export const CH7: ChapterDef = {
           fire: { from: '1', spread: 0.35, startAfter: (w) => w.time > 0.6 },
         }),
         call((ctx) => (ctx.fog = 0)),
-        say('lady', 'THE HOUSE HAS BURNED. THE FIG TREE IS GONE. THE LAMP IS STILL HERE.'),
-        say('lady', 'YOUR PEOPLE ARE LEAVING THE CITY FOR YOUR CAMP. GO WITH THEM. DO NOT COME BACK.'),
+        say('householdWoman', 'THE HOUSE HAS BURNED. THE FIG TREE IS GONE. THE LAMP IS STILL HERE.'),
+        say('householdWoman', 'YOUR PEOPLE ARE LEAVING THE CITY FOR YOUR CAMP. GO WITH THEM. DO NOT COME BACK.'),
         card('DIVISION', 'BETWEEN THE GREEKS AND THE FRANKS, AS THE MARSHAL WILL PUT IT', { color: '#c8a0ff', seconds: 2.2 }),
         say('zampano', 'THERE WAS A CITY, AND IT WAS ON FIRE, AND I KNEW ONE STREET.', { remembered: true }),
       ],
@@ -379,7 +379,7 @@ export const CH7: ChapterDef = {
         const rattle = sounder('...RATTLE...', '#b8b8c8');
         return [
           stage('breach', [
-            { name: 'legate', who: 'legate', at: '3', face: 'SE' },
+            { name: 'legate', who: 'bishop', at: '3', face: 'SE' },
             { name: 'conf', who: 'confusione', at: '4', face: 'SW' },
             { name: 'jack', who: 'jack', at: { x: 9.5, y: 10.5 }, face: 'N' },
           ]),
@@ -448,12 +448,12 @@ export const CH7: ChapterDef = {
           call((ctx) => ctx.game.transition.play(null, 0.6, 1)),
           card('TURN THE PAGE', "THE SAME STREETS, AS NIKETAS WILL WRITE THEM: MULES LED INTO THE GREAT CHURCH, ITS ALTAR BROKEN UP AND SHARED OUT, NO ONE WITHOUT A SHARE IN THE GRIEF.", { color: '#c8a0ff', seconds: 3.4 }),
           call((ctx) => {
-            ctx.addActor('niketas', 'greek', DOORWAY, { kind: 'idle', face: 'E' });
-            ctx.addActor('venetian', 'crowdB', { x: 4.5, y: 20.5 }, { kind: 'idle', face: 'E' });
-            ctx.addActor('family', 'crowdC', { x: 3.5, y: 21.5 }, { kind: 'idle', face: 'E' });
+            ctx.addActor('niketas', 'niketas', DOORWAY, { kind: 'idle', face: 'E' });
+            ctx.addActor('venetian', 'venetian', { x: 4.5, y: 20.5 }, { kind: 'idle', face: 'E' });
+            ctx.addActor('family', 'greek', { x: 3.5, y: 21.5 }, { kind: 'idle', face: 'E' });
             const jack = ctx.addActor('jack', 'jack', { x: 4.5, y: 19.5 }, { kind: 'goto', to: { x: 7.5, y: 16.5 }, speed: 0.45 });
-            ctx.addActor('girl', 'lady', { x: 5, y: 19.8 }, { kind: 'follow', target: jack, distance: 0.7, speed: 0.6 });
-            ctx.addActor('p1', 'crowdA', { x: 8.5, y: 18.5 }, { kind: 'wander', center: { x: 8.5, y: 18.5 }, radius: 1, speed: 0.8 });
+            ctx.addActor('girl', 'householdWoman', { x: 5, y: 19.8 }, { kind: 'follow', target: jack, distance: 0.7, speed: 0.6 });
+            ctx.addActor('p1', 'pilgrim', { x: 8.5, y: 18.5 }, { kind: 'wander', center: { x: 8.5, y: 18.5 }, radius: 1, speed: 0.8 });
             ctx.addActor('p2', 'knight', { x: 9.5, y: 19.5 }, { kind: 'wander', center: { x: 9.5, y: 19.5 }, radius: 1, speed: 0.8 });
             ctx.player.setPosition(10.5, 17.5);
             ctx.world!.snapCamera();

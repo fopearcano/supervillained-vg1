@@ -13,7 +13,52 @@ Tip: open the game with `?debug=sprites&char=zampano` (or `bagnaskiz`, `cat`, an
 see every animation of a character playing side by side in all eight headings, N to NW (the
 frames scale to fit, so no row overlaps the next).
 
-## Delivered art
+## Pixel character cast and Bagnaskiz's eight directions
+
+Two deliveries uploaded to main together:
+
+- **`Supervillained_Pixel_Game_Integration.zip`** (with `Supervillained_Pixel_Animals.zip` and
+  `Supervillained_Pixel_Humans.zip`, which add each character's single frames, editable source
+  grids and previews): native sheets under `public/sprites/pixel-cast/`. Its installer was not
+  run; its patch was read and applied by hand (see `DECISIONS.md`).
+- **`Supervillained_VG1_Bagnaskiz_Normal_8_Directions.zip`** and `..._Armoured_8_Directions.zip`:
+  Bagnaskiz plain and in Byzantine armour, the twelve dog actions in eight real directions.
+
+All runtime cells are **40 × 40 RGBA**, ground anchor **(20, 36)**, rows `N NE E SE S SW W NW`.
+
+Dedicated NPC sheets (`pixel-cast/<key>.png`, 160 × 1600): `santina`, `professor`, `doge`,
+`niketas`, `fulk`, `clerk`, `abbot`, `envoy`, `bishop`, `cook`, `sailmaker`, `prince`,
+`householdWoman`, `knight`, `pilgrim`, `venetian`, `greek`, and refreshed `jack`, `watson`,
+`confusione`, `bagnaskizMarshal` (the French marshal), `varangian` and `marquis`. Layout: **idle 2,
+walk 4, run 4, bark/gesture 2, hurt/recover 2**; running reuses the walk poses at 13 fps. On the
+human cast the `bark` slot is a speaking or working gesture: `say()` and `ask()` play it once
+when that character is on stage and idle (`story/dialogueGestures.ts`); walking, following and
+actions under way are never interrupted, and off-stage voices and animals are left alone. The
+role keys are separate: Niketas is no longer the generic `greek`, and the abbot, the envoy and the
+bishop no longer share `legate`. The Professor also gets `pixel-cast/professorFace.png`
+(24 × 24, his dialogue face); his pacing legs under the desk stay the 28 × 64 strip.
+
+**Bagnaskiz** (`bagnaskiz.png`, `bagnaskiz-tired.png`) and **the emperors** (`bagnaskizEmperor`:
+`bagnaskizArmoured.png`, `bagnaskizArmoured-tired.png`; Alexios III and V wear his face) come
+from the 8-directions zips, in full colour: 320 × 3520 plus an 80 × 320 tired strip, the twelve
+actions `idle, walk, run, sniff, pee, poop, eat, bark, fetch, hurt, sit, tired`, with Sbrimbrulòn's
+timing (one-shots return to the behaviour), except that plain Bagnaskiz's hurt keeps looping
+through the Green Zone stun. The cast delivery also carried 32-colour copies of these two and of
+Sbrimbrulòn's sheets; they were not installed, because the reduction loses Bagnaskiz's yellow
+eyes and open mouth (`tests/bagnaskizAnimations.test.ts` checks the eyes are there). Sbrimbrulòn
+keeps his sheets below.
+
+**Player-ready dogs.** `PLAYABLE_CHARACTER_KEYS`, `WorldOptions.playerSkin` and the story's
+`skin()` step accept Sbrimbrulòn (plain, knight) and Bagnaskiz (plain, Byzantine armour) besides
+Zampanò. The story plays as Zampanò; `?as=sbrimbrulon` or `?as=bagnaskiz` plays its scenes as
+the other dog, in his own costumes (Zampanò's knight becomes `sbrimbrulonKnight` or
+`bagnaskizEmperor`, and any armoured skin carries the sword and the shield).
+
+**Reference portraits**: `assets/main-characters-id-images/` holds the main characters' ID images
+(front and rear, plain and armoured) the deliveries were drawn from. Not bundled.
+
+## Earlier delivered art
+## Earlier delivered art
 
 The game ships only the latest delivered art (in `public/sprites/`): the armoured Zampanò
 animations (the knight) and the Zampanò animation integration (plain Zampanò) over sprite update 2
@@ -32,12 +77,14 @@ whose installer script and patch were not run: the integration was merged by han
 | `zampano.png`, `zampano-tired.png` | 320 × 3520, 80 × 320 | plain Zampanò: 11 animations (8-frame idle, walk, run, pee, poop, eat, sit) + tired (animation integration) |
 | `zampanoCross.png`, `zampanoCross-tired.png` | 160 × 3200, 80 × 320 | with the rag cross, worn from 1.5 (update 2) |
 | `zampanoKnight.png`, `zampanoKnight-tired.png` | 320 × 3520, 80 × 320 | the knight (conical helm, shoulder plates, mail coat, red cross on the back), from 2.5: the same 11 animations + tired as plain Zampanò (armoured animations) |
-| `bagnaskiz.png` | 160 × 1600 | fawn pug, black ears, yellow eyes (update 1) |
+| `bagnaskiz.png`, `bagnaskiz-tired.png` | 320 × 3520, 80 × 320 | fawn pug, black ears, yellow eyes: twelve actions in eight directions (Bagnaskiz 8-directions; update 1's 160 × 1600 sheet is archived) |
+| `bagnaskizArmoured.png`, `bagnaskizArmoured-tired.png` | 320 × 3520, 80 × 320 | Bagnaskiz in Byzantine armour, the emperors' face (`bagnaskizEmperor`) |
+| `pixel-cast/*.png` | 160 × 1600 (`professorFace.png` 24 × 24) | the pixel cast above; Jack, Watson and Confusione replace update 1's |
 | `sbrimbrulon.png`, `sbrimbrulon-tired.png` | 320 × 3520, 80 × 320 | Sbrimbrulòn, long-haired rust, dark and white Shih-tzu: the same 12 actions as Zampanò (Sbrimbrulòn animations) |
 | `sbrimbrulonKnight.png`, `sbrimbrulonKnight-tired.png` | 320 × 3520, 80 × 320 | Sbrimbrulòn armoured (helm with nose guard, shoulder plates, mail, red cross on the back), in the dream: 3.1, 5.2, 7.3 |
-| `jack.png` | 160 × 1600 | black chihuahua, pink-lined ears (update 1) |
-| `watson.png` | 160 × 1600 | white-and-orange Jack Russell, teal cap, cigar (update 1) |
-| `confusione.png` | 160 × 1600 | orange tabby fighting cat (update 1) |
+| `pixel-cast/jack.png` | 160 × 1600 | black chihuahua, pink-lined ears (pixel cast; update 1's is archived) |
+| `pixel-cast/watson.png` | 160 × 1600 | white-and-orange Jack Russell, teal cap, cigar (pixel cast) |
+| `pixel-cast/confusione.png` | 160 × 1600 | orange tabby fighting cat (pixel cast) |
 | `runIcon.png` | 13 × 11 | the RUN button's double chevron (update 1) |
 
 Update 2's own QA notes (the zip's `reports/QA.md`): NE reads more like a side view, the S idle is
@@ -62,8 +109,8 @@ it) shows the idle frames for it. `tests/sprites.test.ts` checks every sheet's s
 manifest. **The next update**: move the files it replaces into `art-archive/`, put the new ones in
 `public/sprites/`, update `sheet`/`animSheets`.
 
-Still procedural (`src/assets/placeholders/`): Bagnaskiz's masks `bagnaskizMarshal` /
-`bagnaskizEmperor`, Santina, the Green Zone `cat` and the rest of the story cast.
+Legacy roles without a delivered sheet and the Green Zone `cat` remain procedural
+(`src/assets/placeholders/`). The dedicated pixel cast and all Bagnaskiz masks now load their PNGs.
 
 ## Directions
 
@@ -87,14 +134,14 @@ fails if a diagonal repeats its side view).
 | key        | frame (px) | anchor (px) | animations                                                         |
 |------------|-----------:|------------:|--------------------------------------------------------------------|
 | `zampano`  | 40 × 40    | (20, 36)    | idle 8, walk 8, run 8, sniff 2, pee 8, poop 8, eat 8, bark 2, fetch 4, hurt 2, sit 8, tired 2 (own sheet) |
-| `bagnaskiz`| 40 × 40    | (20, 36)    | idle 2, walk 4, run 4, bark 2, hurt 2                              |
+| `bagnaskiz`| 40 × 40    | (20, 36)    | full twelve-action dog layout, as described above |
 | `cat`      | 28 × 28    | (14, 25)    | idle 2, walk 4, run 4                                              |
 
 ### Story cast
 
-The story mode adds 31 characters (`CAST_KEYS` in `src/assets/manifest.ts`), all 40 × 40,
+The story cast (`CAST_KEYS` in `src/assets/manifest.ts`) uses 40 × 40 frames,
 anchor (20, 36), animations **idle 2, walk 4, run 4, bark 2, hurt 2** (same sheet layout as below,
-5 animations × 8 directions = 40 rows):
+5 animations × 8 directions = 40 rows), except the full-action player-ready dog skins:
 
 | key | role in the VG1 design |
 |-----|------------------------|

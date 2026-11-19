@@ -55,7 +55,10 @@ function cell(img: { w: number; px: Uint8Array }, col: number, row: number): str
 }
 
 const SIDE: Record<string, string> = { NE: 'E', SE: 'E', NW: 'W', SW: 'W' };
-const KEYS: CharacterKey[] = ['zampano', 'zampanoKnight', 'sbrimbrulon', 'sbrimbrulonKnight'];
+const KEYS: CharacterKey[] = [
+  'zampano', 'zampanoKnight', 'sbrimbrulon', 'sbrimbrulonKnight',
+  'bagnaskiz', 'bagnaskizMarshal', 'bagnaskizEmperor',
+];
 
 describe('eight-direction sheets (8-directions update)', () => {
   it.each(KEYS)('%s: every action is drawn in all eight headings, each diagonal its own view', (key) => {

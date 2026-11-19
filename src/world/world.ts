@@ -1,6 +1,6 @@
 import { Container } from 'pixi.js';
 import { buildLevelTextures } from '../assets/build';
-import type { SpriteKey } from '../assets/manifest';
+import type { PlayableCharacterKey, SpriteKey } from '../assets/manifest';
 import { OCCLUSION } from '../config';
 import { hash2 } from '../core/rng';
 import type { Entity } from '../entities/entity';
@@ -17,8 +17,8 @@ import { Ground, PROP_SPRITE, type PropKind } from './tiles';
 export interface WorldOptions {
   /** Decorative trees on forest border tiles. */
   forest?: boolean;
-  /** Costume key used for Zampanò's sprites. */
-  playerSkin?: 'zampano' | 'zampanoCross' | 'zampanoKnight';
+  /** Player-ready dog skin; the campaign currently selects Zampanò's costumes. */
+  playerSkin?: PlayableCharacterKey;
 }
 
 /**
