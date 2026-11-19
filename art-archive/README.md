@@ -13,3 +13,7 @@ Kept here for reference, outside `public/`, so it is not bundled.
   `zampanoKnight.png`: 10 animations of 4 frames, and their `-tired.png`), replaced by the Zampanò
   animation integration and the armoured Zampanò animations (8-frame cycles and the seated idle).
   The rag cross (`zampanoCross`) is still update 2's and still in `public/sprites/`.
+- `directions-before-8way/` — the four-view sheets of plain and armoured Zampanò and Sbrimbrulòn
+  (`zampano`, `zampanoKnight`, `sbrimbrulon`, `sbrimbrulonKnight`, each with its `-tired.png`),
+  whose NE/SE rows repeated E and NW/SW repeated W; replaced by the 8-directions update, which
+  keeps their N, E, S and W frames pixel for pixel.

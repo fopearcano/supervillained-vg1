@@ -10,8 +10,8 @@ manifest are relative to `public/`, e.g. `sheet: 'sprites/zampano.png'` → `pub
 If a file is missing or broken the placeholder is used and a warning is printed in the console.
 
 Tip: open the game with `?debug=sprites&char=zampano` (or `bagnaskiz`, `cat`, any cast key) to
-see every animation of a character playing side by side, facing S, W, E and N (the frames scale
-to fit, so no row overlaps the next).
+see every animation of a character playing side by side in all eight headings, N to NW (the
+frames scale to fit, so no row overlaps the next).
 
 ## Delivered art
 
@@ -43,8 +43,10 @@ whose installer script and patch were not run: the integration was merged by han
 Update 2's own QA notes (the zip's `reports/QA.md`): NE reads more like a side view, the S idle is
 seated, S run/fetch is a bobbing cycle rather than a gallop, the helm is blocky.
 
-The animation integration's plain Zampanò: the new actions use the back view for N, the front for
-S, the right profile for NE/E/SE and the left profile for NW/W/SW. Idle, walk, run, pee, poop, eat
+The animation integration's plain Zampanò: N is the back view, S the front, E and W the right and
+left profiles, and since the 8-directions update (`Supervillained_VG1_Normal_8_Directions_Update.zip`
+and `..._Armoured_...`) NE, SE, SW and NW are three-quarter views of their own, for plain and
+armoured Zampanò and Sbrimbrulòn alike (before it, NE/SE repeated E and NW/SW repeated W). Idle, walk, run, pee, poop, eat
 and sit have authored per-frame holds; pee, poop and eat (also used for drinking) are fitted to the
 game's action timers (`PEE_TIME`, `SQUAT_TIME`, `DRINK_TIME`...), ending on the standing pose.
 Three seconds at rest he sits, then alternates sniffing and sitting (`PLAYER.IDLE_PHASE_TIME`;
@@ -76,7 +78,9 @@ Eight facing directions, named as seen by the camera (screen space, **N = up/awa
 ```
 
 Sheet row order is always: `N, NE, E, SE, S, SW, W, NW`.
-W/SW/NW may simply be mirrored copies of E/SE/NE.
+W/SW/NW may simply be mirrored copies of E/SE/NE (the procedural cast's are); Zampanò's and
+Sbrimbrulòn's delivered sheets draw all eight (`tests/eightDirections.test.ts` decodes them and
+fails if a diagonal repeats its side view).
 
 ## Characters
 

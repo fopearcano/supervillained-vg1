@@ -700,3 +700,17 @@ The debug APK had reached 59 MB. What changed (originals always kept in the repo
 - Where the armour is worn: the delivery left that to the story. Sbrimbrulòn is armoured in the
   dream, where he is a crusader (3.1 the Venice quay, 5.2 the wall of Zara, 7.3 Pierre at the
   walls), and plain on the lawn (1.3, 8.3). His dialogue portrait stays plain, as Zampanò's does.
+
+## Eight real directions for Zampanò and Sbrimbrulòn
+
+- `Supervillained_VG1_Normal_8_Directions_Update.zip` and `..._Armoured_8_Directions_Update.zip`
+  (uploaded to this branch, not to main) redraw the diagonals of plain and armoured Zampanò and
+  Sbrimbrulòn: NE/NW are three-quarter back views, SE/SW three-quarter front views, for all twelve
+  actions. Before, the sheets had eight rows but four views (NE/SE = E, NW/SW = W). Checked on the
+  delivered PNGs: same sizes and layout, all 528 N/E/S/W frames identical to the previous sheets,
+  all 528 diagonal frames new, none blank, the same ground line; no manifest or movement change.
+  The previous sheets are in `art-archive/directions-before-8way/`.
+- The sprite viewer shows all eight headings (the delivered `spriteViewerScene.ts`). The zips'
+  notes mention source sheets, rebuild scripts and pixel tests that were not in them; the
+  regression test here is `tests/eightDirections.test.ts` (decodes the sheets with zlib, no new
+  dependency; it fails on the old sheets).
