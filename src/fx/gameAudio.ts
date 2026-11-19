@@ -28,6 +28,7 @@ export function bindGameAudio(events: Emitter<GameEvents>, audio: AudioEngine): 
   });
   events.on('ballSpawn', () => audio.play('ball'));
   events.on('fetch', () => audio.play('fetch'));
+  events.on('pollutionSurge', () => audio.play('warning', { rate: 0.82, volume: 0.75 }));
   events.on('attackStart', () => {
     audio.play('alarm');
     audio.loop('siren', { volume: AUDIO.SIREN_VOLUME, delay: AUDIO.SIREN_DELAY });

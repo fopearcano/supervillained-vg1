@@ -109,8 +109,10 @@ sub-level), `?auto=1` (the autopilot plays the story; `&skill=0.7&ending=knight|
   `playAction(anim, seconds?)` plays an action in place, then the behavior resumes).
 - `assets/` — `manifest.ts` (all sprites: sizes, anchors, anims, delivered `sheet`/`animSheets`;
   `PLAYABLE_CHARACTER_KEYS`, `costumeFor`, `ARMOURED_SKINS` for the player-ready dogs),
-  `build.ts` (load the delivered PNGs or generate placeholders), `placeholders/*` (procedural
-  pixel art for the cast without delivered sheets), `fonts/`.
+  `build.ts` (load the delivered PNGs or generate placeholders), `environment.ts` (the Color Ink
+  environment atlases in `public/environment-ink/`: chapter palettes, native tile/prop frames,
+  visual-only story floor designs; procedural fallback), `placeholders/*` (procedural
+  pixel art for the cast without delivered sheets, and the fallback environment art), `fonts/`.
 - Repo-root `assets/music` and `assets/sounds` — recorded audio, wired in `src/fx/audioFiles.ts`
   (table in `ASSETS.md`); `core/audio.ts` plays them (sfx decoded, music streamed) alongside the
   synthesized sounds of `fx/sounds.ts`.

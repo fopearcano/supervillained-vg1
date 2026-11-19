@@ -4,6 +4,10 @@ import { Ground, LEGEND, type PropKind } from './tiles';
 export type Swatch = [base: string, dark: string, light: string];
 
 export interface Palette {
+  /** Delivered Color Ink atlas; omitted by custom palettes that use generated art. */
+  environment?: string;
+  /** Optional chapter backdrop/reference colour; gameplay does not depend on it. */
+  background?: string;
   grass: [base: string, dark: string, light: string];
   tallGrass: [base: string, dark: string, light: string];
   path: [base: string, dark: string, light: string];
@@ -55,6 +59,22 @@ export interface EventSettings {
     scriptedProgress: number | null;
     bagnaskizHits: number;
   };
+  /**
+   * One-shot outbreaks placed around the player as they enter new park districts. They are
+   * level data (not global tuning), so later arcade maps can define a different encounter rhythm.
+   */
+  pollutionWaves?: readonly PollutionWaveSettings[];
+}
+
+export interface PollutionWaveSettings {
+  /** Route progress (0..1) that triggers the outbreak. */
+  progress: number;
+  /** Number of separate dirty patches in this outbreak. */
+  count: number;
+  radius: number;
+  strength: number;
+  /** Min/max tile distance from the player; spots ahead on the route are preferred. */
+  distance: readonly [number, number];
 }
 
 /** Where the map comes from. Only ASCII is implemented; Tiled is reserved for later. */

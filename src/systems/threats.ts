@@ -3,11 +3,11 @@ import type { Input } from '../core/input';
 import { Rng } from '../core/rng';
 import { Bagnaskiz, Ball, Cat } from '../entities/critters';
 import { dirToGridVector } from '../iso/projection';
-import type { LevelDef } from '../world/level';
+import type { LevelDef, PollutionWaveSettings } from '../world/level';
 import { POLLUTION } from '../config';
 import { randomSpotNear } from './placement';
 import type { Rules, WorldAccess } from './rules';
-import { AttackDirector, inBarkCone, magnetPull } from './threatLogic';
+import { AttackDirector, inBarkCone, magnetPull, PollutionWaveDirector } from './threatLogic';
 
 const CAT_TINTS = [0xffffff, 0xd8d8d8, 0xfff0c0];
 
@@ -26,6 +26,7 @@ export class Threats {
   readonly balls: Ball[] = [];
   pug: Bagnaskiz | null = null;
   readonly director: AttackDirector;
+  readonly pollutionDirector: PollutionWaveDirector;
   private barkCooldown = 0;
   private catTimer: number;
   private ballTimer: number;
@@ -39,6 +40,7 @@ export class Threats {
   ) {
     const ev = level.events.underAttack;
     this.director = new AttackDirector(ev.threshold, ev.scriptedProgress);
+    this.pollutionDirector = new PollutionWaveDirector(level.events.pollutionWaves);
     this.catTimer = level.spawns.cats.first;
     this.ballTimer = level.spawns.balls.first;
     this.rng = new Rng(level.seed ^ 0x5bd1e995);
@@ -120,9 +122,12 @@ export class Threats {
       }
     }
 
-    // Under attack
-    const health = map.health();
+    // Entering a new park district can open several pollution hotspots around the route. The
+    // outbreaks are deterministic and placed ahead where possible, so the player can see and
+    // react to them instead of being punished for ground already left behind.
     const progress = map.progressAt(player.gx, player.gy);
+    for (const wave of this.pollutionDirector.update(progress)) this.startPollutionWave(wave);
+    const health = map.health();
     const signal = this.director.update(dt, health, progress, !this.pug || this.pug.state === 'gone');
     if (signal === 'start') this.startAttack();
     else if (signal === 'end') events.emit('attackEnd', {});
@@ -210,6 +215,33 @@ export class Threats {
       }
     }
     events.emit('attackStart', { intensity: this.director.intensity(map.health()) });
+  }
+
+  private startPollutionWave(wave: PollutionWaveSettings): void {
+    const { player, map, events } = this.world;
+    const pi = Math.floor(player.gx);
+    const pj = Math.floor(player.gy);
+    const here = map.inBounds(pi, pj) ? map.exitDistance[map.index(pi, pj)]! : -1;
+    const centers: Array<{ x: number; y: number }> = [];
+    let tiles = 0;
+    const accepts = (i: number, j: number) => {
+      const d = map.exitDistance[map.index(i, j)]!;
+      return d >= 0 && (here < 0 || d <= here + 2) && centers.every((p) => Math.hypot(p.x - i - 0.5, p.y - j - 0.5) >= wave.radius * 1.4);
+    };
+    for (let k = 0; k < wave.count; k++) {
+      const spot =
+        randomSpotNear(map, player.gx, player.gy, wave.distance[0], wave.distance[1], this.rng, accepts) ??
+        randomSpotNear(map, player.gx, player.gy, wave.distance[0], wave.distance[1], this.rng, (i, j) => {
+          return centers.every((p) => Math.hypot(p.x - i - 0.5, p.y - j - 0.5) >= wave.radius);
+        });
+      if (!spot) continue;
+      centers.push(spot);
+      tiles += map.stampDirt(spot.x, spot.y, wave.radius, wave.strength);
+    }
+    // One global cue per encounter; individual patches still appear through the dirt overlay.
+    if (tiles > 0 && centers.length > 0) {
+      events.emit('pollutionSurge', { ...centers[0]!, radius: wave.radius, tiles });
+    }
   }
 
   /** The greenest spot near Zampanò: where Bagnaskiz wants to go next. */

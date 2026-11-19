@@ -13,8 +13,11 @@ import type { LevelData, Palette } from './level';
 import { GameMap } from './map';
 import { MapRenderer } from './mapRenderer';
 import { Ground, PROP_SPRITE, type PropKind } from './tiles';
+import type { FloorDesign } from '../assets/environment';
 
 export interface WorldOptions {
+  /** Optional visual floor composition; never changes runtime ground or collision. */
+  floorDesign?: FloorDesign;
   /** Decorative trees on forest border tiles. */
   forest?: boolean;
   /** Player-ready dog skin; the campaign currently selects Zampanò's costumes. */
@@ -47,7 +50,7 @@ export class World {
   ) {
     buildLevelTextures(palette);
     this.map = new GameMap(level);
-    this.mapRenderer = new MapRenderer(this.map);
+    this.mapRenderer = new MapRenderer(this.map, opts.floorDesign);
     this.objectLayer.sortableChildren = true;
     this.root.addChild(this.mapRenderer.root, this.decalLayer, this.objectLayer, this.fxLayer);
 

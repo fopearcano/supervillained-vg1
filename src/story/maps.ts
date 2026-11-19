@@ -127,6 +127,26 @@ export interface StoryMap {
   rows: readonly string[];
 }
 
+/**
+ * Adds a regular paving/trail motif to otherwise flat story stages without moving script markers
+ * or adding collision. Both symbols must be walkable ground, so actor paths and saved scripts keep
+ * exactly the same topology while the location gains readable districts and route lines.
+ */
+export function structureStoryRows(rows: readonly string[], base: string, accent: string, period = 7): readonly string[] {
+  const mid = Math.floor(period / 2);
+  return rows.map((row, y) =>
+    [...row]
+      .map((ch, x) => {
+        if (ch !== base) return ch;
+        const vertical = x % period === mid && Math.floor(y / period) % 2 === 0;
+        const horizontal = y % period === mid && Math.floor(x / period) % 2 === 1;
+        const corner = x % period === mid + 1 && y % period === mid + 1;
+        return vertical || horizontal || corner ? accent : ch;
+      })
+      .join(''),
+  );
+}
+
 export const STORY_MAPS = {
   jerusalem: {
     theme: 'jerusalem',
@@ -299,7 +319,7 @@ export const STORY_MAPS = {
   lido: {
     theme: 'venice',
     base: '-',
-    rows: [
+    rows: structureStoryRows([
       '~~~~~~~~~~~~~~~~~~~~',
       '~~~~~~~~~~~~~~~~~~~~',
       '~~----------------~~',
@@ -320,7 +340,7 @@ export const STORY_MAPS = {
       '~~--------R-------~~',
       '~~~~~~~~~~~~~~~~~~~~',
       '~~~~~~~~~~~~~~~~~~~~',
-    ],
+    ], '-', ':', 6),
   },
   ship: {
     theme: 'sea',
@@ -393,7 +413,7 @@ export const STORY_MAPS = {
   zara: {
     theme: 'zara',
     base: '.',
-    rows: [
+    rows: structureStoryRows([
       '%%%%%%%%%%%%%%%%%%%%',
       '%%%%%%%%%%%%%%%%%%%%',
       '%%%%%%%%%%%%%%%%%%%%',
@@ -414,12 +434,12 @@ export const STORY_MAPS = {
       '#.......N..........#',
       '#..................#',
       '####################',
-    ],
+    ], '.', '=', 6),
   },
   winter: {
     theme: 'winter',
     base: '*',
-    rows: [
+    rows: structureStoryRows([
       '####################',
       '#*********T********#',
       '#******************#',
@@ -440,7 +460,7 @@ export const STORY_MAPS = {
       '#**************S***#',
       '#******************#',
       '####################',
-    ],
+    ], '*', ':', 7),
   },
   road: {
     theme: 'road',
@@ -503,7 +523,7 @@ export const STORY_MAPS = {
   desert: {
     theme: 'desert',
     base: '-',
-    rows: [
+    rows: structureStoryRows([
       '################',
       '#----Y---------#',
       '#-------------Y#',
@@ -534,12 +554,12 @@ export const STORY_MAPS = {
       '#-------S------#',
       '#--------------#',
       '################',
-    ],
+    ], '-', ':', 6),
   },
   city: {
     theme: 'constantinople',
     base: ':',
-    rows: [
+    rows: structureStoryRows([
       '%%%%%%%%%%%%%%%%%%%%%%%%',
       '%::::::::::::::::::::::%',
       '%::::::::::::::::::::::%',
@@ -564,7 +584,7 @@ export const STORY_MAPS = {
       '%:::::::::::::::::::S::%',
       '%::::::::::::::::::::::%',
       '%%%%%%%%%%%%%%%%%%%%%%%%',
-    ],
+    ], ':', '-', 7),
   },
   breach: {
     theme: 'constantinople',
@@ -654,7 +674,7 @@ export const STORY_MAPS = {
   field: {
     theme: 'constantinople',
     base: '-',
-    rows: [
+    rows: structureStoryRows([
       '%%%%%%%%%%%%%%%%',
       '%%%%%%%Q%%%%%%%%',
       '#--------------#',
@@ -683,7 +703,7 @@ export const STORY_MAPS = {
       '#-------S------#',
       '#--2-----------#',
       '################',
-    ],
+    ], '-', ':', 7),
   },
 } satisfies Record<string, StoryMap>;
 

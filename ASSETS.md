@@ -112,6 +112,20 @@ manifest. **The next update**: move the files it replaces into `art-archive/`, p
 Legacy roles without a delivered sheet and the Green Zone `cat` remain procedural
 (`src/assets/placeholders/`). The dedicated pixel cast and all Bagnaskiz masks now load their PNGs.
 
+### Color Ink environments
+
+Delivered environment art lives in `public/environment-ink/`: 15 chapter/theme atlases plus a
+validated local `manifest.json`. `src/assets/environment.ts` decodes them during boot, supplies
+chapter-specific palettes, and replaces only frames whose dimensions and anchors match the
+existing procedural contract. Missing or malformed art falls back to `src/assets/placeholders/`;
+no character sheet is replaced by this delivery.
+
+The manifest also carries visual-only authored floor compositions for the story maps. They never
+change `LevelData`, collision, props, markers or objectives. The delivered `1:arcade` composition
+belongs to the former single-corridor 96 × 96 park, so the redesigned branching Green Zone does
+not select it; it still uses the complete `ch01_greenzone` native ground and prop bank. This avoids
+painting an obsolete route over the new ponds, plazas and optional circuits.
+
 ## Directions
 
 Eight facing directions, named as seen by the camera (screen space, **N = up/away from the camera**):

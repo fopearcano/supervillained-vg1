@@ -1,5 +1,6 @@
 import { ColorMatrixFilter, Container, Graphics } from 'pixi.js';
 import { ensureCharacters } from '../assets/build';
+import { floorDesignForMap, paletteForChapter } from '../assets/environment';
 import { ARMOURED_SKINS, costumeFor, type CharacterKey, type PlayAs, type PlayableCharacterKey } from '../assets/manifest';
 import { applyEffects, dreamSkin, fadeCommozione, saveCampaign, type CampaignState, type Effects } from '../campaign/state';
 import type { ChapterDef, SubLevelDef } from '../campaign/types';
@@ -173,7 +174,12 @@ export class StoryScene implements Scene {
     const level = parseAsciiMap(def.rows, { base: def.base, requireExit: false });
     const skin = this.costume(opts.skinKey ?? (opts.skin === 'plain' ? 'zampano' : dreamSkin(this.state)));
     ensureCharactersNow([skin]);
-    const world = new World(level, THEMES[def.theme], { playerSkin: skin, forest: true });
+    const palette = paletteForChapter(this.chapter.number, def.theme, THEMES[def.theme]);
+    const world = new World(level, palette, {
+      playerSkin: skin,
+      forest: true,
+      floorDesign: floorDesignForMap(this.chapter.number, key, palette, level),
+    });
     this.world = world;
     this.mapKey = key;
     world.fxLayer.addChild(this.worldFx);

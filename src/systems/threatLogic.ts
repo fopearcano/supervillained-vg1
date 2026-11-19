@@ -1,5 +1,6 @@
 import { ATTACK } from '../config';
 import type { GameMap } from '../world/map';
+import type { PollutionWaveSettings } from '../world/level';
 
 /**
  * Pure helpers for the threats & bonuses (no rendering), unit-tested.
@@ -73,6 +74,31 @@ export function fleeDirection(
 }
 
 export type AttackSignal = 'start' | 'end' | null;
+
+/**
+ * Turns progress milestones into one-shot encounters. A progress jump can cross several
+ * milestones (teleports and low frame rates are both valid), so update returns every due wave.
+ */
+export class PollutionWaveDirector {
+  private next = 0;
+  private readonly waves: readonly PollutionWaveSettings[];
+
+  constructor(waves: readonly PollutionWaveSettings[] = []) {
+    this.waves = [...waves].sort((a, b) => a.progress - b.progress);
+  }
+
+  update(progress: number): readonly PollutionWaveSettings[] {
+    const due: PollutionWaveSettings[] = [];
+    while (this.next < this.waves.length && progress >= this.waves[this.next]!.progress) {
+      due.push(this.waves[this.next++]!);
+    }
+    return due;
+  }
+
+  get remaining(): number {
+    return this.waves.length - this.next;
+  }
+}
 
 /**
  * Decides when the "GREEN ZONE UNDER ATTACK" event starts and ends.

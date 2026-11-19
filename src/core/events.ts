@@ -50,6 +50,8 @@ export interface GameEvents extends Record<string, unknown> {
   bark: At & { dir: string };
   barkHit: At & { hits: number };
   bump: At;
+  /** A progress-triggered patch of the park has just become polluted. */
+  pollutionSurge: At & { radius: number; tiles: number };
   attackStart: { intensity: number };
   attackEnd: Record<string, never>;
   bagnaskizFled: At & { score: number };

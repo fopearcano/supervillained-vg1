@@ -23,6 +23,16 @@ function fillDiamond(pb: PixelBuffer, yOff: number, color: (x: number, y: number
   }
 }
 
+/** Paints a short stroke without leaking outside the already-rasterized diamond. */
+function strokeInside(pb: PixelBuffer, points: ReadonlyArray<readonly [number, number]>, color: number): void {
+  for (const [x, y] of points) pb.setIfOpaque(x, y, color);
+}
+
+/** A low-frequency noise cell. It reads as a material patch instead of TV-static dithering. */
+function patchNoise(x: number, y: number, salt: number): number {
+  return hash2(Math.floor(x / 4), Math.floor(y / 2), salt);
+}
+
 export function drawGrass(pal: Palette, variant: number): PixelBuffer {
   const pb = new PixelBuffer(TW, TH);
   const [base, dark, light] = pal.grass;
@@ -30,22 +40,21 @@ export function drawGrass(pal: Palette, variant: number): PixelBuffer {
   const D = rgba(dark);
   const L = rgba(light);
   fillDiamond(pb, 0, (x, y) => {
-    const h = hash2(x, y, 11 + variant * 31);
-    if (h < 0.09) return D;
-    if (h < 0.16) return L;
+    const patch = patchNoise(x, y, 11 + variant * 31);
+    const fleck = hash2(x, y, 29 + variant * 43);
+    if (patch < 0.13 && fleck < 0.55) return D;
+    if (patch > 0.88 && fleck < 0.45) return L;
     return B;
   });
-  // A few grass blades (light tip over dark stem).
-  for (let k = 0; k < 6; k++) {
-    const x = Math.floor(hash2(k, variant, 5) * (TW - 8)) + 4;
-    const y = Math.floor(hash2(variant, k, 9) * (TH - 6)) + 3;
-    if (insideDiamond(x, y) && insideDiamond(x, y + 1)) {
-      pb.set(x, y, L);
-      pb.set(x, y + 1, D);
-    }
+  // Readable three-pixel tufts, grouped in clumps rather than uniformly scattered noise.
+  for (let k = 0; k < 5; k++) {
+    const x = Math.floor(hash2(k, variant, 5) * (TW - 12)) + 6;
+    const y = Math.floor(hash2(variant, k, 9) * (TH - 8)) + 4;
+    strokeInside(pb, [[x, y], [x - 1, y - 1], [x + 1, y - 1]], D);
+    pb.setIfOpaque(x, y - 1, L);
   }
   if (variant === 3) {
-    // Tiny flowers
+    // A deliberately rare wildflower tile becomes a landmark in large green spaces.
     const flowers = pal.flowers;
     for (let k = 0; k < 3; k++) {
       const x = 8 + k * 7;
@@ -66,14 +75,18 @@ export function drawTallGrass(pal: Palette, variant: number): PixelBuffer {
   const B = rgba(base);
   const D = rgba(dark);
   const L = rgba(light);
-  fillDiamond(pb, off, (x, y) => (hash2(x, y, 40 + variant) < 0.2 ? D : B));
-  // Blades: vertical strokes growing upward from inside the diamond.
-  for (let k = 0; k < 26; k++) {
-    const x = Math.floor(hash2(k, variant, 77) * TW);
-    const y = Math.floor(hash2(variant, k, 78) * TH);
+  fillDiamond(pb, off, (x, y) => (patchNoise(x, y, 40) < 0.18 ? D : B));
+  // The variants are wind poses of the same blades. MapRenderer plays them 0-1-2-1.
+  const lean = variant - 1;
+  for (let k = 0; k < 24; k++) {
+    const x = Math.floor(hash2(k, 17, 77) * (TW - 2)) + 1;
+    const y = Math.floor(hash2(23, k, 78) * (TH - 2)) + 1;
     if (!insideDiamond(x, y)) continue;
-    const h = 2 + Math.floor(hash2(x, y, 79) * 4);
-    for (let s = 0; s < h; s++) pb.set(x, y + off - s, s === h - 1 ? L : s === 0 ? D : B);
+    const h = 3 + Math.floor(hash2(x, y, 79) * 4);
+    for (let s = 0; s < h; s++) {
+      const bend = Math.round((s / Math.max(1, h - 1)) ** 2 * lean * 2);
+      pb.set(x + bend, y + off - s, s === h - 1 ? L : s === 0 ? D : B);
+    }
   }
   return pb;
 }
@@ -94,7 +107,7 @@ export function drawPath(pal: Palette, mask: number, variant: number): PixelBuff
   const GD = rgba(gDark);
   fillDiamond(pb, 0, (x, y) => {
     const [u, v] = uv(x, y);
-    const h = hash2(x, y, 200 + variant);
+    const h = hash2(x, y, 200 + variant * 17);
     const edges = [
       [1, u - v],
       [2, u + v],
@@ -104,13 +117,28 @@ export function drawPath(pal: Palette, mask: number, variant: number): PixelBuff
     for (const [bit, e] of edges) {
       if (!(mask & bit)) continue;
       const depth = 1 - e; // 0 at the edge
-      const reach = 0.16 + hash2(x, y, 300 + bit) * 0.16;
+      const reach = 0.12 + patchNoise(x, y, 300 + bit + variant * 13) * 0.18;
       if (depth < reach) return h < 0.3 ? GD : G;
     }
-    if (h < 0.1) return D;
-    if (h < 0.2) return L;
+    const aggregate = patchNoise(x, y, 231 + variant * 29);
+    if (aggregate < 0.12 && h < 0.55) return D;
+    if (aggregate > 0.9 && h < 0.45) return L;
     return B;
   });
+  // Paired wheel ruts make long routes visually continuous and easier to read at a glance.
+  for (let y = 2; y < TH - 2; y++) {
+    for (let x = 2; x < TW - 2; x++) {
+      if (!insideDiamond(x, y)) continue;
+      const lane = ((x - y * 2 + 64 + variant * 3) % 16 + 16) % 16;
+      if ((lane === 4 || lane === 11) && hash2(x, y, 410 + variant) > 0.18) pb.set(x, y, D);
+    }
+  }
+  // A few bright stones break up the broad earth bands without noisy single-pixel dithering.
+  for (let k = 0; k < 4; k++) {
+    const x = 5 + Math.floor(hash2(k, variant, 421) * (TW - 10));
+    const y = 3 + Math.floor(hash2(variant, k, 422) * (TH - 6));
+    pb.setIfOpaque(x, y, L);
+  }
   return pb;
 }
 
@@ -121,10 +149,11 @@ export function drawWater(pal: Palette, variant: number): PixelBuffer {
   const D = rgba(dark);
   const L = rgba(light);
   fillDiamond(pb, 0, (x, y) => {
-    const [u, v] = uv(x, y);
-    if (Math.abs(u) + Math.abs(v) > 0.82) return D;
-    const ripple = (x + y * 2 + variant * 5) % 11 === 0 || (x * 3 + y + variant * 3) % 17 === 0;
-    return ripple ? L : B;
+    // Never outline the diamond: adjacent tiles must merge into one pond, not blue paving.
+    const band = ((x + y * 3 + variant * 4) % 13 + 13) % 13;
+    if ((band === 0 || band === 1) && hash2(Math.floor(x / 3), y, 480) > 0.28) return L;
+    if (band === 7 && hash2(x, y, 481) > 0.55) return D;
+    return B;
   });
   return pb;
 }
@@ -136,11 +165,16 @@ export function drawForest(pal: Palette, variant: number): PixelBuffer {
   const D = rgba(dark);
   const L = rgba(light);
   fillDiamond(pb, 0, (x, y) => {
-    const h = hash2(x, y, 500 + variant);
-    if (h < 0.25) return D;
-    if (h < 0.3) return L;
+    const patch = patchNoise(x, y, 500 + variant * 31);
+    const h = hash2(x, y, 530 + variant);
+    if (patch < 0.32 && h < 0.8) return D;
+    if (patch > 0.86 && h < 0.5) return L;
     return B;
   });
+  // Roots and fallen twigs make the solid forest border feel deliberately dense.
+  const rootY = 6 + (variant % 2) * 2;
+  strokeInside(pb, [[TW / 2, rootY], [TW / 2 - 2, rootY + 1], [TW / 2 - 4, rootY + 2]], D);
+  strokeInside(pb, [[TW / 2, rootY], [TW / 2 + 2, rootY + 1], [TW / 2 + 5, rootY + 2]], L);
   return pb;
 }
 
@@ -155,9 +189,10 @@ export function drawDirt(pal: Palette, variant: number): PixelBuffer {
     const h = hash2(x, y, 600 + variant);
     const [u, v] = uv(x, y);
     const edge = Math.abs(u) + Math.abs(v);
-    if (edge > 0.75 && h < 0.45) return null;
-    if (h < 0.18) return D;
-    if (h < 0.26) return L;
+    const blob = patchNoise(x + variant * 3, y, 640);
+    if (edge > 0.62 + blob * 0.28) return null;
+    if (blob < 0.2 || h < 0.08) return D;
+    if (blob > 0.88 && h < 0.45) return L;
     return B;
   });
   return pb;

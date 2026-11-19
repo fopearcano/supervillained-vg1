@@ -60,7 +60,11 @@ export class GameScene implements Scene {
     readonly game: Game,
     readonly levelDef: LevelDef,
   ) {
-    this.world = new World(loadLevel(levelDef), levelDef.palette);
+    const level = loadLevel(levelDef);
+    // The delivered 1:arcade floor composition targets the former single-corridor map. The
+    // redesigned park uses the complete native Color Ink ground/prop bank without that stale
+    // cell overlay; its generated routes, ponds and districts remain authoritative.
+    this.world = new World(level, levelDef.palette);
     this.root.addChild(this.world.root, this.uiLayer);
 
     // Exit: flag + glowing ring + label.

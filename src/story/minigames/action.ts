@@ -162,7 +162,10 @@ export class LaddersGame extends MiniGame {
     // Draw: wall, ladders, falling things.
     const g = this.g;
     g.clear();
-    g.rect(0, 0, w, h).fill(0x6a5a48);
+    // This mini-game hides the world, so carry the active chapter's masonry palette into it.
+    const wall = ctx.world?.palette.wall ?? ctx.world?.palette.stone ?? ['#8a7660', '#4b3630', '#c8ad88'];
+    const [wallBase, wallInk, wallLight] = wall.map(hex);
+    g.rect(0, 0, w, h).fill(wallInk!);
     // Bricks scroll down as he climbs.
     const scroll = Math.max(0, this.rung - 6) * 22;
     const off = scroll % 10;
@@ -170,11 +173,23 @@ export class LaddersGame extends MiniGame {
     for (let row = -2; row < h / 10 + 2; row++) {
       const y = Math.round(row * 10 + off);
       const shift = ((row - base) & 1) * 10;
-      for (let x = -shift; x < w; x += 20) g.rect(x, y, 19, 9).fill(0x8a7660);
+      for (let x = -shift; x < w; x += 20) {
+        const tone = ((Math.floor(x / 20) * 7 + row - base) & 3) === 0 ? wallInk! : wallBase!;
+        g.rect(x, y, 19, 9).fill(tone);
+        g.rect(x + 1, y, 17, 1).fill(wallLight!);
+        g.rect(x, y + 1, 1, 7).fill(wallLight!);
+        if (((Math.floor(x / 20) + row - base) & 1) === 0) {
+          for (let k = 0; k < 3; k++) g.rect(x + 10 + k * 2, y + 5 - k, 3, 1).fill(wallInk!);
+        }
+      }
     }
     if (top > -10) {
-      g.rect(0, top - 30, w, 26).fill(0x9a8670);
-      for (let x = 0; x < w; x += 24) g.rect(x, top - 40, 14, 12).fill(0x9a8670);
+      g.rect(0, top - 30, w, 26).fill(wallBase!);
+      g.rect(0, top - 30, w, 2).fill(wallLight!);
+      for (let x = 0; x < w; x += 24) {
+        g.rect(x, top - 40, 14, 12).fill(wallBase!);
+        g.rect(x + 1, top - 40, 12, 1).fill(wallLight!);
+      }
     }
     for (let l = 0; l < 3; l++) {
       const x = this.laneX(l);

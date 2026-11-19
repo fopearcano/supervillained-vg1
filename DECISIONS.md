@@ -890,3 +890,30 @@ save migration in [`docs/STORY-SOURCES.md`](docs/STORY-SOURCES.md).
   every armoured skin carries the sword and the shield (`ARMOURED_SKINS`).
 - **Notices** in the story now start below the HUD (a long objective with a progress bar pushed the
   bar under them).
+
+## Color Ink environment delivery over the redesigned levels
+
+- The delivered `public/environment-ink/` atlases are loaded locally and replace matching
+  generated environment frames; the procedural art remains the guarded fallback. Character art,
+  collision and story logic are outside this delivery.
+- Story maps may use the manifest's authored floor compositions because they are visual-only and
+  retain the current map dimensions, markers and collision. The current ground arrays remain
+  authoritative.
+- The arcade does **not** use the manifest's `1:arcade` cell composition. That composition was
+  authored for the previous single corridor and validates only its unchanged 96 × 96 dimensions;
+  applying it would ghost the obsolete path across the new branching park. The arcade still uses
+  the delivered `ch01_greenzone` tile and prop art.
+- The same delivery (`Supervillained_Complete_Level_Gameplay_Color_Ink_Implementation.zip`,
+  made against commit 879ac0f) also redesigns the Green Zone: a deterministic 96 × 96 park built
+  by `buildGreenZoneRows()` (a main route through linked districts, optional circuits, plazas,
+  ponds crossed by gravel bridges), treats placed along one canonical shortest route
+  (`placeTreats`), three progress-triggered pollution waves (`PollutionWaveDirector`, level data
+  in `events.pollutionWaves`, one POLLUTION SURGE cue per wave), phase-offset tall-grass, pond and
+  deep-water animation, chapter-coloured masonry in the ladders mini-game, and a paving motif on
+  flat story stages (`structureStoryRows`: only walkable floors are swapped for one another, so
+  speed, collision and markers are unchanged).
+- Merged on top of the pixel-cast work (which came after 879ac0f): files only the delivery changed
+  were taken as delivered; `storyScene.ts`, `world.ts`, `ASSETS.md` and this file were merged three
+  ways (the chapter palette and floor design join the player-skin choice, `costume()`). The
+  overlay's sources had Windows line endings and were converted to the repository's; the
+  environment PNGs and `manifest.json` are byte-identical to the delivery.

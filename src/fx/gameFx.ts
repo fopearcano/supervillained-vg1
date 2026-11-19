@@ -204,6 +204,22 @@ export class GameFx {
       this.popups.text('OUCH!', p.x, p.y, { color: C.red, glow: 'self' }, 0.8, -16);
       this.camera.shake(FX.SHAKE_HURT);
     });
+    events.on('pollutionSurge', (e) => {
+      const g = at(e.x, e.y);
+      const p = at(e.x, e.y, 32);
+      this.rings.push({ x: g.x, y: g.y, radius: e.radius, t: 0, dur: 0.9, color: 0x8f6a30 });
+      this.particles.burst(g.x, g.y, {
+        count: Math.min(18, 6 + e.tiles),
+        textures: ['pixel', 'ring'],
+        colors: [0x6e4a1c, 0x8f6a30, 0x4a2e0e],
+        speed: [18, 48],
+        life: [0.45, 0.8],
+        gravity: 80,
+        angle: [-Math.PI * 0.9, -Math.PI * 0.1],
+      });
+      this.popups.text('POLLUTION SURGE!', p.x, p.y, { color: C.orange, glow: 'self' }, 1.2, -10);
+      this.camera.shake(FX.SHAKE_POOP);
+    });
     events.on('attackStart', () => {
       this.camera.shake(FX.SHAKE_HURT);
     });

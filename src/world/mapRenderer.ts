@@ -7,6 +7,7 @@ import { TH, TW, gridToScreen } from '../iso/projection';
 import type { Rect } from '../iso/depth';
 import type { GameMap } from './map';
 import { Ground } from './tiles';
+import { floorFrameForGround, type FloorDesign } from '../assets/environment';
 
 const CHUNK = 8;
 
@@ -21,6 +22,14 @@ interface TileOverlay {
   fresh: Sprite | null;
 }
 
+interface AnimatedTile {
+  sprite: Sprite;
+  /** Deterministic local offset: neighboring tiles do not flash in lockstep. */
+  phase: number;
+}
+
+const GRASS_WIND = [0, 1, 2, 1] as const;
+
 /**
  * Draws the ground: chunked tile sprites (culled per chunk), pollution overlays and the
  * "re-greened" highlight. Reads `map.changed` every frame to update only what changed.
@@ -31,13 +40,20 @@ export class MapRenderer {
   private readonly chunkOf: Int32Array;
   private readonly base: (Sprite | null)[];
   private readonly overlays = new Map<number, TileOverlay>();
-  private readonly water: Sprite[] = [];
-  private readonly deep: Sprite[] = [];
+  private readonly tallGrass: AnimatedTile[] = [];
+  private readonly water: AnimatedTile[] = [];
+  private readonly deep: AnimatedTile[] = [];
   private waterTime = 0;
+  private windTick = -1;
+  private waterTick = -1;
+  private deepTick = -1;
   /** Map bounds in screen space. */
   readonly bounds: Rect;
 
-  constructor(private readonly map: GameMap) {
+  constructor(
+    private readonly map: GameMap,
+    private readonly floorDesign?: FloorDesign,
+  ) {
     const n = map.width * map.height;
     this.chunkOf = new Int32Array(n).fill(-1);
     this.base = new Array(n).fill(null);
@@ -144,11 +160,14 @@ export class MapRenderer {
       default:
         return null;
     }
+    const authored = floorFrameForGround(this.floorDesign, this.map.index(i, j), g);
+    if (authored && textures.has(authored)) name = authored;
     const s = new Sprite(textures.get(name));
     const p = gridToScreen(i, j);
     s.position.set(p.x, p.y);
-    if (g === Ground.Water) this.water.push(s);
-    if (g === Ground.Deep) this.deep.push(s);
+    if (g === Ground.TallGrass) this.tallGrass.push({ sprite: s, phase: Math.floor(hash2(i, j, 72) * GRASS_WIND.length) });
+    if (g === Ground.Water) this.water.push({ sprite: s, phase: Math.floor(hash2(i, j, 73) * TILE_VARIANTS.water) });
+    if (g === Ground.Deep) this.deep.push({ sprite: s, phase: Math.floor(hash2(i, j, 74) * 2) });
     return s;
   }
 
@@ -159,11 +178,30 @@ export class MapRenderer {
       c.container.visible = b.x < view.x + view.w && b.x + b.w > view.x && b.y < view.y + view.h && b.y + b.h > view.y;
     }
     this.waterTime += dt;
-    const wf = Math.floor(this.waterTime / 0.6) % 2;
-    const wt = textures.get(`water_${wf}`);
-    for (const s of this.water) if (s.texture !== wt) s.texture = wt;
-    const dt2 = textures.get(`deep_${Math.floor(this.waterTime / 0.8) % 2}`);
-    for (const s of this.deep) if (s.texture !== dt2) s.texture = dt2;
+    const windTick = Math.floor(this.waterTime / 0.24);
+    if (windTick !== this.windTick) {
+      this.windTick = windTick;
+      for (const tile of this.tallGrass) {
+        const texture = textures.get(`tallGrass_${GRASS_WIND[(windTick + tile.phase) % GRASS_WIND.length]}`);
+        if (tile.sprite.texture !== texture) tile.sprite.texture = texture;
+      }
+    }
+    const waterTick = Math.floor(this.waterTime / 0.55);
+    if (waterTick !== this.waterTick) {
+      this.waterTick = waterTick;
+      for (const tile of this.water) {
+        const texture = textures.get(`water_${(waterTick + tile.phase) % TILE_VARIANTS.water}`);
+        if (tile.sprite.texture !== texture) tile.sprite.texture = texture;
+      }
+    }
+    const deepTick = Math.floor(this.waterTime / 0.72);
+    if (deepTick !== this.deepTick) {
+      this.deepTick = deepTick;
+      for (const tile of this.deep) {
+        const texture = textures.get(`deep_${(deepTick + tile.phase) % 2}`);
+        if (tile.sprite.texture !== texture) tile.sprite.texture = texture;
+      }
+    }
 
     if (this.map.changed.size) {
       for (const k of this.map.changed) this.refreshTile(k);

@@ -34,48 +34,98 @@ function fill(pb: PixelBuffer, color: (x: number, y: number) => number | null): 
 
 // ---------------------------------------------------------------- ground tiles
 
+const mod = (n: number, d: number): number => ((n % d) + d) % d;
+
+/** Low-frequency, material-shaped variation (avoids per-pixel television noise). */
+function materialNoise(x: number, y: number, salt: number): number {
+  return hash2(Math.floor(x / 4), Math.floor(y / 2), salt);
+}
+
 export function drawStoryTile(pal: Palette, kind: string, variant: number): PixelBuffer {
   const pb = new PixelBuffer(TW, TH);
   const h = (x: number, y: number, s = 0) => hash2(x, y, 900 + variant * 17 + s);
   switch (kind) {
     case 'floor':
     case 'dock': {
-      const [b, d, l] = swatch(pal, kind).map((c) => rgba(c));
-      const seam = kind === 'floor' ? 6 : 5;
+      const colors = swatch(pal, kind);
+      const [b, d, l] = colors.map((c) => rgba(c));
+      const gap = rgba(mixHex(colors[1], '#000000', kind === 'dock' ? 0.55 : 0.28));
+      const plankWidth = kind === 'floor' ? 10 : 8;
+      const plankLength = kind === 'floor' ? 20 : 16;
       fill(pb, (x, y) => {
-        const k = kind === 'floor' ? x + 2 * y : x - 2 * y + 64;
-        if (k % (seam * 2) === 0) return d!;
-        if (kind === 'dock' && k % (seam * 2) === 1 && h(x, y) < 0.4) return rgba('#2a1c10');
-        return h(x, y) < 0.08 ? l! : b!;
+        // Isometric axes: a separates boards, b runs along their length.
+        const a = x + 2 * y + variant * 3;
+        const bAxis = x - 2 * y + 96;
+        const across = mod(a, plankWidth);
+        const board = Math.floor(a / plankWidth);
+        const along = mod(bAxis + mod(board, 2) * Math.floor(plankLength / 2), plankLength);
+        if (across === 0 || along === 0) return gap;
+        if (across === 1 || along === 1) return kind === 'dock' ? d! : l!;
+        // Nail heads at staggered joins, especially legible on broad dock boards.
+        if (along <= 2 && (across === 2 || across === plankWidth - 2)) return gap;
+        const grain = mod(bAxis + Math.floor(materialNoise(x, y, 930) * 5), 11);
+        if (grain === 3 && h(x, y, 31) > 0.6) return d!;
+        if (grain === 4 && h(x, y, 32) > 0.72) return l!;
+        return b!;
       });
       break;
     }
     case 'stone':
     case 'wallBase': {
-      const [b, d, l] = swatch(pal, kind === 'stone' ? 'stone' : 'wall').map((c) => rgba(c));
+      const colors = swatch(pal, kind === 'stone' ? 'stone' : 'wall');
+      const [b, d, l] = colors.map((c) => rgba(c));
+      const mortar = rgba(mixHex(colors[1], '#000000', kind === 'wallBase' ? 0.42 : 0.18));
       fill(pb, (x, y) => {
-        if (kind === 'wallBase') return h(x, y) < 0.3 ? d! : rgba(mixHex(swatch(pal, 'wall')[1], '#000000', 0.3));
-        const u = (x + 2 * y) % 16;
-        const v = (x - 2 * y + 64) % 16;
-        if (u === 0 || v === 0) return d!;
-        return h(x, y) < 0.07 ? l! : b!;
+        const size = kind === 'wallBase' ? 9 : 12;
+        const a = x + 2 * y + variant * 3;
+        const course = Math.floor(a / size);
+        const u = mod(a, size);
+        const v = mod(x - 2 * y + 96 + mod(course, 2) * Math.floor(size / 2), size);
+        if (u === 0 || v === 0) return mortar;
+        if (u === 1 || v === 1) return kind === 'wallBase' ? d! : l!;
+        const patch = materialNoise(x, y, 950 + variant * 11);
+        if (patch < 0.1 && h(x, y, 4) < 0.55) return d!;
+        if (kind === 'stone' && patch > 0.9 && h(x, y, 5) < 0.5) return l!;
+        return kind === 'wallBase' && h(x, y, 6) < 0.16 ? d! : b!;
       });
       break;
     }
-    case 'sand':
-    case 'snow': {
-      const [b, d, l] = swatch(pal, kind).map((c) => rgba(c));
+    case 'sand': {
+      const [b, d, l] = swatch(pal, 'sand').map((c) => rgba(c));
       fill(pb, (x, y) => {
-        const r = h(x, y);
-        return r < 0.1 ? d! : r < 0.2 ? l! : b!;
+        // Wind-combed ripples make desert routes directional; pebbles sit between bands.
+        const ripple = mod(x + 3 * y + variant * 4, 13);
+        const segment = hash2(Math.floor(x / 4), Math.floor(y / 2), 970);
+        if (ripple === 0 && segment > 0.18) return l!;
+        if (ripple === 1 && segment > 0.52) return d!;
+        const patch = materialNoise(x, y, 971 + variant);
+        if (patch < 0.09 && h(x, y, 8) < 0.42) return d!;
+        return b!;
+      });
+      break;
+    }
+    case 'snow': {
+      const [b, d, l] = swatch(pal, 'snow').map((c) => rgba(c));
+      fill(pb, (x, y) => {
+        const u = (x + 0.5 - TW / 2) / (TW / 2);
+        const v = (y + 0.5 - TH / 2) / (TH / 2);
+        const edge = Math.abs(u) + Math.abs(v);
+        const drift = mod(x + 3 * y + variant * 5, 17);
+        if (edge > 0.88) return d!;
+        if (drift === 0 && materialNoise(x, y, 980) > 0.28) return l!;
+        if (drift === 1 && h(x, y, 9) > 0.72) return d!;
+        return materialNoise(x, y, 981 + variant) < 0.06 ? d! : b!;
       });
       break;
     }
     case 'deep': {
       const [b, d, l] = swatch(pal, 'deep').map((c) => rgba(c));
       fill(pb, (x, y) => {
-        const wave = (x + y * 3 + variant * 4) % 13 === 0 || (x * 2 + y + variant * 5) % 19 === 0;
-        return wave ? l! : h(x, y, 3) < 0.15 ? d! : b!;
+        // No per-tile rim: open sea and lagoons should read as continuous bodies of water.
+        const wave = mod(x + y * 3 + variant * 5, 14);
+        if ((wave === 0 || wave === 1) && hash2(Math.floor(x / 3), y, 990) > 0.22) return l!;
+        if (wave === 8 && h(x, y, 3) > 0.58) return d!;
+        return b!;
       });
       break;
     }
@@ -85,9 +135,16 @@ export function drawStoryTile(pal: Palette, kind: string, variant: number): Pixe
         const u = (x + 0.5 - TW / 2) / (TW / 2);
         const v = (y + 0.5 - TH / 2) / (TH / 2);
         const e = Math.abs(u) + Math.abs(v);
-        if (e > 0.78 && e < 0.9) return l!;
-        if (e < 0.25) return l!;
-        return h(x, y) < 0.1 ? d! : b!;
+        if (e > 0.9) return d!;
+        if (e > 0.72) return l!;
+        if (e > 0.64) return d!;
+        // Repeating woven lozenges read as an authored court carpet across large halls.
+        const a = mod(x + 2 * y + variant * 2, 8);
+        const c = mod(x - 2 * y + 64 + variant * 2, 8);
+        if ((a === 0 || c === 0) && e < 0.58) return d!;
+        if ((a === 1 && c === 1) || (a === 7 && c === 7)) return l!;
+        if (e < 0.18) return l!;
+        return materialNoise(x, y, 1000 + variant) < 0.04 ? d! : b!;
       });
       break;
     }

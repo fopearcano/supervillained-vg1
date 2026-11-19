@@ -9,6 +9,7 @@ import * as items from './placeholders/items';
 import * as props from './placeholders/props';
 import * as tiles from './placeholders/tiles';
 import type { PixelBuffer } from './placeholders/pixel';
+import { preloadEnvironmentArt, withEnvironmentArt } from './environment';
 import {
   CHARACTERS,
   SHEET_DIRS,
@@ -91,6 +92,7 @@ function sprite(def: SpriteDef, variant: number, image: PixelBuffer): AtlasEntry
 
 /** Palette-independent textures: characters, items, FX, HUD icons. */
 export async function buildGlobalTextures(): Promise<void> {
+  await preloadEnvironmentArt();
   const entries: AtlasEntry[] = [];
   for (const key of BOOT_CHARACTERS) {
     const def = (CHARACTERS as Record<string, CharacterDef>)[key]!;
@@ -189,7 +191,11 @@ export function buildLevelTextures(pal: Palette): void {
     const def = S[kind];
     for (let v = 0; v < def.variants; v++) entries.push(sprite(def, v, drawStoryProp(pal, kind, v)));
   }
-  paletteAtlases.push(packAtlas(entries, textures, 'level'));
+  // These also exist at boot; include them here so their final art follows the active chapter.
+  entries.push(sprite(S.pole, 0, props.drawPole()));
+  entries.push(sprite(S.fountain, 0, props.drawFountain()));
+  entries.push(sprite(S.exitFlag, 0, props.drawExitFlag()));
+  paletteAtlases.push(packAtlas(withEnvironmentArt(pal, entries), textures, 'level'));
   while (paletteAtlases.length > 2) for (const src of paletteAtlases.shift()!) src.destroy();
 }
 

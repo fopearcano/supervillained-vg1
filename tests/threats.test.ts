@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ATTACK, BALL } from '../src/config';
-import { AttackDirector, fleeDirection, inBarkCone, magnetPull } from '../src/systems/threatLogic';
+import { AttackDirector, fleeDirection, inBarkCone, magnetPull, PollutionWaveDirector } from '../src/systems/threatLogic';
 import { parseAsciiMap, type LevelDef } from '../src/world/level';
 import { GameMap } from '../src/world/map';
 
@@ -86,5 +86,29 @@ describe('attack director', () => {
     a.update(1, 0.9, 0, false);
     expect(a.intensity(0.95)).toBeCloseTo(ATTACK.BASE_INTENSITY, 9);
     expect(a.intensity(0.95 - ATTACK.FULL_INTENSITY_DEFICIT)).toBeCloseTo(1, 9);
+  });
+});
+
+describe('pollution wave director', () => {
+  const waves = [
+    { progress: 0.7, count: 3, radius: 3, strength: 0.9, distance: [2, 8] as const },
+    { progress: 0.2, count: 1, radius: 2, strength: 0.7, distance: [3, 6] as const },
+    { progress: 0.45, count: 2, radius: 2.5, strength: 0.8, distance: [3, 7] as const },
+  ];
+
+  it('sorts milestones and emits each wave exactly once', () => {
+    const d = new PollutionWaveDirector(waves);
+    expect(d.remaining).toBe(3);
+    expect(d.update(0.1)).toEqual([]);
+    expect(d.update(0.21).map((w) => w.progress)).toEqual([0.2]);
+    expect(d.update(0.6).map((w) => w.progress)).toEqual([0.45]);
+    expect(d.update(0.6)).toEqual([]);
+    expect(d.update(1).map((w) => w.progress)).toEqual([0.7]);
+    expect(d.remaining).toBe(0);
+  });
+
+  it('returns every crossed milestone after a large progress jump', () => {
+    const d = new PollutionWaveDirector(waves);
+    expect(d.update(0.8).map((w) => w.progress)).toEqual([0.2, 0.45, 0.7]);
   });
 });
