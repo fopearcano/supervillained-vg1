@@ -1,7 +1,8 @@
 extends SceneTree
 ## Live-playback check of AudioService background suspension (not part of the suite: with the
-## Dummy driver started playbacks are never mixed and leak at exit). Prints a JSON verdict and exits
-## 1 on failure:  godot --headless --path godot --script res://tools/audio_suspend_probe.gd
+## Dummy driver started playbacks are never mixed and leak at exit, F-07). Run it on a host with an
+## audio device, without --headless, for a clean exit; prints a JSON verdict and exits 1 on failure:
+##   godot --path godot --script res://tools/audio_suspend_probe.gd
 
 
 func _initialize() -> void:
@@ -24,4 +25,7 @@ func _run() -> void:
 	var ok: bool = live.size() == 2 and not paused.has(false) and late_paused and not resumed.has(false)
 	print(JSON.stringify({"live_players": live.size(), "paused_in_background": paused, "late_effect_paused": late_paused, "resumed": resumed, "ok": ok}))
 	audio.stop_all()
+	# Let the audio server release the stopped playbacks before exiting (no leak report at exit).
+	for k in 3:
+		await process_frame
 	quit(0 if ok else 1)

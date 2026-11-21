@@ -21,7 +21,7 @@ the status section of `docs/porting/FEATURE_MATRIX.md` for the acceptance IDs ac
 
 ```bash
 godot --path godot                      # desktop window 432×864 (logical 216×432 at 2×)
-godot --path godot -- --as=zampano      # developer playable-profile override, validated (Zampanò only for now)
+godot --path godot -- --as=sbrimbrulon  # developer playable-profile override: zampano, sbrimbrulon, bagnaskiz
 ```
 
 Controls: WASD/arrows move, Shift or K run, Space pee, J/X or B bark, Esc/P menu. With a mouse the
@@ -68,16 +68,22 @@ xvfb-run -a godot --path godot --rendering-driver opengl3 --resolution 800x600 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode diagnostic --size 800x600
 ```
 
-Renderer probes (exit 1 on failure):
+Renderer and audio probes (exit 1 on failure):
 
 ```bash
 xvfb-run -a godot --path godot --rendering-driver opengl3 --script res://tools/interpolation_probe.gd
-godot --headless --path godot --script res://tools/audio_suspend_probe.gd
+godot --path godot --rendering-driver opengl3 --disable-vsync --script res://tools/interpolation_probe.gd  # desktop GPU
+godot --path godot --script res://tools/audio_suspend_probe.gd    # host with an audio device
+godot --path godot --rendering-driver opengl3 --script res://tools/title_capture.gd -- --out /tmp/title
 ```
 
 `interpolation_probe.gd` reads back rendered frames at 30/60/90/120 FPS (no stutter, streak or
-double interpolation; teleport resets; no static shimmer under the following camera);
-`audio_suspend_probe.gd` checks that live music/effects pause in the background and resume.
+double interpolation; teleport resets; no static shimmer under the following camera). On a 60 Hz
+display with VSync the 90/120 caps cannot be reached: its interpolation-off control then shows no
+repeated frames and the probe exits 1 (inconclusive), so use `--disable-vsync` there.
+`audio_suspend_probe.gd` checks that live music/effects pause in the background and resume (with
+`--headless` the Dummy driver reports the started playbacks as leaked at exit, F-07).
+`title_capture.gd` renders the title portrait's first/middle/last frames at three logical widths.
 
 ## Regenerating assets
 
@@ -103,18 +109,24 @@ the lockfile (exit 5) or if the launched Chromium is not the build pinned by
 `playwright-core/browsers.json` (exit 6). Generated files record only the pinned toolchain; the
 host browser's own version is printed (host evidence), never written.
 
-1. `tools/source_extract/extract.mjs` (Node) copies the runtime-authoritative files byte-for-byte,
-   freezes the source's procedural sprites by executing `src/assets/placeholders/*.ts`, rasterizes
-   the bitmap font by executing `src/ui/pixelFont.ts` in Chromium, writes reference fixtures and
-   `data/source_asset_manifest.json` (SHA-256, sizes, use, provenance, toolchain, and the hash of
-   every generated output). `--check` regenerates in memory and fails on any differing or missing
-   output.
+1. `tools/source_extract/extract.mjs` (Node) copies the runtime-authoritative files byte-for-byte
+   (every playable and cast sheet, the fifteen Color Ink banks, five music tracks, twelve effects,
+   the font licence); freezes the source's procedural art by executing
+   `src/assets/placeholders/*.ts` (items, FX, story specials and the seventeen procedural cast
+   roles); rasterizes the bitmap font by executing `src/ui/pixelFont.ts` in Chromium; converts the
+   99-frame title WebP by executing `src/ui/titleAnim.ts` in Chromium; renders the fourteen
+   synthesized cues and the medieval loop with `src/core/synth.ts`/`src/fx/sounds.ts` to mono
+   22,050 Hz 16-bit PCM WAV; writes reference fixtures (including campaign migration, story maps
+   and the Green Zone decor) and `data/source_asset_manifest.json` (SHA-256, sizes, use,
+   provenance, toolchain, and the hash of every generated output). `--check` regenerates in memory
+   and fails on any differing or missing output.
 2. `tools/build_resources.gd` (Godot, headless) builds the ground tile atlas, the TileSet with
-   phase-rotated animated alternatives, the sprite catalogue, Zampanò's SpriteFrames (authored
-   holds) and his PlayableCharacterProfile.
+   phase-rotated animated alternatives, the sprite catalogue, SpriteFrames for every playable skin
+   and cast role (authored holds), the three PlayableCharacterProfiles, the title SpriteFrames
+   and the leading-silence Resource.
 
 Both steps only rewrite files whose bytes change; a second run produces no diff. With `--check`,
-`build_resources.gd` also rebuilds in memory and compares its 7 outputs (TileSet, atlases, sprite catalogue, SpriteFrames, profile, leading-silence Resource).
+`build_resources.gd` also rebuilds in memory and compares all 55 of its outputs.
 
 ## Layout
 
