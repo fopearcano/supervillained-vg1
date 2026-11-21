@@ -117,7 +117,45 @@ const COPIES = [
   { from: 'public/sprites/bagnaskizArmoured.png', to: 'assets/sprites/bagnaskizArmoured.png', use: 'Bagnaskiz armoured (bagnaskizEmperor) main sheet' },
   { from: 'public/sprites/bagnaskizArmoured-tired.png', to: 'assets/sprites/bagnaskizArmoured-tired.png', use: 'Bagnaskiz armoured tired sheet' },
   { from: 'public/sprites/runIcon.png', to: 'assets/sprites/run_icon.png', use: 'RUN button icon' },
+  { from: 'public/sprites/pixel-cast/abbot.png', to: 'assets/sprites/cast/abbot.png', use: 'story cast sheet (CHARACTERS.abbot, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/bagnaskizMarshal.png', to: 'assets/sprites/cast/bagnaskizMarshal.png', use: 'story cast sheet (CHARACTERS.bagnaskizMarshal, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/bishop.png', to: 'assets/sprites/cast/bishop.png', use: 'story cast sheet (CHARACTERS.bishop, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/clerk.png', to: 'assets/sprites/cast/clerk.png', use: 'story cast sheet (CHARACTERS.clerk, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/confusione.png', to: 'assets/sprites/cast/confusione.png', use: 'story cast sheet (CHARACTERS.confusione, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/cook.png', to: 'assets/sprites/cast/cook.png', use: 'story cast sheet (CHARACTERS.cook, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/doge.png', to: 'assets/sprites/cast/doge.png', use: 'story cast sheet (CHARACTERS.doge, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/envoy.png', to: 'assets/sprites/cast/envoy.png', use: 'story cast sheet (CHARACTERS.envoy, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/fulk.png', to: 'assets/sprites/cast/fulk.png', use: 'story cast sheet (CHARACTERS.fulk, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/greek.png', to: 'assets/sprites/cast/greek.png', use: 'story cast sheet (CHARACTERS.greek, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/householdWoman.png', to: 'assets/sprites/cast/householdWoman.png', use: 'story cast sheet (CHARACTERS.householdWoman, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/jack.png', to: 'assets/sprites/cast/jack.png', use: 'story cast sheet (CHARACTERS.jack, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/knight.png', to: 'assets/sprites/cast/knight.png', use: 'story cast sheet (CHARACTERS.knight, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/marquis.png', to: 'assets/sprites/cast/marquis.png', use: 'story cast sheet (CHARACTERS.marquis, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/niketas.png', to: 'assets/sprites/cast/niketas.png', use: 'story cast sheet (CHARACTERS.niketas, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/pilgrim.png', to: 'assets/sprites/cast/pilgrim.png', use: 'story cast sheet (CHARACTERS.pilgrim, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/prince.png', to: 'assets/sprites/cast/prince.png', use: 'story cast sheet (CHARACTERS.prince, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/professor.png', to: 'assets/sprites/cast/professor.png', use: 'story cast sheet (CHARACTERS.professor, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/professorFace.png', to: 'assets/sprites/cast/professorFace.png', use: 'SPRITES.professorFace portrait (24x24)' },
+  { from: 'public/sprites/pixel-cast/sailmaker.png', to: 'assets/sprites/cast/sailmaker.png', use: 'story cast sheet (CHARACTERS.sailmaker, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/santina.png', to: 'assets/sprites/cast/santina.png', use: 'story cast sheet (CHARACTERS.santina, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/varangian.png', to: 'assets/sprites/cast/varangian.png', use: 'story cast sheet (CHARACTERS.varangian, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/venetian.png', to: 'assets/sprites/cast/venetian.png', use: 'story cast sheet (CHARACTERS.venetian, 5 actions x 8 dirs, 40x40)' },
+  { from: 'public/sprites/pixel-cast/watson.png', to: 'assets/sprites/cast/watson.png', use: 'story cast sheet (CHARACTERS.watson, 5 actions x 8 dirs, 40x40)' },
   { from: 'public/environment-ink/ch01_greenzone.png', to: 'assets/environment/ch01_greenzone.png', use: 'Color Ink Green Zone environment bank' },
+  { from: 'public/environment-ink/ch01_study.png', to: 'assets/environment/ch01_study.png', use: 'Color Ink environment bank ch01_study' },
+  { from: 'public/environment-ink/ch02_jerusalem.png', to: 'assets/environment/ch02_jerusalem.png', use: 'Color Ink environment bank ch02_jerusalem' },
+  { from: 'public/environment-ink/ch02_darkwood.png', to: 'assets/environment/ch02_darkwood.png', use: 'Color Ink environment bank ch02_darkwood' },
+  { from: 'public/environment-ink/ch02_road.png', to: 'assets/environment/ch02_road.png', use: 'Color Ink environment bank ch02_road' },
+  { from: 'public/environment-ink/ch03_venice.png', to: 'assets/environment/ch03_venice.png', use: 'Color Ink environment bank ch03_venice' },
+  { from: 'public/environment-ink/ch04_sea.png', to: 'assets/environment/ch04_sea.png', use: 'Color Ink environment bank ch04_sea' },
+  { from: 'public/environment-ink/ch05_zara.png', to: 'assets/environment/ch05_zara.png', use: 'Color Ink environment bank ch05_zara' },
+  { from: 'public/environment-ink/ch06_winter.png', to: 'assets/environment/ch06_winter.png', use: 'Color Ink environment bank ch06_winter' },
+  { from: 'public/environment-ink/ch06_island.png', to: 'assets/environment/ch06_island.png', use: 'Color Ink environment bank ch06_island' },
+  { from: 'public/environment-ink/ch07_constantinople.png', to: 'assets/environment/ch07_constantinople.png', use: 'Color Ink environment bank ch07_constantinople' },
+  { from: 'public/environment-ink/ch07_palace.png', to: 'assets/environment/ch07_palace.png', use: 'Color Ink environment bank ch07_palace' },
+  { from: 'public/environment-ink/ch08_shattered.png', to: 'assets/environment/ch08_shattered.png', use: 'Color Ink environment bank ch08_shattered' },
+  { from: 'public/environment-ink/ch08_study.png', to: 'assets/environment/ch08_study.png', use: 'Color Ink environment bank ch08_study' },
+  { from: 'public/environment-ink/ch08_greenzone.png', to: 'assets/environment/ch08_greenzone.png', use: 'Color Ink environment bank ch08_greenzone' },
   { from: 'public/environment-ink/manifest.json', to: 'assets/environment/manifest.json', use: 'Color Ink environment manifest (frames, themes, floor designs); kept verbatim (CRLF) for provenance' },
   { from: 'public/icon-192.png', to: 'assets/branding/icon.png', use: 'application icon (launcher art)' },
   { from: 'src/assets/fonts/OFL.txt', to: 'assets/fonts/OFL.txt', use: 'Press Start 2P license (OFL), exported with the game' },
@@ -144,7 +182,12 @@ const INPUTS_ONLY = [
   { from: 'src/ui/pixelFont.ts', use: 'bitmap font rasterization contract (executed in Chromium)' },
   { from: 'src/core/audio.ts', use: 'leadingSilence() executed in Chromium for the SFX start offsets' },
   { from: 'src/assets/placeholders/items.ts', use: 'procedural item/HUD sprite generators (executed)' },
-  { from: 'src/assets/placeholders/critters.ts', use: 'procedural shadow generator (executed)' },
+  { from: 'src/assets/placeholders/critters.ts', use: 'procedural shadow and critter generators (executed)' },
+  { from: 'src/assets/placeholders/cast.ts', use: 'procedural cast recipes CAST_SPECS (executed)' },
+  { from: 'src/assets/placeholders/pixel.ts', use: 'pixel buffer helpers of the generators (executed)' },
+  { from: 'src/assets/placeholders/storyArt.ts', use: 'procedural story specials drawSpecial (executed)' },
+  { from: 'src/assets/manifest.ts', use: 'sprite/character manifest (executed)' },
+  { from: 'src/assets/build.ts', use: 'texture build recipe (characterEntries, buildGlobalTextures) mirrored by the extractor' },
   { from: 'package-lock.json', use: 'pins Playwright (Chromium build used for the font and audio decoding)' },
   { from: 'src/core/synth.ts', use: 'sfxr-style renderer (renderSound/renderVoice) executed for the synthesized WAVs' },
   { from: 'src/fx/sounds.ts', use: 'SOUNDS recipes and renderMedievalMusic() executed for the synthesized WAVs' },
@@ -168,7 +211,10 @@ for (const c of INPUTS_ONLY) {
 // 2. Frozen procedural sprites (exact output of the source generators).
 const items = await importSource('assets/placeholders/items.ts');
 const critters = await importSource('assets/placeholders/critters.ts');
+const storyArt = await importSource('assets/placeholders/storyArt.ts');
 const manifestTs = await importSource('assets/manifest.ts');
+const manifestTsEarly = manifestTs;
+const projEarly = await importSource('iso/projection.ts');
 const SPR = manifestTs.SPRITES;
 const frozen = [
   ['treat', [() => items.drawTreat()]],
@@ -180,7 +226,23 @@ const frozen = [
   ['peeIcon', [() => items.drawPeeIcon()]],
   ['barkIcon', [() => items.drawBarkIcon()]],
   ['drop', [0, 1].map((v) => () => items.drawDrop(v))],
+  // The rest of buildGlobalTextures()'s palette-independent procedural sprites (AST-017/019):
+  // items, FX, story specials. pole/fountain/exitFlag come from the environment banks instead.
+  ['ball', [() => items.drawBall()]],
+  ['coin', [() => items.drawCoin()]],
+  ['shadowBig', [() => critters.drawShadow(24, 8, 60)]],
+  ['rainbow', [() => items.drawRainbow()]],
+  ['thought', [() => items.drawThought()]],
+  ['wave', projEarly.DIRS8.map((d) => () => items.drawWave(d))],
+  ['sparkle', [() => items.drawSparkle()]],
+  ['tri', [() => items.drawTri()]],
+  ['cross', [() => items.drawCross()]],
+  ['ring', [() => items.drawRing()]],
+  ['pixel', [() => items.drawPixel()]],
+  ...['legs', 'fortune', 'falcon', 'stag', 'shard', 'relic', 'bowl', 'banner', 'flame', 'bee', 'tear', 'mask', 'halo', 'rag', 'sword', 'shieldItem', 'belt', 'lamp', 'horse'].map((k) => [k, Array.from({ length: manifestTsEarly.SPRITES[k].variants }, (_, v) => () => storyArt.drawSpecial(k, v))]),
 ];
+const SPECIALS = new Set(['legs', 'fortune', 'falcon', 'stag', 'shard', 'relic', 'bowl', 'banner', 'flame', 'bee', 'tear', 'mask', 'halo', 'rag', 'sword', 'shieldItem', 'belt', 'lamp', 'horse']);
+const recipeOf = (key) => (key.startsWith('shadow') ? 'src/assets/placeholders/critters.ts drawShadow' : SPECIALS.has(key) ? 'src/assets/placeholders/storyArt.ts drawSpecial' : 'src/assets/placeholders/items.ts');
 for (const [key, draws] of frozen) {
   const def = SPR[key];
   const bufs = draws.map((d) => d());
@@ -196,7 +258,7 @@ for (const [key, draws] of frozen) {
   const png = encodePng(w, h, out);
   const target = `assets/generated/sprites/${key}.png`;
   emit(target, png);
-  manifest.generated.push({ key, target, sha256: sha256(png), w, h, frame_w: def.w, frame_h: def.h, variants: bufs.length, anchor_x: def.anchorX, anchor_y: def.anchorY, recipe: `src/assets/placeholders/${key === 'shadow' || key === 'shadowSmall' ? 'critters.ts drawShadow' : 'items.ts'}` });
+  manifest.generated.push({ key, target, sha256: sha256(png), w, h, frame_w: def.w, frame_h: def.h, variants: bufs.length, anchor_x: def.anchorX, anchor_y: def.anchorY, recipe: recipeOf(key) });
 }
 
 // Sheet layout data (consumed by tools/build_resources.gd): exactly the source CHARACTERS
@@ -238,6 +300,71 @@ for (const [key, draws] of frozen) {
     };
     emit(`data/characters/${key}_sheet.json`, stableJson(layout));
   }
+  // Story cast (AST-011): every CAST_KEYS role and the cat. Delivered roles use their copied sheet;
+// procedural-only roles are frozen by executing the source's characterEntries() recipe
+// (CAST_SPECS + poseFor + drawCritter; tired/sit show idle poses) into a sheet with the delivered
+// layout (rows = anims x SHEET_DIRS, one column per frame). Playable skins are listed above.
+{
+  const castTs = await importSource('assets/placeholders/cast.ts');
+  const NEW_ONLY_ANIMS = new Set(['tired', 'sit']);
+  const roles = {};
+  for (const key of [...manifestTs.CAST_KEYS, 'cat']) {
+    const def = manifestTs.CHARACTERS[key];
+    if (manifestTs.PLAYABLE_CHARACTER_KEYS.includes(key)) {
+      roles[key] = { kind: 'playable', skin: aliases[key] ?? key };
+      continue;
+    }
+    let sheet;
+    if (def.sheet) {
+      sheet = copyTarget(def.sheet);
+      roles[key] = { kind: 'delivered', source: `public/${def.sheet}` };
+    } else {
+      const spec = castTs.CAST_SPECS[key];
+      if (!spec) throw new Error(`cast role ${key} has neither a sheet nor a CAST_SPECS recipe`);
+      const anims = Object.entries(def.anims);
+      const cols = Math.max(...anims.map(([, a]) => a.frames));
+      const w = cols * def.frameW;
+      const h = anims.length * manifestTs.SHEET_DIRS.length * def.frameH;
+      const out = new Uint8Array(w * h * 4);
+      let row = 0;
+      for (const [anim, ad] of anims) {
+        for (const dir of manifestTs.SHEET_DIRS) {
+          for (let f = 0; f < ad.frames; f++) {
+            const pose = NEW_ONLY_ANIMS.has(anim) ? critters.poseFor('idle', f % 2) : critters.poseFor(anim, f);
+            const b = critters.drawCritter(spec, dir, pose);
+            if (b.w !== def.frameW || b.h !== def.frameH) throw new Error(`${key}: frame ${b.w}x${b.h} != ${def.frameW}x${def.frameH}`);
+            const bytes = new Uint8Array(b.data.buffer);
+            for (let y = 0; y < b.h; y++) out.set(bytes.subarray(y * b.w * 4, (y + 1) * b.w * 4), ((row * def.frameH + y) * w + f * def.frameW) * 4);
+          }
+          row++;
+        }
+      }
+      const png = encodePng(w, h, out);
+      const target = `assets/generated/cast/${key}.png`;
+      emit(target, png);
+      sheet = `res://${target}`;
+      roles[key] = { kind: 'procedural', recipe: 'src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter' };
+      manifest.generated.push({ key: `cast_${key}`, target, sha256: sha256(png), w, h, frame_w: def.frameW, frame_h: def.frameH, recipe: roles[key].recipe });
+    }
+    roles[key].layout = `res://data/characters/cast/${key}_sheet.json`;
+    roles[key].anims = Object.fromEntries(Object.entries(def.anims).map(([a, d]) => [a, d.frames]));
+    emit(`data/characters/cast/${key}_sheet.json`, stableJson({
+      audited_commit: AUDITED_COMMIT,
+      source: `src/assets/manifest.ts CHARACTERS.${key}`,
+      key,
+      frame_w: def.frameW,
+      frame_h: def.frameH,
+      anchor_x: def.anchorX,
+      anchor_y: def.anchorY,
+      sheet,
+      anim_sheets: {},
+      sheet_dirs: manifestTs.SHEET_DIRS,
+      anim_order: Object.keys(def.anims),
+      anims: def.anims,
+    }));
+  }
+  emit('data/characters/cast_roles.json', stableJson({ audited_commit: AUDITED_COMMIT, source: 'src/assets/manifest.ts CAST_KEYS + cat, DELIVERED sheets, placeholders/cast.ts', roles }));
+}
   // Who can be played and which skin each costume slot uses (source costumeFor(), executed).
   const COSTUMES = ['zampano', 'zampanoCross', 'zampanoKnight'];
   const profiles = {
@@ -799,6 +926,74 @@ fx.rules_overlap = rulesScenario((t, c) => {
   if (t === 150) c.player.setPosition(c.fountain.x + 0.9, c.fountain.y);
   if (t === 230) c.player.setPosition(c.m.exit.x + 0.3, c.m.exit.y + 0.3);
 }, 260);
+
+// AST-012/013: the environment banks against the game's native frame contract. The native entries
+// are the source's own level textures (buildLevelTextures() generators, executed with the Green
+// Zone palette: sizes and anchors do not depend on colours); a delivered frame replaces a native
+// one only with the same size and anchor (environment.ts withEnvironmentArt rule), and authored
+// floorArt_ frames are exactly 32x16 anchored (16, 0).
+{
+  const tilesTs = await importSource('assets/placeholders/tiles.ts');
+  const propsTs = await importSource('assets/placeholders/props.ts');
+  const pal = LEVEL_1.palette;
+  const S = manifestTs.SPRITES;
+  const TV = manifestTs.TILE_VARIANTS;
+  const native = {};
+  const tile = (name, img, anchorY = 0) => { native[name] = [img.w, img.h, proj.TW / 2, anchorY]; };
+  const sprite = (def, v, img) => { native[`${def.key}_${v}`] = [img.w, img.h, def.anchorX, def.anchorY]; };
+  for (let v = 0; v < TV.grass; v++) tile(`grass_${v}`, tilesTs.drawGrass(pal, v));
+  for (let v = 0; v < TV.tallGrass; v++) tile(`tallGrass_${v}`, tilesTs.drawTallGrass(pal, v), tilesTs.TALL_GRASS_OFFSET);
+  for (let v = 0; v < TV.water; v++) tile(`water_${v}`, tilesTs.drawWater(pal, v));
+  for (let v = 0; v < TV.forest; v++) tile(`forest_${v}`, tilesTs.drawForest(pal, v));
+  for (let m = 0; m < 16; m++) for (let v = 0; v < TV.path; v++) tile(`path_${m}_${v}`, tilesTs.drawPath(pal, m, v));
+  for (let v = 0; v < TV.dirt; v++) tile(`dirt_${v}`, tilesTs.drawDirt(pal, v));
+  tile('fresh_0', tilesTs.drawFresh());
+  tile('exitRing_0', tilesTs.drawExitRing());
+  for (let v = 0; v < S.tree.variants; v++) sprite(S.tree, v, propsTs.drawTree(pal, v));
+  for (let v = 0; v < S.forestTree.variants; v++) sprite(S.forestTree, v, propsTs.drawForestTree(pal, v));
+  for (let v = 0; v < S.bush.variants; v++) sprite(S.bush, v, propsTs.drawBush(pal, v));
+  const STORY_TILES = ['floor', 'stone', 'sand', 'snow', 'deep', 'dock', 'carpet', 'wallBase'];
+  for (const kind of STORY_TILES) {
+    const variants = kind === 'deep' ? 2 : kind === 'wallBase' ? 1 : 3;
+    for (let v = 0; v < variants; v++) tile(`${kind}_${v}`, storyArt.drawStoryTile(pal, kind, v));
+  }
+  const STORY_PROPS = ['column', 'desk', 'shelf', 'house', 'tent', 'galley', 'rock', 'statue', 'crate', 'palm', 'altar', 'stall', 'throne', 'vine', 'gate', 'wicket', 'bones', 'table', 'wallBlock'];
+  for (const kind of STORY_PROPS) for (let v = 0; v < S[kind].variants; v++) sprite(S[kind], v, storyArt.drawStoryProp(pal, kind, v));
+  sprite(S.pole, 0, propsTs.drawPole());
+  sprite(S.fountain, 0, propsTs.drawFountain());
+  sprite(S.exitFlag, 0, propsTs.drawExitFlag());
+  const buildTs = blobText('src/assets/build.ts');
+  for (const name of ['STORY_TILES', 'STORY_PROPS']) if (!buildTs.includes(`const ${name} = [`)) throw new Error(`src/assets/build.ts ${name} changed; review the extractor`);
+  const FLOOR_FRAME = /^floorArt_[a-z][A-Za-z0-9_]*$/;
+  const envManifest = JSON.parse(blobText('public/environment-ink/manifest.json'));
+  const zones = {};
+  for (const [id, zone] of Object.entries(envManifest.zones)) {
+    const png = blob(`public/environment-ink/${zone.image}`);
+    const z = { image: zone.image, size: [pngSize(png).w, pngSize(png).h], frames: Object.keys(zone.frames).length, replaced: [], rejected: [], missing: [], floor_art: 0, floor_rejected: [], other: [] };
+    for (const [name, c] of Object.entries(native)) {
+      const f = zone.frames[name];
+      if (!f) z.missing.push(name);
+      else if (f.w === c[0] && f.h === c[1] && f.anchorX === c[2] && f.anchorY === c[3]) z.replaced.push(name);
+      else z.rejected.push(name);
+    }
+    for (const [name, f] of Object.entries(zone.frames)) {
+      if (native[name]) continue;
+      if (FLOOR_FRAME.test(name)) {
+        if (f.w === 32 && f.h === 16 && f.anchorX === 16 && f.anchorY === 0) z.floor_art++;
+        else z.floor_rejected.push(name);
+      } else z.other.push(name);
+    }
+    zones[id] = z;
+  }
+  const floorDesigns = {};
+  for (const [key, d] of Object.entries(envManifest.floorDesigns ?? {})) {
+    const chapter = key.slice(0, key.indexOf(':'));
+    const frames = envManifest.zones[d.environment]?.frames ?? {};
+    const bad = Object.entries(d.tiles).filter(([i, n]) => !(Number(i) < d.width * d.height) || !FLOOR_FRAME.test(n) || !frames[n] || frames[n].w !== 32 || frames[n].h !== 16 || frames[n].anchorX !== 16 || frames[n].anchorY !== 0);
+    floorDesigns[key] = { environment: d.environment, width: d.width, height: d.height, tiles: Object.keys(d.tiles).length, distinct_frames: new Set(Object.values(d.tiles)).size, chapter_selects_environment: Object.values(envManifest.chapterThemes?.[chapter] ?? {}).includes(d.environment), invalid_tiles: bad.length };
+  }
+  emit('tests/fixtures/source_environment.json', stableJson({ audited_commit: AUDITED_COMMIT, note: 'Native frame contract from the executed source generators; zone/floor data from public/environment-ink/manifest.json.', native_contract: native, zones, chapter_themes: envManifest.chapterThemes, theme_fallbacks: envManifest.themeFallbacks, floor_designs: floorDesigns }));
+}
 
 emit('tests/fixtures/source_reference.json', stableJson(fx));
 emit('tests/fixtures/source_audio.json', stableJson({ audited_commit: AUDITED_COMMIT, note: 'Generated from the audited TypeScript and Chromium WebAudio; do not hand-edit.', sound_files: SFX_FILES, music_files: MUSIC_FILES, decoded_48k: decoded, synth: synthFixture }));

@@ -307,7 +307,55 @@ func test_AST_009_bagnaskiz_profiles_validate_with_full_colour_signature() -> vo
 			assert_true(eyes > 0, "%s %s_s keeps the yellow eyes" % [skin, anim])
 
 
-func test_P_AST_012_environment_frames_and_tile_atlas() -> void:
+## AST-011: every source cast role (CAST_KEYS) and the cat has explicit art: delivered roles their
+## copied pixel-cast sheet, procedural-only roles a frozen sheet rendered by the source recipe, both
+## built into complete SpriteFrames (every action x eight directions, frame counts as the source).
+func test_AST_011_cast_roles_have_delivered_or_frozen_art() -> void:
+	var roles: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/characters/cast_roles.json"))["roles"]
+	assert_eq(roles.size(), 45, "44 CAST_KEYS roles + the cat")
+	var copies := {}
+	for e: Dictionary in _manifest()["copies"]:
+		copies["res://" + String(e["target"])] = e
+	var generated := {}
+	for e: Dictionary in _manifest()["generated"]:
+		generated["res://" + String(e["target"])] = e
+	var kinds := {}
+	for key: String in roles:
+		var role: Dictionary = roles[key]
+		kinds[role["kind"]] = int(kinds.get(role["kind"], 0)) + 1
+		if role["kind"] == "playable":
+			assert_true(FileAccess.file_exists("res://data/characters/%s_frames.tres" % role["skin"]), key + " playable skin frames")
+			continue
+		var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(role["layout"]))
+		var sheet: String = layout["sheet"]
+		if role["kind"] == "delivered":
+			assert_true(copies.has(sheet), "%s: delivered sheet is a manifest copy (%s)" % [key, sheet])
+			if copies.has(sheet):
+				assert_eq(copies[sheet]["source"], role["source"], key + " copied from its source sheet")
+				assert_eq(_sha(sheet), copies[sheet]["sha256"], key + " sheet bytes")
+		else:
+			assert_true(generated.has(sheet), "%s: frozen sheet recorded as a generated output" % key)
+			if generated.has(sheet):
+				assert_eq(_sha(sheet), generated[sheet]["sha256"], key + " frozen sheet bytes")
+				assert_true(String(generated[sheet]["recipe"]).contains("drawCritter"), key + " frozen from the source recipe")
+		var sf: SpriteFrames = load("res://data/characters/cast/%s_frames.tres" % key)
+		if not assert_true(sf != null, key + " SpriteFrames"):
+			continue
+		var anims: Dictionary = role["anims"]
+		assert_eq(sf.get_animation_names().size(), anims.size() * 8, key + " every action in eight directions")
+		for anim: String in anims:
+			for dir in IsoGrid.DIRS8:
+				var name := StringName("%s_%s" % [anim, dir.to_lower()])
+				if not assert_true(sf.has_animation(name), "%s missing %s" % [key, name]):
+					continue
+				assert_eq(sf.get_frame_count(name), int(anims[anim]), "%s %s frames" % [key, name])
+				for f in sf.get_frame_count(name):
+					if _frame_image(sf, name, f).is_invisible():
+						fail("%s %s frame %d is blank" % [key, name, f])
+	assert_eq(kinds, {"playable": 5, "delivered": 23, "procedural": 17}, "roles by kind")
+
+
+func test_SLICE_green_zone_bank_frames_and_tile_atlas() -> void:
 	var env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/environment/ch01_greenzone_frames.json"))
 	var bank: Texture2D = load("res://assets/environment/ch01_greenzone.png")
 	assert_eq(Vector2i(bank.get_width(), bank.get_height()), Vector2i(512, 512), "bank size")
@@ -331,15 +379,122 @@ func test_SLICE_ground_tile_names_exclude_floor_art() -> void:
 		assert_false(name.begins_with("floorArt_"), "authored floor frame %s must not be used by 1.0" % name)
 
 
-func test_P_AST_016_lossless_nearest_no_mipmaps() -> void:
+func _env_fixture() -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/source_environment.json"))
+
+
+## The verbatim environment manifest (CRLF in the audited commit; JSON ignores it).
+func _env_manifest() -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string("res://assets/environment/manifest.json"))
+
+
+## AST-012: all fifteen Color Ink banks are present and every frame validates: inside its bank,
+## non-blank, anchor inside the frame; every native game frame (the source generators' sizes and
+## anchors) is delivered with exactly that geometry, so withEnvironmentArt replaces all of them;
+## authored floor frames are native 32x16 tiles anchored at (16, 0).
+func test_AST_012_all_environment_banks_and_native_frames_validate() -> void:
+	var fx := _env_fixture()
+	var native: Dictionary = fx["native_contract"]
+	var zones: Dictionary = _env_manifest()["zones"]
+	assert_eq(zones.size(), 15, "fifteen environment banks")
+	assert_eq(native.size(), 104, "native level frames (tiles, story tiles, props)")
+	for id: String in zones:
+		var zone: Dictionary = zones[id]
+		var ref: Dictionary = fx["zones"][id]
+		var path := "res://assets/environment/" + String(zone["image"])
+		var tex: Texture2D = load(path)
+		if not assert_true(tex != null, id + " bank imported"):
+			continue
+		var size := Vector2i(tex.get_width(), tex.get_height())
+		assert_eq(size, Vector2i(int(ref["size"][0]), int(ref["size"][1])), id + " bank size")
+		var img := tex.get_image()
+		var frames: Dictionary = zone["frames"]
+		assert_eq(frames.size(), int(ref["frames"]), id + " frame count")
+		var floor_art := 0
+		for name: String in frames:
+			var f: Dictionary = frames[name]
+			var r := Rect2i(int(f["x"]), int(f["y"]), int(f["w"]), int(f["h"]))
+			if not assert_true(r.size.x >= 1 and r.size.y >= 1 and Rect2i(Vector2i.ZERO, size).encloses(r), "%s/%s inside the bank" % [id, name]):
+				continue
+			assert_true(int(f["anchorX"]) <= r.size.x and int(f["anchorY"]) <= r.size.y, "%s/%s anchor inside the frame" % [id, name])
+			if img.get_region(r).is_invisible():
+				fail("%s/%s is blank" % [id, name])
+			if native.has(name):
+				assert_eq([r.size.x, r.size.y, int(f["anchorX"]), int(f["anchorY"])], (native[name] as Array).map(func(v: Variant) -> int: return int(v)), "%s/%s native geometry" % [id, name])
+			elif name.begins_with("floorArt_"):
+				floor_art += 1
+				assert_eq([r.size.x, r.size.y, int(f["anchorX"]), int(f["anchorY"])], [32, 16, 16, 0], "%s/%s native floor tile" % [id, name])
+			else:
+				fail("%s/%s is neither a native frame nor floor art" % [id, name])
+		for name: String in native:
+			assert_true(frames.has(name), "%s delivers native frame %s" % [id, name])
+		assert_eq(floor_art, int(ref["floor_art"]), id + " floor-art frames")
+		assert_eq([ref["rejected"], ref["missing"], ref["floor_rejected"], ref["other"]], [[], [], [], []], id + " source: nothing rejected or missing")
+
+
+## AST-013: the nineteen authored floor compositions match the approved manifest: keys, art bank,
+## dimensions, tile counts, distinct frames; each is selected by its chapter's themes and uses only
+## native floor frames of its bank inside the map (source readFloorDesigns rules).
+func test_AST_013_floor_composition_keys_and_counts() -> void:
+	var fx: Dictionary = _env_fixture()["floor_designs"]
+	var m := _env_manifest()
+	var designs: Dictionary = m["floorDesigns"]
+	assert_eq(designs.size(), 19, "nineteen authored compositions")
+	var keys := designs.keys()
+	keys.sort()
+	var fx_keys := fx.keys()
+	fx_keys.sort()
+	assert_eq(keys, fx_keys, "composition keys")
+	assert_true(designs.has("1:arcade"), "obsolete 1:arcade kept as data (never applied to 1.0, AST-014)")
+	for key: String in designs:
+		var d: Dictionary = designs[key]
+		var ref: Dictionary = fx[key]
+		var tiles: Dictionary = d["tiles"]
+		var w := int(d["width"])
+		var h := int(d["height"])
+		assert_eq([d["environment"], w, h, tiles.size()], [ref["environment"], int(ref["width"]), int(ref["height"]), int(ref["tiles"])], key + " bank/size/count")
+		var chapter := key.get_slice(":", 0)
+		assert_true((m["chapterThemes"][chapter] as Dictionary).values().has(d["environment"]), key + " bank selected by chapter " + chapter)
+		var frames: Dictionary = m["zones"][d["environment"]]["frames"]
+		var distinct := {}
+		for index: String in tiles:
+			var name: String = tiles[index]
+			distinct[name] = true
+			var ok := index.is_valid_int() and int(index) >= 0 and int(index) < w * h and name.begins_with("floorArt_") and frames.has(name)
+			if ok:
+				var f: Dictionary = frames[name]
+				ok = [int(f["w"]), int(f["h"]), int(f["anchorX"]), int(f["anchorY"])] == [32, 16, 16, 0]
+			if not ok:
+				fail("%s tile %s -> %s invalid" % [key, index, name])
+		assert_eq(distinct.size(), int(ref["distinct_frames"]), key + " distinct frames")
+		assert_eq([ref["chapter_selects_environment"], int(ref["invalid_tiles"])], [true, 0], key + " valid in the source")
+
+
+## AST-016: every texture the game ships imports losslessly without mipmaps and is filtered nearest
+## (project default, no per-node override in the runtime scenes); the font atlas is raw BMFont data.
+func test_AST_016_lossless_nearest_no_mipmaps() -> void:
 	assert_eq(ProjectSettings.get_setting("rendering/textures/canvas_textures/default_texture_filter"), 0, "nearest filtering")
 	assert_eq(ProjectSettings.get_setting("rendering/renderer/rendering_method"), "gl_compatibility", "compatibility renderer")
-	for path in ["res://assets/sprites/zampano.png", "res://assets/sprites/zampano-tired.png", "res://assets/environment/ch01_greenzone.png",
-			"res://assets/generated/environment/ch01_greenzone_tiles.png", "res://assets/generated/sprites/treat.png"]:
+	var pngs: Array[String] = []
+	var stack: Array[String] = ["res://assets"]
+	while not stack.is_empty():
+		var dir: String = stack.pop_back()
+		for sub in DirAccess.get_directories_at(dir):
+			stack.append(dir.path_join(sub))
+		for f in DirAccess.get_files_at(dir):
+			if f.ends_with(".png"):
+				pngs.append(dir.path_join(f))
+	assert_true(pngs.size() > 100, "every shipped PNG checked (%d)" % pngs.size())
+	for path in pngs:
 		var cfg := ConfigFile.new()
-		assert_eq(cfg.load(path + ".import"), OK, path + ".import")
-		assert_eq(cfg.get_value("params", "compress/mode", -1), 0, path + " lossless")
-		assert_eq(cfg.get_value("params", "mipmaps/generate", true), false, path + " no mipmaps")
+		if not assert_eq(cfg.load(path + ".import"), OK, path + ".import"):
+			continue
+		if path == "res://assets/fonts/pixel_font.png":
+			continue
+		assert_eq([cfg.get_value("remap", "importer", ""), cfg.get_value("params", "compress/mode", -1), cfg.get_value("params", "mipmaps/generate", true)], ["texture", 0, false], path + " lossless, no mipmaps")
+	for scene in ["res://entities/playable_dog/playable_dog.tscn", "res://scenes/green_zone/green_zone_scene.tscn", "res://world/world_2d.tscn"]:
+		if FileAccess.file_exists(scene):
+			assert_false(FileAccess.get_file_as_string(scene).contains("texture_filter = 2"), scene + " no linear filter override")
 	# The font atlas is read raw by the BMFont importer (no separate texture import).
 	var fcfg := ConfigFile.new()
 	assert_eq(fcfg.load("res://assets/fonts/pixel_font.png.import"), OK, "font atlas .import")
@@ -349,21 +504,84 @@ func test_P_AST_016_lossless_nearest_no_mipmaps() -> void:
 	assert_eq(fnt.get_value("params", "scaling_mode", -1), 1, "integer-only font scaling")
 
 
-func test_P_AST_017_required_sprites_present() -> void:
+## Every art key the source declares (src/assets/manifest.ts CHARACTERS and SPRITES, the native
+## level frames, the fifteen banks) resolved to explicit port art; returns the keys with none.
+## Characters need SpriteFrames; a sprite variant is satisfied by the sprite catalogue (frozen
+## generator output or the Green Zone bank), by every environment bank (palette props and story
+## tiles: withEnvironmentArt replaces the generated frame), or by a delivered copy.
+func _missing_required_art(extra: Array = []) -> PackedStringArray:
+	var missing := PackedStringArray()
+	var roles: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/characters/cast_roles.json"))["roles"]
+	var playables: Dictionary = _playables()
+	var characters: Array = (playables["playable_keys"] as Array) + roles.keys() + ["bagnaskiz"]
+	for key: String in characters:
+		var skin := String(playables["aliases"].get(key, key))
+		var path := "res://data/characters/%s_frames.tres" % skin
+		if not ResourceLoader.exists(path):
+			path = "res://data/characters/cast/%s_frames.tres" % key
+		if roles.has(key) and roles[key]["kind"] == "playable":
+			path = "res://data/characters/%s_frames.tres" % roles[key]["skin"]
+		if not ResourceLoader.exists(path):
+			missing.append("character " + key)
 	var cat: SpriteCatalog = load("res://data/environment/green_zone_sprites.tres")
-	var required := ["tree_0", "tree_1", "tree_2", "forestTree_0", "forestTree_1", "bush_0", "bush_1", "pole_0", "fountain_0",
-		"exitFlag_0", "exitRing_0", "treat_0", "poop_0", "shadow_0", "shadowSmall_0", "star_0", "star_1", "star_2",
-		"dogFace_0", "peeIcon_0", "barkIcon_0", "drop_0", "drop_1", "runIcon_0"]
-	for key in required:
-		if assert_true(cat.has_key(key), "missing sprite " + key):
-			assert_false(cat.texture(key).get_image().is_invisible(), key + " not blank")
-	# Frozen procedural sprites keep the manifest's geometry.
-	assert_eq(cat.size_of("treat_0"), Vector2i(13, 8), "treat size")
-	assert_eq(cat.anchor("treat_0"), Vector2i(6, 7), "treat anchor")
-	assert_eq(cat.anchor("poop_0"), Vector2i(5, 8), "poop anchor")
+	var zones: Dictionary = _env_manifest()["zones"]
+	var copies := {}
+	for e: Dictionary in _manifest()["copies"]:
+		copies[String(e["target"]).get_file().get_basename()] = true
+	var sprites: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/environment/ch01_greenzone_frames.json"))["sprite_variants"]
+	var keys: Array = []
+	for key: String in sprites:
+		for v in int(sprites[key]["variants"]):
+			keys.append("%s_%d" % [key, v])
+	keys.append_array(_env_fixture()["native_contract"].keys())
+	keys.append_array(extra)
+	for name: String in keys:
+		if cat.has_key(name) and not cat.texture(name).get_image().is_invisible():
+			continue
+		var in_every_bank := true
+		for id: String in zones:
+			in_every_bank = in_every_bank and (zones[id]["frames"] as Dictionary).has(name)
+		if in_every_bank:
+			continue
+		if copies.has(name.trim_suffix("_0")):
+			continue
+		missing.append("sprite " + name)
+	return missing
 
 
-func test_P_AST_018_no_forbidden_runtime_content() -> void:
+## AST-017: no required art is missing (checked against every source key), the check reports an
+## absent key, the builder fails on a missing frame, and no runtime script draws or substitutes
+## procedural art (generated art exists only as frozen files).
+func test_AST_017_missing_required_art_fails_and_no_runtime_fallback() -> void:
+	assert_eq(_missing_required_art(), PackedStringArray(), "every source art key has explicit port art")
+	assert_eq(_missing_required_art(["unicorn_0"]), PackedStringArray(["sprite unicorn_0"]), "an absent key is reported")
+	var cat: SpriteCatalog = load("res://data/environment/green_zone_sprites.tres")
+	assert_false(cat.has_key("unicorn_0"), "catalogue has no silent default")
+	var builder := FileAccess.get_file_as_string("res://tools/build_resources.gd")
+	assert_true(builder.contains("sheet lacks rows for") and builder.contains("environment frame missing: ") and builder.contains("quit(1)"), "the resource builder fails on missing frames")
+	var bad: PackedStringArray = []
+	var stack: Array[String] = ["res://"]
+	while not stack.is_empty():
+		var dir: String = stack.pop_back()
+		for sub in DirAccess.get_directories_at(dir):
+			if sub.begins_with(".") or sub in ["tests", "tools", "test-results"]:
+				continue
+			stack.append(dir.path_join(sub))
+		for f in DirAccess.get_files_at(dir):
+			if not f.ends_with(".gd"):
+				continue
+			var src := FileAccess.get_file_as_string(dir.path_join(f))
+			for pattern in ["Image.create", "ImageTexture.create_from_image", ".set_pixel(", "placeholder"]:
+				if src.contains(pattern):
+					bad.append("%s uses %s" % [dir.path_join(f), pattern])
+	assert_eq(bad, PackedStringArray(), "no runtime procedural art")
+
+
+## AST-018: nothing but runtime art ships: no ZIP deliveries, art archive, originals, prompts or
+## source grids, screenshots, WOFF2/GIF/WebP sources or unused title files under the project, every
+## copied file comes from a runtime path of the source, and the export filter drops tests, tools,
+## JSON provenance and documentation.
+func test_AST_018_export_excludes_archives_originals_and_unused_files() -> void:
 	var bad: PackedStringArray = []
 	var stack: Array[String] = ["res://"]
 	while not stack.is_empty():
@@ -376,10 +594,20 @@ func test_P_AST_018_no_forbidden_runtime_content() -> void:
 				continue
 			stack.append(dir.path_join(sub))
 		for f in d.get_files():
-			var lower := f.to_lower()
-			if lower.ends_with(".zip") or lower.ends_with(".woff2") or lower.ends_with(".gif") or dir.contains("art-archive") or dir.contains("originals"):
-				bad.append(dir.path_join(f))
+			var lower := (dir.path_join(f)).to_lower()
+			for pattern in [".zip", ".woff2", ".gif", ".webp", ".psd", ".aseprite", "art-archive", "/originals", "prompt", "screenshot", "source-grid", "starting-page-images"]:
+				if lower.contains(pattern):
+					bad.append(dir.path_join(f))
 	assert_eq(bad, PackedStringArray(), "forbidden files")
+	for e: Dictionary in _manifest()["copies"]:
+		var src := String(e["source"])
+		var runtime := src.begins_with("public/") or src.begins_with("assets/music/") or src.begins_with("assets/sounds/") or src == "src/assets/fonts/OFL.txt"
+		assert_true(runtime and not src.contains("originals") and not src.contains("art-archive"), "copy from a runtime source path: " + src)
+	var cfg := ConfigFile.new()
+	assert_eq(cfg.load("res://export_presets.cfg"), OK, "export presets")
+	var exclude := String(cfg.get_value("preset.0", "exclude_filter", ""))
+	for f in ["tests/*", "tools/*", "data/*.json", "data/*/*.json", "*.md"]:
+		assert_true(exclude.contains(f), "export excludes " + f)
 
 
 func test_P_AST_020_bitmap_font_matches_source_glyphs() -> void:

@@ -1,0 +1,55 @@
+{
+ "audited_commit": "95b69c04c5c3b9626e49719f8f916a44659cd265",
+ "source": "src/assets/manifest.ts CHARACTERS.clerkB",
+ "key": "clerkB",
+ "frame_w": 40,
+ "frame_h": 40,
+ "anchor_x": 20,
+ "anchor_y": 36,
+ "sheet": "res://assets/generated/cast/clerkB.png",
+ "anim_sheets": {},
+ "sheet_dirs": [
+  "N",
+  "NE",
+  "E",
+  "SE",
+  "S",
+  "SW",
+  "W",
+  "NW"
+ ],
+ "anim_order": [
+  "idle",
+  "walk",
+  "run",
+  "bark",
+  "hurt"
+ ],
+ "anims": {
+  "idle": {
+   "frames": 2,
+   "fps": 3,
+   "loop": true
+  },
+  "walk": {
+   "frames": 4,
+   "fps": 9,
+   "loop": true
+  },
+  "run": {
+   "frames": 4,
+   "fps": 13,
+   "loop": true
+  },
+  "bark": {
+   "frames": 2,
+   "fps": 8,
+   "loop": true
+  },
+  "hurt": {
+   "frames": 2,
+   "fps": 10,
+   "loop": true
+  }
+ }
+}

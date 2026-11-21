@@ -133,11 +133,391 @@
    "h": 11
   },
   {
+   "source": "public/sprites/pixel-cast/abbot.png",
+   "target": "assets/sprites/cast/abbot.png",
+   "sha256": "83d4efbb411f1a8a6bc8b4d276a52214f95b0eb9c86b5c0984847e4e99cbb875",
+   "bytes": 170779,
+   "use": "story cast sheet (CHARACTERS.abbot, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/bagnaskizMarshal.png",
+   "target": "assets/sprites/cast/bagnaskizMarshal.png",
+   "sha256": "ffc4044a6c51d16e22964d684fc19847ba223b46a75c61303a7eed3a7288e13f",
+   "bytes": 170356,
+   "use": "story cast sheet (CHARACTERS.bagnaskizMarshal, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/bishop.png",
+   "target": "assets/sprites/cast/bishop.png",
+   "sha256": "7cd7681f97ee45fbcebab79655568dbe8ee64b601dabef32ffae3d60e3ca855e",
+   "bytes": 151042,
+   "use": "story cast sheet (CHARACTERS.bishop, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/clerk.png",
+   "target": "assets/sprites/cast/clerk.png",
+   "sha256": "693b26578fbeb63293641979f037b44ed86728bdf6b70970d31ba22909abe98d",
+   "bytes": 131766,
+   "use": "story cast sheet (CHARACTERS.clerk, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/confusione.png",
+   "target": "assets/sprites/cast/confusione.png",
+   "sha256": "51693f2aac028dd5d1dc195a1d68f0969c624905ecfcb9918be4f06b483754d9",
+   "bytes": 168328,
+   "use": "story cast sheet (CHARACTERS.confusione, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/cook.png",
+   "target": "assets/sprites/cast/cook.png",
+   "sha256": "e8e107a60a91483be7297b22ed0c8195b9b66dc2480f766c78a191d81d46b240",
+   "bytes": 173065,
+   "use": "story cast sheet (CHARACTERS.cook, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/doge.png",
+   "target": "assets/sprites/cast/doge.png",
+   "sha256": "8992a51b6d5998f1d026a7b082e40c14483132c8df0dd83c43907424862d91bb",
+   "bytes": 178969,
+   "use": "story cast sheet (CHARACTERS.doge, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/envoy.png",
+   "target": "assets/sprites/cast/envoy.png",
+   "sha256": "c136cb078e1699c22fe14bba31ecdb70ccefcdbdb4620b79d32d1497cbc605e5",
+   "bytes": 141900,
+   "use": "story cast sheet (CHARACTERS.envoy, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/fulk.png",
+   "target": "assets/sprites/cast/fulk.png",
+   "sha256": "34bbe1cdd54c361f8182ae919b9f33773fedde441943c1d6ad7bed6a20ca7063",
+   "bytes": 153813,
+   "use": "story cast sheet (CHARACTERS.fulk, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/greek.png",
+   "target": "assets/sprites/cast/greek.png",
+   "sha256": "fc7696d6d90abb5bed5cda3a96e502db28908e74c56b6ac2cd6ee4da082c1ae0",
+   "bytes": 154497,
+   "use": "story cast sheet (CHARACTERS.greek, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/householdWoman.png",
+   "target": "assets/sprites/cast/householdWoman.png",
+   "sha256": "5698830f148c05fc4faf1751e29c7ea4d2e38289c3edff77df6bd3a70b9e8c82",
+   "bytes": 155823,
+   "use": "story cast sheet (CHARACTERS.householdWoman, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/jack.png",
+   "target": "assets/sprites/cast/jack.png",
+   "sha256": "8341942242f697c50533e6286d8a3fe1eb852294e44f6a526c0349e317d56095",
+   "bytes": 124679,
+   "use": "story cast sheet (CHARACTERS.jack, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/knight.png",
+   "target": "assets/sprites/cast/knight.png",
+   "sha256": "1006e253211fd0475bc33c5a07103f1b2134480973607579b2816334a90b4530",
+   "bytes": 165749,
+   "use": "story cast sheet (CHARACTERS.knight, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/marquis.png",
+   "target": "assets/sprites/cast/marquis.png",
+   "sha256": "f353599ea95460ba358d054e23e55815872dd17046907b269b3c82f03a50914d",
+   "bytes": 157225,
+   "use": "story cast sheet (CHARACTERS.marquis, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/niketas.png",
+   "target": "assets/sprites/cast/niketas.png",
+   "sha256": "78cd290607762aad3b3c7e8b00136eb4ee3c2f78c6c67cc40eb75a25e5fc10b1",
+   "bytes": 152376,
+   "use": "story cast sheet (CHARACTERS.niketas, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/pilgrim.png",
+   "target": "assets/sprites/cast/pilgrim.png",
+   "sha256": "6911bd9b3717b603bff913bdf985062b85852854fb8ec715ff8d8ac814661d72",
+   "bytes": 167256,
+   "use": "story cast sheet (CHARACTERS.pilgrim, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/prince.png",
+   "target": "assets/sprites/cast/prince.png",
+   "sha256": "7bc81081042130daaf949fd23f266d750cd27700181301c479a761884535e7fe",
+   "bytes": 143001,
+   "use": "story cast sheet (CHARACTERS.prince, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/professor.png",
+   "target": "assets/sprites/cast/professor.png",
+   "sha256": "8a56b68cd85f9e2ad94167b24e0cabd7f161db4b46c2f7ea31d39b6bada33aae",
+   "bytes": 160505,
+   "use": "story cast sheet (CHARACTERS.professor, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/professorFace.png",
+   "target": "assets/sprites/cast/professorFace.png",
+   "sha256": "4d1c986c1ff4d171826262fce63678b9067ff33fc482c1dd67d19e82ea6233f8",
+   "bytes": 1406,
+   "use": "SPRITES.professorFace portrait (24x24)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 24,
+   "h": 24
+  },
+  {
+   "source": "public/sprites/pixel-cast/sailmaker.png",
+   "target": "assets/sprites/cast/sailmaker.png",
+   "sha256": "055e0cd675a0a934895d7fac05630c5fcae468c786e1e0d06833230c705a687c",
+   "bytes": 154804,
+   "use": "story cast sheet (CHARACTERS.sailmaker, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/santina.png",
+   "target": "assets/sprites/cast/santina.png",
+   "sha256": "26e7e4be2583552c775fb3f56b4b520b9ed70e722cc6a3da6cb19b8bef044ebb",
+   "bytes": 196818,
+   "use": "story cast sheet (CHARACTERS.santina, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/varangian.png",
+   "target": "assets/sprites/cast/varangian.png",
+   "sha256": "6b6cf3be713874bad627a8ef996864311d5c299604464f7fb07532d75822afe8",
+   "bytes": 151963,
+   "use": "story cast sheet (CHARACTERS.varangian, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/venetian.png",
+   "target": "assets/sprites/cast/venetian.png",
+   "sha256": "d1ffa72e99b57b82bd165321625844b253ca6495a8051edd5705df333300dac4",
+   "bytes": 138096,
+   "use": "story cast sheet (CHARACTERS.venetian, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
+   "source": "public/sprites/pixel-cast/watson.png",
+   "target": "assets/sprites/cast/watson.png",
+   "sha256": "14340e4873f9b4e09918907b2dc43a52b89f8e9248b9c414e5ced68c618b9b9c",
+   "bytes": 160781,
+   "use": "story cast sheet (CHARACTERS.watson, 5 actions x 8 dirs, 40x40)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 160,
+   "h": 1600
+  },
+  {
    "source": "public/environment-ink/ch01_greenzone.png",
    "target": "assets/environment/ch01_greenzone.png",
    "sha256": "13e9c7b2651374cfb5423e7f2320eb407d4b379c93f21539d016b9621fc0290d",
    "bytes": 44545,
    "use": "Color Ink Green Zone environment bank",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch01_study.png",
+   "target": "assets/environment/ch01_study.png",
+   "sha256": "87c7a22429c9ea2b4b4a5983fc9576f80993ce89b280039fa7b900bcdbb6eb00",
+   "bytes": 37565,
+   "use": "Color Ink environment bank ch01_study",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch02_jerusalem.png",
+   "target": "assets/environment/ch02_jerusalem.png",
+   "sha256": "114de8da853a7085b1a220feff33239abd097bc1e17ac7c23d84c1c651aa3b51",
+   "bytes": 40019,
+   "use": "Color Ink environment bank ch02_jerusalem",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch02_darkwood.png",
+   "target": "assets/environment/ch02_darkwood.png",
+   "sha256": "501415d990e08b5fcae6b6f01bc3a51d4d979dcf9ec673a9eb627825a374c6e0",
+   "bytes": 41199,
+   "use": "Color Ink environment bank ch02_darkwood",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch02_road.png",
+   "target": "assets/environment/ch02_road.png",
+   "sha256": "0b795762aae91233af403009771673e9dd679fc01d59c26cd11fc480ab460103",
+   "bytes": 42443,
+   "use": "Color Ink environment bank ch02_road",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch03_venice.png",
+   "target": "assets/environment/ch03_venice.png",
+   "sha256": "f5a16ee9bc4f95a85412a8f9f8acf9a0d350cf8af86545a4d26970883064e2c7",
+   "bytes": 47040,
+   "use": "Color Ink environment bank ch03_venice",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch04_sea.png",
+   "target": "assets/environment/ch04_sea.png",
+   "sha256": "5248920c2e5bd2e2f046cb42b9b3c00dfe89864188a813f7a07711f52e257b2d",
+   "bytes": 38770,
+   "use": "Color Ink environment bank ch04_sea",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch05_zara.png",
+   "target": "assets/environment/ch05_zara.png",
+   "sha256": "a297c5c5f8cd7dab609718fbbf0d8f78f08a88c283cc883339db23fb575cb456",
+   "bytes": 42196,
+   "use": "Color Ink environment bank ch05_zara",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch06_winter.png",
+   "target": "assets/environment/ch06_winter.png",
+   "sha256": "95e8adc68cca95353dc18bae5c6722171fd35258b608ac8b7b8394b3d7354f62",
+   "bytes": 41356,
+   "use": "Color Ink environment bank ch06_winter",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch06_island.png",
+   "target": "assets/environment/ch06_island.png",
+   "sha256": "855365c0607d1c7fdf7a0d6156608b819553e38faa83ed0d45617c23cfe3b835",
+   "bytes": 40188,
+   "use": "Color Ink environment bank ch06_island",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch07_constantinople.png",
+   "target": "assets/environment/ch07_constantinople.png",
+   "sha256": "5dc429d92d7737a96810b1fab1e97f29c1c514c03b5b3672afb46787a4a8fc09",
+   "bytes": 51692,
+   "use": "Color Ink environment bank ch07_constantinople",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 1024
+  },
+  {
+   "source": "public/environment-ink/ch07_palace.png",
+   "target": "assets/environment/ch07_palace.png",
+   "sha256": "e82a4c78c1cc05c643e05a54b29bb20645a88a6f0a382e2858b6d266a8a75928",
+   "bytes": 39025,
+   "use": "Color Ink environment bank ch07_palace",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch08_shattered.png",
+   "target": "assets/environment/ch08_shattered.png",
+   "sha256": "a378f5a6b782e16e70ae324e9aa2e0df73868d80ff01cb6028ae787fe2653036",
+   "bytes": 44511,
+   "use": "Color Ink environment bank ch08_shattered",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch08_study.png",
+   "target": "assets/environment/ch08_study.png",
+   "sha256": "542bdede4539f36bf531b2667ac9d99dc6541c4046d1fa79135618f1df92faf3",
+   "bytes": 37296,
+   "use": "Color Ink environment bank ch08_study",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/ch08_greenzone.png",
+   "target": "assets/environment/ch08_greenzone.png",
+   "sha256": "7197a4e2f35aefe0b7d47b6fef29c4943e2c23c8d5796c71dc6b411ba4395a7b",
+   "bytes": 41719,
+   "use": "Color Ink environment bank ch08_greenzone",
    "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
    "w": 512,
    "h": 512
@@ -334,7 +714,37 @@
    "source": "src/assets/placeholders/critters.ts",
    "sha256": "417807d6b758f632d1cc3114c18f3f103543d282dd0fe4727fa491bb98c6ace4",
    "bytes": 19475,
-   "use": "procedural shadow generator (executed)"
+   "use": "procedural shadow and critter generators (executed)"
+  },
+  {
+   "source": "src/assets/placeholders/cast.ts",
+   "sha256": "cfca6606c14c8fcc300356c261c763e49543a57ac2410f7329e63bcf744cc1d1",
+   "bytes": 6212,
+   "use": "procedural cast recipes CAST_SPECS (executed)"
+  },
+  {
+   "source": "src/assets/placeholders/pixel.ts",
+   "sha256": "fb0663562f134daef82e7fafb407ccbb807c04a2171954db1dca96b51209d839",
+   "bytes": 5292,
+   "use": "pixel buffer helpers of the generators (executed)"
+  },
+  {
+   "source": "src/assets/placeholders/storyArt.ts",
+   "sha256": "ced4db6ed28f409bf0c1b657394144230f048522c78c408e78fc15adc8696077",
+   "bytes": 26359,
+   "use": "procedural story specials drawSpecial (executed)"
+  },
+  {
+   "source": "src/assets/manifest.ts",
+   "sha256": "6eb7deb8b168b4156b7b8aaa81eba3a0ee002150472e7dc57aeaa0546f981ed8",
+   "bytes": 16523,
+   "use": "sprite/character manifest (executed)"
+  },
+  {
+   "source": "src/assets/build.ts",
+   "sha256": "938a616ce22a1629d9efaf8818ced7f289e6802421db332fcb19d816afa132a3",
+   "bytes": 10160,
+   "use": "texture build recipe (characterEntries, buildGlobalTextures) mirrored by the extractor"
   },
   {
    "source": "package-lock.json",
@@ -478,6 +888,566 @@
    "anchor_x": 2,
    "anchor_y": 3,
    "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "ball",
+   "target": "assets/generated/sprites/ball.png",
+   "sha256": "86fa956a2fc60d8dea215bd6e1cc9a237fd5640c5c39ccfd8e37103f8944ba6b",
+   "w": 9,
+   "h": 9,
+   "frame_w": 9,
+   "frame_h": 9,
+   "variants": 1,
+   "anchor_x": 4,
+   "anchor_y": 8,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "coin",
+   "target": "assets/generated/sprites/coin.png",
+   "sha256": "731153040ef7c5bd300dcdfd0fa76f4657e85565d35ddacddd1397b1c007e8bc",
+   "w": 7,
+   "h": 7,
+   "frame_w": 7,
+   "frame_h": 7,
+   "variants": 1,
+   "anchor_x": 3,
+   "anchor_y": 3,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "shadowBig",
+   "target": "assets/generated/sprites/shadowBig.png",
+   "sha256": "648d0da771aeac2ed2c078d4d811e26bf924772885efe79f7e7cfcb926298e2a",
+   "w": 24,
+   "h": 8,
+   "frame_w": 24,
+   "frame_h": 8,
+   "variants": 1,
+   "anchor_x": 12,
+   "anchor_y": 4,
+   "recipe": "src/assets/placeholders/critters.ts drawShadow"
+  },
+  {
+   "key": "rainbow",
+   "target": "assets/generated/sprites/rainbow.png",
+   "sha256": "7b34b0253d53bb3fafc361a7139538041951fe9ba18a3ca21c4983627f40592e",
+   "w": 26,
+   "h": 14,
+   "frame_w": 26,
+   "frame_h": 14,
+   "variants": 1,
+   "anchor_x": 13,
+   "anchor_y": 13,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "thought",
+   "target": "assets/generated/sprites/thought.png",
+   "sha256": "0164c553b52021fba5f3c081299a13331eb30afe0d9f7e7212a6c1ede5b10737",
+   "w": 13,
+   "h": 14,
+   "frame_w": 13,
+   "frame_h": 14,
+   "variants": 1,
+   "anchor_x": 6,
+   "anchor_y": 13,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "wave",
+   "target": "assets/generated/sprites/wave.png",
+   "sha256": "22baafb9f569a81f952b11e270ac4c31475f9c9495ef4ffcf0bb9a5af64c6063",
+   "w": 128,
+   "h": 16,
+   "frame_w": 16,
+   "frame_h": 16,
+   "variants": 8,
+   "anchor_x": 8,
+   "anchor_y": 8,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "sparkle",
+   "target": "assets/generated/sprites/sparkle.png",
+   "sha256": "43d1bdac1cd069f90d2133974ca07ab27eaedeffee7be2597d902d755b509a20",
+   "w": 5,
+   "h": 5,
+   "frame_w": 5,
+   "frame_h": 5,
+   "variants": 1,
+   "anchor_x": 2,
+   "anchor_y": 2,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "tri",
+   "target": "assets/generated/sprites/tri.png",
+   "sha256": "b4a8b26965c40c64f390f6f32a0af7a32c7f43734a8580e375baa8708116605c",
+   "w": 7,
+   "h": 6,
+   "frame_w": 7,
+   "frame_h": 6,
+   "variants": 1,
+   "anchor_x": 3,
+   "anchor_y": 3,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "cross",
+   "target": "assets/generated/sprites/cross.png",
+   "sha256": "3082de69583ec0751acd235237fe2ca176330078439f5f933009d5cf529a05b7",
+   "w": 5,
+   "h": 5,
+   "frame_w": 5,
+   "frame_h": 5,
+   "variants": 1,
+   "anchor_x": 2,
+   "anchor_y": 2,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "ring",
+   "target": "assets/generated/sprites/ring.png",
+   "sha256": "d3cb49328800183734ddea0513d9333edbea1a85fd60311af6faa912b6850622",
+   "w": 6,
+   "h": 6,
+   "frame_w": 6,
+   "frame_h": 6,
+   "variants": 1,
+   "anchor_x": 3,
+   "anchor_y": 3,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "pixel",
+   "target": "assets/generated/sprites/pixel.png",
+   "sha256": "60ffd2c283635d9875ee649d4dd294fb97af2443ff05508d968c858b011dbea0",
+   "w": 2,
+   "h": 2,
+   "frame_w": 2,
+   "frame_h": 2,
+   "variants": 1,
+   "anchor_x": 1,
+   "anchor_y": 1,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "legs",
+   "target": "assets/generated/sprites/legs.png",
+   "sha256": "c94c3cbe49905f0c3d7c88a4c36829e98cd4223047e8fa80e3715f3968d180f7",
+   "w": 112,
+   "h": 64,
+   "frame_w": 28,
+   "frame_h": 64,
+   "variants": 4,
+   "anchor_x": 14,
+   "anchor_y": 62,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "fortune",
+   "target": "assets/generated/sprites/fortune.png",
+   "sha256": "aaa75b32fba39ad604505e88d129c37b44300eba3d9947349c24a09afab5b562",
+   "w": 52,
+   "h": 66,
+   "frame_w": 26,
+   "frame_h": 66,
+   "variants": 2,
+   "anchor_x": 13,
+   "anchor_y": 63,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "falcon",
+   "target": "assets/generated/sprites/falcon.png",
+   "sha256": "67e9fdbba3b27489502a0ff42fc8e223a0ca3ea77d950fc7d79d284377704c7b",
+   "w": 36,
+   "h": 12,
+   "frame_w": 18,
+   "frame_h": 12,
+   "variants": 2,
+   "anchor_x": 9,
+   "anchor_y": 6,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "stag",
+   "target": "assets/generated/sprites/stag.png",
+   "sha256": "a9eaa439c553a2687af964b717b78b16afcfb26c24c1a76da909e078b03c2178",
+   "w": 48,
+   "h": 46,
+   "frame_w": 48,
+   "frame_h": 46,
+   "variants": 1,
+   "anchor_x": 24,
+   "anchor_y": 42,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "shard",
+   "target": "assets/generated/sprites/shard.png",
+   "sha256": "bf7aaabf0b6b0a345d1d154972d1dd8d8ba8c5e98bfa1335bc2ac113912f0e8a",
+   "w": 9,
+   "h": 13,
+   "frame_w": 9,
+   "frame_h": 13,
+   "variants": 1,
+   "anchor_x": 4,
+   "anchor_y": 12,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "relic",
+   "target": "assets/generated/sprites/relic.png",
+   "sha256": "d2d6d42f85d88e7ee765d0f5ecc528554b154967bda46b72967b0b8fe3358206",
+   "w": 12,
+   "h": 12,
+   "frame_w": 12,
+   "frame_h": 12,
+   "variants": 1,
+   "anchor_x": 6,
+   "anchor_y": 11,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "bowl",
+   "target": "assets/generated/sprites/bowl.png",
+   "sha256": "48528f6459a149126ae371093f76c90e6e3a6e7e97d14d5bafb18722f2456799",
+   "w": 14,
+   "h": 8,
+   "frame_w": 14,
+   "frame_h": 8,
+   "variants": 1,
+   "anchor_x": 7,
+   "anchor_y": 6,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "banner",
+   "target": "assets/generated/sprites/banner.png",
+   "sha256": "3ba6811d54b4dfd64ff7773cc3f2e9fd22dac10de853f2043e6501939748db1a",
+   "w": 24,
+   "h": 26,
+   "frame_w": 12,
+   "frame_h": 26,
+   "variants": 2,
+   "anchor_x": 2,
+   "anchor_y": 25,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "flame",
+   "target": "assets/generated/sprites/flame.png",
+   "sha256": "7cd01ef0c03bf0e59539223869992511dc3171e145d60a4ed1517483f4aee366",
+   "w": 48,
+   "h": 22,
+   "frame_w": 16,
+   "frame_h": 22,
+   "variants": 3,
+   "anchor_x": 8,
+   "anchor_y": 20,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "bee",
+   "target": "assets/generated/sprites/bee.png",
+   "sha256": "4e8765d3a63d229700de28e20d6ff863269b6a5b47f4c063eb645b2f6f09b478",
+   "w": 5,
+   "h": 4,
+   "frame_w": 5,
+   "frame_h": 4,
+   "variants": 1,
+   "anchor_x": 2,
+   "anchor_y": 2,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "tear",
+   "target": "assets/generated/sprites/tear.png",
+   "sha256": "a75ecdfcb35db4ce589fb917d2418ee397733e6c0698d00273fc18a7908b98d6",
+   "w": 5,
+   "h": 7,
+   "frame_w": 5,
+   "frame_h": 7,
+   "variants": 1,
+   "anchor_x": 2,
+   "anchor_y": 3,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "mask",
+   "target": "assets/generated/sprites/mask.png",
+   "sha256": "6c32ce26eca46d57f95cad6459863bd21db551ae67143c302d45bca177a6d189",
+   "w": 9,
+   "h": 7,
+   "frame_w": 9,
+   "frame_h": 7,
+   "variants": 1,
+   "anchor_x": 4,
+   "anchor_y": 3,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "halo",
+   "target": "assets/generated/sprites/halo.png",
+   "sha256": "ae72ed81caff345f699a942b8a16b40a944498dde97125e5dc5d33e3dbbd6b07",
+   "w": 9,
+   "h": 7,
+   "frame_w": 9,
+   "frame_h": 7,
+   "variants": 1,
+   "anchor_x": 4,
+   "anchor_y": 3,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "rag",
+   "target": "assets/generated/sprites/rag.png",
+   "sha256": "6c2c981978d14aef5dcd4dfbdabc800ff54c2f72f9b975bf50741764f0c982cb",
+   "w": 14,
+   "h": 9,
+   "frame_w": 14,
+   "frame_h": 9,
+   "variants": 1,
+   "anchor_x": 7,
+   "anchor_y": 7,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "sword",
+   "target": "assets/generated/sprites/sword.png",
+   "sha256": "b1cbf1379a16ab0ff237a90702aa583b8c73a184cc0d7286fedb565371f05255",
+   "w": 20,
+   "h": 12,
+   "frame_w": 20,
+   "frame_h": 12,
+   "variants": 1,
+   "anchor_x": 10,
+   "anchor_y": 10,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "shieldItem",
+   "target": "assets/generated/sprites/shieldItem.png",
+   "sha256": "a180c186646d881bb161248de7fb25dc3b8de1ca9930f7e74a37013894856c3b",
+   "w": 14,
+   "h": 17,
+   "frame_w": 14,
+   "frame_h": 17,
+   "variants": 1,
+   "anchor_x": 7,
+   "anchor_y": 16,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "belt",
+   "target": "assets/generated/sprites/belt.png",
+   "sha256": "b0b05a0315aafbc24d7753479ff721fafd579558fb13f68c46bb95772c8414f7",
+   "w": 16,
+   "h": 9,
+   "frame_w": 16,
+   "frame_h": 9,
+   "variants": 1,
+   "anchor_x": 8,
+   "anchor_y": 7,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "lamp",
+   "target": "assets/generated/sprites/lamp.png",
+   "sha256": "633503448aa8e320e3380c0d3707cb5c27dc79321b6ad1e7878732fd2b4bb809",
+   "w": 14,
+   "h": 13,
+   "frame_w": 14,
+   "frame_h": 13,
+   "variants": 1,
+   "anchor_x": 7,
+   "anchor_y": 11,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "horse",
+   "target": "assets/generated/sprites/horse.png",
+   "sha256": "23603ef67eb442fec4a6194ab76a2925b71595cc0749ba2c121130ceab13b83b",
+   "w": 120,
+   "h": 34,
+   "frame_w": 40,
+   "frame_h": 34,
+   "variants": 3,
+   "anchor_x": 20,
+   "anchor_y": 31,
+   "recipe": "src/assets/placeholders/storyArt.ts drawSpecial"
+  },
+  {
+   "key": "cast_king",
+   "target": "assets/generated/cast/king.png",
+   "sha256": "5644d0fc139b4b27b94cbc370c1ed21e009cc0f5624557e334b3bbecd1643fee",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_emir",
+   "target": "assets/generated/cast/emir.png",
+   "sha256": "72835911144adde27ea41c1fbfb5779eafa0b3cc89d17bb62b723445d51ce854",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_legate",
+   "target": "assets/generated/cast/legate.png",
+   "sha256": "5a06d8629e98b693ba9294a4bbb39335fb9d0eff815d45f09b5fb8b8ff8bb8c7",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_cellarer",
+   "target": "assets/generated/cast/cellarer.png",
+   "sha256": "9d62c18354bbec91eb835a42d85959508bc258e0561581fe780fcda539b50de2",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_clerkA",
+   "target": "assets/generated/cast/clerkA.png",
+   "sha256": "ee5a43263f84f6188ae58aae48db81a6d053d503305c9b3165c8ef2bfc7d14d2",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_clerkB",
+   "target": "assets/generated/cast/clerkB.png",
+   "sha256": "e776d649a005225315cc412412fc20de0e5c0a97438a891967451ca03346fb7a",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_preacher",
+   "target": "assets/generated/cast/preacher.png",
+   "sha256": "a0923daa66457b153ee7dcde31bb86d7a8ce2cc2d2aa2ea5ae1f369cb35c57d0",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_stranger",
+   "target": "assets/generated/cast/stranger.png",
+   "sha256": "3a5ed4b2560f925458f7c83c142f2523a99498017a37a51c3a5a85421495fdf1",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_lady",
+   "target": "assets/generated/cast/lady.png",
+   "sha256": "4b7c8c7fbfae48c1477a5bd17e70136c7157529b9a80e45588ce2b5e0ca5900e",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_burgher",
+   "target": "assets/generated/cast/burgher.png",
+   "sha256": "7a2e74415188e729153fc6595dd33ebb61e5f968777d0a988c8f601dd451fd41",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_crowdA",
+   "target": "assets/generated/cast/crowdA.png",
+   "sha256": "c42e14fdc000283e3d295ef47ba59b035510df41c73b391594256ef5c5625f2f",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_crowdB",
+   "target": "assets/generated/cast/crowdB.png",
+   "sha256": "6ef90628de3bc168b815284817ec382c5d94e291d4af96b14c4f378f349aba7a",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_crowdC",
+   "target": "assets/generated/cast/crowdC.png",
+   "sha256": "fe35a313b2ffa1a09f518bd0b6e2a227f3e681c30ae57fbeb14b1e00049fbdd3",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_bear",
+   "target": "assets/generated/cast/bear.png",
+   "sha256": "2446fecbb994baa99625e5d0baefc28fd7d1eecde0dba9c201cd713c7bd141d0",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_leopard",
+   "target": "assets/generated/cast/leopard.png",
+   "sha256": "4161b2e7c746719f56b8f3d4567f7b586b2e041c192881246667c1a3d3560843",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_hound",
+   "target": "assets/generated/cast/hound.png",
+   "sha256": "ab66b5026223f0bfe1f44642749fbc84a9b2056f30260cf901855dbe40a9eec6",
+   "w": 160,
+   "h": 1600,
+   "frame_w": 40,
+   "frame_h": 40,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
+  },
+  {
+   "key": "cast_cat",
+   "target": "assets/generated/cast/cat.png",
+   "sha256": "9c11682451f1bda490cee8515dc3a964437dcae47be629fa4d0cef6f2b49994b",
+   "w": 112,
+   "h": 672,
+   "frame_w": 28,
+   "frame_h": 28,
+   "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
   },
   {
    "key": "pixel_font",
@@ -713,9 +1683,129 @@
    "bytes": 918
   },
   {
+   "target": "assets/generated/cast/bear.png",
+   "sha256": "2446fecbb994baa99625e5d0baefc28fd7d1eecde0dba9c201cd713c7bd141d0",
+   "bytes": 15570
+  },
+  {
+   "target": "assets/generated/cast/burgher.png",
+   "sha256": "7a2e74415188e729153fc6595dd33ebb61e5f968777d0a988c8f601dd451fd41",
+   "bytes": 14805
+  },
+  {
+   "target": "assets/generated/cast/cat.png",
+   "sha256": "9c11682451f1bda490cee8515dc3a964437dcae47be629fa4d0cef6f2b49994b",
+   "bytes": 6805
+  },
+  {
+   "target": "assets/generated/cast/cellarer.png",
+   "sha256": "9d62c18354bbec91eb835a42d85959508bc258e0561581fe780fcda539b50de2",
+   "bytes": 14203
+  },
+  {
+   "target": "assets/generated/cast/clerkA.png",
+   "sha256": "ee5a43263f84f6188ae58aae48db81a6d053d503305c9b3165c8ef2bfc7d14d2",
+   "bytes": 14193
+  },
+  {
+   "target": "assets/generated/cast/clerkB.png",
+   "sha256": "e776d649a005225315cc412412fc20de0e5c0a97438a891967451ca03346fb7a",
+   "bytes": 14193
+  },
+  {
+   "target": "assets/generated/cast/crowdA.png",
+   "sha256": "c42e14fdc000283e3d295ef47ba59b035510df41c73b391594256ef5c5625f2f",
+   "bytes": 14220
+  },
+  {
+   "target": "assets/generated/cast/crowdB.png",
+   "sha256": "6ef90628de3bc168b815284817ec382c5d94e291d4af96b14c4f378f349aba7a",
+   "bytes": 14288
+  },
+  {
+   "target": "assets/generated/cast/crowdC.png",
+   "sha256": "fe35a313b2ffa1a09f518bd0b6e2a227f3e681c30ae57fbeb14b1e00049fbdd3",
+   "bytes": 14212
+  },
+  {
+   "target": "assets/generated/cast/emir.png",
+   "sha256": "72835911144adde27ea41c1fbfb5779eafa0b3cc89d17bb62b723445d51ce854",
+   "bytes": 15356
+  },
+  {
+   "target": "assets/generated/cast/hound.png",
+   "sha256": "ab66b5026223f0bfe1f44642749fbc84a9b2056f30260cf901855dbe40a9eec6",
+   "bytes": 14267
+  },
+  {
+   "target": "assets/generated/cast/king.png",
+   "sha256": "5644d0fc139b4b27b94cbc370c1ed21e009cc0f5624557e334b3bbecd1643fee",
+   "bytes": 15519
+  },
+  {
+   "target": "assets/generated/cast/lady.png",
+   "sha256": "4b7c8c7fbfae48c1477a5bd17e70136c7157529b9a80e45588ce2b5e0ca5900e",
+   "bytes": 14112
+  },
+  {
+   "target": "assets/generated/cast/legate.png",
+   "sha256": "5a06d8629e98b693ba9294a4bbb39335fb9d0eff815d45f09b5fb8b8ff8bb8c7",
+   "bytes": 15029
+  },
+  {
+   "target": "assets/generated/cast/leopard.png",
+   "sha256": "4161b2e7c746719f56b8f3d4567f7b586b2e041c192881246667c1a3d3560843",
+   "bytes": 13569
+  },
+  {
+   "target": "assets/generated/cast/preacher.png",
+   "sha256": "a0923daa66457b153ee7dcde31bb86d7a8ce2cc2d2aa2ea5ae1f369cb35c57d0",
+   "bytes": 14297
+  },
+  {
+   "target": "assets/generated/cast/stranger.png",
+   "sha256": "3a5ed4b2560f925458f7c83c142f2523a99498017a37a51c3a5a85421495fdf1",
+   "bytes": 14203
+  },
+  {
+   "target": "assets/generated/sprites/ball.png",
+   "sha256": "86fa956a2fc60d8dea215bd6e1cc9a237fd5640c5c39ccfd8e37103f8944ba6b",
+   "bytes": 139
+  },
+  {
+   "target": "assets/generated/sprites/banner.png",
+   "sha256": "3ba6811d54b4dfd64ff7773cc3f2e9fd22dac10de853f2043e6501939748db1a",
+   "bytes": 170
+  },
+  {
    "target": "assets/generated/sprites/barkIcon.png",
    "sha256": "910c2d04a2e441e0bcfb40bd97f8541c19a02ce73618da4035b3b5ef70d66780",
    "bytes": 101
+  },
+  {
+   "target": "assets/generated/sprites/bee.png",
+   "sha256": "4e8765d3a63d229700de28e20d6ff863269b6a5b47f4c063eb645b2f6f09b478",
+   "bytes": 93
+  },
+  {
+   "target": "assets/generated/sprites/belt.png",
+   "sha256": "b0b05a0315aafbc24d7753479ff721fafd579558fb13f68c46bb95772c8414f7",
+   "bytes": 124
+  },
+  {
+   "target": "assets/generated/sprites/bowl.png",
+   "sha256": "48528f6459a149126ae371093f76c90e6e3a6e7e97d14d5bafb18722f2456799",
+   "bytes": 116
+  },
+  {
+   "target": "assets/generated/sprites/coin.png",
+   "sha256": "731153040ef7c5bd300dcdfd0fa76f4657e85565d35ddacddd1397b1c007e8bc",
+   "bytes": 102
+  },
+  {
+   "target": "assets/generated/sprites/cross.png",
+   "sha256": "3082de69583ec0751acd235237fe2ca176330078439f5f933009d5cf529a05b7",
+   "bytes": 85
   },
   {
    "target": "assets/generated/sprites/dogFace.png",
@@ -728,9 +1818,54 @@
    "bytes": 122
   },
   {
+   "target": "assets/generated/sprites/falcon.png",
+   "sha256": "67e9fdbba3b27489502a0ff42fc8e223a0ca3ea77d950fc7d79d284377704c7b",
+   "bytes": 186
+  },
+  {
+   "target": "assets/generated/sprites/flame.png",
+   "sha256": "7cd01ef0c03bf0e59539223869992511dc3171e145d60a4ed1517483f4aee366",
+   "bytes": 272
+  },
+  {
+   "target": "assets/generated/sprites/fortune.png",
+   "sha256": "aaa75b32fba39ad604505e88d129c37b44300eba3d9947349c24a09afab5b562",
+   "bytes": 438
+  },
+  {
+   "target": "assets/generated/sprites/halo.png",
+   "sha256": "ae72ed81caff345f699a942b8a16b40a944498dde97125e5dc5d33e3dbbd6b07",
+   "bytes": 106
+  },
+  {
+   "target": "assets/generated/sprites/horse.png",
+   "sha256": "23603ef67eb442fec4a6194ab76a2925b71595cc0749ba2c121130ceab13b83b",
+   "bytes": 640
+  },
+  {
+   "target": "assets/generated/sprites/lamp.png",
+   "sha256": "633503448aa8e320e3380c0d3707cb5c27dc79321b6ad1e7878732fd2b4bb809",
+   "bytes": 150
+  },
+  {
+   "target": "assets/generated/sprites/legs.png",
+   "sha256": "c94c3cbe49905f0c3d7c88a4c36829e98cd4223047e8fa80e3715f3968d180f7",
+   "bytes": 460
+  },
+  {
+   "target": "assets/generated/sprites/mask.png",
+   "sha256": "6c32ce26eca46d57f95cad6459863bd21db551ae67143c302d45bca177a6d189",
+   "bytes": 106
+  },
+  {
    "target": "assets/generated/sprites/peeIcon.png",
    "sha256": "51ce1ee99fd1b4191e7d0a27db2bbc427fd9e3276565ba5cc55be9c073f933c5",
    "bytes": 117
+  },
+  {
+   "target": "assets/generated/sprites/pixel.png",
+   "sha256": "60ffd2c283635d9875ee649d4dd294fb97af2443ff05508d968c858b011dbea0",
+   "bytes": 71
   },
   {
    "target": "assets/generated/sprites/poop.png",
@@ -738,9 +1873,34 @@
    "bytes": 134
   },
   {
+   "target": "assets/generated/sprites/rag.png",
+   "sha256": "6c2c981978d14aef5dcd4dfbdabc800ff54c2f72f9b975bf50741764f0c982cb",
+   "bytes": 136
+  },
+  {
+   "target": "assets/generated/sprites/rainbow.png",
+   "sha256": "7b34b0253d53bb3fafc361a7139538041951fe9ba18a3ca21c4983627f40592e",
+   "bytes": 228
+  },
+  {
+   "target": "assets/generated/sprites/relic.png",
+   "sha256": "d2d6d42f85d88e7ee765d0f5ecc528554b154967bda46b72967b0b8fe3358206",
+   "bytes": 131
+  },
+  {
+   "target": "assets/generated/sprites/ring.png",
+   "sha256": "d3cb49328800183734ddea0513d9333edbea1a85fd60311af6faa912b6850622",
+   "bytes": 91
+  },
+  {
    "target": "assets/generated/sprites/shadow.png",
    "sha256": "44bfee0a54a27b56cf9b7c6d35d16825f39589234165e2bb8fa2df73027c8512",
    "bytes": 89
+  },
+  {
+   "target": "assets/generated/sprites/shadowBig.png",
+   "sha256": "648d0da771aeac2ed2c078d4d811e26bf924772885efe79f7e7cfcb926298e2a",
+   "bytes": 96
   },
   {
    "target": "assets/generated/sprites/shadowSmall.png",
@@ -748,14 +1908,59 @@
    "bytes": 80
   },
   {
+   "target": "assets/generated/sprites/shard.png",
+   "sha256": "bf7aaabf0b6b0a345d1d154972d1dd8d8ba8c5e98bfa1335bc2ac113912f0e8a",
+   "bytes": 125
+  },
+  {
+   "target": "assets/generated/sprites/shieldItem.png",
+   "sha256": "a180c186646d881bb161248de7fb25dc3b8de1ca9930f7e74a37013894856c3b",
+   "bytes": 161
+  },
+  {
+   "target": "assets/generated/sprites/sparkle.png",
+   "sha256": "43d1bdac1cd069f90d2133974ca07ab27eaedeffee7be2597d902d755b509a20",
+   "bytes": 84
+  },
+  {
+   "target": "assets/generated/sprites/stag.png",
+   "sha256": "a9eaa439c553a2687af964b717b78b16afcfb26c24c1a76da909e078b03c2178",
+   "bytes": 373
+  },
+  {
    "target": "assets/generated/sprites/star.png",
    "sha256": "5c24c9dfec027d8bed453352b4bd965436907437782afce305781e3861e21394",
    "bytes": 210
   },
   {
+   "target": "assets/generated/sprites/sword.png",
+   "sha256": "b1cbf1379a16ab0ff237a90702aa583b8c73a184cc0d7286fedb565371f05255",
+   "bytes": 162
+  },
+  {
+   "target": "assets/generated/sprites/tear.png",
+   "sha256": "a75ecdfcb35db4ce589fb917d2418ee397733e6c0698d00273fc18a7908b98d6",
+   "bytes": 104
+  },
+  {
+   "target": "assets/generated/sprites/thought.png",
+   "sha256": "0164c553b52021fba5f3c081299a13331eb30afe0d9f7e7212a6c1ede5b10737",
+   "bytes": 145
+  },
+  {
    "target": "assets/generated/sprites/treat.png",
    "sha256": "b872648795ef3ebb5fa0d034bdc7dd436b8207fe011bf7b90a0973806863f3ff",
    "bytes": 131
+  },
+  {
+   "target": "assets/generated/sprites/tri.png",
+   "sha256": "b4a8b26965c40c64f390f6f32a0af7a32c7f43734a8580e375baa8708116605c",
+   "bytes": 91
+  },
+  {
+   "target": "assets/generated/sprites/wave.png",
+   "sha256": "22baafb9f569a81f952b11e270ac4c31475f9c9495ef4ffcf0bb9a5af64c6063",
+   "bytes": 168
   },
   {
    "target": "data/audio/sfx_leading_silence.json",
@@ -771,6 +1976,211 @@
    "target": "data/characters/bagnaskiz_sheet.json",
    "sha256": "ce58ebabe6a578fcada0050033b92ffa26bde71c99d80b2d7b8c002118138046",
    "bytes": 2129
+  },
+  {
+   "target": "data/characters/cast/abbot_sheet.json",
+   "sha256": "3e3b8005382de35acca1c75641801f1372a5b5107f3cdaf569f1bd21b62ac578",
+   "bytes": 747
+  },
+  {
+   "target": "data/characters/cast/bagnaskizMarshal_sheet.json",
+   "sha256": "ef08a6e1b8aef27945f55ef630a30f294c312807008916522936a174d3259185",
+   "bytes": 780
+  },
+  {
+   "target": "data/characters/cast/bear_sheet.json",
+   "sha256": "52cc573f038c1404488c96b9ccbe082f890d682b9b0b005cb91cbcfe69f401a6",
+   "bytes": 746
+  },
+  {
+   "target": "data/characters/cast/bishop_sheet.json",
+   "sha256": "0c1b90346d5ea6537b745dffcb0ccef6f5235a1d6101f72f8d3e5a6e37933a87",
+   "bytes": 750
+  },
+  {
+   "target": "data/characters/cast/burgher_sheet.json",
+   "sha256": "932889cc51781a4eeb140a9e9e1542a4b61c02cb93f0e31f67219c587b4d8ead",
+   "bytes": 755
+  },
+  {
+   "target": "data/characters/cast/cat_sheet.json",
+   "sha256": "a0fcf2813b944ab81ccfec1be6fa6c8115631e387742464e24f7c33f20e206b7",
+   "bytes": 598
+  },
+  {
+   "target": "data/characters/cast/cellarer_sheet.json",
+   "sha256": "c4b83be880b2896636a0235fdf3c41bd5037705e42747c81998c70aa312745a7",
+   "bytes": 758
+  },
+  {
+   "target": "data/characters/cast/clerkA_sheet.json",
+   "sha256": "d4e568ad96d8bd8469069991f8bdc90d975019ef72341bd2ae4a67862b91a053",
+   "bytes": 752
+  },
+  {
+   "target": "data/characters/cast/clerkB_sheet.json",
+   "sha256": "2cf1191bbbec963a77080ea0f33fec9157bde37c8134bfb21785637313dd0c91",
+   "bytes": 752
+  },
+  {
+   "target": "data/characters/cast/clerk_sheet.json",
+   "sha256": "f6bd38a57972317d397277763acf041225440528b487067c3ddb05a329b52ccc",
+   "bytes": 747
+  },
+  {
+   "target": "data/characters/cast/confusione_sheet.json",
+   "sha256": "4fa4a473778d4af189fc5b7313df266b7d0a93081b372917bbe005412fb6281b",
+   "bytes": 762
+  },
+  {
+   "target": "data/characters/cast/cook_sheet.json",
+   "sha256": "a4c0cfdeb016d4c30e7d01082806360b7f025c176b84e11a4e90185e33f912d7",
+   "bytes": 744
+  },
+  {
+   "target": "data/characters/cast/crowdA_sheet.json",
+   "sha256": "47023f69040158552f253ae04624b29e600fd4130685698c2e177f3fad7e3edf",
+   "bytes": 752
+  },
+  {
+   "target": "data/characters/cast/crowdB_sheet.json",
+   "sha256": "7480b1aacc0fc421b291ab79299b8f039c888af56502ed0683123d6f1ffffbb6",
+   "bytes": 752
+  },
+  {
+   "target": "data/characters/cast/crowdC_sheet.json",
+   "sha256": "7cdaba6f067c4b10e7ed3c0fdcffdb24d846cd0ec7633eff362b2aa1c9a1f621",
+   "bytes": 752
+  },
+  {
+   "target": "data/characters/cast/doge_sheet.json",
+   "sha256": "c9b60395937f4aaadae3dd1bd8adebfeb88a892005eddc62f5ff949a0ff7102c",
+   "bytes": 744
+  },
+  {
+   "target": "data/characters/cast/emir_sheet.json",
+   "sha256": "a8e99c3f4372202faae596e024f17d982a060832b831976648cd9cf44f362d39",
+   "bytes": 746
+  },
+  {
+   "target": "data/characters/cast/envoy_sheet.json",
+   "sha256": "50ee6ca2886c3fbd61ce10a79e63305fc3d057aab225efba499746597832e111",
+   "bytes": 747
+  },
+  {
+   "target": "data/characters/cast/fulk_sheet.json",
+   "sha256": "d2ce7422a8d5c5b7939919a9355810be34e3f0ba2e9ff75d6a49164246edf432",
+   "bytes": 744
+  },
+  {
+   "target": "data/characters/cast/greek_sheet.json",
+   "sha256": "ed50934aa98f5247962c1e301e07643b8394c342e31f44d004c09b56a7f578ab",
+   "bytes": 747
+  },
+  {
+   "target": "data/characters/cast/hound_sheet.json",
+   "sha256": "91b444679290751110eeea3a3778e9750bb9c0fff4d58e84de07980e0ec75f87",
+   "bytes": 749
+  },
+  {
+   "target": "data/characters/cast/householdWoman_sheet.json",
+   "sha256": "04d507ee2f50bceb67cab71e1adbd83ac95dd83f36bfc5d3d81317771bde9339",
+   "bytes": 774
+  },
+  {
+   "target": "data/characters/cast/jack_sheet.json",
+   "sha256": "fe87131d3effe1f89b31f880b9a8b02ce79a937bc5d3ea420065df5a3bc5f475",
+   "bytes": 744
+  },
+  {
+   "target": "data/characters/cast/king_sheet.json",
+   "sha256": "3487b97945504d11e1768970bb79f8b85b0ecba5e29a7c3f9c5be16a3bbaeac9",
+   "bytes": 746
+  },
+  {
+   "target": "data/characters/cast/knight_sheet.json",
+   "sha256": "ef4895b1e0070a38ca1e63cd97b6e912cdfa604eacb2c39e19e31ed6b2461cd6",
+   "bytes": 750
+  },
+  {
+   "target": "data/characters/cast/lady_sheet.json",
+   "sha256": "e7fb357deec9b8d8ccbf9606370cb553f7c49adf81ed2697b6cab1947fdff49d",
+   "bytes": 746
+  },
+  {
+   "target": "data/characters/cast/legate_sheet.json",
+   "sha256": "7c8c2a0c427883c00ccc9578a915808d4cf254388f60fa886a2e4efed8793847",
+   "bytes": 752
+  },
+  {
+   "target": "data/characters/cast/leopard_sheet.json",
+   "sha256": "29873eed0067b3541d15a77e0b5f5db6003b3266ef29b609db9ba7f53e1e7b66",
+   "bytes": 755
+  },
+  {
+   "target": "data/characters/cast/marquis_sheet.json",
+   "sha256": "9d21803f6e7e9eace9dcff0d757d54cc5cd133b8924d6227f95bc27334ea206d",
+   "bytes": 753
+  },
+  {
+   "target": "data/characters/cast/niketas_sheet.json",
+   "sha256": "38cca0cdfb4996a48e104e1cfbe3486a693ce27c0f8c0e2e55adb1a7a9ac7a8a",
+   "bytes": 753
+  },
+  {
+   "target": "data/characters/cast/pilgrim_sheet.json",
+   "sha256": "ed94b2fffcbfe2d4937d45983f3099508a850c990d08059005d76e0176c16659",
+   "bytes": 753
+  },
+  {
+   "target": "data/characters/cast/preacher_sheet.json",
+   "sha256": "e96e55e96ace84710b96ecaa1e49b34dac03c31f333b206e32abf78f4e272ec5",
+   "bytes": 758
+  },
+  {
+   "target": "data/characters/cast/prince_sheet.json",
+   "sha256": "b469a71e46f6161eede72f6f526b535bd7f844a57abc15d37cdc175bb973c76e",
+   "bytes": 750
+  },
+  {
+   "target": "data/characters/cast/professor_sheet.json",
+   "sha256": "50322c8c776406ed4a9160b744c7140052c1e0183d889ae06f18feb14eeaa472",
+   "bytes": 759
+  },
+  {
+   "target": "data/characters/cast/sailmaker_sheet.json",
+   "sha256": "742135359f63d495fbfce1fc6bbfe17b89a00f75aa3aa50b110f153b998b81a0",
+   "bytes": 759
+  },
+  {
+   "target": "data/characters/cast/santina_sheet.json",
+   "sha256": "4c12408be0e5e219ce6fa609d665726e7d6632023a1153d61d8e3a350f98bb23",
+   "bytes": 753
+  },
+  {
+   "target": "data/characters/cast/stranger_sheet.json",
+   "sha256": "f01d71d52640ab6cab1493415bac2d49ac0984e84ecfec85497412317f7c8ff6",
+   "bytes": 758
+  },
+  {
+   "target": "data/characters/cast/varangian_sheet.json",
+   "sha256": "205aeac54c30ccff79dbdec42daac7e5f9a22967e1abba7b3c1750e780f0e627",
+   "bytes": 759
+  },
+  {
+   "target": "data/characters/cast/venetian_sheet.json",
+   "sha256": "ae94efc6d868f432a5914bb833335bf2f0c58416a2366ff5df4824e33c58d939",
+   "bytes": 756
+  },
+  {
+   "target": "data/characters/cast/watson_sheet.json",
+   "sha256": "448672dcb3e21882f640f8ac1da5fa5aa7e48ba92805b28bae7ede8a9ccf1a36",
+   "bytes": 750
+  },
+  {
+   "target": "data/characters/cast_roles.json",
+   "sha256": "b058259adb0695dfc38380568e83fc053583d4a5528e184686467c6920b13ba9",
+   "bytes": 11750
   },
   {
    "target": "data/characters/playable_profiles.json",
@@ -811,6 +2221,11 @@
    "target": "tests/fixtures/source_audio.json",
    "sha256": "0f47418a2b9696184191e8353a9bc92278c6f9c547d0bf8351652a3e75dca149",
    "bytes": 16904
+  },
+  {
+   "target": "tests/fixtures/source_environment.json",
+   "sha256": "66a0df26ac41b9f00a8e2ffb8e71e5da6b248be5ecb6f8277f489244ba5cd7e8",
+   "bytes": 37759
   },
   {
    "target": "tests/fixtures/source_font_glyphs.json",

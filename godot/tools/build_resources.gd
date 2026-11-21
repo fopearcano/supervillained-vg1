@@ -11,6 +11,7 @@ extends SceneTree
 
 const ENV_FRAMES := "res://data/environment/ch01_greenzone_frames.json"
 const PROFILES_JSON := "res://data/characters/playable_profiles.json"
+const CAST_ROLES_JSON := "res://data/characters/cast_roles.json"
 ## Display names of the PLAY_AS dogs.
 const DISPLAY_NAMES := {"zampano": "Zampanò", "sbrimbrulon": "Sbrimbrulòn", "bagnaskiz": "Bagnaskiz"}
 const TILE_ATLAS := "res://assets/generated/environment/ch01_greenzone_tiles.png"
@@ -315,7 +316,8 @@ func _build_sprite_catalog() -> void:
 	var manifest := _json("res://data/source_asset_manifest.json")
 	var tex_id := 2
 	for g: Dictionary in manifest.get("generated", []):
-		if not g.has("frame_w"):
+		# Sprite strips only (cast sheets have no variants and get SpriteFrames instead).
+		if not g.has("frame_w") or not g.has("variants"):
 			continue
 		var tex: Texture2D = load("res://" + String(g["target"]))
 		if tex == null:
@@ -358,14 +360,23 @@ func _build_characters() -> void:
 	if profiles.is_empty():
 		return
 	for skin: String in profiles["skins"]:
-		_build_frames(skin)
+		_build_frames(sheet_layout_path(skin), frames_path(skin), skin)
 	for play_as: String in profiles["play_as"]:
 		_build_profile(play_as, profiles)
+	# Story cast and cat (AST-011): delivered and frozen procedural sheets alike.
+	var cast := _json(CAST_ROLES_JSON)
+	var roles: Dictionary = cast.get("roles", {})
+	for key: String in roles:
+		if roles[key]["kind"] != "playable":
+			_build_frames(roles[key]["layout"], cast_frames_path(key), key)
 
 
-func _build_frames(skin: String) -> void:
-	var out := frames_path(skin)
-	var layout := _json(sheet_layout_path(skin))
+static func cast_frames_path(key: String) -> String:
+	return "res://data/characters/cast/%s_frames.tres" % key
+
+
+func _build_frames(layout_path: String, out: String, skin: String) -> void:
+	var layout := _json(layout_path)
 	if layout.is_empty():
 		return
 	var sheet: Texture2D = load(layout["sheet"])
