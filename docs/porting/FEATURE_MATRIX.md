@@ -41,7 +41,8 @@ AST-017, AST-018, AST-020, AUD-001, SAV-021 (no user-visible notice yet), UI-001
 
 **Command-level evidence (no suite case, architect to judge):** CORE-001 (clean-cache import and
 600-frame Main run, Linux); AST-019 (`build_assets.sh --check`: every generated output
-byte-identical; Linux and a simulated CRLF checkout, not a Windows host).
+byte-identical under the Chromium build pinned by the locked playwright-core, 153.0.8010.12;
+Linux and a simulated CRLF checkout, not a Windows host).
 
 **Export evidence (SLICE, no plan ID):** the Android preset exports as a PCK with the test binary and
 runs as a packed runtime: every runtime resource loads from the pack, no JSON/tests/tools/
@@ -77,6 +78,7 @@ a Windows CI workflow is proposed in `docs/porting/proposals/` pending approval,
 | Animated terrain and pollution presentation | Slice | WORLD-004, WORLD-005 (engine TileData), captures 10/11/20 | three layers, approved in ARCHITECTURE §7 |
 | ASCII maps and markers | Partial | MAP-001, MAP-002, MAP-004–007; P: MAP-003 | story maps M5 |
 | Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
+| Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap | consumers arrive with M3 |
 | Zampanò state controller | Partial | DOG-001–004, DOG-006, DOG-007; P: DOG-005, DOG-008 | fetch (M3), stage change (M5) |
 | Zampanò normal art | Partial | P: AST-002–005 | other playable dogs M1 completion |
 | Redesigned 96×96 park/topology | Slice | MAP-007 | — |
@@ -98,7 +100,7 @@ a Windows CI workflow is proposed in `docs/porting/proposals/` pending approval,
 | Press Start 2P pixel font | Partial | P: AST-020; OFL exported | wrapping fixtures, glow (D-06) |
 | Recorded music/effects | Partial | P: AUD-001; intro/greenzone tracks; 6 effects; leading-silence offsets (exported Resource); lossless drink WAV; background suspension | other tracks/effects later milestones |
 | Synthesized audio | — | — | D-05 |
-| Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022 (future main/temp/backup); P: SAV-021; SLICE: a valid older main becomes the backup on temp recovery | user-visible notice, campaign schema, v1 migration (D-11) |
+| Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022 (future main/temp/backup); P: SAV-021; SLICE: a valid older main becomes the backup on temp recovery; SLICE: failed future copies reported as `future_copy_failed:<file>` with writes still blocked | user-visible notice, campaign schema, v1 migration (D-11) |
 | Everything else in this matrix | — | — | later milestones |
 
 ## 1. Platform and runtime
@@ -107,7 +109,7 @@ a Windows CI workflow is proposed in `docs/porting/proposals/` pending approval,
 |---|---|---|---|---|
 | [ ] | Godot 4.7.2 project isolated under `/godot` | N/A; source is Vite/PixiJS | Standard GDScript project; no source replacement; reproducible headless launch | M1 / CORE-001 |
 | [ ] | Fixed 60 Hz game rules | Implemented: `core/loop.ts`, `config.ts` | `_physics_process` at 60 Hz; fixed-seed tests | M1–M2 / CORE-002 |
-| [ ] | Adaptive pixel-perfect viewport | Implemented: `core/display.ts`; target width 216, width 192–270, integer scale | Port exact viewport computation into SubViewport/safe-area container | M2 / VIEW-001–004 |
+| [ ] | Adaptive pixel-perfect viewport | Implemented: `core/display.ts` `computeViewport`; target width 216, integer scale, width 192–270 and aspect 0.42–0.62 where the area allows, with the source's below-192 bands (areas < 192 px: scale 1 at their own width; areas 271–383 px: scale 2, width 135–191) | Port the exact source algorithm (authoritative, no extra clamp) into the SubViewport/safe-area container | M2 / VIEW-001–004 |
 | [ ] | Portrait orientation | Implemented in Android manifest; unverified in this audit on device | Portrait only, rotation ignored without layout break | M9 / AND-003 |
 | [ ] | Offline operation | Implemented: bundled assets; publisher link is explicit external action | Cold start and full play in airplane mode; no runtime fetch | M9 / AND-008 |
 | [ ] | Background pause/resume | Implemented in web scene/audio flow | Freeze rules, save if dirty, suspend/resume audio safely | M3, M9 / LIFE-001–003 |

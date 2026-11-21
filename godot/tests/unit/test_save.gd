@@ -184,6 +184,8 @@ func _files() -> Dictionary:
 func _clear() -> void:
 	for f in DirAccess.get_files_at(_dir):
 		DirAccess.remove_absolute(_dir + f)
+	for d in DirAccess.get_directories_at(_dir):
+		DirAccess.remove_absolute(_dir + d)
 
 
 func test_SAV_022_future_format_in_main_temp_or_backup_is_preserved_and_blocks_writes() -> void:
@@ -200,6 +202,7 @@ func test_SAV_022_future_format_in_main_temp_or_backup_is_preserved_and_blocks_w
 		_svc.load_from_disk()
 		assert_eq([_svc.load_status, _svc.last_error, _svc.write_blocked], ["future_version", "future_format_version", true], loc + ": reported and blocked")
 		assert_eq(_svc.future_files, [loc] as Array[String], loc + ": location reported")
+		assert_eq(_svc.future_copy_errors, [] as Array[String], loc + ": copy succeeded")
 		if loc == "save_v3.json":
 			assert_eq(_svc.data, ARCH_DEFAULT, loc + ": a future main means defaults, never stale data")
 		else:
@@ -239,3 +242,56 @@ func test_SLICE_temp_recovery_keeps_a_valid_older_main_as_backup() -> void:
 	_svc.load_from_disk()
 	assert_eq(_svc.load_status, "recovered_from_temp", "status")
 	assert_eq(FileAccess.get_file_as_string(_dir + "save_v3.corrupt.json"), "{ torn", "invalid main preserved")
+
+
+## A failed byte-for-byte copy is reported as future_copy_failed:<file>; writes stay blocked and the
+## original stays untouched. Two injections per location: the destination cannot be opened (a
+## directory occupies its path: a real I/O failure) and a short write caught by the read-back.
+func test_SLICE_future_copy_failures_are_reported_and_writes_stay_blocked() -> void:
+	var copies := {"save_v3.json": "save_v3.future.json", "save_v3.tmp": "save_v3.tmp.future.json", "save_v3.bak": "save_v3.bak.future.json"}
+	for loc: String in copies:
+		for injection in ["destination_unwritable", "short_write"]:
+			var what := "%s/%s" % [loc, injection]
+			_clear()
+			if loc != "save_v3.json":
+				_write("save_v3.json", _valid_save(5, 2000))
+			if loc != "save_v3.bak":
+				_write("save_v3.bak", _valid_save(4, 1000))
+			_write(loc, FUTURE_BYTES)
+			if injection == "destination_unwritable":
+				DirAccess.make_dir_absolute(_dir + copies[loc])
+			else:
+				_svc.fault_future_copy = [loc] as Array[String]
+			var before := _files()
+			var reasons := []
+			var cb := func(reason: String) -> void: reasons.append(reason)
+			_svc.save_failed.connect(cb)
+			_svc.load_from_disk()
+			_svc.fault_future_copy.clear()
+			var expected := "future_copy_failed:" + loc
+			assert_eq([_svc.load_status, _svc.write_blocked, _svc.last_error], ["future_version", true, expected], what + ": reported, writes blocked")
+			assert_eq(_svc.future_copy_errors, [expected] as Array[String], what + ": failure exposed")
+			var r: Dictionary = _svc.save_record("level1", {"score": 99, "stars": 0, "time": 1})
+			_svc.save_failed.disconnect(cb)
+			assert_eq(reasons, [expected, "write_blocked_future_version"], what + ": copy failure signalled, then the refused write")
+			assert_false(r["saved"], what + ": nothing saved")
+			var after := _files()
+			assert_eq(after, before, what + ": every original byte-for-byte untouched, no partial copy left")
+			assert_false(FileAccess.file_exists(_dir + copies[loc]), what + ": no copy file")
+	# Two future files whose copies both fail are both reported, in main/temp/backup order.
+	_clear()
+	_write("save_v3.json", FUTURE_BYTES)
+	_write("save_v3.bak", FUTURE_BYTES)
+	DirAccess.make_dir_absolute(_dir + "save_v3.future.json")
+	_svc.fault_future_copy = ["save_v3.bak"] as Array[String]
+	_svc.load_from_disk()
+	_svc.fault_future_copy.clear()
+	assert_eq(_svc.future_copy_errors, ["future_copy_failed:save_v3.json", "future_copy_failed:save_v3.bak"] as Array[String], "both failures exposed")
+	assert_true(_svc.write_blocked, "still blocked")
+	# Once the destination is free again the next launch copies it.
+	_clear()
+	_write("save_v3.tmp", FUTURE_BYTES)
+	_svc.load_from_disk()
+	assert_eq([_svc.future_copy_errors, FileAccess.get_file_as_string(_dir + "save_v3.tmp.future.json")], [[] as Array[String], FUTURE_BYTES], "copy succeeds when it can")
+	_clear()
+	_svc.load_from_disk()

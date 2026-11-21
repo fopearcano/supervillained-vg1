@@ -3,7 +3,7 @@
  "recipe": "src/core/audio.ts leadingSilence() in Chromium WebAudio",
  "trim_level": 0.01,
  "runtime_rate": 48000,
- "chromium": "157.0.8103.78",
+ "chromium": "153.0.8010.12",
  "files": {
   "bark": "assets/sounds/dog-bark.mp3",
   "treat": "assets/sounds/food-collect.mp3",

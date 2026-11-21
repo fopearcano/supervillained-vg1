@@ -57,6 +57,29 @@ func test_P_AST_001_copies_and_outputs_match_manifest_and_source() -> void:
 	assert_true(have_source, "source tree present next to /godot (guard)")
 
 
+## Chromium provenance is deterministic: every generated file records the build pinned by the
+## locked playwright-core (browsers.json), never whatever browser the host happened to have.
+func test_SLICE_chromium_provenance_is_the_pinned_build() -> void:
+	var m := _manifest()
+	var tc: Dictionary = m["toolchain"]
+	var recorded := [tc["chromium"]]
+	recorded.append(JSON.parse_string(FileAccess.get_file_as_string("res://data/audio/sfx_leading_silence.json"))["chromium"])
+	recorded.append(fixture("source_font_glyphs")["chromium"])
+	for e: Dictionary in m["generated"]:
+		if e.has("chromium"):
+			recorded.append(e["chromium"])
+	for v: Variant in recorded:
+		assert_eq(v, tc["chromium"], "one pinned Chromium version everywhere")
+	assert_eq([tc["chromium_channel"], tc["chromium_pinned_by"]], ["chromium", "node_modules/playwright-core/browsers.json"], "pinned by playwright-core")
+	var lock: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(_repo_root().path_join("package-lock.json")))
+	assert_eq(tc["playwright"], lock["packages"]["node_modules/playwright-core"]["version"], "playwright-core from the lockfile")
+	var browsers := _repo_root().path_join("node_modules/playwright-core/browsers.json")
+	if FileAccess.file_exists(browsers):
+		for b: Dictionary in JSON.parse_string(FileAccess.get_file_as_string(browsers))["browsers"]:
+			if b["name"] == "chromium":
+				assert_eq([tc["chromium"], tc["chromium_revision"]], [b["browserVersion"], b["revision"]], "matches the installed playwright-core browsers.json")
+
+
 func test_P_AST_002_playable_sheet_geometry() -> void:
 	var main: Texture2D = load("res://assets/sprites/zampano.png")
 	var tired: Texture2D = load("res://assets/sprites/zampano-tired.png")

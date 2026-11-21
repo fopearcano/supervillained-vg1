@@ -5,6 +5,101 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 
 ---
 
+## Correction report 3: third M1/M2 review (M1 Partial, M2 Partial)
+
+Scope: the architect's four items on `9f458f8`, in one commit. No M3 content. IsoGrid,
+GridKinematicSolver, movement, camera, depth sorting, TileMap rendering, Green Zone rules, the
+audio lifecycle, the PCK export test and SaveService candidate selection are unchanged.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted) |
+| Base | `9f458f8` |
+| Godot / toolchain | 4.7.2.stable.official.ed1daf0bf Linux x86_64; Node v24.15.0; Playwright/playwright-core 1.63.0; **Chromium 153.0.8010.12 (revision 1243), the build pinned by playwright-core** |
+| Hosts not available | **Windows** (still none attached; see "Windows evidence"); Android (no SDK, templates or device) |
+
+### Finding F-13: the committed metadata was generated under a non-pinned Chromium
+
+`playwright-core@1.63.0/browsers.json` pins Chromium **153.0.8010.12** (revision 1243), but every
+earlier output recorded **157.0.8103.78**. This container installs its own headless shell in
+the revision-1243 slot (`chromium_headless_shell-1243` wraps a 157 binary), and Playwright's
+default headless launch uses that shell. A Windows host with `npx playwright install chromium`
+gets the genuine 153 build, so its `--check` saw different `chromium` values in
+`sfx_leading_silence.json`, `source_font_glyphs.json` and the manifest: the likely cause of the
+reported Windows failure. Regenerated under the genuine 153 build (the full Chromium of the same
+revision, present here as `chromium-1243/chrome-linux64/chrome`), only those version strings
+changed: the font atlas, the 95 glyph hashes and every leading-silence offset are byte-identical
+under 157 and 153, so those outputs do not depend on the Chromium build.
+
+### Changes per review item
+
+1. **Deterministic Chromium provenance.** The extractor derives the expected build from the
+   installed `playwright-core/browsers.json` (after checking playwright and playwright-core both
+   equal the lockfile), launches the full `chromium` channel (what `npx playwright install
+   chromium` installs on every platform; hosts may substitute the default headless shell), and
+   exits 6 unless `browser.version()` equals the pinned version. Generated files record only the
+   pinned values (`toolchain.chromium`, `chromium_revision`, `chromium_channel`,
+   `chromium_pinned_by`); the host browser's own report is printed (host evidence) and never
+   written. Verified: a revision-1243 slot that actually holds the 157 shell is refused with
+   exit 6. `test_SLICE_chromium_provenance_is_the_pinned_build` asserts every recorded Chromium
+   value is the same pinned version and equals the installed `browsers.json` when present.
+2. **Future-copy failures reported.** `_preserve_future()` returns `""` or
+   `future_copy_failed:<file>` (`<file>` = `save_v3.json`, `save_v3.tmp` or `save_v3.bak`); it
+   reads the copy back and removes a short or failed copy of its own. Failures are listed in
+   `future_copy_errors`, put in `last_error` and emitted through `save_failed`; writes stay blocked
+   and the originals stay untouched. Injections: a directory occupying the copy path (a real
+   I/O failure) and `fault_future_copy` (a short write caught by the read-back), for each of
+   main, temp and backup, plus two simultaneous failures and recovery on the next launch:
+   `test_SLICE_future_copy_failures_are_reported_and_writes_stay_blocked`. The runner resets
+   `fault_future_copy` per case.
+3. **Viewport documentation.** ARCHITECTURE §8 and the base matrix row now describe the source
+   `computeViewport` as authoritative, step by step, with its below-192 bands (areas narrower than
+   192 px at scale 1; areas 271–383 px at scale 2, width 135–191).
+4. **InteractionProbe/Hurtbox.** Both are now projected grid circles (`GridShapes.ellipse_polygon`,
+   circumscribed 16-gon, on the foot point) instead of screen circles (probe radius 12 px, hurtbox
+   6 px at (0, −8)), and are documented (ARCHITECTURE §7.2) and tested as **broad phase only**:
+   the probe gates the largest Green Zone interaction distance (`GridShapes.PROBE_RADIUS` = 1.05
+   tiles), the hurtbox is the player's 0.26-tile radius, and rules decide with
+   `GridShapes.distance` (the source's hypot). `test_SLICE_probe_and_hurtbox_are_projected_grid_ellipses_broad_phase_only`:
+   every vertex lies on the projected grid circle, 2,000 grid points within the radius project
+   inside (no missed contact), a corner point is inside but farther (so the shape never decides),
+   and a real Area2D overlap in the physics server accepts a target at 1.0 tile and rejects one at
+   1.3 tiles.
+
+### Commands executed and results (Linux)
+
+| Command | Result |
+|---|---|
+| `NODE=/opt/node24150/bin/node godot/tools/build_assets.sh --check godot` | `asset check OK: 33 outputs identical (15 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12)`; `build_resources check (all): OK, 7 outputs identical`; exit 0 |
+| the extractor with a revision-1243 slot holding the 157 headless shell | `Chromium 157.0.8103.78 is not the build pinned by playwright-core 1.63.0 (153.0.8010.12, revision 1243); run npx playwright install chromium.`, exit 6 |
+| `rm -rf godot/.godot && godot --headless --path godot --import` | exit 0, 0 errors, 0 warnings |
+| `godot --headless --path godot --script res://tests/test_runner.gd -- --suite all` | **110 passed, 0 failed** (unit 60, content 15, integration 35), exit 0; the Android-preset PCK case: 5,185,812 bytes, 83 runtime resources loaded from the pack (171 packed files), clean 600-frame packed startup |
+| `godot --headless --path godot --quit-after 600` | exit 0, 0 errors, 0 warnings |
+| PixiJS under Node v24.15.0: `npm test`, `npm run build`, `npm run smoke`, `npm run playtest -- --skill 0.7 --ending knight --choice first` | 30 files / **248 tests passed**; build OK; smoke **36/36 sub-levels ok**; playtest 36 sub-levels, 0 unfinished, 0 flagged, 0 page errors, ending KNIGHT; all exit 0 |
+| `godot/tools/source_tree_guard.sh`; `git diff --check` | guard OK (only `/godot` and `docs/porting` differ from `95b69c0`); diff clean |
+
+### Windows evidence: still not obtained
+
+"Windows PowerShell asset check exits 0" and "Godot Windows suite remains 107/107 or better" were
+**not** run: no Windows machine is attached to this session and none is reachable from this
+environment; the CI route needs the D-15 gate-5 exception (still proposed only, updated in
+`docs/porting/proposals/godot-port-windows.yml`, which already runs `npx playwright install
+chromium`). What changed for the Windows check: with F-13 fixed, the committed outputs now
+carry the same pinned Chromium that a Windows `npx playwright install chromium` provides, and
+the font/audio outputs proved independent of the Chromium build (157 vs 153). Rasterization and
+WebAudio decoding on Windows itself remain unverified.
+
+Simulated Windows checkout (not Windows evidence): `git clone -c core.autocrlf=true` of this commit
+(CRLF in 111 source `.ts` files), `npm ci`, then the same asset check (**exit 0**, 33 + 7 outputs
+identical, pinned Chromium 153.0.8010.12), the full suite (**110 passed, 0 failed**) and the
+600-frame run (exit 0, 0 errors, 0 warnings); `git status` stayed clean.
+
+### Architect review result
+
+Pending.
+
+---
+
 ## Correction report 2: second M1/M2 review (M1 Partial, M2 Partial)
 
 Scope: the architect's nine items on `7b67122`, in one commit. No M3 content. IsoGrid,

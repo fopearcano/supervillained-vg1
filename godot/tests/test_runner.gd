@@ -77,6 +77,7 @@ func _isolate() -> void:
 	root.get_node("AudioService").reset_for_tests()
 	var save := root.get_node("SaveService")
 	save.fault_after = ""
+	save.fault_future_copy.clear()
 	save.base_dir = "%s/case_%03d/" % [_run_dir, _case_index]
 	save.load_from_disk()
 	root.get_node("AppState").reload()

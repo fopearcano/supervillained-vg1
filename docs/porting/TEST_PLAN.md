@@ -41,6 +41,9 @@ godot --path godot --rendering-driver opengl3 --script res://tools/capture_suite
 
 On Windows use the **console** binary so the exit code reaches the shell (the GUI binary detaches):
 
+The asset check needs the pinned Node 24.15.0 on `PATH`, `npm ci` and the pinned Chromium
+(`npx playwright install chromium`) first:
+
 ```powershell
 & 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64_console.exe' --headless --path godot --import
 & 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64_console.exe' --headless --path godot --script res://tests/test_runner.gd -- --suite all

@@ -386,3 +386,64 @@ func test_DEPTH_003_only_visible_candidates_ranked_and_bands_separate() -> void:
 	assert_true(w.object_layer.z_index > w.decal_layer.z_index, "objects above decals")
 	assert_true(w.object_layer.z_index + w.visible_count < w.fx_layer.z_index, "object ranks never reach the FX band")
 	assert_true(w.fx_layer.z_index <= RenderingServer.CANVAS_ITEM_Z_MAX, "FX band valid")
+
+
+## InteractionProbe/Hurtbox (before M3 contact work): both are projected GRID circles on the foot
+## point, never screen circles; they are broad phase only (conservative, circumscribed) and the
+## decision is the exact grid distance, as in the source. Checked geometrically and through a real
+## Area2D overlap in the physics server.
+func test_SLICE_probe_and_hurtbox_are_projected_grid_ellipses_broad_phase_only() -> void:
+	var holder := Node2D.new()
+	tree.root.add_child(holder)
+	var dog: PlayableDog = preload("res://entities/playable_dog/playable_dog.tscn").instantiate()
+	holder.add_child(dog)
+	dog.set_grid_position(20.0, 20.0)
+	var radii := {"InteractionProbe": GridShapes.PROBE_RADIUS, "Hurtbox": GameConfig.Player.RADIUS}
+	assert_true(GridShapes.PROBE_RADIUS >= maxf(GameConfig.Player.MARK_DISTANCE, maxf(GameConfig.Player.DRINK_DISTANCE, GameConfig.Treat.PICKUP_RADIUS)), "probe gates every Green Zone interaction radius")
+	var rng := DeterministicRng.new(17)
+	for area_name: String in radii:
+		var r: float = radii[area_name]
+		var cs: CollisionShape2D = dog.get_node(area_name + "/Shape")
+		assert_true(cs.shape is ConvexPolygonShape2D, area_name + ": polygon shape")
+		assert_eq(cs.position, Vector2.ZERO, area_name + ": on the foot point")
+		var poly: PackedVector2Array = (cs.shape as ConvexPolygonShape2D).points
+		var vertex_r := r / cos(PI / GridShapes.SEGMENTS)
+		for v in poly:
+			var g := IsoGrid.screen_to_grid(v.x, v.y)
+			assert_near(g.length(), vertex_r, 1e-5, area_name + ": vertex on the projected grid circle")
+		# Conservative: every grid point within r (and on it) projects inside the polygon.
+		for k in 2000:
+			var a := rng.range_float(0.0, TAU)
+			var d := r * (1.0 if k % 4 == 0 else sqrt(rng.range_float(0.0, 1.0)))
+			var s := IsoGrid.grid_vec_to_screen(d * cos(a), d * sin(a))
+			if not Geometry2D.is_point_in_polygon(s * 0.9999, poly):
+				fail("%s: grid point at %.4f tiles outside the broad-phase shape" % [area_name, d])
+				break
+		# Broad phase only: a point near a polygon corner is inside the shape but farther than r.
+		var corner := vertex_r * 0.999
+		assert_true(Geometry2D.is_point_in_polygon(IsoGrid.grid_vec_to_screen(corner, 0.0), poly) and GridShapes.distance(0.0, 0.0, corner, 0.0) > r, area_name + ": the shape alone over-reports; the exact grid check decides")
+	# The exact decision is the source arithmetic.
+	assert_eq(GridShapes.distance(1.5, 2.0, 0.25, -1.0), JsMath.hypot(1.25, 3.0), "exact grid distance (V8 hypot)")
+	# Real physics overlap: a point-like Interaction area at grid distance 1.0 (east) overlaps the
+	# probe, one at 1.3 does not; the hurtbox is monitored by attack areas, not monitoring itself.
+	var targets: Array[Area2D] = []
+	for d in [1.0, 1.3]:
+		var t := Area2D.new()
+		t.collision_layer = 8
+		t.collision_mask = 0
+		t.monitoring = false
+		var c := CollisionShape2D.new()
+		var circle := CircleShape2D.new()
+		circle.radius = 0.5
+		c.shape = circle
+		t.add_child(c)
+		t.position = IsoGrid.grid_to_screen(20.0 + d, 20.0)
+		holder.add_child(t)
+		targets.append(t)
+	for k in 4:
+		await tree.physics_frame
+	var hits := dog.interaction_probe.get_overlapping_areas()
+	assert_eq([hits.has(targets[0]), hits.has(targets[1])], [true, false], "Area2D overlap follows the projected grid ellipse")
+	assert_false(dog.hurtbox.monitoring, "hurtbox does not monitor")
+	tree.root.remove_child(holder)
+	holder.free()

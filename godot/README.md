@@ -13,7 +13,9 @@ the status section of `docs/porting/FEATURE_MATRIX.md` for the acceptance IDs ac
 - Godot **4.7.2 stable** (standard, not .NET). Linux x86_64 build used for validation:
   `Godot_v4.7.2-stable_linux.x86_64` (SHA-512 checked against the official `SHA512-SUMS.txt`).
 - Asset regeneration/check only: Node **exactly** v24.15.0 (`tools/.node-version`; the extractor
-  refuses any other version) and the Playwright 1.63.0 Chromium from the root `npm ci`.
+  refuses any other version), the root `npm ci` (Playwright 1.63.0) and the Chromium build that
+  playwright-core pins (`npx playwright install chromium`: 153.0.8010.12, revision 1243). The
+  extractor launches that full `chromium` channel and refuses any other version (exit 6).
 
 ## Run
 
@@ -79,7 +81,8 @@ double interpolation; teleport resets; no static shimmer under the following cam
 
 ## Regenerating assets
 
-From the repository root, after `npm ci`, with the pinned Node:
+From the repository root, after `npm ci` and `npx playwright install chromium`, with the pinned
+Node:
 
 ```bash
 godot/tools/build_assets.sh /path/to/godot
@@ -95,8 +98,10 @@ godot\tools\build_assets.ps1 -Godot C:\path\Godot_v4.7.2-stable_win64_console.ex
 Inputs are read as the audited Git blobs (`git cat-file blob 95b69c0:<path>`), so Windows
 `core.autocrlf` cannot change them; generated text is LF (`godot/.gitattributes`). The extractor
 refuses to run if `src/`, `public/`, `assets/`, `package.json` or `package-lock.json` differ from
-the audit (exit 3), if Node is not v24.15.0 (exit 4) or if Playwright differs from the lockfile
-(exit 5).
+the audit (exit 3), if Node is not v24.15.0 (exit 4), if Playwright/playwright-core differ from
+the lockfile (exit 5) or if the launched Chromium is not the build pinned by
+`playwright-core/browsers.json` (exit 6). Generated files record only the pinned toolchain; the
+host browser's own version is printed (host evidence), never written.
 
 1. `tools/source_extract/extract.mjs` (Node) copies the runtime-authoritative files byte-for-byte,
    freezes the source's procedural sprites by executing `src/assets/placeholders/*.ts`, rasterizes

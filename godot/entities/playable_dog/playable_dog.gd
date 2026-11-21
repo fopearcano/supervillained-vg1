@@ -69,6 +69,8 @@ var _anim_restart := false
 @onready var visual_root: Node2D = $VisualRoot
 @onready var body_sprite: AnimatedSprite2D = $VisualRoot/Body
 @onready var shadow: Sprite2D = $Shadow
+@onready var interaction_probe: Area2D = $InteractionProbe
+@onready var hurtbox: Area2D = $Hurtbox
 
 
 func _ready() -> void:
@@ -78,10 +80,23 @@ func _ready() -> void:
 		body_sprite.sprite_frames = profile.normal_frames
 		body_sprite.centered = false
 		body_sprite.offset = -Vector2(profile.foot_anchor)
+	_build_contact_shapes()
 	_sync_node()
 	_apply_animation()
 	reset_physics_interpolation()
 	interpolation_resets += 1
+
+
+## InteractionProbe and Hurtbox are projected grid circles on the foot point (GridShapes): broad
+## phase only. Rules decide contacts with the exact grid distance, like the source.
+func _build_contact_shapes() -> void:
+	var radius := profile.collision_radius if profile else GameConfig.Player.RADIUS
+	for pair: Array in [[interaction_probe, GridShapes.PROBE_RADIUS], [hurtbox, radius]]:
+		var shape := ConvexPolygonShape2D.new()
+		shape.points = GridShapes.ellipse_polygon(pair[1])
+		var holder: CollisionShape2D = (pair[0] as Area2D).get_node("Shape")
+		holder.shape = shape
+		holder.position = Vector2.ZERO
 
 
 ## Places him (spawn, teleport, restart, stage change): no interpolation from the old position.

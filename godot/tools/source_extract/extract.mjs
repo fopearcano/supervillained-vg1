@@ -20,8 +20,11 @@
 //
 // Outputs are staged in memory. Without --check, files are rewritten only when their bytes change
 // (a second run produces no diff). With --check, everything is regenerated in memory and compared
-// byte-for-byte with the committed files; the process exits non-zero on any difference, on a
-// source-tree change, on a package-lock/Playwright mismatch or on the wrong Node version.
+// byte-for-byte with the committed files; the process exits non-zero on any difference (1), on a
+// source-tree change (3), on the wrong Node version (4), on a package-lock/Playwright mismatch (5)
+// or when the launched Chromium is not the build pinned by playwright-core/browsers.json (6).
+// Generated files record only pinned toolchain values; the host browser appears only in the
+// console output (host evidence).
 
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -83,10 +86,20 @@ const lock = JSON.parse(blobText('package-lock.json'));
 const lockedPlaywright = lock.packages?.['node_modules/playwright']?.version;
 const require = createRequire(path.join(ROOT, 'package.json'));
 const playwrightVersion = require('playwright/package.json').version;
-if (!lockedPlaywright || playwrightVersion !== lockedPlaywright) {
-  console.error(`Playwright ${playwrightVersion} does not match package-lock.json (${lockedPlaywright}); run npm ci.`);
+const lockedPlaywrightCore = lock.packages?.['node_modules/playwright-core']?.version;
+const playwrightCoreVersion = require('playwright-core/package.json').version;
+if (!lockedPlaywright || playwrightVersion !== lockedPlaywright || playwrightCoreVersion !== lockedPlaywrightCore) {
+  console.error(`Playwright ${playwrightVersion} / playwright-core ${playwrightCoreVersion} do not match package-lock.json (${lockedPlaywright} / ${lockedPlaywrightCore}); run npm ci.`);
   process.exit(5);
 }
+// The Chromium build is pinned by the locked playwright-core (browsers.json), never by the host.
+// Generated files record only these pinned values; the launched browser must report exactly this
+// version (checked after launch, exit 6). The full Chromium build ('chromium' channel, what
+// `npx playwright install chromium` installs on every platform) is used rather than the default
+// headless shell, which hosts may substitute.
+const browsersJson = path.join(path.dirname(require.resolve('playwright-core/package.json')), 'browsers.json');
+const pinnedChromiumEntry = JSON.parse(readFileSync(browsersJson, 'utf8')).browsers.find((b) => b.name === 'chromium');
+const PINNED_CHROMIUM = { version: pinnedChromiumEntry.browserVersion, revision: pinnedChromiumEntry.revision, channel: 'chromium' };
 
 // ---------------------------------------------------------------------------------------------
 // 1. Runtime-authoritative copies (only what this milestone references), from Git blobs.
@@ -201,8 +214,14 @@ const importLine = /import fontUrl from '..\/assets\/fonts\/PressStart2P\.woff2\
 if (!importLine.test(fontJs)) throw new Error('pixelFont.ts import line changed; review the extractor');
 fontJs = fontJs.replace(importLine, `const fontUrl = 'data:font/woff2;base64,${woff2.toString('base64')}';`);
 fontJs += `\nwindow.__fontResult = (async () => { const f = await loadPixelFont(); return { loaded: f.loaded, advance: f.advance, cellH: f.cellH, w: f.atlas.width, h: f.atlas.height, png: f.atlas.toDataURL('image/png'), rgba: Array.from(f.atlas.getContext('2d').getImageData(0, 0, f.atlas.width, f.atlas.height).data), schwaX: f.glyphX('ə'), stressX: f.glyphX('ˈ'), lengthX: f.glyphX('ː'), unknownX: f.glyphX('é') }; })();\n`;
-const browser = await chromium.launch();
-const browserVersion = browser.version();
+const browser = await chromium.launch({ channel: PINNED_CHROMIUM.channel });
+const hostChromium = browser.version();
+if (hostChromium !== PINNED_CHROMIUM.version) {
+  console.error(`Chromium ${hostChromium} is not the build pinned by playwright-core ${playwrightCoreVersion} (${PINNED_CHROMIUM.version}, revision ${PINNED_CHROMIUM.revision}); run npx playwright install chromium.`);
+  await browser.close();
+  process.exit(6);
+}
+const browserVersion = PINNED_CHROMIUM.version;
 const page = await browser.newPage();
 await page.setContent('<!doctype html><html><body></body></html>');
 await page.addScriptTag({ type: 'module', content: fontJs });
@@ -642,7 +661,7 @@ fx.rules_overlap = rulesScenario((t, c) => {
 
 emit('tests/fixtures/source_reference.json', stableJson(fx));
 emit('tests/fixtures/source_font_glyphs.json', stableJson({ audited_commit: AUDITED_COMMIT, chromium: browserVersion, advance: font.advance, cell_h: font.cellH, glyph_alpha_sha256_16: glyphHashes }));
-manifest.toolchain = { node: process.version, pinned_node: PINNED_NODE, playwright: playwrightVersion, chromium: browserVersion };
+manifest.toolchain = { node: `v${PINNED_NODE}`, pinned_node: PINNED_NODE, playwright: playwrightVersion, chromium: PINNED_CHROMIUM.version, chromium_revision: PINNED_CHROMIUM.revision, chromium_channel: PINNED_CHROMIUM.channel, chromium_pinned_by: 'node_modules/playwright-core/browsers.json' };
 // Every other generated output, so tests and --check can verify them by hash.
 manifest.outputs = [...outputs.entries()].filter(([rel]) => !manifest.copies.some((c) => c.target === rel)).map(([rel, buf]) => ({ target: rel, sha256: sha256(buf), bytes: buf.length })).sort((a, b) => (a.target < b.target ? -1 : 1));
 emit(manifestRel, stableJson(manifest));
@@ -665,7 +684,7 @@ for (const [rel, buf] of [...outputs.entries()].sort()) {
   }
 }
 if (CHECK) {
-  console.log(differences ? `asset check FAILED: ${differences} of ${outputs.size} output(s) differ` : `asset check OK: ${outputs.size} outputs identical (${manifest.copies.length} copies), Node ${process.version}, Playwright ${playwrightVersion}, Chromium ${browserVersion}`);
+  console.log(differences ? `asset check FAILED: ${differences} of ${outputs.size} output(s) differ (Node ${process.version}, Chromium ${PINNED_CHROMIUM.version} pinned, host browser reported ${hostChromium})` : `asset check OK: ${outputs.size} outputs identical (${manifest.copies.length} copies), Node ${process.version}, Playwright ${playwrightVersion}, Chromium ${PINNED_CHROMIUM.version} (revision ${PINNED_CHROMIUM.revision}, pinned; host browser reported ${hostChromium})`);
   process.exit(differences ? 1 : 0);
 }
-console.log(`extract done: ${outputs.size} outputs (${manifest.copies.length} copies); ${written} file(s) changed`);
+console.log(`extract done: ${outputs.size} outputs (${manifest.copies.length} copies); ${written} file(s) changed; Chromium ${PINNED_CHROMIUM.version} (revision ${PINNED_CHROMIUM.revision}, pinned; host browser reported ${hostChromium})`);

@@ -12,8 +12,9 @@ extends Node
 ## happened) and backup, preserves an INVALID main as save_v3.corrupt.json (a valid main that is
 ## merely older than the temp becomes the backup instead) and promotes a recovered file back to
 ## main. A newer, unknown container format in ANY of main, temp or backup is copied byte-for-byte
-## (save_v3.future.json, save_v3.tmp.future.json, save_v3.bak.future.json), no save file is
-## touched again and every write is refused for the session (load_status, last_error, save_failed).
+## (save_v3.future.json, save_v3.tmp.future.json, save_v3.bak.future.json; a failed copy is reported
+## as future_copy_failed:<file>), no save file is touched again and every write is refused for the
+## session (load_status, last_error, future_copy_errors, save_failed).
 
 signal save_failed(reason: String)
 
@@ -42,6 +43,12 @@ var fault_after := ""
 var write_blocked := false
 ## Which of main/temp/backup hold a future format (last load).
 var future_files: Array[String] = []
+## Failed byte-for-byte copies of those files, "future_copy_failed:<file>" (last load). Writes stay
+## blocked and the original stays untouched either way.
+var future_copy_errors: Array[String] = []
+## Test hook: locations (FILE_NAME/TEMP_NAME/BACKUP_NAME) whose future copy is cut short, to
+## exercise the verification of the written copy; empty in the game.
+var fault_future_copy: Array[String] = []
 var data: Dictionary = {}
 
 
@@ -212,6 +219,7 @@ func load_from_disk() -> void:
 	write_blocked = false
 	last_error = ""
 	future_files.clear()
+	future_copy_errors.clear()
 	DirAccess.make_dir_recursive_absolute(base_dir)
 	var files := {}
 	var valid := {}
@@ -234,9 +242,13 @@ func load_from_disk() -> void:
 		# data is in the unknown format, so a future main means defaults; otherwise the valid
 		# current-format main/temp/backup is shown read-only.
 		for name in future_files:
-			_preserve_future(name)
+			var copy_error := _preserve_future(name)
+			if copy_error != "":
+				future_copy_errors.append(copy_error)
 		write_blocked = true
-		last_error = "future_format_version"
+		last_error = future_copy_errors[0] if not future_copy_errors.is_empty() else "future_format_version"
+		for reason in future_copy_errors:
+			save_failed.emit(reason)
 		data = default_container() if future_files.has(FILE_NAME) or best_name == "" else valid[best_name]
 		load_status = "future_version"
 		return
@@ -258,22 +270,35 @@ func load_from_disk() -> void:
 	write_to_disk()
 
 
-## Copies a future-format file byte-for-byte next to it (an identical copy is not rewritten; a
-## different earlier copy is kept and the new one gets a hash suffix).
-func _preserve_future(name: String) -> void:
+## Copies a future-format file byte-for-byte next to it and reads the copy back. Returns "" on
+## success or "future_copy_failed:<file>". An identical copy is not rewritten; a different earlier
+## copy is kept and the new one gets a hash suffix. A short or failed copy is removed (it is our own
+## file; the original is never touched).
+func _preserve_future(name: String) -> String:
+	var failed := "future_copy_failed:" + name
 	var bytes := FileAccess.get_file_as_bytes(_path(name))
+	if bytes.is_empty() and FileAccess.get_open_error() != OK:
+		return failed
 	var keep := _path(FUTURE_COPY[name])
 	if FileAccess.file_exists(keep):
 		if FileAccess.get_file_as_bytes(keep) == bytes:
-			return
+			return ""
 		var ctx := HashingContext.new()
 		ctx.start(HashingContext.HASH_SHA256)
 		ctx.update(bytes)
 		keep = _path(FUTURE_COPY[name].get_basename() + "." + ctx.finish().hex_encode().substr(0, 12) + ".json")
+		if FileAccess.file_exists(keep) and FileAccess.get_file_as_bytes(keep) == bytes:
+			return ""
 	var f := FileAccess.open(keep, FileAccess.WRITE)
-	if f:
-		f.store_buffer(bytes)
-		f.close()
+	if f == null:
+		return failed
+	var payload := bytes.slice(0, bytes.size() / 2) if fault_future_copy.has(name) else bytes
+	var stored := f.store_buffer(payload)
+	f.close()
+	if not stored or FileAccess.get_file_as_bytes(keep) != bytes:
+		DirAccess.remove_absolute(keep)
+		return failed
+	return ""
 
 
 func _keep_corrupt(text: String) -> void:

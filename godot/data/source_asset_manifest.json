@@ -298,7 +298,7 @@
    "advance": 8,
    "cell_h": 8,
    "recipe": "src/ui/pixelFont.ts executed in Chromium",
-   "chromium": "157.0.8103.78",
+   "chromium": "153.0.8010.12",
    "unknown_glyph_x": 248
   },
   {
@@ -311,7 +311,10 @@
   "node": "v24.15.0",
   "pinned_node": "24.15.0",
   "playwright": "1.63.0",
-  "chromium": "157.0.8103.78"
+  "chromium": "153.0.8010.12",
+  "chromium_revision": "1243",
+  "chromium_channel": "chromium",
+  "chromium_pinned_by": "node_modules/playwright-core/browsers.json"
  },
  "outputs": [
   {
@@ -371,7 +374,7 @@
   },
   {
    "target": "data/audio/sfx_leading_silence.json",
-   "sha256": "3eade24a613f98a4969034c5830b0f8197848f8d0a27afc3d29967c4cd0fe007",
+   "sha256": "573611475988b2af9beaa43ec4f1b7f2466b1b97b19daed48b4aa86bf7a262bd",
    "bytes": 1576
   },
   {
@@ -391,7 +394,7 @@
   },
   {
    "target": "tests/fixtures/source_font_glyphs.json",
-   "sha256": "98ca45f4b56b53b3a0a7b73f8bfcc48746b7be584b924622f843f30c48a83ada",
+   "sha256": "be0427029ced7ff272d3203224c8eeae95180f0088e4990743c333ec32a98a5d",
    "bytes": 2843
   },
   {
