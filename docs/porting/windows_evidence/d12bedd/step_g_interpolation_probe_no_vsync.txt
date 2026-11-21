@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.47 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3090
+
+{"achieved_fps":30.0,"expected_px_per_frame":5.66,"fps_cap":30,"interpolation":true,"max_px_per_frame":6.5,"ok":true,"repeated_frames":0,"teleport_error_px":2.5}
+{"achieved_fps":60.0,"expected_px_per_frame":2.83,"fps_cap":60,"interpolation":true,"max_px_per_frame":3.5,"ok":true,"repeated_frames":0,"teleport_error_px":0.5}
+{"achieved_fps":90.4,"expected_px_per_frame":1.88,"fps_cap":90,"interpolation":true,"max_px_per_frame":2.5,"ok":true,"repeated_frames":0,"teleport_error_px":0.0}
+{"achieved_fps":120.6,"expected_px_per_frame":1.41,"fps_cap":120,"interpolation":true,"max_px_per_frame":2.5,"ok":true,"repeated_frames":0,"teleport_error_px":0.0}
+{"achieved_fps":120.8,"control":"interpolation off: repeated frames expected above 60 FPS","expected_px_per_frame":1.4,"fps_cap":120,"interpolation":false,"max_px_per_frame":3.0,"ok":false,"repeated_frames":22,"teleport_error_px":2.0}
+{"distinct_marker_gaps_px":[40.0],"fps_cap":90,"frames_measured":48,"ok":true,"pass":"camera follow, static markers"}
+{"distinct_marker_gaps_px":[40.0],"fps_cap":120,"frames_measured":48,"ok":true,"pass":"camera follow, static markers"}

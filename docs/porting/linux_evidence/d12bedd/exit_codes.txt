@@ -1,0 +1,17 @@
+clone exit: 0
+HEAD: d12bedd Godot port: probe exit without leak on a real audio device; README for the new pipeline
+core.autocrlf: unset
+uname: Linux 6.18.33.2-microsoft-standard-WSL2 x86_64
+distro: Ubuntu 26.04 LTS
+node: v24.15.0 npm 11.12.1
+godot: 4.7.2.stable.official.ed1daf0bf
+chromium libs (local, not installed): libasound2t64_1.2.15.3-1ubuntu1.1_amd64.deb libnspr4_2%3a4.38.2-1ubuntu1_amd64.deb libnss3_2%3a3.120-1ubuntu2.2_amd64.deb
+npm ci exit: 0
+playwright install exit: 0
+a exit: 0  (19s)
+b exit: 0  (3s)
+c exit: 0  (49s)
+d exit: 0  (10s)
+e exit: 0
+guard exit: 0
+done

@@ -5,11 +5,152 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
-superseded by the real Windows evidence in correction report 4.
+superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
+in progress report 5.
 
 ---
 
-## Correction report 4: fourth M1/M2 review (M1 Partial, M2 Partial) — current
+## Progress report 5: remaining M1/M2 work (M1 Partial, M2 Partial) — current
+
+Scope: the architect's instruction after the fourth review ("continue only the remaining documented
+M1/M2 work"). No M3 content. The accepted foundations are not rewritten: IsoGrid,
+GridKinematicSolver, movement, camera, depth sorting, the TileMap renderer, SaveService candidate
+handling, the audio lifecycle (suspend/resume, track continuity), interaction geometry, the test
+runner and the PCK test are unchanged. The asset pipeline is extended (new outputs and fixtures);
+every earlier output is byte-identical (`--check` on Windows and Linux).
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted; see "Still required") |
+| Base | `c320000` (correction report 4) |
+| Code commits | `53493e2` audio, `392207d` playable dogs, `5745c99` cast/banks/frozen art, `16b5619` title/font/coverage, `ead5918` campaign migration, `acdfce3` story maps, `401e8e4` RNG-002, `d12bedd` probe exit + README |
+| Hosts | **Windows 11 25H2** (RTX 3090, WASAPI audio) and **Linux: Ubuntu 26.04 in WSL 2** on the same PC |
+| Godot / toolchain | Godot 4.7.2.stable.official.ed1daf0bf (win64 console and linux.x86_64); Node v24.15.0; Playwright 1.63.0; Chromium 153.0.8010.12 (revision 1243, pinned) |
+| Not available | an Android device, SDK, export templates or signing identity; a human tester |
+
+### What changed
+
+1. **Audio (AUD-001–008).** The extractor copies the remaining recorded music (levels 2–4) and
+   effects (meow, coin, ball, alarm, siren, laser) and executes `src/fx/audioFiles.ts` for the
+   cue tables (`?url` imports now resolve to repository paths). It renders the fourteen `SOUNDS`
+   cues and the medieval loop with the source's own `synth.ts`/`sounds.ts` at the source rate to
+   mono 22,050 Hz signed 16-bit PCM WAV (`round(clamp(x, -1, 1) * 32767)`), records recipe/input
+   hashes, sample counts, peaks and probe samples, and Chromium decode references for every
+   recorded file. WAVs import as plain PCM; the medieval loop loops over its whole buffer.
+   AudioService plays all five recorded tracks (per-track `MUSIC_FILE_GAIN`), `medieval`
+   (`MUSIC_VOLUME`, restarts from 0 like the source's new buffer source), twelve recorded and
+   fourteen synthesized effects, and delayed cues in audio time. The Green Zone gains the source's
+   marking star (+0.12 s), tired and cleaned-poop cues. D-05 closed.
+2. **Playable dogs (AST-002–009).** Copies of the knight, Sbrimbrulòn (plain/knight) and Bagnaskiz
+   (plain/armoured) sheets; one layout per `PLAYABLE_CHARACTER_KEYS` skin (`zampanoCross` detected
+   as an alias of the knight art); the source `costumeFor()` table. SpriteFrames for all six skins
+   and a `PlayableCharacterProfile` per `PLAY_AS` dog (normal/cross/armoured slots; Zampanò's frames
+   byte-identical). The world applies the `--as` profile (it was parsed but not applied before).
+3. **Cast, banks, frozen art (AST-011–018).** The 23 delivered pixel-cast sheets and the professor
+   portrait; the 14 remaining Color Ink banks; the 17 procedural cast roles frozen with the source
+   recipe (`CAST_SPECS` + `poseFor` + `drawCritter`); the remaining palette-independent procedural
+   sprites (items, FX, story specials). The native level-frame contract is taken from the executed
+   source generators: every bank delivers all 104 native frames with exact geometry, every
+   `floorArt_` frame is a native tile, all 19 compositions are valid. SpriteFrames for every cast
+   role.
+4. **Title (AST-010).** `src/ui/titleAnim.ts` runs unchanged in Chromium (three imports replaced;
+   the page and the WebP share one intercepted offline origin): 99 frames at the canonical
+   125 px width, one 2000×1176 page, 8,316,000 bytes; the WebP's delays (checked against the
+   file's own ANMF chunks); `TitlePortrait` is the only linear-sampled node (alpha-cut shader).
+   `docs/porting/captures/title_m1/` has first/middle/last frames at three widths for approval.
+5. **Font (AST-020).** Fallback-glyph map and 128 wrapping cases from the source (`layoutLines`
+   executed); `PixelText.wrap` no longer wraps every word at width 0 (source: 0 = no wrap).
+6. **Coverage (AST-001).** Every runtime-authoritative source file is a verified copy; the WebP and
+   WOFF2 converter inputs are hash-recorded.
+7. **Campaign migration (SAV-013–017).** `CampaignMigration` (pure): `migrateV1`, `loadCampaign`
+   (v1 migrated once with its untouched payload kept aside; v2 normalized) and the one-time notice
+   of `storyFlow.showNotice`, against fixtures produced by the executed source over an in-memory
+   localStorage. Legacy import into the container stays M9 (D-11).
+8. **Story maps (MAP-003, AST-015, COLL-005).** The twenty story maps parse like the source cell for
+   cell; TileMapLayer cell centres equal IsoGrid tile centres over every extent. The grid solver
+   reaches every marker and exit the source can reach; the four markers the source cannot reach
+   are actor spawn points (ship 5/6, neighborhood 0/9). The four map keys without a composition
+   resolve to delivered theme/fallback banks; none of them is staged by the current chapters.
+9. **RNG-002.** The same seed reproduces the source World: treat route, spawn spots, all 692 static
+   props (map props, forest trees, wall blocks) and all 9,216 ground cells (`mapRenderer.makeTile`
+   executed with texture-token stubs), and a second build is identical.
+10. **Probes.** `audio_suspend_probe.gd` waits for the audio server before quitting (clean exit on a
+    real device); `title_capture.gd` added. README updated.
+
+Findings for the architect:
+
+- **F-15:** AST-007's "arms attachment alignment" has no separate source counterpart: the armoured
+  sheets draw sword and shield inside each frame. The case checks the armoured frames on the shared
+  40×40 frame and foot anchor (standing frames end 1–2 rows above the anchor in all 8 directions),
+  the art differing from the plain costume, and the arms capability flag. Architect to accept or
+  redefine.
+- **F-16:** the source cannot load a v1 save whose `book.shards` is not an array (`filter` throws);
+  the fixtures only use shapes the source accepts. The port tolerates the malformed shape.
+- **F-17:** on a 60 Hz display with VSync, the rendered probe cannot reach 90/120 FPS and its
+  interpolation-off control may show no repeated frames (exit 1, inconclusive); the 30/60/90/120
+  evidence is the `--disable-vsync` run.
+
+### Acceptance IDs
+
+Newly satisfied by full suite cases (33): RNG-002; MAP-003; AST-001–013, AST-015–018, AST-020;
+AUD-001–008; SAV-013–017. Total: **90** (FEATURE_MATRIX status section). Every automated M1 ID
+(ISO-001–003, RNG-001–003, AST-001–020, AUD-001–008, SAV-013–017) is now satisfied, AST-019 by
+command evidence on both hosts. Still partial: ARCH-001 (M5 story scene), VIEW-004 and CAM-004
+(rendered checks by probe, now also on a real GPU), DOG-005 (M3 fetch), DOG-008 (M5 stage change),
+COLL-005 (story pickups/spots/marvels at literal coordinates arrive with the M5 scripts), and the
+M3 IDs GZ-001/002/021/025, UI-001–006, FLOW-005, SAV-021.
+
+### Commands executed and results
+
+Fresh clones of `d12bedd`, every step exit 0 unless stated; reports and logs:
+`docs/porting/windows_evidence/d12bedd/REPORT.md`, `docs/porting/linux_evidence/d12bedd/REPORT.md`.
+
+| Check | Windows 11 (`core.autocrlf=true`) | Linux (Ubuntu 26.04, WSL 2) |
+|---|---|---|
+| Asset check (`build_assets.ps1 -Check` / `build_assets.sh --check`) | 206 outputs identical (72 copies); 55 resources identical | identical result, same bytes |
+| Clean import | no errors or warnings | no errors or warnings |
+| Suite `--suite all` | **128 passed, 0 failed** | **128 passed, 0 failed** |
+| Main scene, 600 frames | banner only | banner only |
+| `git status --porcelain` | empty | empty |
+| Source-tree guard | OK | OK |
+| `git diff --check 95b69c0 HEAD` | clean | — |
+| Rendered probe, real GPU, `--disable-vsync` | 30.0/60.0/90.4/120.6 FPS, 0 repeated frames, teleport resets, no static shimmer; control shows the expected repeats | not run (no display) |
+| Audio probe, real device | pause/resume of music and effects, clean exit | not run |
+| PixiJS baseline `npm test`, `npm run build` | 30 files, 248 tests passed; build OK | not run |
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-05 | **Closed**: synthesized cues and the medieval loop are rendered source WAVs |
+| D-13 | **Mostly closed**: title, synthesized audio, Sbrimbrulòn/Bagnaskiz profiles and the cast are done; the Android migration spike remains (no device/SDK/signing lineage here) |
+| D-14 | Rendered 30/60/90/120 checks now also on a real desktop GPU; device rates unverified |
+| D-15 | Still proposed (Windows CI); Windows and Linux evidence now come from real host runs |
+| D-01–D-04, D-06–D-11 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+Cannot be produced on this host without a person or a device:
+
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer
+  aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+- **Android (M1 spike, device evidence):** export templates, SDK, a controlled signed old APK and
+  a device, for the migration spike and any device-only row (B-04).
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 4: fourth M1/M2 review (`c320000`; M1 Partial, M2 Partial)
+
+> Historical record of `c320000`, superseded by progress report 5.
 
 Scope: the architect's three items on `e2768cf` (`a0e3b8d` plus its Windows evidence), in one
 commit. No M3 content. The asset pipeline, SaveService candidate selection, IsoGrid,

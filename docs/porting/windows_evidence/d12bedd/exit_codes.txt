@@ -1,0 +1,22 @@
+clone exit: 0
+HEAD: d12bedd Godot port: probe exit without leak on a real audio device; README for the new pipeline
+core.autocrlf: true
+pwsh: 7.7.0
+node: v24.15.0
+godot: 4.7.2.stable.official.ed1daf0bf
+npm ci exit: 0  (8s)
+playwright install exit: 0  (1s)
+a exit: 0  (26s)
+b exit: 0  (3s)
+c exit: 0  (61s)
+d exit: 0  (11s)
+e exit: 0  (0s)
+f (probe, VSync on) exit: 0  (10s)
+g (probe, VSync off) exit: 0  (7s)
+h (audio probe) exit: 0  (1s)
+i (npm test) exit: 0  (3s)
+j (npm run build) exit: 0  (1s)
+k (git status after all) exit: 0  (0s)
+l (guard) exit: 0  (0s)
+m (diff-check) exit: 0  (0s)
+done
