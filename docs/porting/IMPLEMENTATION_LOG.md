@@ -5,7 +5,185 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 
 ---
 
-## Milestone report: M1 foundation (partial) + M2 Green Zone vertical slice
+## Correction report: M1/M2 review fixes (M1 Partial, M2 Partial)
+
+Scope: the architect's ten correction items on `5858dc7`, in one commit. No M3 content. IsoGrid,
+GridKinematicSolver, movement, depth sorting, camera, needs, pollution and scoring logic are
+unchanged (only presentation rounding, diagnostics counters and test hooks were added around them).
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither complete; nothing accepted) |
+| Base | `5858dc7` |
+| Godot | 4.7.2.stable.official.ed1daf0bf, Linux x86_64 |
+| Asset toolchain | Node **v24.15.0** (official linux-x64 build, = `godot/tools/.node-version`), Playwright 1.63.0 (= `package-lock.json`), Chromium 157.0.8103.78 |
+| Renderer for captures/probes | Xvfb + Mesa llvmpipe, GL Compatibility |
+| Hosts not available | Windows (no Windows host or Wine here); Android (no SDK, templates or device) |
+
+### Changes per review item
+
+1. **Platform-independent asset pipeline.** The extractor reads every source input as the audited Git
+   blob (`git cat-file blob 95b69c0:<path>`), so working-tree line endings (autocrlf) cannot change
+   a hash or an output. Generated text (FNT, JSON, `.tres`, `.import`) is LF and refused if it
+   contains CR; `godot/.gitattributes` pins LF for every generated/edited text type and marks
+   binary inputs (`assets/environment/manifest.json` is a CRLF blob in the source and is copied
+   byte-for-byte; PNG/MP3/WAV/WOFF2/OFL.txt). `--check` now verifies every generated output
+   (33 outputs incl. 15 copies, SHA-256 in `data/source_asset_manifest.json`) and
+   `build_resources.gd --check` verifies the 6 Godot-built outputs. Guards: refuses to run if
+   `src/`, `public/`, `assets/`, `package.json` or `package-lock.json` differ from the audit
+   (exit 3), if Node is not exactly v24.15.0 (exit 4), or if the installed Playwright differs from
+   the lockfile (exit 5). Everything was regenerated under 24.15.0. Windows commands:
+   `godot/tools/build_assets.ps1 -Godot <Godot_v4.7.2-stable_win64_console.exe> -Check` and the
+   `_console.exe` test command (README, TEST_PLAN §2).
+2. `application/config/quit_on_go_back=false`; `test_SLICE_android_back_pauses_and_never_quits`
+   asserts the setting and that Back pauses (Android Back itself unverified on device).
+3. **Evidence corrected.** Case naming (TEST_PLAN): `test_<ID>_…` only when every clause is
+   exercised, `test_P_<ID>_…` partial, `test_SLICE_…` no plan ID. 104 cases were renamed or
+   classified accordingly; M1 and M2 marked Partial; capture count corrected (below); AUTO-001 is
+   not claimed and stays reserved for the M3 run with an attack. Errata for the first report are
+   listed in that report.
+4. **Missing M2 tests added:** VIEW-003 (safe-area override + real `Input.parse_input_event`
+   routing through the SubViewportContainer, ≤0.5 logical px), P_VIEW_004, MOVE-005, COLL-003
+   (segment-through-obstacle tunnelling at run speed and worst delta), P_COLL_005, DEPTH-003,
+   CAM-003, MAP-006, DOG-004, P_DOG_005, DOG-006, CORE-002 at 30/60/90/120 FPS caps, real SubViewport
+   multi-touch routing, test-state isolation (`_isolate()` per case: InputService, AudioService,
+   SaveService per-case `user://test_runs/<pid>/case_NNN/`, AppState reload, renderable IDs,
+   `Engine.max_fps`, time scale; proven by the `SLICE_isolation_1/2` pair), and the rendered
+   multi-rate probe (below).
+5. **Deep water and walls:** DEEP (phase-rotated `deep_phase0/1` by `hash2(i,j,74)`), WALL
+   (`wallBase_0` + depth-sorted `wallBlock` props by `hash2(i,j,5)`) and the story grounds render
+   through the shared IsoWorld; COLL-004 covers blocked/walkable grounds including deep water and
+   walls; `test_SLICE_deep_water_and_wall_diagnostic_rendering` + capture 20.
+6. **SaveService:** `load_status` (new / loaded / recovered_from_temp / recovered_from_backup /
+   future_version / corrupt) and `last_error`; the newest valid of main/temp/backup wins; a corrupt
+   main is preserved as `save_v3.corrupt.json`; a future-format main is copied byte-for-byte to
+   `save_v3.future.json` and writing is blocked; `save_failed` is emitted on any write failure and
+   callers report `saved`. SAV-020 injects a crash at all four write stages; SAV-022 replaces the
+   vacuous test with real assertions (file untouched, writes blocked, status reported).
+7. **Audio:** the briefing and the result card play `intro`, the walk plays `greenzone`, each track
+   resumes from its own position; background (`APPLICATION_PAUSED`/focus out) suspends music and
+   every effect player, and effects started while suspended start paused; effects start after the
+   source's leading silence (computed by executing the source `leadingSilence` in Chromium at 48 kHz:
+   bark 0.0947 s, treat 0.0404 s, pee 0.0075 s, drink 0.2799 s, poop/splash 0); the drink WAV is
+   imported lossless (`compress/mode=0`).
+8. In-viewport `#0c3a10` underlay (canvas layer −100, logical size) under the world; the outer
+   pillar/letterbox stays black (`test_SLICE_viewport_underlay_and_black_letterbox`, capture 20).
+9. ARCHITECTURE §7 and TEST_PLAN now state the measured `TILE_LAYER_OFFSET = Vector2(-16, 0)` and
+   approve the three-layer pollution renderer (Ground tint, Pollution, Fresh); WORLD-005 asserts
+   the TileData the engine itself passes to `_tile_data_runtime_update`.
+10. `assets/fonts/OFL.txt` is in the export `include_filter`; the Android label is restored to
+    `SUPERVILLAINED: CRUSADER` (`test_SLICE_export_ships_ofl_and_the_app_label`).
+
+### Commands executed and results (Linux)
+
+| Command | Result |
+|---|---|
+| `NODE=/opt/node24150/bin/node godot/tools/build_assets.sh --check godot` | `asset check OK: 33 outputs identical (15 copies), Node v24.15.0, Playwright 1.63.0, Chromium 157.0.8103.78`; `build_resources check (all): OK, 6 outputs identical`; exit 0 |
+| the extractor under Node v24.22.3 | `Node v24.22.3 is not the pinned v24.15.0 … refusing to run.`, exit 4 |
+| simulated Windows checkout: `git clone -c core.autocrlf=true`, `npm ci`, `--check`, suite, 600-frame run in the clone | all exit 0, see "Simulated CRLF clone" below |
+| `rm -rf godot/.godot && godot --headless --path godot --import` | exit 0, 0 errors, 0 warnings |
+| `godot --headless --path godot --script res://tests/test_runner.gd -- --suite all` | **104 passed, 0 failed** (unit 58, content 14, integration 32), exit 0, no leaks or orphans |
+| `godot --headless --path godot --quit-after 600` | exit 0, 0 errors, 0 warnings |
+| `xvfb-run … tools/interpolation_probe.gd` | exit 0 (results below) |
+| `godot --headless --path godot --script res://tools/audio_suspend_probe.gd` (forces playback on the Dummy driver so playbacks are live; outside the suite because they are never mixed) | `{"late_effect_paused":true,"live_players":2,"ok":true,"paused_in_background":[true,true],"resumed":[true,true]}`, exit 0; the engine then reports the never-mixed playbacks as leaked at exit (6 objects, 3 resources), the reason this probe is outside the suite |
+| `xvfb-run … capture_suite.gd` (tour, `--mode run`, `--mode diagnostic`, two viewport sizes) | 18 PNGs (below); the real-time run reached the exit with total 5660 at 45.17 s |
+| PixiJS under Node v24.15.0: `npm test`, `npm run build`, `npm run smoke`, `npm run playtest -- --skill 0.7 --ending knight --choice first` | 30 files / **248 tests passed**; build OK; smoke **36/36 sub-levels ok**; playtest 36 sub-levels, 0 unfinished, 0 flagged, 0 page errors, ending KNIGHT; all exit 0 (also green under v24.22.3) |
+| `godot/tools/source_tree_guard.sh`; `git diff --check` | guard OK (only `/godot` and `docs/porting` differ from `95b69c0`); diff clean |
+
+### Rendered multi-rate interpolation probe (`tools/interpolation_probe.gd`, 432×432, llvmpipe)
+
+The real PlayableDog runs east at RUN speed under a static camera; each rendered frame is read
+back. Interpolated runs: no repeated frame while moving, no jump beyond two frames' worth, teleport
+shown at once. A control run with interpolation off must stutter (it does), proving the metric.
+A last pass follows the dog with the real CameraRig: two static markers 40 px apart stay exactly
+40 px apart on every frame (no static shimmer).
+
+| FPS cap | achieved | expected px/frame | repeated frames | max px/frame | teleport error px |
+|---|---|---|---|---|---|
+| 30 | 30.0 | 5.65 | 0 | 6.5 | 3.5 |
+| 60 | 60.1 | 2.82 | 0 | 3.5 | 0.5 |
+| 90 | 90.0 | 1.88 | 0 | 2.5 | 1.0 |
+| 120 | 119.9 | 1.42 | 0 | 2.0 | 1.0 |
+| 120, interpolation **off** (control) | 120.4 | 1.41 | **21** | 3.0 | 1.0 |
+
+Camera-follow pass: 90 and 120 FPS, 48/48 frames measured, marker gap always 40 px. This is
+renderer evidence for VIEW-004/DOG-008/CAM-004 but runs outside the headless suite and on llvmpipe
+only, so those IDs stay partial.
+
+### Captures (18 PNGs in `docs/porting/captures/m2_green_zone_slice/`)
+
+- Tour, 432×864 (logical 216×432 at scale 2), 8: `01_briefing` … `08_touch_joystick`.
+- Real-input run, 5: `10_poop_dirt`, `11_pee_cleans_poop`, `12_occlusion_fade`,
+  `13_level_end_reveal`, `14_level_end_final`.
+- Diagnostic, 800×600, 1: `20_diagnostic_deep_water_walls_story_grounds` (deep water, walls and
+  wall blocks, story grounds, void on the green underlay, black pillarbox outside the viewport).
+- Viewport extremes, 4: `view_192x457/{02_start,03_walk_north}`, `view_270x435/{02_start,03_walk_north}`.
+
+### Simulated CRLF clone
+
+Closest available stand-in for a Windows clean clone (Linux, not a Windows host):
+`git clone -c core.autocrlf=true --branch claude/gallant-keller-rbvtvy` of this commit's tree.
+The checkout had CRLF line endings in 111 source text files (e.g. `src/core/audio.ts`,
+`package.json`) and LF in every Godot text file (`godot/.gitattributes`); `git status` clean.
+
+| Step in the clone | Result |
+|---|---|
+| `npm ci` (Node v24.15.0) | exit 0 |
+| `NODE=… godot/tools/build_assets.sh --check godot` (includes a clean `--import`) | `asset check OK: 33 outputs identical (15 copies), Node v24.15.0, Playwright 1.63.0, Chromium 157.0.8103.78`; `build_resources check (all): OK, 6 outputs identical`; exit 0; `git status` still clean |
+| `godot --headless --path godot --script res://tests/test_runner.gd -- --suite all` | **104 passed, 0 failed**, exit 0 |
+| `godot --headless --path godot --quit-after 600` | exit 0, 0 errors, 0 warnings; `git status` still clean |
+
+### Not verified
+
+- **Windows host:** the clean-clone asset `--check` and the Godot 4.7.2 Windows console suite were
+  not executed on Windows (no Windows host here). The simulated `core.autocrlf=true` clone above is
+  the closest available evidence; the PowerShell script and `_console.exe` commands are untested.
+- **Android/device:** export, install, Back, immersive mode, keep-awake, display-cutout safe area,
+  touch hardware, audio focus/background on a real app lifecycle, performance. Configuration only.
+
+### Findings added by this correction
+
+- **F-09 (VIEW-002):** the source `computeViewport` yields logical widths 135–191 px for constrained
+  areas 271–383 device px wide (scale 2), outside the plan's 192–270. The port keeps source parity
+  (`test_P_VIEW_002` asserts the band); the owner decides whether the plan or the source is right.
+- **F-10:** `get_cell_tile_data()` returns the shared TileSet data; only the TileData the engine
+  passes to `_tile_data_runtime_update` shows the runtime tint, so WORLD-005 records it inside the
+  callback.
+- **F-11:** `AudioStreamPlayer.stream_paused` is kept only by a live playback and a paused playback
+  reports `playing == false`; with the Dummy driver no playback is live, so the suite checks the
+  suspension mapping and the probe checks live playbacks under a real driver.
+- **F-12:** the test runner previously skipped a test file that failed to parse (0 cases, no
+  failure); it now fails the run.
+
+### Deviations status after this correction
+
+| ID | Status |
+|---|---|
+| D-02 | Closed: three runtime layers approved in ARCHITECTURE §7 |
+| D-05 | Partly closed: recorded intro/greenzone music, six effects, leading-silence offsets, background suspension; synthesized cues still silent (M1 audio pipeline) |
+| D-12 | Closed: Node v24.15.0 pinned, enforced and used for all generated outputs |
+| D-14 | Partly closed: logic at 30/60/90/120 FPS in the suite; rendered presentation by probe (llvmpipe); device rates unverified |
+| D-01, D-03, D-04, D-06–D-11, D-13 | Unchanged |
+| B-03, B-05 | Closed (ARCHITECTURE §7 offset; TEST_PLAN import step) |
+| B-01, B-02, B-04 | Unchanged |
+
+### Architect review result
+
+Pending.
+
+---
+
+## Milestone report: M1 foundation (partial) + M2 Green Zone vertical slice (first submission, `5858dc7`)
+
+**Errata (corrected by the report above; this report is kept as submitted otherwise):**
+- The "Automated cases" list below used plan IDs for partial checks. Of those, AUTO-001, CFG-001,
+  FLOW-004, FLOW-005, GZ-001, GZ-002, GZ-005, GZ-018, GZ-021, GZ-029, AST-001–005/012/016–018/020,
+  AUD-001, ARCH-001, MAP-003b, CAM-004, COLL-005, SAV-021, UI-001 and RNG-002 were not satisfied in
+  full; the current classification is the correction report's and the matrix status section's.
+- AUTO-001 is not claimed: it requires an attack (M3).
+- Captures: 13 scripted/run captures + 4 viewport captures = 17, not "14 + 4".
+- Tooling: the outputs of this submission were generated under Node v24.22.3; they were
+  regenerated under the pinned v24.15.0 by the correction (D-12 closed).
 
 | Field | Value |
 |---|---|

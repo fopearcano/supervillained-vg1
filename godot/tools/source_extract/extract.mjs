@@ -1,18 +1,27 @@
 // SUPERVILLAINED VG1 — source asset/fixture extractor for the Godot port.
 //
-// Run from the repository root (Node 24, Playwright 1.63 Chromium):
+// Run from the repository root with the pinned Node (godot/tools/.node-version) and the
+// package-lock's Playwright Chromium:
 //   node --experimental-transform-types --no-warnings \
 //        --import ./godot/tools/source_extract/register.mjs \
 //        godot/tools/source_extract/extract.mjs [--check]
 //
 // It never modifies the source tree. It:
-//  1. copies the runtime-authoritative files this milestone needs into godot/assets (byte-for-byte),
+//  1. copies the runtime-authoritative files this milestone needs into godot/assets,
 //  2. freezes the source's procedural sprites by executing src/assets/placeholders/*.ts,
 //  3. rasterizes the bitmap font by executing src/ui/pixelFont.ts in Chromium,
-//  4. records reference fixtures produced by the audited TypeScript for the Godot tests,
-//  5. writes godot/data/source_asset_manifest.json (path, SHA-256, size, dimensions, use).
-// Outputs are rewritten only when their bytes change, so a second run produces no diff.
-// --check verifies that every recorded source hash still matches and exits non-zero otherwise.
+//  4. measures the recorded effects' leading silence with the source's own leadingSilence(),
+//  5. records reference fixtures produced by the audited TypeScript for the Godot tests,
+//  6. writes godot/data/source_asset_manifest.json (path, SHA-256, size, dimensions, use).
+//
+// Platform independence: every copied or parsed source file is read from the audited commit's
+// Git blob (`git cat-file blob`), never from the working tree, so a Windows CRLF checkout yields
+// the same bytes and hashes. Generated text is LF-only (see godot/.gitattributes).
+//
+// Outputs are staged in memory. Without --check, files are rewritten only when their bytes change
+// (a second run produces no diff). With --check, everything is regenerated in memory and compared
+// byte-for-byte with the committed files; the process exits non-zero on any difference, on a
+// source-tree change, on a package-lock/Playwright mismatch or on the wrong Node version.
 
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -33,91 +42,86 @@ if (!existsSync(path.join(SRC, 'config.ts')) || !existsSync(path.join(GODOT, 'pr
   process.exit(2);
 }
 
-const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
-let changedOutputs = 0;
-function writeIfChanged(file, data) {
-  const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
-  if (existsSync(file) && readFileSync(file).equals(buf)) return false;
-  mkdirSync(path.dirname(file), { recursive: true });
-  writeFileSync(file, buf);
-  changedOutputs++;
-  return true;
+// One Node version for generation and checks (fixtures embed V8 arithmetic).
+const PINNED_NODE = readFileSync(path.join(GODOT, 'tools/.node-version'), 'utf8').trim();
+if (process.version !== `v${PINNED_NODE}`) {
+  console.error(`Node ${process.version} is not the pinned v${PINNED_NODE} (godot/tools/.node-version); refusing to run.`);
+  process.exit(4);
 }
+
+const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
+const git = (args, opts = {}) => execFileSync('git', args, { cwd: ROOT, maxBuffer: 512 * 1024 * 1024, ...opts });
+/** Bytes of a file exactly as committed in the audited commit (independent of checkout EOLs). */
+const blob = (rel) => git(['cat-file', 'blob', `${AUDITED_COMMIT}:${rel}`]);
+const blobText = (rel) => blob(rel).toString('utf8');
 const stableJson = (v) => JSON.stringify(v, (_k, x) => (typeof x === 'number' && Object.is(x, -0) ? 0 : x), 1) + '\n';
 
-// ---------------------------------------------------------------------------------------------
-// Provenance: the source files must be byte-identical to the audited commit.
-function gitTreeClean() {
-  try {
-    execFileSync('git', ['diff', '--quiet', AUDITED_COMMIT, '--', 'src', 'public', 'assets', 'package.json'], { cwd: ROOT });
-    return true;
-  } catch {
-    return false;
-  }
-}
-const sourceClean = gitTreeClean();
-if (!sourceClean) {
-  console.error(`Source tree differs from audited commit ${AUDITED_COMMIT}; refusing to extract.`);
-  process.exit(3);
+/** Staged outputs: godot-relative path -> Buffer. */
+const outputs = new Map();
+function emit(rel, data) {
+  const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+  if (!Buffer.isBuffer(data) && buf.includes(13)) throw new Error(`generated text ${rel} contains CR`);
+  outputs.set(rel, buf);
+  return buf;
 }
 
 // ---------------------------------------------------------------------------------------------
-// 1. Runtime-authoritative copies (only what this milestone references).
+// Provenance guards: the executed/copied source must equal the audited commit, including the
+// lockfile that pins Playwright (and so the Chromium build that rasterizes the font).
+const GUARDED = ['src', 'public', 'assets', 'package.json', 'package-lock.json'];
+try {
+  git(['diff', '--quiet', AUDITED_COMMIT, '--', ...GUARDED], { stdio: 'ignore' });
+} catch {
+  console.error(`Source tree (${GUARDED.join(', ')}) differs from audited commit ${AUDITED_COMMIT}; refusing to run.`);
+  process.exit(3);
+}
+const lock = JSON.parse(blobText('package-lock.json'));
+const lockedPlaywright = lock.packages?.['node_modules/playwright']?.version;
+const require = createRequire(path.join(ROOT, 'package.json'));
+const playwrightVersion = require('playwright/package.json').version;
+if (!lockedPlaywright || playwrightVersion !== lockedPlaywright) {
+  console.error(`Playwright ${playwrightVersion} does not match package-lock.json (${lockedPlaywright}); run npm ci.`);
+  process.exit(5);
+}
+
+// ---------------------------------------------------------------------------------------------
+// 1. Runtime-authoritative copies (only what this milestone references), from Git blobs.
 const COPIES = [
   { from: 'public/sprites/zampano.png', to: 'assets/sprites/zampano.png', use: 'Zampanò normal 8-direction main sheet (11 actions x 8 dirs, 40x40)' },
   { from: 'public/sprites/zampano-tired.png', to: 'assets/sprites/zampano-tired.png', use: 'Zampanò normal tired sheet (2 frames x 8 dirs)' },
   { from: 'public/sprites/runIcon.png', to: 'assets/sprites/run_icon.png', use: 'RUN button icon' },
   { from: 'public/environment-ink/ch01_greenzone.png', to: 'assets/environment/ch01_greenzone.png', use: 'Color Ink Green Zone environment bank' },
-  { from: 'public/environment-ink/manifest.json', to: 'assets/environment/manifest.json', use: 'Color Ink environment manifest (frames, themes); floorDesigns ignored for 1:arcade' },
+  { from: 'public/environment-ink/manifest.json', to: 'assets/environment/manifest.json', use: 'Color Ink environment manifest (frames, themes, floor designs); kept verbatim (CRLF) for provenance' },
   { from: 'public/icon-192.png', to: 'assets/branding/icon.png', use: 'application icon (launcher art)' },
-  { from: 'src/assets/fonts/OFL.txt', to: 'assets/fonts/OFL.txt', use: 'Press Start 2P license (OFL)' },
+  { from: 'src/assets/fonts/OFL.txt', to: 'assets/fonts/OFL.txt', use: 'Press Start 2P license (OFL), exported with the game' },
+  { from: 'assets/music/intro-music.mp3', to: 'assets/audio/recorded/intro-music.mp3', use: 'reading-screen music (MUSIC_FILES.intro): briefing' },
   { from: 'assets/music/greenzone-music.mp3', to: 'assets/audio/recorded/greenzone-music.mp3', use: 'Green Zone music (MUSIC_FILES.greenzone)' },
   { from: 'assets/sounds/dog-bark.mp3', to: 'assets/audio/recorded/dog-bark.mp3', use: 'SOUND_FILES.bark' },
   { from: 'assets/sounds/food-collect.mp3', to: 'assets/audio/recorded/food-collect.mp3', use: 'SOUND_FILES.treat' },
   { from: 'assets/sounds/poos.mp3', to: 'assets/audio/recorded/poos.mp3', use: 'SOUND_FILES.poop' },
   { from: 'assets/sounds/pees-drop.mp3', to: 'assets/audio/recorded/pees-drop.mp3', use: 'SOUND_FILES.pee' },
-  { from: 'assets/sounds/pees-collect.wav', to: 'assets/audio/recorded/pees-collect.wav', use: 'SOUND_FILES.drink' },
+  { from: 'assets/sounds/pees-collect.wav', to: 'assets/audio/recorded/pees-collect.wav', use: 'SOUND_FILES.drink (imported as lossless PCM)' },
   { from: 'assets/sounds/water.mp3', to: 'assets/audio/recorded/water.mp3', use: 'SOUND_FILES.splash' },
 ];
 const INPUTS_ONLY = [
   { from: 'src/assets/fonts/PressStart2P.woff2', use: 'converter input for the bitmap font (not exported)' },
   { from: 'src/ui/pixelFont.ts', use: 'bitmap font rasterization contract (executed in Chromium)' },
+  { from: 'src/core/audio.ts', use: 'leadingSilence() executed in Chromium for the SFX start offsets' },
   { from: 'src/assets/placeholders/items.ts', use: 'procedural item/HUD sprite generators (executed)' },
   { from: 'src/assets/placeholders/critters.ts', use: 'procedural shadow generator (executed)' },
+  { from: 'package-lock.json', use: 'pins Playwright (Chromium build used for the font and audio decoding)' },
 ];
 
-const manifestPath = path.join(GODOT, 'data', 'source_asset_manifest.json');
-if (CHECK) {
-  const m = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  let bad = 0;
-  for (const e of [...m.copies, ...m.inputs]) {
-    const h = sha256(readFileSync(path.join(ROOT, e.source)));
-    if (h !== e.sha256) {
-      console.error(`CHANGED ${e.source}: ${h} != recorded ${e.sha256}`);
-      bad++;
-    }
-    if (e.target) {
-      const t = sha256(readFileSync(path.join(GODOT, e.target)));
-      if (t !== e.sha256) {
-        console.error(`TARGET DIFFERS ${e.target}`);
-        bad++;
-      }
-    }
-  }
-  console.log(bad ? `asset check FAILED (${bad})` : `asset check OK (${m.copies.length} copies, ${m.inputs.length} inputs)`);
-  process.exit(bad ? 1 : 0);
-}
-
+const manifestRel = 'data/source_asset_manifest.json';
 const manifest = { audited_commit: AUDITED_COMMIT, generated_by: 'godot/tools/source_extract/extract.mjs', copies: [], inputs: [], generated: [] };
 for (const c of COPIES) {
-  const buf = readFileSync(path.join(ROOT, c.from));
-  writeIfChanged(path.join(GODOT, c.to), buf);
-  const entry = { source: c.from, target: c.to, sha256: sha256(buf), bytes: buf.length, use: c.use, provenance: 'repository file at audited commit; distribution rights to be recorded by owner (REL-001)' };
+  const buf = emit(c.to, blob(c.from));
+  const entry = { source: c.from, target: c.to, sha256: sha256(buf), bytes: buf.length, use: c.use, provenance: 'Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)' };
   if (c.from.endsWith('.png')) Object.assign(entry, pngSize(buf));
   manifest.copies.push(entry);
 }
 for (const c of INPUTS_ONLY) {
-  const buf = readFileSync(path.join(ROOT, c.from));
+  const buf = blob(c.from);
   manifest.inputs.push({ source: c.from, sha256: sha256(buf), bytes: buf.length, use: c.use });
 }
 
@@ -152,7 +156,7 @@ for (const [key, draws] of frozen) {
   });
   const png = encodePng(w, h, out);
   const target = `assets/generated/sprites/${key}.png`;
-  writeIfChanged(path.join(GODOT, target), png);
+  emit(target, png);
   manifest.generated.push({ key, target, sha256: sha256(png), w, h, frame_w: def.w, frame_h: def.h, variants: bufs.length, anchor_x: def.anchorX, anchor_y: def.anchorY, recipe: `src/assets/placeholders/${key === 'shadow' || key === 'shadowSmall' ? 'critters.ts drawShadow' : 'items.ts'}` });
 }
 
@@ -173,18 +177,21 @@ for (const [key, draws] of frozen) {
     anim_order: Object.keys(def.anims),
     anims: def.anims,
   };
-  writeIfChanged(path.join(GODOT, 'data/characters/zampano_sheet.json'), stableJson(layout));
+  emit('data/characters/zampano_sheet.json', stableJson(layout));
   // Environment frames used by this milestone, with the manifest's exact geometry.
-  const env = JSON.parse(readFileSync(path.join(ROOT, 'public/environment-ink/manifest.json'), 'utf8')).zones.ch01_greenzone;
-  writeIfChanged(path.join(GODOT, 'data/environment/ch01_greenzone_frames.json'), stableJson({ audited_commit: AUDITED_COMMIT, source: 'public/environment-ink/manifest.json zones.ch01_greenzone', image: 'res://assets/environment/ch01_greenzone.png', frames: env.frames, palette: env.palette, sprite_variants: manifestTs.SPRITES }));
+  const envManifest = JSON.parse(blobText('public/environment-ink/manifest.json'));
+  const env = envManifest.zones.ch01_greenzone;
+  emit('data/environment/ch01_greenzone_frames.json', stableJson({ audited_commit: AUDITED_COMMIT, source: 'public/environment-ink/manifest.json zones.ch01_greenzone', image: 'res://assets/environment/ch01_greenzone.png', frames: env.frames, palette: env.palette, sprite_variants: manifestTs.SPRITES }));
+  // The obsolete 1:arcade composition, kept only as MAP-006/AST-014 test data (never applied to 1.0).
+  const arcade = envManifest.floorDesigns['1:arcade'];
+  emit('tests/fixtures/floor_design_1_arcade.json', stableJson({ audited_commit: AUDITED_COMMIT, key: '1:arcade', chapter_themes: envManifest.chapterThemes['1'], ...arcade }));
 }
 
 // ---------------------------------------------------------------------------------------------
 // 3. Bitmap font: execute src/ui/pixelFont.ts in Chromium with the bundled WOFF2.
-const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
-const fontTs = readFileSync(path.join(SRC, 'ui/pixelFont.ts'), 'utf8');
-const woff2 = readFileSync(path.join(SRC, 'assets/fonts/PressStart2P.woff2'));
+const fontTs = blobText('src/ui/pixelFont.ts');
+const woff2 = blob('src/assets/fonts/PressStart2P.woff2');
 let fontJs = nodeModule.stripTypeScriptTypes(fontTs, { mode: 'strip' });
 const importLine = /import fontUrl from '..\/assets\/fonts\/PressStart2P\.woff2\?url';/;
 if (!importLine.test(fontJs)) throw new Error('pixelFont.ts import line changed; review the extractor');
@@ -197,11 +204,36 @@ await page.setContent('<!doctype html><html><body></body></html>');
 await page.addScriptTag({ type: 'module', content: fontJs });
 await page.waitForFunction(() => window.__fontResult !== undefined);
 const font = await page.evaluate(() => window.__fontResult);
+// Leading silence of every recorded effect, with the source's leadingSilence() and TRIM_LEVEL,
+// decoded by Chromium's WebAudio at 48 kHz (the usual Android output rate) and at 44.1 kHz.
+const audioTs = blobText('src/core/audio.ts');
+const silenceSrc = audioTs.match(/function leadingSilence\(buffer: AudioBuffer\): number \{[\s\S]*?\n\}/);
+if (!silenceSrc) throw new Error('leadingSilence() not found in src/core/audio.ts; review the extractor');
+const configTsForTrim = await import(path.join(SRC, 'config.ts'));
+const SFX_FILES = { bark: 'assets/sounds/dog-bark.mp3', treat: 'assets/sounds/food-collect.mp3', poop: 'assets/sounds/poos.mp3', pee: 'assets/sounds/pees-drop.mp3', drink: 'assets/sounds/pees-collect.wav', splash: 'assets/sounds/water.mp3' };
+const sfxPayload = Object.fromEntries(Object.entries(SFX_FILES).map(([k, rel]) => [k, blob(rel).toString('base64')]));
+const silenceJs = nodeModule.stripTypeScriptTypes(silenceSrc[0], { mode: 'strip' });
+const offsets = await page.evaluate(async ({ files, fnSrc, trim }) => {
+  const AUDIO = { TRIM_LEVEL: trim };
+  const leadingSilence = new Function('AUDIO', `${fnSrc}; return leadingSilence;`)(AUDIO);
+  const out = {};
+  for (const [name, b64] of Object.entries(files)) {
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    out[name] = {};
+    for (const rate of [48000, 44100]) {
+      const ctx = new OfflineAudioContext(1, 1, rate);
+      const buffer = await ctx.decodeAudioData(bytes.slice().buffer);
+      out[name][rate] = { offset: leadingSilence(buffer), duration: buffer.duration };
+    }
+  }
+  return out;
+}, { files: sfxPayload, fnSrc: silenceJs, trim: configTsForTrim.AUDIO.TRIM_LEVEL });
 await browser.close();
+emit('data/audio/sfx_leading_silence.json', stableJson({ audited_commit: AUDITED_COMMIT, recipe: 'src/core/audio.ts leadingSilence() in Chromium WebAudio', trim_level: configTsForTrim.AUDIO.TRIM_LEVEL, runtime_rate: 48000, chromium: browserVersion, files: SFX_FILES, offsets }));
 if (!font.loaded) throw new Error('Press Start 2P failed to load in Chromium; refusing to emit a fallback font');
 const fontRgba = Uint8Array.from(font.rgba);
 const fontPng = encodePng(font.w, font.h, fontRgba);
-writeIfChanged(path.join(GODOT, 'assets/fonts/pixel_font.png'), fontPng);
+emit('assets/fonts/pixel_font.png', fontPng);
 // BMFont text descriptor: monospace 8 px advance, union cell height, baseline at the cell bottom.
 const glyphs = [];
 for (let code = 32; code <= 126; code++) glyphs.push({ id: code, x: (code - 32) * font.advance });
@@ -216,7 +248,7 @@ const fnt = [
   ...glyphs.map((g) => `char id=${g.id} x=${g.x} y=0 width=${font.advance} height=${font.cellH} xoffset=0 yoffset=0 xadvance=${font.advance} page=0 chnl=15`),
   '',
 ].join('\n');
-writeIfChanged(path.join(GODOT, 'assets/fonts/pixel_font.fnt'), fnt);
+emit('assets/fonts/pixel_font.fnt', fnt);
 const glyphHashes = {};
 for (let code = 32; code <= 126; code++) {
   const x0 = (code - 32) * font.advance;
@@ -525,8 +557,99 @@ fx.scoring = {
   fx.exit_run = { start: [m.exit.x + 1.2, m.exit.y + 1.2], ticks: tick2, state: rules.state, player: [player.gx, player.gy, player.state], log };
 }
 
-writeIfChanged(path.join(GODOT, 'tests/fixtures/source_reference.json'), stableJson(fx));
-writeIfChanged(path.join(GODOT, 'tests/fixtures/source_font_glyphs.json'), stableJson({ audited_commit: AUDITED_COMMIT, chromium: browserVersion, advance: font.advance, cell_h: font.cellH, glyph_alpha_sha256_16: glyphHashes }));
-manifest.toolchain = { node: process.version, playwright: require('playwright/package.json').version, chromium: browserVersion, pinned_node: readFileSync(path.join(GODOT, 'tools/.node-version'), 'utf8').trim() };
-writeIfChanged(manifestPath, stableJson(manifest));
-console.log(`extract done: ${manifest.copies.length} copies, ${manifest.generated.length} generated, fixtures written; ${changedOutputs} file(s) changed`);
+
+// MOVE-005: external push (a magnet-like pull applied every tick) and knockback decay.
+{
+  const z = new Zampano(map.start.x, map.start.y);
+  z.face('N');
+  const trace = [];
+  for (let k = 0; k < 150; k++) {
+    if (k < 90) { z.pushX = 1.6; z.pushY = -0.4; }
+    if (k === 60) z.knockback(-1, 0.3, 7);
+    z.setIntent(k < 120 ? 0.3 : 0, k < 120 ? -0.6 : 0, false);
+    z.updateMovement(DT, map);
+    if (k % 5 === 4) trace.push({ k, gx: z.gx, gy: z.gy, vx: z.vx, vy: z.vy, knockX: z.knockX, knockY: z.knockY, facing: z.facing, state: z.state });
+  }
+  fx.zampano.push_knock = trace;
+}
+// DOG-002: the rest sequence restarts after an action (sit at 3 s, a pee at 5 s, stand again).
+{
+  const z = new Zampano(map.start.x, map.start.y);
+  z.face('N');
+  const trace = [];
+  for (let k = 0; k < 720; k++) {
+    if (k === 300) z.startAction('pee', config.BLADDER.PEE_TIME);
+    z.setIntent(0, 0, false);
+    z.updateMovement(DT, map);
+    if (k % 10 === 9) trace.push({ k, anim: z.animator.anim, state: z.state, speed: z.animator.speed });
+  }
+  fx.zampano.idle_after_action = trace;
+}
+
+/** A Rules run driven by a per-tick script; records every tick's state and the event log. */
+function rulesScenario(script, ticks) {
+  const m = new GameMap(level);
+  const player = new Zampano(m.start.x, m.start.y);
+  player.face('N');
+  const events = new Emitter();
+  const log = [];
+  let tick = 0;
+  for (const ev of ['treat', 'poop', 'pee', 'peeEmpty', 'drink', 'splash', 'digestWarning', 'lifeLost', 'gameOver', 'levelComplete', 'poopCleaned']) events.on(ev, () => log.push([tick, ev]));
+  const rules = new Rules({ map: m, player, events, addEntity() {}, removeEntity() {} }, LEVEL_1, 2);
+  const treats = rules.treats.map((t) => [t.gx, t.gy]);
+  const fountain = m.props.find((p) => p.kind === 'fountain');
+  const pending = new Set();
+  const input = { move: { x: 0, y: 0 }, runHeld: false, consume: (a) => pending.delete(a) };
+  const ctx = { m, player, rules, treats, fountain, pending };
+  const trace = [];
+  for (tick = 0; tick < ticks; tick++) {
+    script(tick, ctx);
+    rules.update(DT, input);
+    trace.push([tick, player.state, +player.stateDuration.toFixed(6), rules.poopWarning, rules.digestion.due, rules.stats.poops, rules.stats.pees, rules.stats.treats, rules.bladder.charges, rules.stats.lives, rules.state]);
+  }
+  return { trace, events: log, treats: treats.slice(0, 5), fountain: [fountain.x, fountain.y], exit: [m.exit.x, m.exit.y] };
+}
+// DOG-004: the poop falls due while he pees; it waits for the end of the action.
+fx.rules_busy = rulesScenario((t, c) => {
+  if (t === 10 || t === 20 || t === 30 || t === 40) c.player.setPosition(...c.treats[(t / 10) - 1]);
+  if (t === 215) c.pending.add('pee');
+}, 330);
+// DOG-005: overlapping requests (bark, pee, treat, starvation, drink, exit) resolve like the source.
+fx.rules_overlap = rulesScenario((t, c) => {
+  if (t === 5) c.player.startAction('bark', config.BARK.ANIM_TIME);
+  if (t === 8 || t === 40 || t === 50 || t === 125 || t === 170) c.pending.add('pee');
+  if (t === 52) c.player.setPosition(...c.treats[0]);
+  if (t === 120) c.rules.hunger.value = 0.001;
+  if (t === 150) c.player.setPosition(c.fountain.x + 0.9, c.fountain.y);
+  if (t === 230) c.player.setPosition(c.m.exit.x + 0.3, c.m.exit.y + 0.3);
+}, 260);
+
+emit('tests/fixtures/source_reference.json', stableJson(fx));
+emit('tests/fixtures/source_font_glyphs.json', stableJson({ audited_commit: AUDITED_COMMIT, chromium: browserVersion, advance: font.advance, cell_h: font.cellH, glyph_alpha_sha256_16: glyphHashes }));
+manifest.toolchain = { node: process.version, pinned_node: PINNED_NODE, playwright: playwrightVersion, chromium: browserVersion };
+// Every other generated output, so tests and --check can verify them by hash.
+manifest.outputs = [...outputs.entries()].filter(([rel]) => !manifest.copies.some((c) => c.target === rel)).map(([rel, buf]) => ({ target: rel, sha256: sha256(buf), bytes: buf.length })).sort((a, b) => (a.target < b.target ? -1 : 1));
+emit(manifestRel, stableJson(manifest));
+
+// ---------------------------------------------------------------------------------------------
+// Finalize: compare (--check) or write the files whose bytes changed.
+let differences = 0;
+let written = 0;
+for (const [rel, buf] of [...outputs.entries()].sort()) {
+  const file = path.join(GODOT, rel);
+  const same = existsSync(file) && readFileSync(file).equals(buf);
+  if (same) continue;
+  if (CHECK) {
+    console.error(`${existsSync(file) ? 'DIFFERS' : 'MISSING'} godot/${rel}`);
+    differences++;
+  } else {
+    mkdirSync(path.dirname(file), { recursive: true });
+    writeFileSync(file, buf);
+    written++;
+  }
+}
+if (CHECK) {
+  console.log(differences ? `asset check FAILED: ${differences} of ${outputs.size} output(s) differ` : `asset check OK: ${outputs.size} outputs identical (${manifest.copies.length} copies), Node ${process.version}, Playwright ${playwrightVersion}, Chromium ${browserVersion}`);
+  process.exit(differences ? 1 : 0);
+}
+console.log(`extract done: ${outputs.size} outputs (${manifest.copies.length} copies); ${written} file(s) changed`);

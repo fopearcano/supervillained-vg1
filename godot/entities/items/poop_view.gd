@@ -21,7 +21,8 @@ func setup(catalog: SpriteCatalog, p_model: PoopPileModel) -> PoopView:
 	iso.gy = model.gy
 	iso.depth_bias = -0.3
 	iso.bounds = Rect2(-5, -9, 10, 10)
-	position = IsoGrid.grid_to_screen(model.gx, model.gy)
+	var at := IsoGrid.grid_to_screen_xy(model.gx, model.gy)
+	position = Vector2(JsMath.round(at[0]), JsMath.round(at[1]))
 	visible = false
 	return self
 

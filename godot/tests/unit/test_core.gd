@@ -3,7 +3,7 @@ extends TestCase
 ## fixtures produced by the audited TypeScript (tests/fixtures/source_reference.json).
 
 
-func test_CFG_001_config_matches_source() -> void:
+func test_SLICE_config_matches_source() -> void:
 	var src: Dictionary = fixture()["config"]
 	var groups := GameConfig.groups()
 	for g: String in groups:
@@ -22,7 +22,7 @@ func test_CFG_001_config_matches_source() -> void:
 	assert_true(values_equal(GameConfig.Audio.FILE_GAIN, audio["FILE_GAIN"]), "AUDIO.FILE_GAIN")
 
 
-func test_CORE_002_physics_tick_is_60hz() -> void:
+func test_P_CORE_002_settings_and_tick_accumulator() -> void:
 	assert_eq(ProjectSettings.get_setting("physics/common/physics_ticks_per_second"), 60, "physics ticks")
 	assert_true(ProjectSettings.get_setting("physics/common/physics_interpolation"), "physics interpolation on")
 	var t := 0.0
@@ -45,7 +45,7 @@ func test_RNG_001_mulberry32_sequences() -> void:
 				break
 
 
-func test_RNG_002_int_range_reproduces() -> void:
+func test_P_RNG_002_int_range_reproduces() -> void:
 	var ints: Dictionary = fixture()["rng"]["ints"]
 	for seed_key: String in ints:
 		var r := DeterministicRng.new(int(seed_key))
@@ -142,17 +142,37 @@ func test_VIEW_001_viewport_matches_source() -> void:
 		assert_near(v["cssHeight"], e["cssHeight"], 1e-9, "cssHeight")
 
 
-func test_VIEW_002_bounds_and_integer_scale() -> void:
-	for w in range(240, 2600, 97):
-		for h in range(400, 3000, 131):
-			var v := PixelViewportController.compute_viewport(w, h, 1.0)
-			var width: int = v["width"]
-			var height: int = v["height"]
-			if float(w) / h >= 0.42 * 192.0 / 192.0 and w >= 192:
-				assert_true(width >= 1 and width <= GameConfig.Display.MAX_WIDTH, "width %d for %dx%d" % [width, w, h])
-			assert_true(typeof(v["scale"]) == TYPE_INT and v["scale"] >= 1, "integer scale")
-			var aspect := float(width) / height
-			assert_true(aspect <= GameConfig.Display.MAX_ASPECT + 0.02, "aspect %.3f too wide (%dx%d)" % [aspect, w, h])
+## VIEW-002 says the logical width is always 192..270. The SOURCE computeViewport (ported exactly,
+## VIEW-001) breaks that for constrained areas 271..383 device px wide: scale 1 gives > 270, so it
+## steps to scale 2 and floor(area/2) = 135..191. Parity is kept; the band is asserted as the
+## source's behaviour and reported as finding F-09.
+func test_P_VIEW_002_bounds_aspect_and_integer_scale() -> void:
+	var checked := 0
+	var band := 0
+	for dpr in [1.0, 1.5, 2.0, 2.625, 3.0]:
+		for w in range(200, 2600, 97):
+			for h in range(320, 3000, 131):
+				var v := PixelViewportController.compute_viewport(w / dpr, h / dpr, dpr)
+				var width: int = v["width"]
+				var height: int = v["height"]
+				assert_true(typeof(v["scale"]) == TYPE_INT and v["scale"] >= 1, "integer scale")
+				# Whenever the constrained area is at least MIN_WIDTH device px wide the logical width
+				# lands in 192..270 and the aspect in 0.42..0.62 (floors cost at most one pixel).
+				var dev_w := int(floor(float(w / dpr) * dpr))
+				var dev_h := int(floor(float(h / dpr) * dpr))
+				var area_w := mini(dev_w, int(floor(dev_h * GameConfig.Display.MAX_ASPECT)))
+				if area_w < GameConfig.Display.MIN_WIDTH:
+					continue
+				if area_w > GameConfig.Display.MAX_WIDTH and area_w < 2 * GameConfig.Display.MIN_WIDTH:
+					band += 1
+					assert_eq(v["scale"], 2, "source band scale for area %d" % area_w)
+					assert_eq(width, area_w / 2, "source band width for area %d" % area_w)
+					continue
+				checked += 1
+				assert_true(width >= GameConfig.Display.MIN_WIDTH and width <= GameConfig.Display.MAX_WIDTH, "width %d for %dx%d@%s" % [width, w, h, dpr])
+				var aspect := float(width) / height
+				assert_true(aspect >= GameConfig.Display.MIN_ASPECT - 0.01 and aspect <= GameConfig.Display.MAX_ASPECT + 0.01, "aspect %.4f for %dx%d@%s" % [aspect, w, h, dpr])
+	assert_true(checked > 500 and band > 0, "enough constrained cases (%d) and band cases (%d)" % [checked, band])
 
 
 func test_DEPTH_001_sort_order_matches_source() -> void:
@@ -171,7 +191,7 @@ func test_DEPTH_001_sort_order_matches_source() -> void:
 	assert_eq(ids, (data["sorted_ids"] as Array).map(func(x: float) -> int: return int(x)), "sorted ids")
 
 
-func test_DEPTH_002_stable_across_frames() -> void:
+func test_DEPTH_002_stable_across_frames_and_remove_readd() -> void:
 	var items: Array[IsoRenderable] = []
 	for k in 50:
 		var r := IsoRenderable.new()
@@ -186,14 +206,31 @@ func test_DEPTH_002_stable_across_frames() -> void:
 		if items.map(func(r: IsoRenderable) -> int: return r.id) != first:
 			fail("order changed at frame %d" % frame)
 			return
+	# Remove and re-add objects with their ids: the order is the same total order again.
+	var removed: Array[IsoRenderable] = []
+	for k in range(0, 50, 3):
+		removed.append(items[k])
+	for r in removed:
+		items.erase(r)
+	IsoDepthSorter.sort(items)
+	var without := first.filter(func(id: int) -> bool: return not removed.any(func(r: IsoRenderable) -> bool: return r.id == id))
+	assert_eq(items.map(func(r: IsoRenderable) -> int: return r.id), without, "order without the removed objects")
+	items.append_array(removed)
+	items.shuffle()
+	IsoDepthSorter.sort(items)
+	assert_eq(items.map(func(r: IsoRenderable) -> int: return r.id), first, "order restored after re-adding")
 
 
-func test_GZ_018_scoring_matches_source() -> void:
+func test_GZ_019_020_half_stars_and_pee_deficit_penalty() -> void:
 	var s: Dictionary = fixture()["scoring"]
 	for row: Array in s["stars"]:
 		assert_eq(ScoringRules.stars_from_health(row[0]), row[1], "stars(%s)" % row[0])
 	for row: Array in s["final_health"]:
 		assert_near(ScoringRules.final_health(row[0], int(row[1]), int(row[2])), row[3], 1e-12, "finalHealth%s" % [row])
+
+
+func test_P_GZ_021_score_components_time_bonus_and_formats() -> void:
+	var s: Dictionary = fixture()["scoring"]
 	for row: Array in s["time_bonus"]:
 		assert_eq(ScoringRules.time_bonus(row[0], row[1]), row[2], "timeBonus%s" % [row])
 	for row: Array in s["star_bonus"]:
@@ -204,13 +241,40 @@ func test_GZ_018_scoring_matches_source() -> void:
 		assert_eq(ScoringRules.format_score(row[0]), row[1], "formatScore")
 
 
-func test_GZ_024_lives_clamp_and_speed() -> void:
+func test_GZ_024_lives_clamp_2_to_9() -> void:
 	for row: Array in fixture()["zampano"]["speed_mul"]["lives"]:
 		var n: float = NAN if row[0] is String else float(row[0])
 		assert_eq(LivesRules.clamp_lives(n), row[1], "clampLives(%s)" % row[0])
-		assert_near(LivesRules.lives_speed(n), row[2], 1e-12, "livesSpeed(%s)" % row[0])
 	assert_eq(LivesRules.next_lives(9), 2, "wraps after MAX")
 	assert_eq(LivesRules.next_lives(2), 3, "next")
+
+
+func test_P_GZ_025_speed_for_lives_factor() -> void:
+	for row: Array in fixture()["zampano"]["speed_mul"]["lives"]:
+		var n: float = NAN if row[0] is String else float(row[0])
+		assert_near(LivesRules.lives_speed(n), row[2], 1e-12, "livesSpeed(%s)" % row[0])
+
+
+func test_CAM_003_sway_and_shake_deterministic_and_decay_to_zero() -> void:
+	var a := CameraModel.new()
+	var b := CameraModel.new()
+	for cam in [a, b]:
+		cam.snap_to(0.0, 0.0)
+		cam.shake(GameConfig.Fx.SHAKE_HURT)
+	var max_sway := 0.0
+	var zero_at := -1
+	for k in 240:
+		a.update(1.0 / 60.0, 0.0, 0.0, 0.0, 0.0)
+		b.update(1.0 / 60.0, 0.0, 0.0, 0.0, 0.0)
+		assert_eq([a.shake_x, a.shake_y, a.x, a.y], [b.shake_x, b.shake_y, b.x, b.y], "identical under the same seed (k=%d)" % k)
+		assert_true(absf(a.shake_x) <= GameConfig.Fx.SHAKE_HURT and absf(a.shake_y) <= GameConfig.Fx.SHAKE_HURT, "shake bounded")
+		if zero_at < 0 and a.shake_x == 0.0 and a.shake_y == 0.0:
+			zero_at = k
+		max_sway = maxf(max_sway, maxf(absf(a.x), absf(a.y - GameConfig.Camera.BIAS_Y)))
+	# amp·e^(−9t) < 0.05 after ln(4/0.05)/9 ≈ 0.49 s ≈ 30 ticks; then exactly zero for good.
+	assert_true(zero_at > 0 and zero_at <= 32, "shake reaches exactly zero (%d)" % zero_at)
+	assert_eq([a.shake_x, a.shake_y], [0.0, 0.0], "stays zero")
+	assert_true(max_sway <= GameConfig.Camera.SWAY_AMPLITUDE + 1e-9, "sway within ±amplitude (%.4f)" % max_sway)
 
 
 func test_CAM_001_follow_lookahead_matches_source() -> void:

@@ -13,6 +13,9 @@ var source_id := 0
 var tiles: Array[Vector2i] = []
 var alpha_by_cell: Dictionary = {}
 var notifications := 0
+## Diagnostics: modulate received by the engine-supplied runtime TileData per cell (WORLD-005).
+var applied: Dictionary = {}
+var callback_calls := 0
 
 
 func apply_changes(model: WorldMapModel, changed: Array) -> bool:
@@ -55,4 +58,6 @@ func _use_tile_data_runtime_update(coords: Vector2i) -> bool:
 
 
 func _tile_data_runtime_update(coords: Vector2i, tile_data: TileData) -> void:
+	callback_calls += 1
 	tile_data.modulate = Color(1, 1, 1, alpha_by_cell.get(coords, 1.0))
+	applied[coords] = tile_data.modulate

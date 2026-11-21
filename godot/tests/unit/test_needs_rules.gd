@@ -21,7 +21,7 @@ class FakeInput:
 		return false
 
 
-func test_GZ_002_needs_script_matches_source() -> void:
+func test_P_GZ_002_needs_script_matches_source() -> void:
 	var h := NeedsSystem.Hunger.new()
 	var d := NeedsSystem.Digestion.new()
 	var b := NeedsSystem.Bladder.new()
@@ -62,7 +62,7 @@ func test_GZ_002_needs_script_matches_source() -> void:
 	assert_eq(idx, expected.size(), "checkpoint count")
 
 
-func test_GZ_005_scripted_green_zone_run_matches_source() -> void:
+func test_SLICE_scripted_rules_run_matches_source() -> void:
 	var fx: Dictionary = fixture()["rules_run"]
 	var def := GreenZoneLevel.definition()
 	var map := GreenZoneLevel.load_model(def)
@@ -147,7 +147,7 @@ func test_GZ_005_scripted_green_zone_run_matches_source() -> void:
 	dog.free()
 
 
-func test_FLOW_004_exit_completes_level_like_source() -> void:
+func test_SLICE_exit_completes_level_like_source() -> void:
 	var fx: Dictionary = fixture()["exit_run"]
 	var def := GreenZoneLevel.definition()
 	var map := GreenZoneLevel.load_model(def)
@@ -169,4 +169,103 @@ func test_FLOW_004_exit_completes_level_like_source() -> void:
 	assert_eq(completed_at[0], fx["log"][0][1], "levelComplete tick")
 	assert_near(dog.gx, fx["player"][0], 1e-9, "gx")
 	assert_eq(dog.state, fx["player"][2], "player state")
+	dog.free()
+
+
+## Replays a source rules scenario (fixture rules_busy / rules_overlap) tick by tick.
+func _scenario(name: String, script: Callable, ticks: int) -> void:
+	var fx: Dictionary = fixture()[name]
+	var def := GreenZoneLevel.definition()
+	var map := GreenZoneLevel.load_model(def)
+	var dog: PlayableDog = DOG.instantiate()
+	dog.set_grid_position(map.start.x, map.start.y)
+	dog.face("N")
+	var rules := GreenZoneRules.new(map, dog, def, 2)
+	var log: Array = []
+	var tick := [0]
+	var rec := func(ev: String) -> Callable:
+		return func(_a = null, _b = null, _c = null, _d = null, _e = null) -> void: log.append([tick[0], ev])
+	rules.treat_eaten.connect(rec.call("treat"))
+	rules.poop_dropped.connect(rec.call("poop"))
+	rules.pee_started.connect(rec.call("pee"))
+	rules.pee_empty.connect(rec.call("peeEmpty"))
+	rules.drank.connect(rec.call("drink"))
+	rules.splashed.connect(rec.call("splash"))
+	rules.digest_warning.connect(rec.call("digestWarning"))
+	rules.life_lost.connect(rec.call("lifeLost"))
+	rules.game_over.connect(rec.call("gameOver"))
+	rules.level_complete.connect(rec.call("levelComplete"))
+	rules.poop_cleaned.connect(rec.call("poopCleaned"))
+	var fountain: WorldMapModel.MapProp = null
+	for p in map.props:
+		if p.kind == "fountain":
+			fountain = p
+			break
+	var ctx := {"map": map, "dog": dog, "rules": rules, "fountain": fountain}
+	var input := FakeInput.new()
+	var expected: Array = fx["trace"]
+	for t in ticks:
+		tick[0] = t
+		script.call(t, ctx, input)
+		rules.update(DT, input)
+		var e: Array = expected[t]
+		var lbl := "%s tick %d" % [name, t]
+		var ok := assert_eq(dog.state, e[1], lbl + " state") and assert_near(dog.state_duration, e[2], 1e-6, lbl + " duration") \
+			and assert_near(rules.poop_warning(), e[3], 1e-9, lbl + " warning") and assert_eq(rules.digestion.due, e[4], lbl + " due") \
+			and assert_eq([rules.stats["poops"], rules.stats["pees"], rules.stats["treats"], rules.bladder.charges, rules.stats["lives"], rules.state],
+				[e[5], e[6], e[7], e[8], e[9], e[10]], lbl + " counters")
+		if not ok:
+			dog.free()
+			return
+	assert_eq(log, (fx["events"] as Array).map(func(x: Array) -> Array: return [int(x[0]), x[1]]), name + " event sequence")
+	dog.free()
+
+
+func test_DOG_004_poop_waits_for_the_busy_action() -> void:
+	_scenario("rules_busy", func(t: int, c: Dictionary, input: FakeInput) -> void:
+		if t in [10, 20, 30, 40]:
+			var tr: Array = c["rules"].treats.filter(func(x: Array) -> bool: return int(x[2]) == t / 10 - 1)[0]
+			c["dog"].set_grid_position(tr[0], tr[1])
+		if t == 215:
+			input.pending["pee"] = true, 330)
+
+
+func test_P_DOG_005_overlapping_actions_resolve_like_source() -> void:
+	var first_treat: Array = []
+	_scenario("rules_overlap", func(t: int, c: Dictionary, input: FakeInput) -> void:
+		var dog: PlayableDog = c["dog"]
+		if t == 0:
+			first_treat.append_array(c["rules"].treats[0])
+		if t == 5:
+			dog.start_action("bark", GameConfig.Bark.ANIM_TIME)
+		if t in [8, 40, 50, 125, 170]:
+			input.pending["pee"] = true
+		if t == 52:
+			dog.set_grid_position(first_treat[0], first_treat[1])
+		if t == 120:
+			c["rules"].hunger.value = 0.001
+		if t == 150:
+			dog.set_grid_position(c["fountain"].x + 0.9, c["fountain"].y)
+		if t == 230:
+			dog.set_grid_position(c["map"].exit.x + 0.3, c["map"].exit.y + 0.3), 260)
+
+
+func test_SLICE_bark_is_gated_like_source_try_bark() -> void:
+	# Source Threats.tryBark: needs the cooldown elapsed and a controllable dog; bark keeps control.
+	var def := GreenZoneLevel.definition()
+	var map := GreenZoneLevel.load_model(def)
+	var dog: PlayableDog = DOG.instantiate()
+	dog.set_grid_position(map.start.x, map.start.y)
+	var rules := GreenZoneRules.new(map, dog, def, 2)
+	var threats := GreenZoneThreats.new(rules)
+	var barks := [0]
+	threats.barked.connect(func(_x: float, _y: float, _d: String) -> void: barks[0] += 1)
+	threats.try_bark()
+	assert_eq([barks[0], dog.state, dog.controllable], [1, "bark", true], "bark starts and keeps control")
+	threats.try_bark()
+	assert_eq(barks[0], 1, "cooldown blocks a second bark")
+	threats.bark_cooldown = 0.0
+	dog.start_action("pee", GameConfig.Bladder.PEE_TIME)
+	threats.try_bark()
+	assert_eq(barks[0], 1, "no bark while a locking action runs")
 	dog.free()

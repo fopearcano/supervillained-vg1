@@ -1,9 +1,17 @@
 extends Node
 ## Music continuity, buses and cue playback (port of the recorded-file half of src/core/audio.ts
-## and src/fx/gameAudio.ts). Synthesized cues are rendered to WAV in a later milestone; until then
-## a synthesized cue name is a silent no-op that is counted in `missing_cues` for review.
+## and src/fx/gameAudio.ts).
+## - Tracks: 'intro' on reading screens (briefing, result card), 'greenzone' during the walk. Each
+##   track resumes where it was left (source setTrack keeps every element's position).
+## - Effects start after their leading silence (source leadingSilence(): first sample above
+##   AUDIO.TRIM_LEVEL minus 10 ms), measured by tools/source_extract at 48 kHz.
+## - In the background everything is suspended (the source suspends its AudioContext) and resumes
+##   on return.
+## Synthesized cues are rendered to WAV in a later milestone; until then a synthesized cue name is
+## a silent no-op counted in `missing_cues`.
 
 const MUSIC := {
+	&"intro": "res://assets/audio/recorded/intro-music.mp3",
 	&"greenzone": "res://assets/audio/recorded/greenzone-music.mp3",
 }
 const SFX := {
@@ -14,16 +22,25 @@ const SFX := {
 	&"drink": "res://assets/audio/recorded/pees-collect.wav",
 	&"splash": "res://assets/audio/recorded/water.mp3",
 }
+const OFFSETS_JSON := "res://data/audio/sfx_leading_silence.json"
 const POOL_SIZE := 8
 
 var missing_cues: Dictionary = {}
 ## Every cue/track requested (tests assert the event->cue mapping through this).
 var requested: Dictionary = {}
+## Effects actually started: [[cue, offset, started_suspended], ...] (tests/diagnostics).
+var started: Array = []
 ## False with the Dummy driver (headless, no sound card): requests are recorded, nothing plays,
 ## so no playback object is left unmixed at exit.
 var output_available := true
+## The track that should be playing ("" = none) and every track's resume position (seconds).
+var current_track: StringName = &""
+var track_positions: Dictionary = {}
+var suspended := false
+## Seconds of leading silence skipped per effect.
+var offsets: Dictionary = {}
+
 var _music: AudioStreamPlayer
-var _music_track: StringName = &""
 var _pool: Array[AudioStreamPlayer] = []
 var _next := 0
 var _streams: Dictionary = {}
@@ -41,6 +58,11 @@ func _ready() -> void:
 		p.bus = &"SFX"
 		add_child(p)
 		_pool.append(p)
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(OFFSETS_JSON))
+	if parsed is Dictionary:
+		var rate := str(int(parsed["runtime_rate"]))
+		for cue: String in parsed["offsets"]:
+			offsets[StringName(cue)] = float(parsed["offsets"][cue][rate]["offset"])
 
 
 func apply_settings(muted: bool, volume: float) -> void:
@@ -55,31 +77,40 @@ func _stream(path: String) -> AudioStream:
 	return _streams[path]
 
 
+func _music_db() -> float:
+	return linear_to_db(maxf(GameConfig.Audio.MUSIC_FILE_VOLUME * _duck, 0.0001))
+
+
+## Switches the music; the previous track keeps its position, the new one resumes from its own.
 func play_music(track: StringName) -> void:
 	requested[track] = int(requested.get(track, 0)) + 1
-	if track == _music_track and (_music.playing or not output_available):
+	if track == current_track:
 		return
-	_music_track = track
+	if current_track != &"" and output_available and _music.playing:
+		track_positions[current_track] = _music.get_playback_position()
+	current_track = track
 	if not output_available:
 		return
 	var stream := _stream(MUSIC[track])
 	if stream is AudioStreamMP3:
 		(stream as AudioStreamMP3).loop = true
 	_music.stream = stream
-	_music.volume_db = linear_to_db(GameConfig.Audio.MUSIC_FILE_VOLUME * _duck)
-	_music.play()
+	_music.volume_db = _music_db()
+	_music.play(float(track_positions.get(track, 0.0)))
+	_music.stream_paused = suspended
 
 
 func stop_music() -> void:
+	if current_track != &"" and output_available and _music.playing:
+		track_positions[current_track] = _music.get_playback_position()
 	_music.stop()
-	_music_track = &""
+	current_track = &""
 
 
 ## Ducking factor applied to the music (pause, level end).
 func set_duck(factor: float) -> void:
 	_duck = factor
-	if _music.playing:
-		_music.volume_db = linear_to_db(maxf(GameConfig.Audio.MUSIC_FILE_VOLUME * _duck, 0.0001))
+	_music.volume_db = _music_db()
 
 
 func play(cue: StringName, volume: float = 1.0, pitch: float = 1.0) -> void:
@@ -87,6 +118,8 @@ func play(cue: StringName, volume: float = 1.0, pitch: float = 1.0) -> void:
 	if not SFX.has(cue):
 		missing_cues[cue] = int(missing_cues.get(cue, 0)) + 1
 		return
+	var offset: float = offsets.get(cue, 0.0)
+	started.append([cue, offset, suspended])
 	if not output_available:
 		return
 	var p := _pool[_next]
@@ -95,22 +128,47 @@ func play(cue: StringName, volume: float = 1.0, pitch: float = 1.0) -> void:
 	var gain: float = GameConfig.Audio.FILE_GAIN.get(String(cue), 1.0)
 	p.volume_db = linear_to_db(GameConfig.Audio.SFX_VOLUME * gain * volume)
 	p.pitch_scale = pitch
-	p.play()
+	p.play(offset)
+	p.stream_paused = suspended
+
+
+## Suspends (true) or resumes (false) every player: music and effects.
+func set_suspended(on: bool) -> void:
+	suspended = on
+	_music.stream_paused = on
+	for p in _pool:
+		p.stream_paused = on
+
+
+func players() -> Array[AudioStreamPlayer]:
+	var out: Array[AudioStreamPlayer] = [_music]
+	out.append_array(_pool)
+	return out
 
 
 func _notification(what: int) -> void:
+	if _music == null:
+		return
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		if _music:
-			_music.stream_paused = true
+		set_suspended(true)
 	elif what == NOTIFICATION_APPLICATION_RESUMED or what == NOTIFICATION_APPLICATION_FOCUS_IN:
-		if _music:
-			_music.stream_paused = false
+		set_suspended(false)
 
 
-## Stops every player (scene teardown, app exit, test runner shutdown).
+## Stops every player and forgets session state (scene teardown, app exit, tests).
 func stop_all() -> void:
 	stop_music()
 	_music.stream = null
 	for p in _pool:
 		p.stop()
 		p.stream = null
+
+
+func reset_for_tests() -> void:
+	stop_all()
+	set_suspended(false)
+	requested.clear()
+	missing_cues.clear()
+	started.clear()
+	track_positions.clear()
+	_duck = 1.0

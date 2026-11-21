@@ -24,6 +24,7 @@ func setup(catalog: SpriteCatalog, sprite_key: String, gx: float, gy: float, p_m
 	iso.gy = gy
 	iso.fadeable = fadeable
 	iso.bounds = Rect2(-anchor.x, -anchor.y, size.x, size.y)
-	position = IsoGrid.grid_to_screen(gx, gy)
+	var at := IsoGrid.grid_to_screen_xy(gx, gy)
+	position = Vector2(JsMath.round(at[0]), JsMath.round(at[1]))
 	visible = false
 	return self

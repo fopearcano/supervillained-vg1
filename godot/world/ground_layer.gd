@@ -11,6 +11,10 @@ const DEAD_GRASS := Color8(0xb0, 0x78, 0x4a)
 var runtime_coords: Dictionary = {}
 var reset_pending: Dictionary = {}
 var notifications := 0
+## Diagnostics: the modulate the ENGINE-supplied runtime TileData received, per cell, and how many
+## times the engine called back (WORLD-005 evidence; not used by the game).
+var applied: Dictionary = {}
+var callback_calls := 0
 
 
 ## Dead-grass tint for a dirt amount: lerp(white, 0xb0784a, min(1, dirt*1.3)) with per-channel
@@ -55,9 +59,11 @@ func _use_tile_data_runtime_update(coords: Vector2i) -> bool:
 
 
 func _tile_data_runtime_update(coords: Vector2i, tile_data: TileData) -> void:
+	callback_calls += 1
 	if runtime_coords.has(coords):
 		tile_data.modulate = runtime_coords[coords]
 	else:
 		tile_data.modulate = Color.WHITE
 		if reset_pending.has(coords):
 			reset_pending[coords] = true
+	applied[coords] = tile_data.modulate

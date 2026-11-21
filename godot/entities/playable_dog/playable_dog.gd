@@ -52,6 +52,9 @@ var anim_dir := "S"
 var anim_speed := 1.0
 var iso := IsoRenderable.new()
 
+## Physics-interpolation resets performed (spawn, teleport, camera snap): DOG-008 evidence.
+var interpolation_resets := 0
+
 ## RUN wanted: false, true (held) or "scripted" (no energy cost).
 var _run_wanted: Variant = false
 var _intent_x := 0.0
@@ -78,8 +81,10 @@ func _ready() -> void:
 	_sync_node()
 	_apply_animation()
 	reset_physics_interpolation()
+	interpolation_resets += 1
 
 
+## Places him (spawn, teleport, restart, stage change): no interpolation from the old position.
 func set_grid_position(x: float, y: float) -> void:
 	gx = x
 	gy = y
@@ -88,6 +93,7 @@ func set_grid_position(x: float, y: float) -> void:
 	if is_inside_tree():
 		_sync_node()
 		reset_physics_interpolation()
+		interpolation_resets += 1
 
 
 ## Screen-space intent (magnitude 0..1) and RUN (true, false or "scripted").
@@ -278,8 +284,11 @@ func _apply_animation() -> void:
 	body_sprite.modulate.a = 0.35 if blink else 1.0
 
 
+## Whole-pixel world position, like the source's Math.round in Entity.sync: every world object
+## sits on integer coordinates so the camera's snapping moves them all alike (no relative shimmer).
 func _sync_node() -> void:
-	position = IsoGrid.grid_to_screen(gx, gy)
+	var s := IsoGrid.grid_to_screen_xy(gx, gy)
+	position = Vector2(JsMath.round(s[0]), JsMath.round(s[1]))
 
 
 ## Screen-space velocity (for the camera look-ahead).

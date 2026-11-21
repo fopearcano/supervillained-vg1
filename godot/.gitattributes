@@ -1,7 +1,33 @@
-# Byte-identical copies of source-repository files: their SHA-256 is asserted by the content tests
-# (AST-001), so git must never normalize line endings or whitespace in them.
+# Line endings are fixed for every file under /godot so a Windows (core.autocrlf=true) checkout
+# produces the same bytes and SHA-256 hashes as Linux: the asset --check, the content tests and
+# Godot's importer all compare exact bytes.
+
+# Text written by the tools, Godot and people: always LF.
+*.gd        text eol=lf
+*.tscn      text eol=lf
+*.tres      text eol=lf
+*.import    text eol=lf
+*.uid       text eol=lf
+*.godot     text eol=lf
+*.cfg       text eol=lf
+*.fnt       text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.mjs       text eol=lf
+*.sh        text eol=lf
+*.ps1       text eol=lf
+.node-version text eol=lf
+.gitignore  text eol=lf
+.gitattributes text eol=lf
+
+# Byte-identical copies of source-repository files (their Git-blob SHA-256 is asserted by the
+# content tests and by the asset --check): never normalised. The environment manifest is CRLF in
+# the audited commit and stays CRLF here.
 assets/environment/manifest.json binary
 assets/fonts/OFL.txt binary
+
+# Media.
 *.png binary
 *.mp3 binary
 *.wav binary
+*.woff2 binary

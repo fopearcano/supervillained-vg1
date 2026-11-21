@@ -41,7 +41,7 @@ static func _ellipse(r: float, cx: float, cy: float) -> PackedVector2Array:
 	return pts
 
 
-func test_COLL_002_native_slide_vs_grid_solver() -> void:
+func test_SLICE_collision_solver_decision_native_vs_grid() -> void:
 	var map := GreenZoneLevel.load_model(GreenZoneLevel.definition())
 	var traces: Array = fixture()["move_circle"]
 	var root := Node2D.new()

@@ -12,52 +12,87 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 
 Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
-## Godot implementation status — M1 (partial) + M2 vertical slice, awaiting architect review
+## Godot implementation status — M1 Partial, M2 Partial, awaiting architect review
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
-Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/`.
-Status: **Slice** = implemented with passing automated evidence; **Partial** = implemented with a listed gap; **Config** = configured, not executed; **—** = not started.
+**M1 is Partial and M2 is Partial**: neither milestone is complete or accepted.
+Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs).
+Row status: **Slice** = the row's listed IDs are satisfied by full suite cases for the current
+slice; **Partial** = implemented with a listed gap or only partial cases; **Config** = configured,
+not executed; **—** = not started.
 
-| Matrix row | Godot status | Evidence | Gap / note |
+Acceptance IDs are claimed only through a `test_<ID>_…` suite case that exercises every clause of the
+ID (TEST_PLAN.md case naming). `test_P_<ID>_…` cases are partial evidence and satisfy nothing;
+`test_SLICE_…` cases check port behaviour that has no plan ID.
+
+**Acceptance IDs satisfied by a full suite case (56), Linux headless, Godot 4.7.2:**
+CORE-002; RNG-001, RNG-003; VIEW-001, VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-006;
+DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001, MAP-002, MAP-004, MAP-005, MAP-006, MAP-007;
+DOG-001–004, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-014; FLOW-001, FLOW-002;
+SAV-001–004, SAV-018, SAV-019, SAV-020, SAV-022.
+
+**Partial evidence only (not satisfied):** ARCH-001 (no real story scene yet), RNG-002, VIEW-002
+(source band 135–191, F-09), VIEW-004 and CAM-004 (headless whole-pixel checks; the rendered
+30/60/90/120 FPS and static-shimmer checks pass in `tools/interpolation_probe.gd`, outside the
+suite), DOG-005 (fetch needs M3 balls), DOG-008 (spawn/teleport/camera-snap resets in the suite and
+the rendered probe; stage change does not exist before M5), MAP-003 (Green Zone + diagnostic maps
+only), COLL-005 (Green Zone only), GZ-001, GZ-002, GZ-021, GZ-025, AST-001–005, AST-012, AST-016,
+AST-017, AST-018, AST-020, AUD-001, SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
+
+**Command-level evidence (no suite case, architect to judge):** CORE-001 (clean-cache import and
+600-frame Main run, Linux); AST-019 (`build_assets.sh --check`: every generated output
+byte-identical; Linux and a simulated CRLF checkout, not a Windows host).
+
+**Not claimed:** AUTO-001 is reserved for the M3 run that includes an attack
+(`test_SLICE_real_input_run_reaches_exit` is the current real-input run); FLOW-003/004, GZ-005 and
+every other ID not listed above.
+
+**Not verified (no device or host here):** everything on Android hardware (export, install, Back,
+immersive, keep-awake, display cutout safe area, touch hardware, audio focus, performance) and
+every Windows-host command (asset `--check` and the `_console.exe` suite are documented but were not
+executed on Windows).
+
+| Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Slice | CORE-001 clean-cache import, 600-frame main-loop run, source-tree guard | — |
-| Fixed 60 Hz game rules | Slice | CORE-002; scene tick in source order | — |
-| Adaptive pixel-perfect viewport | Slice | VIEW-001/002; captures at 192/216/270 logical widths | VIEW-003/004 safe-area and multi-rate checks pending (D-14) |
-| Portrait / Back / immersive / keep-awake | Config | project settings, `export_presets.cfg`, Back/background pause handlers | no device (B-04) |
+| Godot project isolated under `/godot` | Partial | CORE-001 command evidence; source-tree guard | Windows host unverified |
+| Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
+| Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-003; P: VIEW-002, VIEW-004; underlay/letterbox SLICE case; 4 viewport captures | VIEW-002 band (F-09); device safe area unverified |
+| Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | no device (B-04) |
 | Native Android build | — | — | no templates/SDK/device here (B-04) |
 | 2:1 projection | Slice | ISO-001–004 | 64-bit math (F-03) |
 | Screen-space movement semantics | Slice | ISO-004, MOVE-001 | — |
 | Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
-| Walk/run/terrain speed | Slice | MOVE-003/004 vs real source `Zampano` (≤1e-9 tile) | — |
-| Collision and sliding | Slice | COLL-001/002/004/006; decision test (GridKinematicSolver selected) | native slide rejected, see log |
-| Shared Green Zone/story world | Slice | ARCH-001, ARCH-001b (dummy story map) | — |
-| Camera lag/look-ahead/sway/shake/clamp | Slice | CAM-001/002/004 | shake noise seeded (D-04) |
-| Stable depth sorting | Slice | DEPTH-001/002 | — |
+| Walk/run/terrain speed | Slice | MOVE-003, MOVE-004, MOVE-005 | — |
+| Collision and sliding | Slice | COLL-001–004, COLL-006; P: COLL-005; SLICE solver decision | GridKinematicSolver (native slide rejected) |
+| Shared Green Zone/story world | Partial | P: ARCH-001 (dummy story map) | real story scene M5 |
+| Camera lag/look-ahead/sway/shake/clamp | Slice | CAM-001–003; CAM-004 partial (see above) | shake noise seeded (D-04) |
+| Stable depth sorting | Slice | DEPTH-001–003 | — |
 | Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |
-| Animated terrain and pollution presentation | Slice | WORLD-004/005, captures 10/11 | three runtime layers (D-02) |
-| ASCII maps and markers | Slice | MAP-001/002/004/005/007, MAP-003b | TileMap offset contract corrected (F-01) |
-| Zampanò state controller | Partial | DOG-001/002/003/007 | fetch/hurt states present but unexercised until M3 |
-| Zampanò normal art | Slice | AST-002/003/004/005 | — |
-| Redesigned 96×96 park/topology | Slice | MAP-007 (rows, props, BFS identical) | — |
-| Hunger | Slice | GZ-002, GZ-005 | — |
-| Digestion and poop warning | Slice | GZ-005 | warning bubble simplified (D-07) |
-| Surface-dependent pollution | Slice | GZ-008, GZ-005 | — |
-| Bladder and pee | Slice | GZ-005, captures 06/11 | — |
-| Marking | Partial | ported rule; MARK paths not yet fixture-covered | — |
-| Zone health and half-stars | Slice | GZ-018–020 | — |
-| Score/time/records | Slice | GZ-021, SAV-004, AUTO-001 | — |
-| Lives for speed | Partial | GZ-024; speed applied from settings | title counter UI is M4 |
+| Animated terrain and pollution presentation | Slice | WORLD-004, WORLD-005 (engine TileData), captures 10/11/20 | three layers, approved in ARCHITECTURE §7 |
+| ASCII maps and markers | Partial | MAP-001, MAP-002, MAP-004–007; P: MAP-003 | story maps M5 |
+| Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
+| Zampanò state controller | Partial | DOG-001–004, DOG-006, DOG-007; P: DOG-005, DOG-008 | fetch (M3), stage change (M5) |
+| Zampanò normal art | Partial | P: AST-002–005 | other playable dogs M1 completion |
+| Redesigned 96×96 park/topology | Slice | MAP-007 | — |
+| Hunger | Partial | P: GZ-002; SLICE scripted rules run | — |
+| Digestion and poop warning | Partial | DOG-004; SLICE scripted rules run | warning bubble simplified (D-07) |
+| Surface-dependent pollution | Slice | GZ-008, GZ-009 | — |
+| Bladder and pee | Partial | DOG-003; SLICE scripted rules run; captures 06/11 | — |
+| Marking | Partial | ported rule | MARK paths not fixture-covered |
+| Zone health and half-stars | Slice | GZ-019, GZ-020 | — |
+| Score/time/records | Partial | SAV-004; P: GZ-021 | cat/mark components need M3 |
+| Lives for speed | Partial | GZ-024; P: GZ-025 | title counter UI is M4 |
 | Run energy | Slice | DOG-007; HUD energy ring | — |
-| Treats | Slice | GZ-029; AUTO-001 | — |
+| Treats | Partial | SLICE real-input run; MAP-007 placements | — |
 | Cats and coins / Magnet balls / Under Attack / Bagnaskiz | — | — | M3 (D-10) |
 | Pollution waves | Partial | director + placement ported | RNG sharing with cats (D-03) |
-| HUD/radar/touch controls | Partial | UI-001, MOVE-001, captures | gestures/switcher (D-09) |
-| Briefing/level end/game over | Partial | FLOW-001/002/004/005, AUTO-001, captures 01/07/13/14 | Supervillained snap, CONTINUE handoff (D-08) |
-| Green Zone automated full-play coverage | Slice | AUTO-001 (real input, no teleports) | on-device run pending |
-| Press Start 2P pixel font | Partial | AST-020 glyph hashes, IPA marks | wrapping fixtures, glow (D-06) |
-| Recorded music/effects | Partial | AUD-001; Green Zone music + 6 effects mapped | other tracks/effects later milestones |
+| HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006; SLICE multi-touch routing; captures | gestures/switcher (D-09) |
+| Briefing/level end/game over | Partial | FLOW-001, FLOW-002; P: FLOW-005; captures 01/07/13/14 | Supervillained snap, CONTINUE handoff (D-08) |
+| Green Zone automated full-play coverage | Partial | SLICE real-input run (no teleports) | AUTO-001 needs the M3 attack |
+| Press Start 2P pixel font | Partial | P: AST-020; OFL exported | wrapping fixtures, glow (D-06) |
+| Recorded music/effects | Partial | P: AUD-001; intro/greenzone tracks; 6 effects; leading-silence offsets; lossless drink WAV; background suspension | other tracks/effects later milestones |
 | Synthesized audio | — | — | D-05 |
-| Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–022 | campaign schema, v1 migration (D-11) |
+| Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022; P: SAV-021 | user-visible notice, campaign schema, v1 migration (D-11) |
 | Everything else in this matrix | — | — | later milestones |
 
 ## 1. Platform and runtime

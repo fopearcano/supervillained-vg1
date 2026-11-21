@@ -8,6 +8,10 @@ extends Node
 ##
 ## Write protocol: save_v3.tmp is written and closed, re-read and validated, the previous valid
 ## save is rotated to save_v3.bak, then the temp file is renamed over save_v3.json.
+## Load picks the NEWEST valid file among main, temp (a validated write whose rename never
+## happened) and backup, preserves a corrupt main as save_v3.corrupt.json and promotes a recovered
+## file back to main. A newer, unknown container format is preserved byte-for-byte and every write
+## is refused for the session (reported through load_status, last_error and save_failed).
 
 signal save_failed(reason: String)
 
@@ -22,8 +26,14 @@ const LEGACY_IMPORT_STATUSES := ["not_attempted", "imported", "imported_partial"
 
 ## Directory holding the save files (tests point it at an isolated user:// subdirectory).
 var base_dir := "user://"
-## Last load outcome: "new", "loaded", "recovered_from_backup", "future_version", "corrupt".
+## Last load outcome: "new", "loaded", "recovered_from_temp", "recovered_from_backup",
+## "future_version" or "corrupt" (main unreadable and nothing valid to recover; defaults used).
 var load_status := "new"
+## Reason of the last failed write ("" after a successful one).
+var last_error := ""
+## Test hook: simulate a crash during/after a write stage ("temp_partial" = torn temp write,
+## "temp_written", "temp_validated", "backup_rotated"); "" in the game.
+var fault_after := ""
 ## When a newer/unknown format was found it is preserved and never overwritten.
 var write_blocked := false
 var data: Dictionary = {}
@@ -151,8 +161,11 @@ static func validate_container(raw: Variant) -> Dictionary:
 	if not _is_num(r.get("format_version")):
 		return {"ok": false, "error": "missing_format_version"}
 	var version := int(r["format_version"])
-	if version > FORMAT_VERSION or version < FORMAT_VERSION:
-		return {"ok": false, "error": "unknown_format_version", "version": version}
+	if version > FORMAT_VERSION:
+		return {"ok": false, "error": "future_format_version", "version": version}
+	if version < FORMAT_VERSION:
+		# No earlier Godot container exists; Capacitor data arrives through the legacy importer.
+		return {"ok": false, "error": "unsupported_format_version", "version": version}
 	var out := default_container()
 	out["written_at_unix_ms"] = maxi(0, int(r["written_at_unix_ms"])) if _is_num(r.get("written_at_unix_ms")) else 0
 	out["settings"] = normalize_settings(r.get("settings"))
@@ -191,47 +204,52 @@ func _read_json(path: String) -> Dictionary:
 
 func load_from_disk() -> void:
 	write_blocked = false
+	last_error = ""
 	DirAccess.make_dir_recursive_absolute(base_dir)
 	var main := _read_json(_path(FILE_NAME))
-	if not main["exists"]:
-		var bak := _read_json(_path(BACKUP_NAME))
-		if bak["exists"]:
-			var vb := validate_container(bak["parsed"])
-			if vb["ok"]:
-				data = vb["data"]
-				load_status = "recovered_from_backup"
-				return
-		data = default_container()
-		load_status = "new"
-		return
-	var v := validate_container(main["parsed"])
-	if v["ok"]:
-		data = v["data"]
-		load_status = "loaded"
-		return
-	if v.get("error") == "unknown_format_version":
-		# Preserve the unknown save: keep a copy and never overwrite it with defaults.
-		var keep := _path("save_v3.future.json")
-		if not FileAccess.file_exists(keep):
-			var f := FileAccess.open(keep, FileAccess.WRITE)
-			if f:
-				f.store_string(main["text"])
-				f.close()
-		write_blocked = true
-		data = default_container()
-		load_status = "future_version"
-		return
-	var bak2 := _read_json(_path(BACKUP_NAME))
-	if bak2["exists"]:
-		var vb2 := validate_container(bak2["parsed"])
-		if vb2["ok"]:
-			data = vb2["data"]
-			load_status = "recovered_from_backup"
-			_keep_corrupt(main["text"])
+	if main["exists"]:
+		var vm := validate_container(main["parsed"])
+		if vm.get("error") == "future_format_version":
+			# Preserve the unknown save byte-for-byte and never overwrite it with defaults.
+			var keep := _path("save_v3.future.json")
+			if not FileAccess.file_exists(keep):
+				var f := FileAccess.open(keep, FileAccess.WRITE)
+				if f:
+					f.store_buffer(FileAccess.get_file_as_bytes(_path(FILE_NAME)))
+					f.close()
+			write_blocked = true
+			last_error = "future_format_version"
+			data = default_container()
+			load_status = "future_version"
 			return
-	_keep_corrupt(main["text"])
-	data = default_container()
-	load_status = "corrupt"
+	var best: Dictionary = {}
+	var best_name := ""
+	for name in [FILE_NAME, TEMP_NAME, BACKUP_NAME]:
+		var r := main if name == FILE_NAME else _read_json(_path(name))
+		if not r["exists"]:
+			continue
+		var v := validate_container(r["parsed"])
+		if not v["ok"]:
+			continue
+		var written := int((v["data"] as Dictionary)["written_at_unix_ms"])
+		if best.is_empty() or written > int(best["written_at_unix_ms"]):
+			best = v["data"]
+			best_name = name
+	if main["exists"] and best_name != FILE_NAME:
+		_keep_corrupt(main["text"])
+	if best.is_empty():
+		data = default_container()
+		load_status = "corrupt" if main["exists"] else "new"
+		DirAccess.remove_absolute(_path(TEMP_NAME))
+		return
+	data = best
+	if best_name == FILE_NAME:
+		load_status = "loaded"
+		# A leftover temp is either invalid or older than main: never trusted.
+		DirAccess.remove_absolute(_path(TEMP_NAME))
+		return
+	load_status = "recovered_from_temp" if best_name == TEMP_NAME else "recovered_from_backup"
+	write_to_disk()
 
 
 func _keep_corrupt(text: String) -> void:
@@ -241,39 +259,57 @@ func _keep_corrupt(text: String) -> void:
 		f.close()
 
 
-## Atomic write: temp → validate → rotate backup → rename. Returns true on success.
+func _fail(reason: String) -> bool:
+	last_error = reason
+	save_failed.emit(reason)
+	return false
+
+
+## Atomic write: temp → validate → rotate backup → rename. Returns true on success; on failure the
+## previous valid file stays recoverable and last_error/save_failed report the reason.
 func write_to_disk() -> bool:
 	if write_blocked:
-		save_failed.emit("write_blocked_future_version")
-		return false
-	data["written_at_unix_ms"] = int(Time.get_unix_time_from_system() * 1000.0)
+		return _fail("write_blocked_future_version")
+	# Strictly increasing so "newest valid file" is well defined even within one millisecond.
+	var now := int(Time.get_unix_time_from_system() * 1000.0)
+	data["written_at_unix_ms"] = maxi(now, int(data.get("written_at_unix_ms", 0)) + 1)
 	var text := JSON.stringify(data, "  ", true)
 	var tmp := _path(TEMP_NAME)
 	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
-		save_failed.emit("open_temp_failed")
-		return false
+		return _fail("open_temp_failed")
+	if fault_after == "temp_partial":
+		f.store_string(text.substr(0, text.length() / 2))
+		f.close()
+		return _fail("simulated_crash_during_temp_write")
 	f.store_string(text)
 	f.flush()
 	f.close()
+	if fault_after == "temp_written":
+		return _fail("simulated_crash_after_temp_written")
 	var check := _read_json(tmp)
 	if not check["exists"] or not validate_container(check["parsed"])["ok"]:
 		DirAccess.remove_absolute(tmp)
-		save_failed.emit("temp_validation_failed")
-		return false
+		return _fail("temp_validation_failed")
+	if fault_after == "temp_validated":
+		return _fail("simulated_crash_after_temp_validated")
 	var main := _path(FILE_NAME)
 	if FileAccess.file_exists(main):
 		var current := _read_json(main)
 		if validate_container(current["parsed"])["ok"]:
-			if FileAccess.file_exists(_path(BACKUP_NAME)):
-				DirAccess.remove_absolute(_path(BACKUP_NAME))
-			DirAccess.rename_absolute(main, _path(BACKUP_NAME))
+			if FileAccess.file_exists(_path(BACKUP_NAME)) and DirAccess.remove_absolute(_path(BACKUP_NAME)) != OK:
+				return _fail("backup_remove_failed")
+			if DirAccess.rename_absolute(main, _path(BACKUP_NAME)) != OK:
+				return _fail("backup_rotation_failed")
 		else:
-			DirAccess.remove_absolute(main)
-	var err := DirAccess.rename_absolute(tmp, main)
-	if err != OK:
-		save_failed.emit("rename_failed")
-		return false
+			_keep_corrupt(current["text"])
+			if DirAccess.remove_absolute(main) != OK:
+				return _fail("corrupt_main_remove_failed")
+	if fault_after == "backup_rotated":
+		return _fail("simulated_crash_after_backup_rotated")
+	if DirAccess.rename_absolute(tmp, main) != OK:
+		return _fail("rename_failed")
+	last_error = ""
 	return true
 
 
@@ -283,14 +319,13 @@ func get_settings() -> Dictionary:
 	return (data["settings"] as Dictionary).duplicate(true)
 
 
-## Settings save on confirmed change only (and only if something actually changed).
-func set_settings(s: Dictionary) -> bool:
+## Settings save on confirmed change only. Returns {"changed": bool, "saved": bool}.
+func set_settings(s: Dictionary) -> Dictionary:
 	var normalized := normalize_settings(s)
 	if normalized == data["settings"]:
-		return false
+		return {"changed": false, "saved": false}
 	data["settings"] = normalized
-	write_to_disk()
-	return true
+	return {"changed": true, "saved": write_to_disk()}
 
 
 func get_record(level_id: String) -> Variant:
@@ -298,9 +333,10 @@ func get_record(level_id: String) -> Variant:
 	return (r[level_id] as Dictionary).duplicate() if r.has(level_id) else null
 
 
-## Port of saveRecord: keeps best score, best stars and lowest time independently.
-## Returns true when the score is a new best. Persists immediately (level completion).
-func save_record(level_id: String, rec: Dictionary) -> bool:
+## Port of saveRecord: keeps best score, best stars and lowest time independently, and persists
+## at once (level completion). Returns {"new_best": bool, "saved": bool}; when the write fails or
+## is blocked (future format) the record still holds for this session but "saved" is false.
+func save_record(level_id: String, rec: Dictionary) -> Dictionary:
 	var records: Dictionary = data["records"]
 	var old: Variant = records.get(level_id)
 	var new_best: bool = old == null or int(rec["score"]) > int(old["score"])
@@ -310,5 +346,4 @@ func save_record(level_id: String, rec: Dictionary) -> bool:
 		"time": minf(float(old["time"]), float(rec["time"])) if old != null else float(rec["time"]),
 	}
 	records[level_id] = normalize_record(merged)
-	write_to_disk()
-	return new_best
+	return {"new_best": new_best, "saved": write_to_disk()}

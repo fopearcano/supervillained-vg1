@@ -25,7 +25,8 @@ func setup(catalog: SpriteCatalog, p_index: int, gx: float, gy: float) -> TreatV
 	iso.gx = gx
 	iso.gy = gy
 	iso.bounds = Rect2(-7, -14, 14, 16)
-	position = IsoGrid.grid_to_screen(gx, gy)
+	var at := IsoGrid.grid_to_screen_xy(gx, gy)
+	position = Vector2(JsMath.round(at[0]), JsMath.round(at[1]))
 	visible = false
 	return self
 

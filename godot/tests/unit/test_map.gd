@@ -22,7 +22,7 @@ func test_MAP_001_parser_errors_match_source() -> void:
 		assert_eq("ok" if r["ok"] else r["error"], expected[k], "case %d" % k)
 
 
-func test_MAP_002_padding_markers_and_base() -> void:
+func test_MAP_002_004_padding_markers_and_exitless_maps() -> void:
 	var mp: Dictionary = fixture()["map_parse"]
 	var ok := AsciiMapLoader.parse(PackedStringArray(["S..", ".T", "E 1"]))
 	assert_true(ok["ok"], "parse ok")
@@ -46,7 +46,7 @@ func test_MAP_007_green_zone_rows_identical() -> void:
 	assert_eq("\n".join(rows).sha256_text(), _gz["rows_sha256"], "rows sha256")
 
 
-func test_MAP_007b_topology_props_and_distances() -> void:
+func test_MAP_005_bfs_field_and_topology() -> void:
 	var m := _model()
 	assert_eq(m.width, _gz["width"], "width")
 	assert_eq(m.start_tile, Vector2i(_gz["start"]["i"], _gz["start"]["j"]), "start")
@@ -76,7 +76,7 @@ func test_MAP_007b_topology_props_and_distances() -> void:
 		assert_near(m.progress_at(row[0], row[1]), row[2], 1e-12, "progressAt(%s,%s)" % [row[0], row[1]])
 
 
-func test_GZ_029_treat_placement_identical() -> void:
+func test_MAP_007b_treat_placement_identical() -> void:
 	var m := _model()
 	var def := GreenZoneLevel.definition()
 	var treats := TreatPlacement.place_treats(m, def.spawns["treats"], def.seed)
@@ -87,7 +87,7 @@ func test_GZ_029_treat_placement_identical() -> void:
 		assert_eq(treats[k][1], expected[k]["y"], "treat %d y" % k)
 
 
-func test_GZ_001_random_spot_near_identical() -> void:
+func test_P_GZ_001_random_spot_near_identical() -> void:
 	var m := _model()
 	var r := DeterministicRng.new(5)
 	for k in (_gz["random_spot"] as Array).size():
@@ -124,7 +124,7 @@ func test_COLL_002_grid_solver_matches_source_traces() -> void:
 	assert_near(worst, 0.0, 1e-9, "worst deviation from source moveCircle (tiles)")
 
 
-func test_COLL_004_walkability_rules() -> void:
+func test_P_COLL_004_walkability_rules() -> void:
 	var m := _model()
 	var G := TileCatalog.Ground
 	for g in [G.VOID, G.FOREST, G.DEEP, G.WALL]:
@@ -136,7 +136,7 @@ func test_COLL_004_walkability_rules() -> void:
 	assert_false(m.circle_blocked(bush[0], bush[1], GameConfig.Player.RADIUS), "bush does not block")
 
 
-func test_GZ_008_pollution_field_matches_source() -> void:
+func test_GZ_008_009_footprints_max_blend_and_clean() -> void:
 	var p: Dictionary = fixture()["pollution"]
 	var m := _model()
 	assert_eq(m.stamp_dirt(60.3, 61.2, 2.6, 1.0), p["newly"][0], "stamp 1 newly polluted")

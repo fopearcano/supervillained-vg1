@@ -69,6 +69,7 @@ func _ready() -> void:
 	world.snap_camera()
 	if show_briefing:
 		_set_controls(false)
+		_reading()
 		var b: BriefingOverlay = BRIEFING.new()
 		b.go.connect(func() -> void:
 			_close_overlay()
@@ -82,7 +83,14 @@ func start_play() -> void:
 	active = true
 	_set_controls(true)
 	InputService.set_context(&"green_zone")
+	# The Green Zone music starts with the walk (source flow.startPlaying).
 	AudioService.play_music(&"greenzone")
+	AudioService.set_duck(1.0)
+
+
+## Intro music while the player reads (briefing, result card): source flow.reading().
+func _reading() -> void:
+	AudioService.play_music(&"intro")
 	AudioService.set_duck(1.0)
 
 
@@ -163,7 +171,8 @@ func _popup(x: float, y: float, amount: int, label: String) -> void:
 	p.color = PixelText.YELLOW if label == "" else PixelText.GREEN
 	p.life = GameConfig.Fx.SCORE_POPUP_TIME
 	p.rise = 14.0
-	p.position = IsoGrid.grid_to_screen(x, y) + Vector2(0, -26)
+	var at := IsoGrid.grid_to_screen_xy(x, y)
+	p.position = Vector2(JsMath.round(at[0]), JsMath.round(at[1] - 26.0))
 	world.fx_layer.add_child(p)
 
 
@@ -198,7 +207,8 @@ func tick(dt: float) -> void:
 	var lp := IsoGrid.grid_to_screen(world.map.exit.x, world.map.exit.y)
 	_exit_label.position = Vector2(JsMath.round(lp.x), JsMath.round(lp.y - 44 + sin(_time * 3.0) * 2.0) + 8)
 	var dog := world.player
-	_warning_mark.position = IsoGrid.grid_to_screen(dog.gx, dog.gy) + Vector2(0, -38)
+	var dp := IsoGrid.grid_to_screen_xy(dog.gx, dog.gy)
+	_warning_mark.position = Vector2(JsMath.round(dp[0]), JsMath.round(dp[1] - 38.0))
 	if not _end_notified and rules.state != "playing" and rules.ended_for() > 1.1:
 		_end_notified = true
 		if rules.state == "complete":
@@ -292,10 +302,12 @@ func _on_complete() -> void:
 	var tb := ScoringRules.time_bonus(st["time"], level.par_time)
 	var sb := ScoringRules.star_bonus(stars)
 	var total: int = st["score"] + tb + sb
-	var new_best: bool = SaveService.save_record(level.id, {"score": total, "stars": stars, "time": st["time"]})
+	var saved: Dictionary = SaveService.save_record(level.id, {"score": total, "stars": stars, "time": st["time"]})
 	result = {"state": "complete", "level": level.number, "stats": st.duplicate(), "health": health, "stars": stars,
-		"time_bonus": tb, "star_bonus": sb, "total": total, "new_best": new_best, "coins_total": st["coins"]}
+		"time_bonus": tb, "star_bonus": sb, "total": total, "new_best": saved["new_best"],
+		"record_saved": saved["saved"], "coins_total": st["coins"]}
 	finished.emit(result)
+	_reading()
 	var o: LevelEndOverlay = LEVEL_END.new()
 	o.result = result
 	o.catalog = world.catalog

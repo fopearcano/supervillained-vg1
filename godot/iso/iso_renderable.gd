@@ -25,6 +25,11 @@ func _init() -> void:
 	_next_id += 1
 
 
+## Test isolation: restart the stable-id sequence.
+static func reset_ids() -> void:
+	_next_id = 1
+
+
 func screen_rect() -> Rect2:
 	var s := IsoGrid.grid_to_screen(gx, gy)
 	return Rect2(s.x + bounds.position.x, s.y - z_lift + bounds.position.y, bounds.size.x, bounds.size.y)

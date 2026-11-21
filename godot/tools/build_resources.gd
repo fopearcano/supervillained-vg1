@@ -1,11 +1,13 @@
 extends SceneTree
 ## Editor-time resource builder (ARCHITECTURE.md §16). Run headless in two phases, with an import
-## between them (tools/build_assets.sh does this):
+## between them (tools/build_assets.sh / build_assets.ps1 do this):
 ##   godot --headless --path godot --script res://tools/build_resources.gd -- --phase images
 ##   godot --headless --path godot --import
 ##   godot --headless --path godot --script res://tools/build_resources.gd -- --phase resources
 ## Inputs are the byte-identical copies and layout data written by tools/source_extract.
 ## Outputs are rewritten only when their bytes change; a missing frame fails the build.
+## `-- --phase all --check` rebuilds everything in memory and fails (exit 1) on any byte
+## difference with the committed outputs, without writing.
 
 const ENV_FRAMES := "res://data/environment/ch01_greenzone_frames.json"
 const SHEET_LAYOUT := "res://data/characters/zampano_sheet.json"
@@ -14,15 +16,22 @@ const TILESET_OUT := "res://data/environment/ch01_greenzone_tileset.tres"
 const SPRITES_OUT := "res://data/environment/green_zone_sprites.tres"
 const FRAMES_OUT := "res://data/characters/zampano_frames.tres"
 const PROFILE_OUT := "res://data/characters/zampano_profile.tres"
+const FLOOR_ART_ATLAS := "res://assets/generated/environment/ch01_greenzone_floor_art.png"
+const FLOOR_CELL := Vector2i(32, 16)
+const FLOOR_COLUMNS := 16
 
 ## Atlas cell for every ground tile (texture_region_size). 22 px fits tall grass (21 px) evenly.
 const CELL := Vector2i(32, 22)
 const GRASS_WIND := [0, 1, 2, 1]
 const WIND_STEP := 0.24
 const WATER_STEP := 0.55
+const DEEP_STEP := 0.72
+const ATLAS_ROWS := 7
 
 var _failures: PackedStringArray = []
 var _changed := 0
+var _checked := 0
+var _check := false
 
 
 func _initialize() -> void:
@@ -31,14 +40,20 @@ func _initialize() -> void:
 	for k in args.size():
 		if args[k] == "--phase" and k + 1 < args.size():
 			phase = args[k + 1]
+		elif args[k] == "--check":
+			_check = true
 	if phase == "images" or phase == "all":
 		_build_tile_atlas()
+		_build_floor_art_atlas()
 	if phase == "resources" or phase == "all":
 		_build_tileset()
 		_build_sprite_catalog()
 		_build_character()
 	if _failures.is_empty():
-		print("build_resources (%s): OK, %d file(s) changed" % [phase, _changed])
+		if _check:
+			print("build_resources check (%s): OK, %d outputs identical" % [phase, _checked])
+		else:
+			print("build_resources (%s): OK, %d file(s) changed" % [phase, _changed])
 		quit(0)
 	else:
 		for f in _failures:
@@ -65,9 +80,13 @@ func _load_image(res_path: String) -> Image:
 
 func _write_if_changed(res_path: String, bytes: PackedByteArray) -> void:
 	var abs_path := ProjectSettings.globalize_path(res_path)
-	DirAccess.make_dir_recursive_absolute(abs_path.get_base_dir())
+	_checked += 1
 	if FileAccess.file_exists(abs_path) and FileAccess.get_file_as_bytes(abs_path) == bytes:
 		return
+	if _check:
+		_failures.append("%s %s" % ["DIFFERS" if FileAccess.file_exists(abs_path) else "MISSING", res_path])
+		return
+	DirAccess.make_dir_recursive_absolute(abs_path.get_base_dir())
 	var f := FileAccess.open(abs_path, FileAccess.WRITE)
 	f.store_buffer(bytes)
 	f.close()
@@ -109,7 +128,52 @@ func _tile_layout() -> Dictionary:
 		for k in 4:
 			frames.append("tallGrass_%d" % GRASS_WIND[(p + k) % 4])
 		layout["tallGrass_phase%d" % p] = {"cell": Vector2i(p * 4, 4), "frames": frames, "step": WIND_STEP}
+	# Deep water (phase-rotated like water, 0.72 s) and the wall base under wall blocks.
+	for p in 2:
+		layout["deep_phase%d" % p] = {"cell": Vector2i(p * 2, 5), "frames": ["deep_%d" % p, "deep_%d" % ((p + 1) % 2)], "step": DEEP_STEP}
+	layout["wallBase_0"] = {"cell": Vector2i(4, 5), "frames": ["wallBase_0"], "step": 0.0}
+	# Story grounds (three variants each) so the shared IsoWorld can draw any map.
+	var col := 5
+	var row := 5
+	for kind in ["floor", "stone", "sand", "snow", "dock", "carpet"]:
+		for v in 3:
+			var name := "%s_%d" % [kind, v]
+			layout[name] = {"cell": Vector2i(col, row), "frames": [name], "step": 0.0}
+			col += 1
+			if col >= 16:
+				col = 0
+				row += 1
 	return layout
+
+
+## Authored floor-composition frames (floorArt_*), in name order, for visual-only floor designs.
+func _floor_art_names(frames: Dictionary) -> Array:
+	var names: Array = []
+	for name: String in frames:
+		if name.begins_with("floorArt_"):
+			names.append(name)
+	names.sort()
+	return names
+
+
+func _build_floor_art_atlas() -> void:
+	var env := _json(ENV_FRAMES)
+	if env.is_empty():
+		return
+	var bank := _load_image(env["image"])
+	if bank == null:
+		return
+	var frames: Dictionary = env["frames"]
+	var names := _floor_art_names(frames)
+	var rows := int(ceil(names.size() / float(FLOOR_COLUMNS)))
+	var atlas := Image.create_empty(FLOOR_CELL.x * FLOOR_COLUMNS, FLOOR_CELL.y * rows, false, Image.FORMAT_RGBA8)
+	for k in names.size():
+		var f: Dictionary = frames[names[k]]
+		if int(f["w"]) != 32 or int(f["h"]) != 16 or int(f["anchorX"]) != 16 or int(f["anchorY"]) != 0:
+			_failures.append("floor frame %s breaks the native floor contract" % names[k])
+			continue
+		atlas.blit_rect(bank, Rect2i(int(f["x"]), int(f["y"]), 32, 16), Vector2i((k % FLOOR_COLUMNS) * 32, (k / FLOOR_COLUMNS) * 16))
+	_write_if_changed(FLOOR_ART_ATLAS, atlas.save_png_to_buffer())
 
 
 func _build_tile_atlas() -> void:
@@ -120,7 +184,7 @@ func _build_tile_atlas() -> void:
 	if bank == null:
 		return
 	var frames: Dictionary = env["frames"]
-	var atlas := Image.create_empty(CELL.x * 16, CELL.y * 5, false, Image.FORMAT_RGBA8)
+	var atlas := Image.create_empty(CELL.x * 16, CELL.y * ATLAS_ROWS, false, Image.FORMAT_RGBA8)
 	var layout := _tile_layout()
 	for name: String in layout:
 		var entry: Dictionary = layout[name]
@@ -176,7 +240,24 @@ func _build_tileset() -> void:
 				src.set_tile_animation_frame_duration(cell, k, entry["step"])
 		coords[name] = cell
 	ts.add_source(src, 0)
+	# Source 1: authored floor-composition frames, used only by visual floor designs (MAP-006).
+	var floor_tex: Texture2D = load(FLOOR_ART_ATLAS)
+	if floor_tex == null:
+		_failures.append("floor-art atlas not imported: " + FLOOR_ART_ATLAS)
+		return
+	var floor_src := TileSetAtlasSource.new()
+	floor_src.resource_scene_unique_id = "atlas_floor_art"
+	floor_src.texture = floor_tex
+	floor_src.texture_region_size = FLOOR_CELL
+	var floor_coords := {}
+	var names := _floor_art_names(frames)
+	for k in names.size():
+		var c := Vector2i(k % FLOOR_COLUMNS, k / FLOOR_COLUMNS)
+		floor_src.create_tile(c)
+		floor_coords[names[k]] = c
+	ts.add_source(floor_src, 1)
 	ts.set_meta(&"tile_coords", coords)
+	ts.set_meta(&"floor_art_coords", floor_coords)
 	ts.set_meta(&"source", "public/environment-ink ch01_greenzone (audited 95b69c0)")
 	_save_resource(ts, TILESET_OUT)
 
@@ -195,7 +276,7 @@ func _build_sprite_catalog() -> void:
 	var cat := SpriteCatalog.new()
 	var entries := {}
 	# Props delivered in the Color Ink bank (current final art).
-	for key in ["tree", "forestTree", "bush", "pole", "fountain", "exitFlag", "exitRing"]:
+	for key in ["tree", "forestTree", "bush", "pole", "fountain", "exitFlag", "exitRing", "wallBlock"]:
 		# exitRing is a ground-contract tile frame (no SPRITES entry): one variant.
 		var n: int = int(variants[key]["variants"]) if variants.has(key) else 1
 		for v in n:

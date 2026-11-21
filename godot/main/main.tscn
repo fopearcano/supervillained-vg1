@@ -26,6 +26,16 @@ canvas_item_default_texture_filter = 0
 size = Vector2i(216, 432)
 render_target_update_mode = 4
 
+[node name="UnderlayCanvas" type="CanvasLayer" parent="SafeAreaRoot/PixelViewportContainer/GameViewport"]
+layer = -100
+
+[node name="Underlay" type="ColorRect" parent="SafeAreaRoot/PixelViewportContainer/GameViewport/UnderlayCanvas"]
+unique_name_in_owner = true
+offset_right = 216.0
+offset_bottom = 432.0
+mouse_filter = 2
+color = Color(0.047058824, 0.22745098, 0.0627451, 1)
+
 [node name="SceneHost" type="Node" parent="SafeAreaRoot/PixelViewportContainer/GameViewport"]
 unique_name_in_owner = true
 

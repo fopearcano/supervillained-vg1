@@ -24,17 +24,30 @@ The PixiJS branch is the reference implementation at commit `95b69c0`. Reference
 Create a small first-party GDScript runner, not a third-party framework:
 
 ```powershell
-# All headless-safe suites
-godot --headless --path godot --script res://tests/test_runner.gd --suite all
+# A clean clone imports once first (registers the global script classes)
+godot --headless --path godot --import
+
+# All headless-safe suites (runner options follow `--`)
+godot --headless --path godot --script res://tests/test_runner.gd -- --suite all
 
 # Focused suites
-godot --headless --path godot --script res://tests/test_runner.gd --suite unit
-godot --headless --path godot --script res://tests/test_runner.gd --suite integration
-godot --headless --path godot --script res://tests/test_runner.gd --suite content
+godot --headless --path godot --script res://tests/test_runner.gd -- --suite unit
+godot --headless --path godot --script res://tests/test_runner.gd -- --suite integration
+godot --headless --path godot --script res://tests/test_runner.gd -- --suite content
 
 # Visual capture run; requires a renderer/display or approved offscreen configuration
-godot --path godot --rendering-method gl_compatibility -- --capture-suite all
+godot --path godot --rendering-driver opengl3 --script res://tools/capture_suite.gd -- --out <dir> [--mode run|diagnostic]
 ```
+
+On Windows use the **console** binary so the exit code reaches the shell (the GUI binary detaches):
+
+```powershell
+& 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64_console.exe' --headless --path godot --import
+& 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64_console.exe' --headless --path godot --script res://tests/test_runner.gd -- --suite all
+pwsh godot/tools/build_assets.ps1 -Godot 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64_console.exe' -Check
+```
+
+Case naming: `test_<ID>_…` only when every clause of that acceptance ID is exercised; `test_P_<ID>_…` is partial evidence toward the ID and never satisfies it; `test_SLICE_…` checks port behaviour that has no plan ID. The matrix and log claim only `test_<ID>` cases.
 
 The runner must:
 
@@ -91,7 +104,7 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | ID | Acceptance |
 |---|---|
 | VIEW-001 | Ported viewport calculation matches source fixtures for common CSS/device sizes and DPRs. |
-| VIEW-002 | Logical width is always 192–270, aspect is constrained to 0.42–0.62, and physical scale is an integer. |
+| VIEW-002 | Logical width is always 192–270, aspect is constrained to 0.42–0.62, and physical scale is an integer. *Note (M2 finding F-09): the source `computeViewport` itself yields 135–191 px for constrained areas 271–383 device px wide (scale 2); parity keeps that band until the owner decides.* |
 | VIEW-003 | Safe-area rectangle is honored; touch mapping round-trips physical→logical coordinates within 0.5 logical pixel. |
 | VIEW-004 | Nearest filtering and integer placement produce no fractional sprite/control transforms at capture checkpoints; physics-interpolated motion at 30/60/90/120 render FPS has no streak, double interpolation or static shimmer. |
 
@@ -129,7 +142,7 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | DEPTH-003 | Only visible candidates receive object-band ranks; ground/decal/FX/UI bands never interleave incorrectly. |
 | DEPTH-004 | A tall prop uses the source first-order fade (rate constant 10/s) toward 0.42 only when in front of/overlapping the player, then toward 1.0 when clear; intermediate checkpoints match source. |
 | WORLD-004 | Water/deep-water/tall-grass phase-rotated alternatives are selected by the source cell hash, remain deterministic and do not animate all cells in lockstep. |
-| WORLD-005 | A nonempty model change triggers one notification per affected layer, active cells are reapplied, reset-pending cells receive default modulation before removal, an empty change set triggers none, and dirt base tint/overlay alpha/fresh fade/clean removal match source. |
+| WORLD-005 | (Three layers: Ground, Pollution, Fresh — ARCHITECTURE §7.) A nonempty model change triggers one notification per affected layer, active cells are reapplied, reset-pending cells receive default modulation before removal, an empty change set triggers none, and dirt base tint/overlay alpha/fresh fade/clean removal match source. |
 | CAM-001 | Snap/follow/look-ahead checkpoints match source within 1 logical pixel. |
 | CAM-002 | Bounds clamp keeps view inside approved margin for small and large maps. |
 | CAM-003 | Sway/shake decay is deterministic under seeded noise or test override and returns to zero. |
@@ -143,7 +156,7 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 |---|---|
 | MAP-001 | Empty map, unknown symbol, missing/duplicate start and required missing exit fail with useful errors. |
 | MAP-002 | Short rows pad with void and digit markers land on the configured base ground. |
-| MAP-003 | Every current arcade/story map parses; dimensions, ground counts, props, markers/start/exit match source fixtures; `map_to_local(cell) + Vector2(0,8)` matches the source tile center from `IsoGrid`. |
+| MAP-003 | Every current arcade/story map parses; dimensions, ground counts, props, markers/start/exit match source fixtures; `map_to_local(cell) + IsoGrid.TILE_LAYER_OFFSET` (measured `Vector2(-16, 0)` on 4.7.2) matches the source tile center from `IsoGrid`. |
 | MAP-004 | Story maps allowed without exit use start as exit without altering markers. |
 | MAP-005 | BFS distance fields and selected reference paths match source. |
 | MAP-006 | Visual floor compositions never change topology, collision or markers. |

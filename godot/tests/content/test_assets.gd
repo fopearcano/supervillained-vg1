@@ -13,28 +13,51 @@ func _repo_root() -> String:
 	return ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir()
 
 
-func _sha(path: String) -> String:
+func _sha_bytes(bytes: PackedByteArray) -> String:
 	var ctx := HashingContext.new()
 	ctx.start(HashingContext.HASH_SHA256)
-	ctx.update(FileAccess.get_file_as_bytes(path))
+	ctx.update(bytes)
 	return ctx.finish().hex_encode()
 
 
-func test_AST_001_copies_match_manifest_and_source() -> void:
+func _sha(path: String) -> String:
+	return _sha_bytes(FileAccess.get_file_as_bytes(path))
+
+
+## Canonical LF bytes: a Windows CRLF checkout of a source text file compares equal to the blob.
+static func _lf(bytes: PackedByteArray) -> PackedByteArray:
+	var out := PackedByteArray()
+	for k in bytes.size():
+		if bytes[k] == 13 and k + 1 < bytes.size() and bytes[k + 1] == 10:
+			continue
+		out.append(bytes[k])
+	return out
+
+
+func test_P_AST_001_copies_and_outputs_match_manifest_and_source() -> void:
 	var m := _manifest()
 	assert_eq(m["audited_commit"], "95b69c04c5c3b9626e49719f8f916a44659cd265", "audited commit")
 	var root := _repo_root()
 	var have_source := FileAccess.file_exists(root.path_join("src/config.ts"))
 	for e: Dictionary in m["copies"]:
+		# Targets are the exact audited Git blobs (binary in .gitattributes): byte-for-byte.
 		assert_eq(_sha("res://" + String(e["target"])), e["sha256"], "target " + String(e["target"]))
 		if have_source:
-			assert_eq(_sha(root.path_join(e["source"])), e["sha256"], "source " + String(e["source"]))
+			# The working-tree source may carry CRLF on Windows: compare canonical LF bytes.
+			var src := FileAccess.get_file_as_bytes(root.path_join(e["source"]))
+			var target := FileAccess.get_file_as_bytes("res://" + String(e["target"]))
+			assert_eq(_sha_bytes(_lf(src)), _sha_bytes(_lf(target)), "source " + String(e["source"]))
 	for e: Dictionary in m["generated"]:
 		assert_eq(_sha("res://" + String(e["target"])), e["sha256"], "generated " + String(e["target"]))
+	for e: Dictionary in m["outputs"]:
+		if e["target"] == "data/source_asset_manifest.json":
+			continue
+		assert_eq(_sha("res://" + String(e["target"])), e["sha256"], "output " + String(e["target"]))
+	assert_eq(m["toolchain"]["node"], "v" + FileAccess.get_file_as_string("res://tools/.node-version").strip_edges(), "generated under the pinned Node")
 	assert_true(have_source, "source tree present next to /godot (guard)")
 
 
-func test_AST_002_playable_sheet_geometry() -> void:
+func test_P_AST_002_playable_sheet_geometry() -> void:
 	var main: Texture2D = load("res://assets/sprites/zampano.png")
 	var tired: Texture2D = load("res://assets/sprites/zampano-tired.png")
 	assert_eq(Vector2i(main.get_width(), main.get_height()), Vector2i(320, 3520), "main sheet 320x3520")
@@ -42,7 +65,7 @@ func test_AST_002_playable_sheet_geometry() -> void:
 	assert_eq(main.get_height() % 40, 0, "whole 40 px rows")
 
 
-func test_AST_003_foot_anchor() -> void:
+func test_P_AST_003_foot_anchor() -> void:
 	var p: PlayableCharacterProfile = load("res://data/characters/zampano_profile.tres")
 	assert_eq(p.foot_anchor, Vector2i(20, 36), "foot anchor")
 	var dog: PlayableDog = load("res://entities/playable_dog/playable_dog.tscn").instantiate()
@@ -52,7 +75,7 @@ func test_AST_003_foot_anchor() -> void:
 	dog.free()
 
 
-func test_AST_004_every_action_has_eight_real_directions() -> void:
+func test_P_AST_004_every_action_has_eight_real_directions() -> void:
 	var p: PlayableCharacterProfile = load("res://data/characters/zampano_profile.tres")
 	var sf := p.normal_frames
 	var images := {}
@@ -81,7 +104,7 @@ func test_AST_004_every_action_has_eight_real_directions() -> void:
 			seen[h] = dir
 
 
-func test_AST_012_environment_frames_and_tile_atlas() -> void:
+func test_P_AST_012_environment_frames_and_tile_atlas() -> void:
 	var env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/environment/ch01_greenzone_frames.json"))
 	var bank: Texture2D = load("res://assets/environment/ch01_greenzone.png")
 	assert_eq(Vector2i(bank.get_width(), bank.get_height()), Vector2i(512, 512), "bank size")
@@ -99,13 +122,13 @@ func test_AST_012_environment_frames_and_tile_atlas() -> void:
 		assert_false(atlas.get_region(Rect2i(c.x * 32, c.y * 22, 32, 22)).is_invisible(), "tile " + name + " not blank")
 
 
-func test_AST_014_green_zone_ignores_obsolete_arcade_floor() -> void:
+func test_SLICE_ground_tile_names_exclude_floor_art() -> void:
 	var ts: TileSet = load("res://data/environment/ch01_greenzone_tileset.tres")
 	for name: String in ts.get_meta(&"tile_coords"):
 		assert_false(name.begins_with("floorArt_"), "authored floor frame %s must not be used by 1.0" % name)
 
 
-func test_AST_016_lossless_nearest_no_mipmaps() -> void:
+func test_P_AST_016_lossless_nearest_no_mipmaps() -> void:
 	assert_eq(ProjectSettings.get_setting("rendering/textures/canvas_textures/default_texture_filter"), 0, "nearest filtering")
 	assert_eq(ProjectSettings.get_setting("rendering/renderer/rendering_method"), "gl_compatibility", "compatibility renderer")
 	for path in ["res://assets/sprites/zampano.png", "res://assets/sprites/zampano-tired.png", "res://assets/environment/ch01_greenzone.png",
@@ -123,7 +146,7 @@ func test_AST_016_lossless_nearest_no_mipmaps() -> void:
 	assert_eq(fnt.get_value("params", "scaling_mode", -1), 1, "integer-only font scaling")
 
 
-func test_AST_017_required_sprites_present() -> void:
+func test_P_AST_017_required_sprites_present() -> void:
 	var cat: SpriteCatalog = load("res://data/environment/green_zone_sprites.tres")
 	var required := ["tree_0", "tree_1", "tree_2", "forestTree_0", "forestTree_1", "bush_0", "bush_1", "pole_0", "fountain_0",
 		"exitFlag_0", "exitRing_0", "treat_0", "poop_0", "shadow_0", "shadowSmall_0", "star_0", "star_1", "star_2",
@@ -137,7 +160,7 @@ func test_AST_017_required_sprites_present() -> void:
 	assert_eq(cat.anchor("poop_0"), Vector2i(5, 8), "poop anchor")
 
 
-func test_AST_018_no_forbidden_runtime_content() -> void:
+func test_P_AST_018_no_forbidden_runtime_content() -> void:
 	var bad: PackedStringArray = []
 	var stack: Array[String] = ["res://"]
 	while not stack.is_empty():
@@ -156,7 +179,7 @@ func test_AST_018_no_forbidden_runtime_content() -> void:
 	assert_eq(bad, PackedStringArray(), "forbidden files")
 
 
-func test_AST_020_bitmap_font_matches_source_glyphs() -> void:
+func test_P_AST_020_bitmap_font_matches_source_glyphs() -> void:
 	var src: Dictionary = fixture("source_font_glyphs")
 	var img := Image.load_from_file(ProjectSettings.globalize_path("res://assets/fonts/pixel_font.png"))
 	assert_eq(img.get_height(), int(src["cell_h"]), "cell height")
@@ -178,11 +201,44 @@ func test_AST_020_bitmap_font_matches_source_glyphs() -> void:
 	assert_eq(PixelText.sanitize("café"), "caf?", "unknown glyphs show as ?")
 
 
-func test_AUD_001_recorded_audio_loads() -> void:
-	for path in ["res://assets/audio/recorded/greenzone-music.mp3", "res://assets/audio/recorded/dog-bark.mp3",
+func test_P_AUD_001_recorded_audio_loads() -> void:
+	for path in ["res://assets/audio/recorded/intro-music.mp3", "res://assets/audio/recorded/greenzone-music.mp3", "res://assets/audio/recorded/dog-bark.mp3",
 			"res://assets/audio/recorded/food-collect.mp3", "res://assets/audio/recorded/poos.mp3",
 			"res://assets/audio/recorded/pees-drop.mp3", "res://assets/audio/recorded/pees-collect.wav",
 			"res://assets/audio/recorded/water.mp3"]:
 		var s: AudioStream = load(path)
 		if assert_true(s != null, path + " loads"):
 			assert_true(s.get_length() > 0.05, path + " has length (%.2f s)" % s.get_length())
+
+
+
+func test_SLICE_drink_wav_is_imported_lossless() -> void:
+	var cfg := ConfigFile.new()
+	assert_eq(cfg.load("res://assets/audio/recorded/pees-collect.wav.import"), OK, "wav .import")
+	assert_eq(cfg.get_value("params", "compress/mode", -1), 0, "PCM (no QOA/ADPCM)")
+	var s: AudioStreamWAV = load("res://assets/audio/recorded/pees-collect.wav")
+	assert_true(s.format in [AudioStreamWAV.FORMAT_8_BITS, AudioStreamWAV.FORMAT_16_BITS], "uncompressed sample format (%d)" % s.format)
+
+
+func test_SLICE_leading_silence_data_from_source() -> void:
+	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/audio/sfx_leading_silence.json"))
+	assert_eq(d["recipe"], "src/core/audio.ts leadingSilence() in Chromium WebAudio", "recipe")
+	assert_eq(d["trim_level"], 0.01, "AUDIO.TRIM_LEVEL")
+	for cue in ["bark", "treat", "poop", "pee", "drink", "splash"]:
+		var o: Dictionary = d["offsets"][cue]
+		assert_true(float(o["48000"]["offset"]) >= 0.0 and float(o["48000"]["offset"]) < float(o["48000"]["duration"]), cue + " offset inside the clip")
+		assert_near(float(o["48000"]["offset"]), float(o["44100"]["offset"]), 0.001, cue + " offset independent of the decode rate")
+
+
+func test_SLICE_export_ships_ofl_and_the_app_label() -> void:
+	var cfg := ConfigFile.new()
+	assert_eq(cfg.load("res://export_presets.cfg"), OK, "export presets")
+	assert_true(String(cfg.get_value("preset.0", "include_filter", "")).contains("assets/fonts/OFL.txt"), "OFL.txt exported with the font")
+	assert_false(String(cfg.get_value("preset.0", "exclude_filter", "")).contains("*.txt"), "no exclusion catches OFL.txt")
+	assert_eq(cfg.get_value("preset.0.options", "package/unique_name", ""), "com.zampano.supervillained", "package id")
+	var strings := _repo_root().path_join("android/app/src/main/res/values/strings.xml")
+	assert_true(FileAccess.file_exists(strings), "Capacitor strings.xml present")
+	var xml := FileAccess.get_file_as_string(strings)
+	var label := xml.get_slice("<string name=\"app_name\">", 1).get_slice("</string>", 0)
+	assert_eq(cfg.get_value("preset.0.options", "package/name", ""), label, "Android label restored from the Capacitor app_name")
+	assert_eq(ProjectSettings.get_setting("application/config/quit_on_go_back"), false, "Back never quits the app")

@@ -169,13 +169,21 @@ func clear_injection() -> void:
 	_override = null
 
 
+## Returns every piece of state to its start-up value (test isolation between cases).
 func reset_for_tests() -> void:
 	_override = null
 	_pending.clear()
 	_taps.clear()
 	_pointers.clear()
 	_joystick_pointer = -1
-	joystick["active"] = false
+	joystick = {"active": false, "base": Vector2.ZERO, "knob": Vector2.ZERO}
+	joystick_zone = Rect2()
+	joystick_enabled = false
+	using_touch = false
+	buttons.clear()
+	run_toggle = false
+	left_handed = false
+	context = &"menu"
 	_run_latched = false
 	_set_move(0.0, 0.0)
 	_now = 0.0

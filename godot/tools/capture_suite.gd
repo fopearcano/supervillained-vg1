@@ -46,6 +46,9 @@ func _run() -> void:
 	if _mode == "run":
 		await _full_run()
 		return
+	if _mode == "diagnostic":
+		await _diagnostic()
+		return
 	_main = load("res://main/main.tscn").instantiate()
 	root.add_child(_main)
 	var input := root.get_node("InputService")
@@ -136,4 +139,38 @@ func _full_run() -> void:
 	physics_frame.disconnect(stepper)
 	input.clear_injection()
 	root.get_node("AudioService").stop_all()
+	quit(0)
+
+
+## Deep water, walls (base tile + depth-sorted blocks), story grounds and void through the shared
+## IsoWorld inside the real Main viewport: void shows the in-viewport 0x0c3a10 underlay, the
+## pillarbox outside the viewport stays black.
+const DIAG := [
+	"#############",
+	"#~~~~~%%%%%%#",
+	"#~.........%#",
+	"#~.,,_::-*.%#",
+	"#~.WW^^++B.%#",
+	"#~.....S...%#",
+	"#~.WW.....T%#",
+	"#~.........%#",
+	"#~~~~~%%%%%%#",
+	"#############",
+]
+
+
+func _diagnostic() -> void:
+	_main = load("res://main/main.tscn").instantiate()
+	root.add_child(_main)
+	await _frames(5)
+	var world = _main.change_scene(load("res://world/world_2d.tscn"))
+	var parsed: Dictionary = load("res://world/ascii_map_loader.gd").parse(PackedStringArray(DIAG), ".", false)
+	world.setup(load("res://world/world_map_model.gd").new(parsed["level"]), {"forest": true})
+	world.camera_rig.set_view_size(Vector2(_main.logical_size()))
+	world.snap_camera()
+	for k in 30:
+		world.end_step(1.0 / 60.0)
+		world.render(1.0 / 60.0)
+		await process_frame
+	await _shot("20_diagnostic_deep_water_walls_story_grounds")
 	quit(0)

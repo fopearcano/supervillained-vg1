@@ -4,6 +4,8 @@ extends Node2D
 ## smoothing stays disabled (one source of truth); the camera sits on a whole-pixel view origin.
 
 var model := CameraModel.new()
+## Physics-interpolation resets performed by snaps (DOG-008 evidence).
+var interpolation_resets := 0
 @onready var camera: Camera2D = $Camera2D
 
 
@@ -18,6 +20,7 @@ func snap(tx: float, ty: float) -> void:
 	reset_physics_interpolation()
 	if camera:
 		camera.reset_physics_interpolation()
+	interpolation_resets += 1
 
 
 func step(dt: float, tx: float, ty: float, vx: float, vy: float) -> void:

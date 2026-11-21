@@ -3,12 +3,18 @@ extends SceneTree
 ##   godot --headless --path godot --script res://tests/test_runner.gd -- --suite all
 ## Options: --suite all|unit|content|integration, --file <substring>, --case <substring>,
 ## --repeat <n>.
-## Fails on assertion failures, engine errors/warnings, orphan nodes and timeouts; writes JSON and
-## JUnit XML to res://test-results/ (git-ignored); exits non-zero on any failure.
+## Fails on assertion failures, engine errors/warnings, orphan nodes, nodes left in the tree and
+## timeouts; writes JSON and JUnit XML to res://test-results/ (git-ignored); exits non-zero on any
+## failure. Isolation: every case starts with fresh user:// save storage, default settings, reset
+## InputService/Input actions/AudioService state, reset renderable ids and default engine pacing.
+## On Windows use the console binary so the exit code reaches the shell:
+##   Godot_v4.7.2-stable_win64_console.exe --headless --path godot --script res://tests/test_runner.gd -- --suite all
 
 const TIMEOUT_MS := 120000
 
 var _capture: ErrorCapture
+var _run_dir := ""
+var _case_index := 0
 
 
 func _initialize() -> void:
@@ -33,7 +39,7 @@ func _run() -> void:
 	var opts := _args()
 	_capture = ErrorCapture.new()
 	OS.add_logger(_capture)
-	root.get_node("InputService").auto_update = false
+	_run_dir = "user://test_runs/%d" % OS.get_process_id()
 	var suites: Array = TestRegistry.SUITES.keys() if opts["suite"] == "all" else [opts["suite"]]
 	var results: Array = []
 	var started := Time.get_ticks_msec()
@@ -42,8 +48,10 @@ func _run() -> void:
 			if opts["file"] != "" and not path.contains(opts["file"]):
 				continue
 			var script: GDScript = load(path)
-			if script == null:
-				results.append({"suite": suite, "file": path, "case": "load", "ok": false, "messages": ["cannot load script"], "ms": 0})
+			if script == null or not script.can_instantiate():
+				# A test file that does not parse is a failure, never a silently skipped file.
+				print("FAIL %-58s" % (path + " (does not load/parse)"))
+				results.append({"suite": suite, "file": path, "case": "load", "ok": false, "messages": ["cannot load or parse script"], "ms": 0})
 				continue
 			for method in script.get_script_method_list():
 				var name: String = method["name"]
@@ -54,14 +62,46 @@ func _run() -> void:
 	OS.remove_logger(_capture)
 	root.get_node("AudioService").stop_all()
 	await process_frame
+	_remove_tree(ProjectSettings.globalize_path(_run_dir))
 	_report(results, Time.get_ticks_msec() - started)
+
+
+## Fresh, isolated global state for one case.
+func _isolate() -> void:
+	_case_index += 1
+	var input := root.get_node("InputService")
+	input.reset_for_tests()
+	input.auto_update = false
+	for a in InputMap.get_actions():
+		Input.action_release(a)
+	root.get_node("AudioService").reset_for_tests()
+	var save := root.get_node("SaveService")
+	save.fault_after = ""
+	save.base_dir = "%s/case_%03d/" % [_run_dir, _case_index]
+	save.load_from_disk()
+	root.get_node("AppState").reload()
+	load("res://iso/iso_renderable.gd").reset_ids()
+	Engine.max_fps = 0
+	Engine.time_scale = 1.0
+
+
+func _remove_tree(abs_dir: String) -> void:
+	var d := DirAccess.open(abs_dir)
+	if d == null:
+		return
+	for sub in d.get_directories():
+		_remove_tree(abs_dir.path_join(sub))
+	for f in d.get_files():
+		d.remove(f)
+	DirAccess.remove_absolute(abs_dir)
 
 
 func _run_case(suite: String, path: String, script: GDScript, name: String) -> Dictionary:
 	var t0 := Time.get_ticks_msec()
 	var orphans_before := Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
 	_capture.take()
-	root.get_node("InputService").reset_for_tests()
+	_isolate()
+	var before_children := root.get_children()
 	var tc: TestCase = script.new()
 	tc.tree = self
 	tc.before_each()
@@ -78,6 +118,13 @@ func _run_case(suite: String, path: String, script: GDScript, name: String) -> D
 	tc.after_each()
 	await process_frame
 	var messages: Array = Array(tc.failures)
+	for child in root.get_children():
+		if not before_children.has(child):
+			messages.append("left node '%s' in the tree" % child.name)
+			root.remove_child(child)
+			child.queue_free()
+	if not before_children.is_empty():
+		await process_frame
 	for e: Dictionary in _capture.take():
 		var kind := "warning" if e["type"] == Logger.ERROR_TYPE_WARNING else "error"
 		messages.append("engine %s: %s %s (%s)" % [kind, e["code"], e["rationale"], e["where"]])

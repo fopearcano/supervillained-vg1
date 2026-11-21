@@ -12,6 +12,8 @@ signal viewport_changed(logical_size: Vector2i, scale: int)
 
 var logical_size := Vector2i(216, 432)
 var scale := 1
+## Test/diagnostic override of the display safe area (window coordinates); empty = use the OS.
+var safe_rect_override := Rect2i()
 
 
 ## Pure port of computeViewport (css size and device pixel ratio). Returns the same fields.
@@ -49,6 +51,8 @@ func _ready() -> void:
 func safe_rect() -> Rect2i:
 	var win := get_tree().root
 	var win_rect := Rect2i(Vector2i.ZERO, win.size)
+	if safe_rect_override.has_area():
+		return win_rect.intersection(safe_rect_override)
 	if DisplayServer.get_name() == "headless":
 		return win_rect
 	var safe := DisplayServer.get_display_safe_area()

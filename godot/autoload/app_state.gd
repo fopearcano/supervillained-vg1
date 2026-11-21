@@ -11,6 +11,11 @@ var settings: Dictionary = {}
 
 
 func _ready() -> void:
+	reload()
+
+
+## Re-reads the settings from SaveService and applies them (start-up, tests).
+func reload() -> void:
 	settings = SaveService.get_settings()
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--as="):
@@ -19,7 +24,7 @@ func _ready() -> void:
 
 
 func update_settings(new_settings: Dictionary) -> void:
-	if SaveService.set_settings(new_settings):
+	if SaveService.set_settings(new_settings)["changed"]:
 		settings = SaveService.get_settings()
 		_apply()
 		settings_changed.emit(settings)

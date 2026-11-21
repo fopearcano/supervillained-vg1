@@ -10,6 +10,11 @@ const GREEN_ZONE_SCENE := preload("res://scenes/green_zone/green_zone_scene.tscn
 @onready var scene_host: Node = %SceneHost
 @onready var overlay_host: Control = %OverlayHost
 @onready var transition_host: Control = %TransitionHost
+## The game's own background inside the pixel viewport (source renderer background 0x0c3a10);
+## everything outside the viewport stays the black clear colour (the source's black page).
+@onready var underlay: ColorRect = %Underlay
+
+const UNDERLAY_COLOR := Color8(0x0c, 0x3a, 0x10)
 
 var current_scene: Node = null
 
@@ -21,6 +26,8 @@ func _ready() -> void:
 
 
 func _on_viewport_changed(logical: Vector2i, _scale: int) -> void:
+	underlay.color = UNDERLAY_COLOR
+	underlay.size = Vector2(logical)
 	overlay_host.size = Vector2(logical)
 	transition_host.size = Vector2(logical)
 	if current_scene and current_scene.has_method("resize"):

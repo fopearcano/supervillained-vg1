@@ -117,15 +117,68 @@ func test_DOG_007_exhaustion_and_recovery() -> void:
 	_replay(_trace("run_exhaust"), 15, 900)
 
 
-func test_DOG_002_idle_sit_sniff_phases() -> void:
+func test_DOG_002_rest_sequence_and_reset_after_action() -> void:
 	_replay(_trace("idle_phases"), 30, 720)
+	# A pee at 5 s (while sitting) restarts the rest clock: stand, then sit again 3 s after it ends.
+	var dog := _dog()
+	var expected: Array = fixture()["zampano"]["idle_after_action"]
+	var idx := 0
+	for k in 720:
+		if k == 300:
+			dog.start_action("pee", GameConfig.Bladder.PEE_TIME)
+		dog.set_intent(0.0, 0.0, false)
+		dog.update_movement(DT, _map)
+		if k % 10 == 9:
+			var e: Dictionary = expected[idx]
+			idx += 1
+			if not (assert_eq(dog.anim, e["anim"], "k=%d anim" % k) and assert_eq(dog.state, e["state"], "k=%d state" % k)
+					and assert_near(dog.anim_speed, e["speed"], 1e-9, "k=%d speed" % k)):
+				return
+	var anims: Array = expected.map(func(e: Dictionary) -> String: return e["anim"])
+	assert_true(anims.has("sit") and anims.has("pee"), "fixture covers sit then pee")
 
 
-func test_DOG_001_scripted_run_costs_no_energy() -> void:
+func test_DOG_001_idle_walk_run_selection_and_facing_kept() -> void:
+	# Every walk/run trace stops at tick 75: the anim falls back to idle and the facing is kept.
+	for d in 8:
+		for name in ["walk_%d_0.8" % d, "run_%d" % d]:
+			var t: Array = _trace(name)["trace"]
+			var moving: Dictionary = t[10]
+			var stopped: Dictionary = t[t.size() - 1]
+			assert_eq(moving["anim"], "run" if name.begins_with("run") else "walk", name + " moving anim")
+			assert_eq(stopped["anim"], "idle", name + " anim after stopping")
+			assert_eq(stopped["facing"], moving["facing"], name + " facing kept on zero input")
+	_replay(_trace("walk_3_0.8"), 6, 105)
+	_replay(_trace("run_5"), 6, 105)
+
+
+func test_MOVE_005_external_push_and_knockback_decay() -> void:
+	var dog := _dog()
+	var expected: Array = fixture()["zampano"]["push_knock"]
+	var idx := 0
+	for k in 150:
+		if k < 90:
+			dog.push_x = 1.6
+			dog.push_y = -0.4
+		if k == 60:
+			dog.knockback(-1.0, 0.3, 7.0)
+		dog.set_intent(0.3 if k < 120 else 0.0, -0.6 if k < 120 else 0.0, false)
+		dog.update_movement(DT, _map)
+		if k % 5 == 4:
+			var e: Dictionary = expected[idx]
+			idx += 1
+			var lbl := "k=%d" % k
+			if not (assert_near(dog.gx, e["gx"], POS_TOL, lbl + " gx") and assert_near(dog.gy, e["gy"], POS_TOL, lbl + " gy")
+					and assert_near(dog.knock_x, e["knockX"], 1e-12, lbl + " knockX") and assert_near(dog.knock_y, e["knockY"], 1e-12, lbl + " knockY")
+					and assert_eq(dog.facing, e["facing"], lbl + " facing")):
+				return
+
+
+func test_SLICE_scripted_run_costs_no_energy() -> void:
 	_replay(_trace("scripted_run"), 10, 150)
 
 
-func test_DOG_003_action_lock_and_knockback() -> void:
+func test_DOG_003_pee_locks_movement_for_rule_duration() -> void:
 	var dog := _dog()
 	var idx := 0
 	var expected: Array = fixture()["zampano"]["action_lock"]
@@ -147,7 +200,7 @@ func test_DOG_003_action_lock_and_knockback() -> void:
 			idx += 1
 
 
-func test_AST_005_spriteframes_timing_matches_manifest() -> void:
+func test_P_AST_005_spriteframes_timing_matches_manifest() -> void:
 	var profile: PlayableCharacterProfile = load("res://data/characters/zampano_profile.tres")
 	var frames := profile.normal_frames
 	var src: Dictionary = fixture()["animation"]

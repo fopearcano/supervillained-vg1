@@ -24,7 +24,8 @@ The sequence is deliberately vertical: validate the highest-risk contracts first
 Recommended test entry point:
 
 ```powershell
-& 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64.exe' --headless --path godot --script res://tests/test_runner.gd --suite all
+& 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64_console.exe' --headless --path godot --import
+& 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64_console.exe' --headless --path godot --script res://tests/test_runner.gd -- --suite all
 ```
 
 The runner must return a nonzero process code on any failure. Do not add a third-party test framework unless the architect approves it.
