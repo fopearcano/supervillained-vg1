@@ -160,6 +160,85 @@ static func _solver_reaches(m: WorldMapModel, from: Vector2, target: Vector2i) -
 	return false
 
 
+## The world's decor as [[sprite key, gx, gy] of every static prop (sorted), per-cell ground tile name].
+func _decor(w: IsoWorld) -> Array:
+	var key_of := {}
+	for key: String in w.catalog.entries:
+		key_of[w.catalog.entries[key]["texture"]] = key
+	var statics: Array = []
+	for n in w.object_layer.get_children():
+		if n is IsoProp:
+			statics.append([key_of.get((n as IsoProp).sprite.texture, "?"), (n as IsoProp).iso.gx, (n as IsoProp).iso.gy])
+	statics.sort_custom(func(a: Array, b: Array) -> bool:
+		if a[1] != b[1]:
+			return a[1] < b[1]
+		if a[2] != b[2]:
+			return a[2] < b[2]
+		return String(a[0]) < String(b[0]))
+	var name_of := {}
+	var coords: Dictionary = w.tileset.get_meta(&"tile_coords")
+	for name: String in coords:
+		name_of[coords[name]] = name
+	var rows: Array = []
+	for j in w.map.height:
+		var row := PackedStringArray()
+		for i in w.map.width:
+			var c := w.ground_layer.get_cell_atlas_coords(Vector2i(i, j))
+			row.append(name_of.get(c, "-") if c != Vector2i(-1, -1) else "-")
+		rows.append(row)
+	return [statics, rows]
+
+
+## RNG-002: the same seed reproduces the treat, decor and spawn choices byte for byte: the treat
+## route and random spawn spots equal the source (MAP-007, GZ-001 data), every static prop (map
+## props, forest trees, wall blocks) has the source World's sprite and position, every ground cell
+## has the source mapRenderer.makeTile() choice (animated cells: their phased tile), and a second
+## build with the same seed is identical.
+func test_RNG_002_same_seed_reproduces_treat_decor_spawn_choices() -> void:
+	var fx: Dictionary = fixture("source_green_zone_decor")
+	var gz: Dictionary = fixture()["green_zone"]
+	var def := GreenZoneLevel.definition()
+	var w := _make(def.rows, true)
+	var m := w.map
+	# Treats and spawns.
+	var treats := TreatPlacement.place_treats(m, def.spawns["treats"], def.seed)
+	assert_eq(treats.map(func(t: Array) -> Array: return [t[0], t[1]]), (gz["treats"] as Array).map(func(t: Dictionary) -> Array: return [t["x"], t["y"]]), "treat route equals the source")
+	var r := DeterministicRng.new(5)
+	for k in (gz["random_spot"] as Array).size():
+		var got: Variant = TreatPlacement.random_spot_near(m, 60.5, 60.5, 3, 8, r)
+		var want: Variant = gz["random_spot"][k]
+		assert_eq(got, [want["x"], want["y"]] if want != null else null, "spawn spot %d equals the source" % k)
+	# Decor.
+	var first := _decor(w)
+	var statics: Array = first[0]
+	var want_statics: Array = fx["statics"]
+	assert_eq(statics.size(), want_statics.size(), "static prop count")
+	for k in mini(statics.size(), want_statics.size()):
+		if not values_equal(statics[k], want_statics[k]):
+			fail("static %d: %s, source %s" % [k, statics[k], want_statics[k]])
+			break
+	var rows: Array = first[1]
+	var mismatches := 0
+	for j in m.height:
+		var want_row := String(fx["ground_rows"][j]).split(" ")
+		for i in m.width:
+			var got: String = rows[j][i]
+			var want: String = want_row[i]
+			var ok := got == want
+			for animated in ["tallGrass", "water", "deep"]:
+				if want.begins_with(animated + "_"):
+					ok = got.begins_with(animated + "_phase")
+			if not ok:
+				mismatches += 1
+				if mismatches <= 3:
+					fail("cell %d,%d: %s, source %s" % [i, j, got, want])
+	assert_eq(mismatches, 0, "ground tiles equal the source choices")
+	# Same seed, second build: identical.
+	var w2 := _make(def.rows, true)
+	assert_true(values_equal(_decor(w2), first), "a second build with the same seed is identical")
+	assert_eq(TreatPlacement.place_treats(w2.map, def.spawns["treats"], def.seed), treats, "same treats")
+
+
 func test_WORLD_004_phase_rotated_animated_alternatives() -> void:
 	var w := _make(GreenZoneLevel.definition().rows, false)
 	var coords: Dictionary = w.tileset.get_meta(&"tile_coords")

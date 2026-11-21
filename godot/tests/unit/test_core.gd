@@ -48,7 +48,8 @@ func test_RNG_001_mulberry32_sequences() -> void:
 				break
 
 
-func test_P_RNG_002_int_range_reproduces() -> void:
+## Integer draws of the source Rng.int() (part of RNG-002; the full case is in test_world.gd).
+func test_SLICE_rng_int_range_matches_source() -> void:
 	var ints: Dictionary = fixture()["rng"]["ints"]
 	for seed_key: String in ints:
 		var r := DeterministicRng.new(int(seed_key))

@@ -705,6 +705,18 @@
    "use": "layoutLines() word wrap (executed for the wrapping fixtures)"
   },
   {
+   "source": "src/world/world.ts",
+   "sha256": "ece7d623e52c5e7fca4537e8ea53d164b98bf625985baf1ab9ee77fcad2de0ae",
+   "bytes": 7563,
+   "use": "World construction (decor choices, executed for the RNG-002 fixture)"
+  },
+  {
+   "source": "src/world/mapRenderer.ts",
+   "sha256": "8acf938b474132e8e0ac50d4ab682178e48624350eba84eab8bb857bdc56f97a",
+   "bytes": 9468,
+   "use": "ground tile choice makeTile (executed for the RNG-002 fixture)"
+  },
+  {
    "source": "src/story/maps.ts",
    "sha256": "ca37b1c25907861b88b8dceb365d576790c0bd355dc67dc3f3eaba51f6e4d885",
    "bytes": 18902,
@@ -2290,6 +2302,11 @@
    "target": "tests/fixtures/source_font_glyphs.json",
    "sha256": "fd10ac00d90c40d49717c9f2b2d2c0ea74c8499bf55b05868a4839f10a6cd03b",
    "bytes": 22142
+  },
+  {
+   "target": "tests/fixtures/source_green_zone_decor.json",
+   "sha256": "3cb53ad7d70f68e43b7ca265b6300757bb1373a1500ebaf5d7dd7be89e7db027",
+   "bytes": 112722
   },
   {
    "target": "tests/fixtures/source_reference.json",

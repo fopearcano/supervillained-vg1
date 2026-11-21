@@ -181,6 +181,8 @@ const INPUTS_ONLY = [
   { from: 'src/assets/fonts/PressStart2P.woff2', use: 'converter input for the bitmap font (not exported)' },
   { from: 'src/ui/pixelFont.ts', use: 'bitmap font rasterization contract (executed in Chromium)' },
   { from: 'src/ui/pixelText.ts', use: 'layoutLines() word wrap (executed for the wrapping fixtures)' },
+  { from: 'src/world/world.ts', use: 'World construction (decor choices, executed for the RNG-002 fixture)' },
+  { from: 'src/world/mapRenderer.ts', use: 'ground tile choice makeTile (executed for the RNG-002 fixture)' },
   { from: 'src/story/maps.ts', use: 'story maps STORY_MAPS (executed for the MAP-003/COLL-005 fixtures)' },
   { from: 'src/campaign/state.ts', use: 'campaign v1->v2 migration and load rules (executed for the SAV-013-017 fixtures)' },
   { from: 'src/story/storyFlow.ts', use: 'one-time dream-rewritten notice (showNotice) mirrored in the fixtures' },
@@ -1204,6 +1206,29 @@ fx.rules_overlap = rulesScenario((t, c) => {
     };
   }
   emit('tests/fixtures/source_story_maps.json', stableJson({ audited_commit: AUDITED_COMMIT, recipe: 'src/story/maps.ts STORY_MAPS -> src/world/level.ts parseAsciiMap(rows, { base, requireExit: false }) -> src/world/map.ts GameMap (bfs from the start)', maps: storyMaps }));
+}
+
+// RNG-002 decor fixture: the source World built for the Green Zone (src/world/world.ts, executed
+// with the texture-token stubs): the sprite every static entity was given (map props, forest trees,
+// wall blocks) with its grid position, and the ground tile mapRenderer.makeTile() picks per cell
+// (null = no tile). Animated cells (tall grass, water, deep) also get their phase in the port's
+// atlas, checked by WORLD-004.
+{
+  const { World } = await importSource('world/world.ts');
+  const { PropEntity } = await importSource('entities/prop.ts');
+  const quiet = console.warn;
+  console.warn = () => {};
+  const w = new World(loadLevel(LEVEL_1), LEVEL_1.palette, { playerSkin: 'zampano', forest: true });
+  console.warn = quiet;
+  const statics = w.entities.filter((e) => e instanceof PropEntity).map((e) => [e.sprite.texture.name, e.gx, e.gy]);
+  statics.sort((a, b) => (a[1] - b[1]) || (a[2] - b[2]) || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  const rows = [];
+  for (let j = 0; j < w.map.height; j++) {
+    const row = [];
+    for (let i = 0; i < w.map.width; i++) row.push(w.mapRenderer.makeTile(i, j)?.texture?.name ?? '-');
+    rows.push(row.join(' '));
+  }
+  emit('tests/fixtures/source_green_zone_decor.json', stableJson({ audited_commit: AUDITED_COMMIT, recipe: 'src/world/world.ts World (Green Zone, forest on) executed with texture-token stubs; mapRenderer.makeTile per cell', statics, ground_rows: rows }));
 }
 
 emit('tests/fixtures/source_reference.json', stableJson(fx));
