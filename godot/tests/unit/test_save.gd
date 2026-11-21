@@ -295,3 +295,98 @@ func test_SLICE_future_copy_failures_are_reported_and_writes_stay_blocked() -> v
 	assert_eq([_svc.future_copy_errors, FileAccess.get_file_as_string(_dir + "save_v3.tmp.future.json")], [[] as Array[String], FUTURE_BYTES], "copy succeeds when it can")
 	_clear()
 	_svc.load_from_disk()
+
+
+# --- Campaign v1 -> v2 (src/campaign/state.ts, fixtures from the executed source) ---------------
+
+func _migration() -> Dictionary:
+	return fixture("source_campaign_migration")
+
+
+## SAV-013: every v1 fixture migrates exactly as the source: only 1.0/1.2/1.3/1.4 and the approved
+## fields (their flags, scraps, remembered lines, coins, play time, save time) survive.
+func test_SAV_013_v1_keeps_only_unchanged_scenes_and_approved_fields() -> void:
+	var fx := _migration()
+	assert_eq(CampaignMigration.V1_KEPT_SCENES, fx["v1_kept_scenes"], "kept scenes")
+	assert_eq(CampaignMigration.new_campaign(), fx["new_campaign"], "new campaign")
+	var cases: Dictionary = fx["migrations"]
+	assert_true(cases.size() >= 7, "v1 fixtures")
+	for name: String in cases:
+		var raw: Dictionary = cases[name]["raw"]
+		var before := raw.duplicate(true)
+		assert_eq(CampaignMigration.migrate_v1(raw), cases[name]["migrated"], name + " migrated like the source")
+		assert_eq(raw, before, name + " input untouched (pure)")
+	var full: Dictionary = CampaignMigration.migrate_v1(cases["full"]["raw"])
+	assert_eq(full["completed"], ["1.0", "1.2", "1.3", "1.4"], "only the kept scenes")
+	assert_eq(full["flags"], {"pawOffered": true, "longWay": false, "santinaBall": "returned"}, "only the kept scenes' flags")
+	assert_eq([full["coins"], full["playTime"], full["savedAt"]], [123.5, 456.25, 1700000000000.0], "coins, play time, save time kept")
+
+
+## SAV-014: a v1 save that reached 1.1 without a recorded 1.0 counts the Green Zone walk as done.
+func test_SAV_014_v1_1_1_without_1_0_counts_1_0() -> void:
+	var raw: Dictionary = _migration()["migrations"]["walked_1_1_without_1_0"]["raw"]
+	assert_false((raw["completed"] as Array).has("1.0"), "fixture lacks 1.0")
+	var m := CampaignMigration.migrate_v1(raw)
+	assert_eq(m["completed"], ["1.0"], "1.0 complete, 1.1 replayed")
+	assert_eq(m["flags"], {"longWay": true}, "its flags kept (a kept scene is complete)")
+	assert_eq(m["notice"], "dream-rewritten", "1.1 is played again: notice")
+
+
+## SAV-015: everything the rewrite changed starts fresh: meters (but the 1.3 paw's -3), book
+## marvels/items/values, abilities and the ending flag.
+func test_SAV_015_rewritten_scenes_reset_meters_book_abilities_ending() -> void:
+	var cases: Dictionary = _migration()["migrations"]
+	var full := CampaignMigration.migrate_v1(cases["full"]["raw"])
+	assert_eq(full["meters"], {"commozione": 20, "supervillain": 7, "grace": 70, "standing": 50}, "fresh meters, paw offered -3")
+	assert_eq([full["book"]["marvels"], full["book"]["items"], full["book"]["values"]], [[], [], []], "dream book reset")
+	assert_eq(full["abilities"], [], "costumes/abilities reset")
+	assert_false((full["flags"] as Dictionary).has("ending") or (full["flags"] as Dictionary).has("vow"), "ending and dream flags dropped")
+	assert_eq(CampaignMigration.migrate_v1(cases["kept_scenes_only"]["raw"])["meters"]["supervillain"], 10, "no paw: supervillain at its start")
+	assert_eq(CampaignMigration.migrate_v1(cases["nothing_kept_flags_dropped"]["raw"])["flags"], {}, "no kept scene: no kept flags")
+
+
+## SAV-016: loading a v1 store keeps the untouched payload aside once and stores the migration;
+## a second load is idempotent (same campaign, same backup); an existing backup is never replaced.
+func test_SAV_016_v1_payload_backed_up_once_second_load_idempotent() -> void:
+	var fx := _migration()
+	for name: String in fx["sequences"]:
+		var seq: Dictionary = fx["sequences"][name]
+		var raw: Dictionary = fx["migrations"][name]["raw"]
+		var first := CampaignMigration.load_campaign({"story": raw.duplicate(true)})
+		assert_eq(first["campaign"], seq["first"], name + " first load")
+		assert_eq(first["store"]["story"], seq["after_first"]["story"], name + " migrated save stored")
+		assert_eq(first["store"][CampaignMigration.V1_BACKUP_KEY], seq["after_first"]["backup"], name + " untouched v1 payload backed up")
+		assert_eq(first["store"][CampaignMigration.V1_BACKUP_KEY], raw, name + " backup equals the original")
+		var second := CampaignMigration.load_campaign(first["store"])
+		assert_eq(second["campaign"], seq["second"], name + " second load (v2 normalization)")
+		assert_eq(second["campaign"], first["campaign"], name + " idempotent")
+		assert_eq(second["store"], first["store"], name + " second load writes nothing new")
+	var earlier := {"version": 1, "completed": ["1.0"], "marker": "earlier"}
+	var again := CampaignMigration.load_campaign({"story": fx["migrations"]["full"]["raw"], CampaignMigration.V1_BACKUP_KEY: earlier})
+	assert_eq(again["store"][CampaignMigration.V1_BACKUP_KEY], fx["existing_backup_kept"], "an existing backup is kept")
+	assert_eq(CampaignMigration.load_campaign({})["campaign"], fx["new_campaign"], "no save: new campaign")
+	assert_eq(CampaignMigration.load_campaign({"story": {"version": 7}})["campaign"], fx["new_campaign"], "unknown version: new campaign (source)")
+
+
+## SAV-017: the dream-rewritten notice is set only when a played scene is replayed, shown once
+## (consume_notice true, then false) and cleared for good in the saved campaign.
+func test_SAV_017_dream_rewritten_notice_set_shown_cleared_once() -> void:
+	var fx := _migration()
+	var cases: Dictionary = fx["migrations"]
+	for name: String in cases:
+		var m: Dictionary = CampaignMigration.migrate_v1(cases[name]["raw"])
+		assert_eq(m["notice"], cases[name]["migrated"]["notice"], name + " notice set like the source")
+	for name: String in fx["sequences"]:
+		var seq: Dictionary = fx["sequences"][name]
+		var state: Dictionary = CampaignMigration.load_campaign(CampaignMigration.load_campaign({"story": fx["migrations"][name]["raw"]})["store"])["campaign"]
+		var shown: Array = []
+		for k in 2:
+			var s := CampaignMigration.consume_notice(state)
+			if s:
+				state["savedAt"] = 1800000000000.0
+			shown.append(s)
+		assert_eq(shown, seq["shown"], name + " shown exactly once")
+		assert_eq(state, seq["after_notice"], name + " cleared notice saved")
+		var reloaded: Dictionary = CampaignMigration.load_campaign({"story": state})["campaign"]
+		assert_eq(reloaded, seq["third"], name + " stays cleared after reload")
+		assert_false(CampaignMigration.consume_notice(reloaded), name + " never shown again")

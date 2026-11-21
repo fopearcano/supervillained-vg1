@@ -181,6 +181,8 @@ const INPUTS_ONLY = [
   { from: 'src/assets/fonts/PressStart2P.woff2', use: 'converter input for the bitmap font (not exported)' },
   { from: 'src/ui/pixelFont.ts', use: 'bitmap font rasterization contract (executed in Chromium)' },
   { from: 'src/ui/pixelText.ts', use: 'layoutLines() word wrap (executed for the wrapping fixtures)' },
+  { from: 'src/campaign/state.ts', use: 'campaign v1->v2 migration and load rules (executed for the SAV-013-017 fixtures)' },
+  { from: 'src/story/storyFlow.ts', use: 'one-time dream-rewritten notice (showNotice) mirrored in the fixtures' },
   { from: 'src/core/audio.ts', use: 'leadingSilence() executed in Chromium for the SFX start offsets' },
   { from: 'src/assets/placeholders/items.ts', use: 'procedural item/HUD sprite generators (executed)' },
   { from: 'src/assets/placeholders/critters.ts', use: 'procedural shadow and critter generators (executed)' },
@@ -1095,6 +1097,75 @@ fx.rules_overlap = rulesScenario((t, c) => {
     floorDesigns[key] = { environment: d.environment, width: d.width, height: d.height, tiles: Object.keys(d.tiles).length, distinct_frames: new Set(Object.values(d.tiles)).size, chapter_selects_environment: Object.values(envManifest.chapterThemes?.[chapter] ?? {}).includes(d.environment), invalid_tiles: bad.length };
   }
   emit('tests/fixtures/source_environment.json', stableJson({ audited_commit: AUDITED_COMMIT, note: 'Native frame contract from the executed source generators; zone/floor data from public/environment-ink/manifest.json.', native_contract: native, zones, chapter_themes: envManifest.chapterThemes, theme_fallbacks: envManifest.themeFallbacks, floor_designs: floorDesigns }));
+}
+
+// SAV-013-017 fixtures: the source's own v1 -> v2 migration (src/campaign/state.ts migrateV1,
+// loadCampaign's v1 branch and the story flow's showNotice clearing), executed against an in-memory
+// localStorage. Inputs are representative version-1 saves (docs/STORY-SOURCES.md "Save migration").
+{
+  const stateTs = await importSource('campaign/state.ts');
+  const store = new Map();
+  const memoryStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
+  const previous = globalThis.localStorage;
+  globalThis.localStorage = memoryStorage;
+  const V1 = {
+    full: {
+      version: 1,
+      completed: ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '3.2'],
+      meters: { commozione: 64, supervillain: 31, grace: 42, standing: 77 },
+      flags: { pawOffered: true, longWay: false, santinaBall: 'returned', vow: true, ending: 'knight', other: 3 },
+      book: { marvels: ['THE FLEET'], items: ['FRESCO'], values: ['Comradeship'], remembered: ['AND A DOG DREAMS LECTURES.', 'THERE WAS A GATE, AND I WAS MAGNIFICENT AT IT.', 'AN OLD DREAM LINE.'], shards: ['A FLEET BOUGHT ON CREDIT', 'A CITY SEEN FROM ITS WALLS', 'AN OLD SCRAP'] },
+      abilities: ['cross', 'knight'],
+      coins: 123.5,
+      playTime: 456.25,
+      savedAt: 1700000000000,
+    },
+    walked_1_1_without_1_0: { version: 1, completed: ['1.1'], flags: { longWay: true }, coins: 4, playTime: 30, savedAt: 1690000000000 },
+    kept_scenes_only: { version: 1, completed: ['1.0', '1.2', '1.4'], flags: { santinaBall: 'kept', pawOffered: false }, book: { shards: ['A KNIGHT WHO KEPT WALKING'], remembered: ['THERE WAS A GATE, AND IT WAS A CHIHUAHUA.'] }, coins: 0, playTime: 12, savedAt: null },
+    nothing_kept_flags_dropped: { version: 1, completed: [], flags: { pawOffered: true, longWay: true }, coins: 9, playTime: 5 },
+    paw_offered: { version: 1, completed: ['1.0', '1.3'], flags: { pawOffered: true }, playTime: 1 },
+    malformed: { version: 1, completed: 'nope', flags: null, book: { remembered: [1, 'THERE WAS A BOWL, AND IT WAS ALWAYS ONE STEP AWAY.'] }, coins: -5, playTime: Number.NaN, savedAt: 'yesterday' },
+    mixed_types: { version: 1, completed: ['1.0', 7, null, '2.2', '1.2'], coins: '12', playTime: -3, savedAt: 1234.5 },
+  };
+  const migrations = {};
+  for (const [name, raw] of Object.entries(V1)) migrations[name] = { raw: JSON.parse(JSON.stringify(raw)), migrated: stateTs.migrateV1(JSON.parse(JSON.stringify(raw))) };
+  // loadCampaign sequence: v1 stored -> migrated + untouched backup; a second load is idempotent;
+  // an existing backup is never replaced; the notice is cleared once (storyFlow showNotice).
+  const KEYP = 'supervillained:';
+  const read = (k) => (store.has(KEYP + k) ? JSON.parse(store.get(KEYP + k)) : null);
+  const sequences = {};
+  for (const [name, raw] of Object.entries({ full: V1.full, walked_1_1_without_1_0: V1.walked_1_1_without_1_0 })) {
+    store.clear();
+    store.set(KEYP + 'story', JSON.stringify(raw));
+    const first = stateTs.loadCampaign();
+    const afterFirst = { story: read('story'), backup: read(stateTs.V1_BACKUP_KEY) };
+    const second = stateTs.loadCampaign();
+    const afterSecond = { story: read('story'), backup: read(stateTs.V1_BACKUP_KEY) };
+    // showNotice: true once, cleared and saved (saveCampaign stamps savedAt; fixed clock here).
+    const shown = [];
+    for (let k = 0; k < 2; k++) {
+      if (second.notice === 'dream-rewritten') { second.notice = null; stateTs.saveCampaign(second, 1800000000000); shown.push(true); } else shown.push(false);
+    }
+    const third = stateTs.loadCampaign();
+    sequences[name] = { first, after_first: afterFirst, second: JSON.parse(JSON.stringify(afterSecond.story)), after_second: afterSecond, shown, after_notice: read('story'), third };
+  }
+  // A backup from an earlier migration is kept, not replaced by a later v1 payload.
+  store.clear();
+  store.set(KEYP + stateTs.V1_BACKUP_KEY, JSON.stringify({ version: 1, completed: ['1.0'], marker: 'earlier' }));
+  store.set(KEYP + 'story', JSON.stringify(V1.full));
+  stateTs.loadCampaign();
+  const keptBackup = read(stateTs.V1_BACKUP_KEY);
+  globalThis.localStorage = previous;
+  emit('tests/fixtures/source_campaign_migration.json', stableJson({
+    audited_commit: AUDITED_COMMIT,
+    recipe: 'src/campaign/state.ts migrateV1/loadCampaign/saveCampaign executed with an in-memory localStorage; notice clearing as src/story/storyFlow.ts showNotice',
+    v1_kept_scenes: stateTs.V1_KEPT_SCENES,
+    v1_backup_key: stateTs.V1_BACKUP_KEY,
+    new_campaign: stateTs.newCampaign(),
+    migrations,
+    sequences,
+    existing_backup_kept: keptBackup,
+  }));
 }
 
 emit('tests/fixtures/source_reference.json', stableJson(fx));

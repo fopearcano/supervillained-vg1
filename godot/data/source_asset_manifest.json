@@ -705,6 +705,18 @@
    "use": "layoutLines() word wrap (executed for the wrapping fixtures)"
   },
   {
+   "source": "src/campaign/state.ts",
+   "sha256": "7f69658c0ff6d2a0779eaa06fc330baabb2f97bf95479dcee5881d4c089d18d2",
+   "bytes": 12806,
+   "use": "campaign v1->v2 migration and load rules (executed for the SAV-013-017 fixtures)"
+  },
+  {
+   "source": "src/story/storyFlow.ts",
+   "sha256": "9a3c09d02cb9fdb6c4b9f6aacdd5d7dc593da931aa75a5a54c1b86b6576d58e6",
+   "bytes": 16668,
+   "use": "one-time dream-rewritten notice (showNotice) mirrored in the fixtures"
+  },
+  {
    "source": "src/core/audio.ts",
    "sha256": "82f5f0871e8d7d802d60666d4a034b8ce0e8bfc223e2c138aa521daccd8cbd5b",
    "bytes": 11347,
@@ -2257,6 +2269,11 @@
    "target": "tests/fixtures/source_audio.json",
    "sha256": "0f47418a2b9696184191e8353a9bc92278c6f9c547d0bf8351652a3e75dca149",
    "bytes": 16904
+  },
+  {
+   "target": "tests/fixtures/source_campaign_migration.json",
+   "sha256": "266da2d68990066cfb259aa7d71ab4bd8e3557fbe850a38e7a8bfd8f12c85d8c",
+   "bytes": 16860
   },
   {
    "target": "tests/fixtures/source_environment.json",
