@@ -66,6 +66,10 @@ func setup(p_map: WorldMapModel, options: Dictionary = {}) -> void:
 	if options.get("forest", true):
 		_spawn_forest()
 	player = DOG_SCENE.instantiate()
+	# The developer `--as=` profile (AppState.selected_profile, Zampanò by default); a caller may
+	# pass options.profile (a PROFILES id) instead.
+	var profile_id: StringName = options.get("profile", AppState.selected_profile)
+	player.profile = load(AppState.PROFILES[profile_id])
 	object_layer.add_child(player)
 	player.set_grid_position(map.start.x, map.start.y)
 	player.face("N")

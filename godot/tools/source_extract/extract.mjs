@@ -106,6 +106,16 @@ const PINNED_CHROMIUM = { version: pinnedChromiumEntry.browserVersion, revision:
 const COPIES = [
   { from: 'public/sprites/zampano.png', to: 'assets/sprites/zampano.png', use: 'Zampanò normal 8-direction main sheet (11 actions x 8 dirs, 40x40)' },
   { from: 'public/sprites/zampano-tired.png', to: 'assets/sprites/zampano-tired.png', use: 'Zampanò normal tired sheet (2 frames x 8 dirs)' },
+  { from: 'public/sprites/zampanoKnight.png', to: 'assets/sprites/zampanoKnight.png', use: 'Zampanò armoured (knight) main sheet; also the cross costume (AST-006 alias)' },
+  { from: 'public/sprites/zampanoKnight-tired.png', to: 'assets/sprites/zampanoKnight-tired.png', use: 'Zampanò armoured tired sheet' },
+  { from: 'public/sprites/sbrimbrulon.png', to: 'assets/sprites/sbrimbrulon.png', use: 'Sbrimbrulòn normal main sheet' },
+  { from: 'public/sprites/sbrimbrulon-tired.png', to: 'assets/sprites/sbrimbrulon-tired.png', use: 'Sbrimbrulòn normal tired sheet' },
+  { from: 'public/sprites/sbrimbrulonKnight.png', to: 'assets/sprites/sbrimbrulonKnight.png', use: 'Sbrimbrulòn armoured main sheet' },
+  { from: 'public/sprites/sbrimbrulonKnight-tired.png', to: 'assets/sprites/sbrimbrulonKnight-tired.png', use: 'Sbrimbrulòn armoured tired sheet' },
+  { from: 'public/sprites/bagnaskiz.png', to: 'assets/sprites/bagnaskiz.png', use: 'Bagnaskiz normal main sheet (full colour)' },
+  { from: 'public/sprites/bagnaskiz-tired.png', to: 'assets/sprites/bagnaskiz-tired.png', use: 'Bagnaskiz normal tired sheet' },
+  { from: 'public/sprites/bagnaskizArmoured.png', to: 'assets/sprites/bagnaskizArmoured.png', use: 'Bagnaskiz armoured (bagnaskizEmperor) main sheet' },
+  { from: 'public/sprites/bagnaskizArmoured-tired.png', to: 'assets/sprites/bagnaskizArmoured-tired.png', use: 'Bagnaskiz armoured tired sheet' },
   { from: 'public/sprites/runIcon.png', to: 'assets/sprites/run_icon.png', use: 'RUN button icon' },
   { from: 'public/environment-ink/ch01_greenzone.png', to: 'assets/environment/ch01_greenzone.png', use: 'Color Ink Green Zone environment bank' },
   { from: 'public/environment-ink/manifest.json', to: 'assets/environment/manifest.json', use: 'Color Ink environment manifest (frames, themes, floor designs); kept verbatim (CRLF) for provenance' },
@@ -189,24 +199,59 @@ for (const [key, draws] of frozen) {
   manifest.generated.push({ key, target, sha256: sha256(png), w, h, frame_w: def.w, frame_h: def.h, variants: bufs.length, anchor_x: def.anchorX, anchor_y: def.anchorY, recipe: `src/assets/placeholders/${key === 'shadow' || key === 'shadowSmall' ? 'critters.ts drawShadow' : 'items.ts'}` });
 }
 
-// Sheet layout data (consumed by tools/build_resources.gd): exactly CHARACTERS.zampano.
+// Sheet layout data (consumed by tools/build_resources.gd): exactly the source CHARACTERS
+// entries of every playable skin (PLAYABLE_CHARACTER_KEYS). A skin whose sheet, own-anim sheets and
+// anims are those of another skin is an alias (zampanoCross = zampanoKnight art, AST-006): it gets
+// no layout of its own and its profile slot reuses the other skin's SpriteFrames.
 {
-  const def = manifestTs.CHARACTERS.zampano;
-  const layout = {
-    audited_commit: AUDITED_COMMIT,
-    source: 'src/assets/manifest.ts CHARACTERS.zampano',
-    key: def.key,
-    frame_w: def.frameW,
-    frame_h: def.frameH,
-    anchor_x: def.anchorX,
-    anchor_y: def.anchorY,
-    sheet: 'res://assets/sprites/zampano.png',
-    anim_sheets: { tired: 'res://assets/sprites/zampano-tired.png' },
-    sheet_dirs: manifestTs.SHEET_DIRS,
-    anim_order: Object.keys(def.anims),
-    anims: def.anims,
+  const copyTarget = (publicRel) => {
+    const c = COPIES.find((x) => x.from === `public/${publicRel}`);
+    if (!c) throw new Error(`sheet public/${publicRel} is not copied`);
+    return `res://${c.to}`;
   };
-  emit('data/characters/zampano_sheet.json', stableJson(layout));
+  const same = (a, b) => a.sheet === b.sheet && JSON.stringify(a.animSheets ?? {}) === JSON.stringify(b.animSheets ?? {}) && JSON.stringify(a.anims) === JSON.stringify(b.anims);
+  const aliases = {};
+  const skins = [];
+  // Among skins with identical art the armoured one is canonical (the cross costume IS the armour).
+  const canonical = (key) => {
+    const twins = manifestTs.PLAYABLE_CHARACTER_KEYS.filter((k) => same(manifestTs.CHARACTERS[k], manifestTs.CHARACTERS[key]));
+    return twins.find((k) => manifestTs.ARMOURED_SKINS.has(k)) ?? twins[0];
+  };
+  for (const key of manifestTs.PLAYABLE_CHARACTER_KEYS) {
+    const def = manifestTs.CHARACTERS[key];
+    if (!def.sheet) throw new Error(`playable skin ${key} has no delivered sheet`);
+    if (canonical(key) !== key) { aliases[key] = canonical(key); continue; }
+    skins.push(key);
+    const layout = {
+      audited_commit: AUDITED_COMMIT,
+      source: `src/assets/manifest.ts CHARACTERS.${key}`,
+      key: def.key,
+      frame_w: def.frameW,
+      frame_h: def.frameH,
+      anchor_x: def.anchorX,
+      anchor_y: def.anchorY,
+      sheet: copyTarget(def.sheet),
+      anim_sheets: Object.fromEntries(Object.entries(def.animSheets ?? {}).map(([a, rel]) => [a, copyTarget(rel)])),
+      sheet_dirs: manifestTs.SHEET_DIRS,
+      anim_order: Object.keys(def.anims),
+      anims: def.anims,
+    };
+    emit(`data/characters/${key}_sheet.json`, stableJson(layout));
+  }
+  // Who can be played and which skin each costume slot uses (source costumeFor(), executed).
+  const COSTUMES = ['zampano', 'zampanoCross', 'zampanoKnight'];
+  const profiles = {
+    audited_commit: AUDITED_COMMIT,
+    source: 'src/assets/manifest.ts PLAY_AS, PLAYABLE_CHARACTER_KEYS, ARMOURED_SKINS, costumeFor()',
+    play_as: [...manifestTs.PLAY_AS],
+    playable_keys: [...manifestTs.PLAYABLE_CHARACTER_KEYS],
+    armoured_skins: [...manifestTs.ARMOURED_SKINS].filter((k) => manifestTs.PLAYABLE_CHARACTER_KEYS.includes(k)),
+    skins,
+    aliases,
+    costume_slots: { normal: 'zampano', cross: 'zampanoCross', armoured: 'zampanoKnight' },
+    costumes: Object.fromEntries(manifestTs.PLAY_AS.map((p) => [p, Object.fromEntries(COSTUMES.map((c) => [c, manifestTs.costumeFor(p, c)]))])),
+  };
+  emit('data/characters/playable_profiles.json', stableJson(profiles));
   // Environment frames used by this milestone, with the manifest's exact geometry.
   const envManifest = JSON.parse(blobText('public/environment-ink/manifest.json'));
   const env = envManifest.zones.ch01_greenzone;
@@ -580,6 +625,12 @@ fx.zampano.speed_mul = { lives: [2, 3, 5, 9, 1, 12, NaN].map((n) => [Number.isNa
 fx.animation = {};
 for (const [name, def] of Object.entries(manifestTs.CHARACTERS.zampano.anims)) {
   fx.animation[name] = { def, duration: animationDuration(def), frames_at: [0, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2.3].map((t) => [t, animationFrame(def, t)]) };
+}
+
+// AST-005 for every playable skin: the source's own cycle durations and loop flags.
+fx.animation_skins = {};
+for (const key of manifestTs.PLAYABLE_CHARACTER_KEYS) {
+  fx.animation_skins[key] = Object.fromEntries(Object.entries(manifestTs.CHARACTERS[key].anims).map(([name, def]) => [name, { frames: def.frames, loop: def.loop, holds: def.frameDurationsMs ?? null, duration: animationDuration(def) }]));
 }
 
 // Needs

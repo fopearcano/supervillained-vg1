@@ -5,8 +5,12 @@ extends Node
 signal settings_changed(settings: Dictionary)
 
 const DEFAULT_PROFILE := &"zampano"
-## Playable profiles present in this build (Sbrimbrulòn and Bagnaskiz arrive with M1 completion).
-const PROFILES := {&"zampano": "res://data/characters/zampano_profile.tres"}
+## Playable profiles present in this build (src/assets/manifest.ts PLAY_AS).
+const PROFILES := {
+	&"zampano": "res://data/characters/zampano_profile.tres",
+	&"sbrimbrulon": "res://data/characters/sbrimbrulon_profile.tres",
+	&"bagnaskiz": "res://data/characters/bagnaskiz_profile.tres",
+}
 
 ## Developer launch override for the playable profile (`-- --as=<id>`), validated against
 ## PROFILES. The canonical game plays Zampanò; other profiles are a debug capability only

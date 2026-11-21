@@ -47,7 +47,8 @@ func test_SLICE_profile_override_is_validated() -> void:
 	var app: Node = (Engine.get_main_loop() as SceneTree).root.get_node("AppState")
 	assert_eq(app.resolve_profile(PackedStringArray()), {"profile": &"zampano", "rejected": ""}, "default")
 	assert_eq(app.resolve_profile(PackedStringArray(["--as=zampano"])), {"profile": &"zampano", "rejected": ""}, "known profile")
-	assert_eq(app.resolve_profile(PackedStringArray(["--as=bagnaskiz"])), {"profile": &"zampano", "rejected": "bagnaskiz"}, "profile not in this build is rejected")
+	assert_eq(app.resolve_profile(PackedStringArray(["--as=bagnaskiz"])), {"profile": &"bagnaskiz", "rejected": ""}, "Bagnaskiz is playable (source PLAY_AS)")
+	assert_eq(app.resolve_profile(PackedStringArray(["--as=cat"])), {"profile": &"zampano", "rejected": "cat"}, "a non-playable key is rejected")
 	assert_eq(app.resolve_profile(PackedStringArray(["--as=", "--x"])), {"profile": &"zampano", "rejected": ""}, "empty id rejected quietly")
 	for id: StringName in app.PROFILES:
 		assert_true(ResourceLoader.exists(app.PROFILES[id]), "%s profile resource exists" % id)

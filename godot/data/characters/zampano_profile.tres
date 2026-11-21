@@ -1,13 +1,16 @@
 [gd_resource type="Resource" script_class="PlayableCharacterProfile" format=3]
 
-[ext_resource type="SpriteFrames" path="res://data/characters/zampano_frames.tres" id="1_xxmy3"]
-[ext_resource type="Script" path="res://core/resources/playable_character_profile.gd" id="2_kwltx"]
+[ext_resource type="SpriteFrames" path="res://data/characters/zampanoKnight_frames.tres" id="1_kwltx"]
+[ext_resource type="SpriteFrames" path="res://data/characters/zampano_frames.tres" id="2_6cr6r"]
+[ext_resource type="Script" path="res://core/resources/playable_character_profile.gd" id="3_7svnw"]
 
 [resource]
-script = ExtResource("2_kwltx")
+script = ExtResource("3_7svnw")
 id = &"zampano"
 display_name = "Zampanò"
-normal_frames = ExtResource("1_xxmy3")
+normal_frames = ExtResource("2_6cr6r")
+cross_frames = ExtResource("1_kwltx")
+armoured_frames = ExtResource("1_kwltx")
 action_durations = {
 "bark": 0.2,
 "eat": 0.8799999999999999,

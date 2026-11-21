@@ -200,24 +200,34 @@ func test_DOG_003_pee_locks_movement_for_rule_duration() -> void:
 			idx += 1
 
 
-func test_P_AST_005_spriteframes_timing_matches_manifest() -> void:
+func test_AST_005_spriteframes_timing_matches_manifest() -> void:
+	# Zampanò against the source animationTiming fixture (frame-time samples), then every playable
+	# skin against the source's own cycle durations and loop flags.
 	var profile: PlayableCharacterProfile = load("res://data/characters/zampano_profile.tres")
-	var frames := profile.normal_frames
 	var src: Dictionary = fixture()["animation"]
 	for anim: String in src:
-		var def: Dictionary = src[anim]["def"]
-		for dir in IsoGrid.DIRS8:
-			var name := StringName("%s_%s" % [anim, dir.to_lower()])
-			if not assert_true(frames.has_animation(name), "missing animation " + name):
-				continue
-			assert_eq(frames.get_frame_count(name), int(def["frames"]), "%s frame count" % name)
-			assert_eq(frames.get_animation_loop(name), bool(def["loop"]), "%s loop flag" % name)
-			var total := 0.0
-			var holds: Array = def.get("frameDurationsMs", [])
-			for f in frames.get_frame_count(name):
-				var seconds := frames.get_frame_duration(name, f) / frames.get_animation_speed(name)
-				total += seconds
-				if not holds.is_empty():
-					assert_near(seconds, float(holds[f]) / 1000.0, 1e-6, "%s frame %d hold" % [name, f])
-			assert_near(total, src[anim]["duration"], 1e-6, "%s cycle duration" % name)
 		assert_near(profile.action_durations[anim], src[anim]["duration"], 1e-9, anim + " profile duration")
+	var skins: Dictionary = fixture()["animation_skins"]
+	assert_eq(skins.size(), 7, "every PLAYABLE_CHARACTER_KEYS skin")
+	var aliases: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/characters/playable_profiles.json"))["aliases"]
+	for skin: String in skins:
+		var frames: SpriteFrames = load("res://data/characters/%s_frames.tres" % aliases.get(skin, skin))
+		for anim: String in skins[skin]:
+			var def: Dictionary = skins[skin][anim]
+			for dir in IsoGrid.DIRS8:
+				var name := StringName("%s_%s" % [anim, dir.to_lower()])
+				if not assert_true(frames.has_animation(name), "%s missing animation %s" % [skin, name]):
+					continue
+				assert_eq(frames.get_frame_count(name), int(def["frames"]), "%s %s frame count" % [skin, name])
+				assert_eq(frames.get_animation_loop(name), bool(def["loop"]), "%s %s loop flag" % [skin, name])
+				var total := 0.0
+				var holds: Variant = def["holds"]
+				for f in frames.get_frame_count(name):
+					var seconds := frames.get_frame_duration(name, f) / frames.get_animation_speed(name)
+					total += seconds
+					if holds != null:
+						assert_near(seconds, float(holds[f]) / 1000.0, 1e-6, "%s %s frame %d hold" % [skin, name, f])
+				assert_near(total, float(def["duration"]), 1e-6, "%s %s cycle duration" % [skin, name])
+	# Frame-time samples of the source animationFrame() for Zampanò.
+	for anim: String in src:
+		assert_eq(int(src[anim]["def"]["frames"]), profile.normal_frames.get_frame_count(StringName(anim + "_s")), anim + " frames")

@@ -23,6 +23,106 @@
    "h": 320
   },
   {
+   "source": "public/sprites/zampanoKnight.png",
+   "target": "assets/sprites/zampanoKnight.png",
+   "sha256": "f86083bc5f2539abb0bee2cab5e2a373c876600afe56651da632147079ed4602",
+   "bytes": 699179,
+   "use": "Zampanò armoured (knight) main sheet; also the cross costume (AST-006 alias)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 320,
+   "h": 3520
+  },
+  {
+   "source": "public/sprites/zampanoKnight-tired.png",
+   "target": "assets/sprites/zampanoKnight-tired.png",
+   "sha256": "367e9fbc06eb4f7adb0cbdfa569081108ce8a210baef145926b82e8e5990d21b",
+   "bytes": 24387,
+   "use": "Zampanò armoured tired sheet",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 80,
+   "h": 320
+  },
+  {
+   "source": "public/sprites/sbrimbrulon.png",
+   "target": "assets/sprites/sbrimbrulon.png",
+   "sha256": "019be949f43853e4d70d6e1a0acd23a065be60b8d81fc90802d04efa86423dde",
+   "bytes": 721616,
+   "use": "Sbrimbrulòn normal main sheet",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 320,
+   "h": 3520
+  },
+  {
+   "source": "public/sprites/sbrimbrulon-tired.png",
+   "target": "assets/sprites/sbrimbrulon-tired.png",
+   "sha256": "bf2e98ae5a7b891a60e36993fe7bd3321fea2af38f4949b7de23677878f67063",
+   "bytes": 24942,
+   "use": "Sbrimbrulòn normal tired sheet",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 80,
+   "h": 320
+  },
+  {
+   "source": "public/sprites/sbrimbrulonKnight.png",
+   "target": "assets/sprites/sbrimbrulonKnight.png",
+   "sha256": "ec13ee4d02fe92e4b2881b9ee34b21518cdaa3dbc0ac7add0c4db72ddc033003",
+   "bytes": 688699,
+   "use": "Sbrimbrulòn armoured main sheet",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 320,
+   "h": 3520
+  },
+  {
+   "source": "public/sprites/sbrimbrulonKnight-tired.png",
+   "target": "assets/sprites/sbrimbrulonKnight-tired.png",
+   "sha256": "835b078ecb39b1589f39578cda16b9a2c0d5c6cefac4d6eb4a324b8f5352d341",
+   "bytes": 24668,
+   "use": "Sbrimbrulòn armoured tired sheet",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 80,
+   "h": 320
+  },
+  {
+   "source": "public/sprites/bagnaskiz.png",
+   "target": "assets/sprites/bagnaskiz.png",
+   "sha256": "0497124ee324deb26f9c6c7b2b3db744150ffd37f11c56697ab104f88d31e7bf",
+   "bytes": 1028712,
+   "use": "Bagnaskiz normal main sheet (full colour)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 320,
+   "h": 3520
+  },
+  {
+   "source": "public/sprites/bagnaskiz-tired.png",
+   "target": "assets/sprites/bagnaskiz-tired.png",
+   "sha256": "a9a3c52778ae932580179cc61233930c2175b5f29f84dbbfb588ac9571a589c1",
+   "bytes": 34226,
+   "use": "Bagnaskiz normal tired sheet",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 80,
+   "h": 320
+  },
+  {
+   "source": "public/sprites/bagnaskizArmoured.png",
+   "target": "assets/sprites/bagnaskizArmoured.png",
+   "sha256": "a6f0ad4434c63ef4accccb928e3370fd90c14b4ba2953cec150a0ef53c12ea40",
+   "bytes": 893743,
+   "use": "Bagnaskiz armoured (bagnaskizEmperor) main sheet",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 320,
+   "h": 3520
+  },
+  {
+   "source": "public/sprites/bagnaskizArmoured-tired.png",
+   "target": "assets/sprites/bagnaskizArmoured-tired.png",
+   "sha256": "fc6e5fc4352098ee69aa20074337d8065710b063b3ac256059942125c402a9f1",
+   "bytes": 29268,
+   "use": "Bagnaskiz armoured tired sheet",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 80,
+   "h": 320
+  },
+  {
    "source": "public/sprites/runIcon.png",
    "target": "assets/sprites/run_icon.png",
    "sha256": "7e61c0c7719b34c5413463150ae7a076f4128ac9f61950d4fd3e25b2b2c54f91",
@@ -663,6 +763,36 @@
    "bytes": 2858
   },
   {
+   "target": "data/characters/bagnaskizEmperor_sheet.json",
+   "sha256": "a491fc233766a49e654a17fde3e0616d06a37f87e40ddb41cccf204a2d244d8c",
+   "bytes": 2160
+  },
+  {
+   "target": "data/characters/bagnaskiz_sheet.json",
+   "sha256": "ce58ebabe6a578fcada0050033b92ffa26bde71c99d80b2d7b8c002118138046",
+   "bytes": 2129
+  },
+  {
+   "target": "data/characters/playable_profiles.json",
+   "sha256": "7a0f1de55fd654863ea9e4a5adc796830ce846c26b741ca646205f36e41c2082",
+   "bytes": 1127
+  },
+  {
+   "target": "data/characters/sbrimbrulonKnight_sheet.json",
+   "sha256": "7890dbf12e3eacb544b7afdd9b3979d1e8b2cfc252ea0ba7b2c3ca5b4811de05",
+   "bytes": 2162
+  },
+  {
+   "target": "data/characters/sbrimbrulon_sheet.json",
+   "sha256": "1b59694feef5755f184fe26fbc0c247db76b6725e047e539b3b32addacec1934",
+   "bytes": 2138
+  },
+  {
+   "target": "data/characters/zampanoKnight_sheet.json",
+   "sha256": "23cd3ab4189923bbc8e14f69580b99bec3289e9552ee5e7f317f3916d3bc36b6",
+   "bytes": 2144
+  },
+  {
    "target": "data/characters/zampano_sheet.json",
    "sha256": "f5dc2ca275a3d3a99ea01fca33488ae01f4a1dab4138652ff3679021864f6f2c",
    "bytes": 2120
@@ -689,8 +819,8 @@
   },
   {
    "target": "tests/fixtures/source_reference.json",
-   "sha256": "494a2499327da361b67e76a9984157f00e3a21cea13cccc252fc9b77ee527c3e",
-   "bytes": 474763
+   "sha256": "07a8fbe64de2c1883a859ddc12d23e6e6c5ce3919e91dd43967d86fc4a1a2d39",
+   "bytes": 487235
   }
  ]
 }

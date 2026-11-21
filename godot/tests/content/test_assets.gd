@@ -80,51 +80,231 @@ func test_SLICE_chromium_provenance_is_the_pinned_build() -> void:
 				assert_eq([tc["chromium"], tc["chromium_revision"]], [b["browserVersion"], b["revision"]], "matches the installed playwright-core browsers.json")
 
 
-func test_P_AST_002_playable_sheet_geometry() -> void:
-	var main: Texture2D = load("res://assets/sprites/zampano.png")
-	var tired: Texture2D = load("res://assets/sprites/zampano-tired.png")
-	assert_eq(Vector2i(main.get_width(), main.get_height()), Vector2i(320, 3520), "main sheet 320x3520")
-	assert_eq(Vector2i(tired.get_width(), tired.get_height()), Vector2i(80, 320), "tired sheet 80x320")
-	assert_eq(main.get_height() % 40, 0, "whole 40 px rows")
+const PLAYABLES := "res://data/characters/playable_profiles.json"
+const ACTIONS := ["idle", "walk", "run", "sniff", "pee", "poop", "eat", "bark", "fetch", "hurt", "sit", "tired"]
+var _images := {}
 
 
-func test_P_AST_003_foot_anchor() -> void:
-	var p: PlayableCharacterProfile = load("res://data/characters/zampano_profile.tres")
-	assert_eq(p.foot_anchor, Vector2i(20, 36), "foot anchor")
-	var dog: PlayableDog = load("res://entities/playable_dog/playable_dog.tscn").instantiate()
-	var body: AnimatedSprite2D = dog.get_node("VisualRoot/Body")
-	assert_eq(body.offset, Vector2(-20, -36), "sprite offset puts the anchor on the foot point")
-	assert_false(body.centered, "not centred")
-	dog.free()
+func _playables() -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string(PLAYABLES))
 
 
-func test_P_AST_004_every_action_has_eight_real_directions() -> void:
-	var p: PlayableCharacterProfile = load("res://data/characters/zampano_profile.tres")
-	var sf := p.normal_frames
-	var images := {}
-	for anim in ["idle", "walk", "run", "sniff", "pee", "poop", "eat", "bark", "fetch", "hurt", "sit", "tired"]:
-		var per_dir := {}
+func _layout(skin: String) -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string("res://data/characters/%s_sheet.json" % skin))
+
+
+func _frames(skin: String) -> SpriteFrames:
+	return load("res://data/characters/%s_frames.tres" % skin)
+
+
+## The frame's pixels (atlas images cached per test case).
+func _frame_image(sf: SpriteFrames, anim: StringName, f: int) -> Image:
+	var at := sf.get_frame_texture(anim, f) as AtlasTexture
+	var key := at.atlas.resource_path
+	if not _images.has(key):
+		_images[key] = at.atlas.get_image()
+		(_images[key] as Image).convert(Image.FORMAT_RGBA8)
+	return (_images[key] as Image).get_region(Rect2i(at.region))
+
+
+static func _lowest_opaque_row(img: Image) -> int:
+	for y in range(img.get_height() - 1, -1, -1):
+		for x in img.get_width():
+			if img.get_pixel(x, y).a > 0.5:
+				return y
+	return -1
+
+
+## AST-002 geometry of one skin: exact sheet sizes, whole 40x40 frames on the grid, every row used.
+func _check_sheet_geometry(skin: String) -> void:
+	var layout := _layout(skin)
+	var fw: int = layout["frame_w"]
+	var fh: int = layout["frame_h"]
+	assert_eq(Vector2i(fw, fh), Vector2i(40, 40), skin + " 40x40 frames")
+	var main: Texture2D = load(layout["sheet"])
+	var own: Dictionary = layout["anim_sheets"]
+	var in_main: int = (layout["anim_order"] as Array).filter(func(a: String) -> bool: return not own.has(a)).size()
+	assert_eq(Vector2i(main.get_width(), main.get_height()), Vector2i(8 * fw, in_main * 8 * fh), skin + " main sheet %dx%d" % [main.get_width(), main.get_height()])
+	assert_eq(Vector2i(main.get_width(), main.get_height()), Vector2i(320, 3520), skin + " main sheet 320x3520")
+	for anim: String in own:
+		var t: Texture2D = load(own[anim])
+		var n := int(layout["anims"][anim]["frames"])
+		assert_eq(Vector2i(t.get_width(), t.get_height()), Vector2i(n * fw, 8 * fh), "%s %s sheet" % [skin, anim])
+		assert_eq(Vector2i(t.get_width(), t.get_height()), Vector2i(80, 320), "%s %s sheet 80x320" % [skin, anim])
+	var sf := _frames(skin)
+	var used := {}
+	for name: StringName in sf.get_animation_names():
+		for f in sf.get_frame_count(name):
+			var at := sf.get_frame_texture(name, f) as AtlasTexture
+			var r := Rect2i(at.region)
+			assert_true(r.size == Vector2i(fw, fh) and r.position.x % fw == 0 and r.position.y % fh == 0 and Rect2i(Vector2i.ZERO, at.atlas.get_size()).encloses(r), "%s %s %d region %s" % [skin, name, f, r])
+			if at.atlas == main:
+				used[r.position.y / fh] = true
+	assert_eq(used.size(), in_main * 8, skin + " every main-sheet row used")
+
+
+## AST-004 for one skin: every action in eight directions, no blank frame, distinct directions.
+func _check_directions(skin: String) -> void:
+	var sf := _frames(skin)
+	for anim: String in ACTIONS:
+		var seen := {}
 		for dir in IsoGrid.DIRS8:
 			var name := StringName("%s_%s" % [anim, dir.to_lower()])
-			if not assert_true(sf.has_animation(name), "missing " + name):
+			if not assert_true(sf.has_animation(name), "%s missing %s" % [skin, name]):
 				continue
 			for f in sf.get_frame_count(name):
-				var at := sf.get_frame_texture(name, f) as AtlasTexture
-				var key := at.atlas.resource_path
-				if not images.has(key):
-					images[key] = at.atlas.get_image()
-				var img: Image = (images[key] as Image).get_region(Rect2i(at.region))
-				if img.is_invisible():
-					fail("%s frame %d is blank" % [name, f])
-				if f == 0:
-					per_dir[dir] = img.get_data()
-		# No duplicated diagonals: every direction's first frame is distinct.
-		var seen := {}
-		for dir: String in per_dir:
-			var h := hash(per_dir[dir])
+				if _frame_image(sf, name, f).is_invisible():
+					fail("%s %s frame %d is blank" % [skin, name, f])
+			# No duplicated diagonals: every direction's first frame is distinct.
+			var h := hash(_frame_image(sf, name, 0).get_data())
 			if seen.has(h):
-				fail("%s: %s duplicates %s" % [anim, dir, seen[h]])
+				fail("%s %s: %s duplicates %s" % [skin, anim, dir, seen[h]])
 			seen[h] = dir
+
+
+## AST-003 for one skin: standing frames (idle, sit) reach down to within two rows above the foot
+## anchor in all eight directions and never below it, so the anchor is the art's ground contact
+## point (diagonal poses end one row higher than the axis-aligned ones).
+func _check_feet_on_anchor(skin: String) -> void:
+	var layout := _layout(skin)
+	assert_eq(Vector2i(int(layout["anchor_x"]), int(layout["anchor_y"])), Vector2i(20, 36), skin + " foot anchor")
+	var sf := _frames(skin)
+	for anim in ["idle", "sit"]:
+		for dir in IsoGrid.DIRS8:
+			var row := _lowest_opaque_row(_frame_image(sf, StringName("%s_%s" % [anim, dir.to_lower()]), 0))
+			var a := int(layout["anchor_y"])
+			assert_true(row >= a - 2 and row <= a - 1, "%s %s_%s feet on the anchor (lowest opaque row %d, anchor %d)" % [skin, anim, dir.to_lower(), row, a])
+
+
+func test_AST_002_playable_sheet_geometry() -> void:
+	var skins: Array = _playables()["skins"]
+	assert_eq(skins.size(), 6, "six delivered playable skins (cross aliases the knight)")
+	for skin: String in skins:
+		_check_sheet_geometry(skin)
+
+
+func test_AST_003_foot_anchor_renders_on_the_world_foot_point() -> void:
+	var p := _playables()
+	for skin: String in p["skins"]:
+		_check_feet_on_anchor(skin)
+	for play_as: String in p["play_as"]:
+		var prof: PlayableCharacterProfile = load(AppState.PROFILES[StringName(play_as)])
+		assert_eq([prof.foot_anchor, prof.frame_size], [Vector2i(20, 36), Vector2i(40, 40)], play_as + " profile anchor and frame")
+		var dog: PlayableDog = load("res://entities/playable_dog/playable_dog.tscn").instantiate()
+		dog.profile = prof
+		tree.root.add_child(dog)
+		dog.set_grid_position(10.5, 20.25)
+		var body: AnimatedSprite2D = dog.get_node("VisualRoot/Body")
+		assert_eq(body.sprite_frames, prof.normal_frames, play_as + " frames on the body")
+		assert_false(body.centered, play_as + " not centred")
+		var foot := IsoGrid.grid_to_screen(10.5, 20.25).round()
+		assert_eq(dog.global_position, foot, play_as + " node on the whole-pixel foot point")
+		# The anchor pixel of the frame lands exactly on the foot point.
+		assert_eq(body.global_position + body.offset + Vector2(prof.foot_anchor), foot, play_as + " anchor renders on the foot point")
+		dog.free()
+
+
+func test_AST_004_every_action_has_eight_real_directions() -> void:
+	for skin: String in _playables()["skins"]:
+		_check_directions(skin)
+
+
+func test_AST_006_cross_costume_aliases_the_knight_art() -> void:
+	var p := _playables()
+	assert_eq(p["aliases"], {"zampanoCross": "zampanoKnight"}, "source: zampanoCross uses the knight sheet, tired sheet and anims")
+	var z: PlayableCharacterProfile = load(AppState.PROFILES[&"zampano"])
+	assert_true(z.cross_frames != null and z.cross_frames == z.armoured_frames, "cross slot is the very same SpriteFrames as the armour")
+	assert_eq(z.cross_frames.resource_path, "res://data/characters/zampanoKnight_frames.tres", "knight frames")
+	assert_false(FileAccess.file_exists("res://data/characters/zampanoCross_frames.tres"), "no duplicated cross frames")
+	assert_false(FileAccess.file_exists("res://data/characters/zampanoCross_sheet.json"), "no cross layout")
+	for e: Dictionary in _manifest()["copies"]:
+		assert_false(String(e["source"]).to_lower().contains("cross"), "no rag-cross art copied: " + String(e["source"]))
+	for f in DirAccess.get_files_at("res://assets/sprites"):
+		assert_false(f.to_lower().contains("cross") or f.to_lower().contains("rag"), "no retired rag-cross sprite: " + f)
+
+
+func test_AST_007_armoured_zampano_actions_and_arms_alignment() -> void:
+	var p := _playables()
+	assert_eq(p["costumes"]["zampano"]["zampanoKnight"], "zampanoKnight", "armoured costume")
+	assert_true((p["armoured_skins"] as Array).has("zampanoKnight"), "an armoured skin (carries sword and shield)")
+	_check_sheet_geometry("zampanoKnight")
+	_check_directions("zampanoKnight")
+	# The source has no separate arms sprite: sword and shield are drawn inside the armoured frames,
+	# so their alignment is the frames' own: same 40x40 frame and foot anchor as the plain art, feet
+	# on the anchor in every direction, and art that differs from the plain costume.
+	_check_feet_on_anchor("zampanoKnight")
+	var plain := _frames("zampano")
+	var knight := _frames("zampanoKnight")
+	for dir in IsoGrid.DIRS8:
+		var name := StringName("idle_" + dir.to_lower())
+		assert_true(_frame_image(plain, name, 0).get_data() != _frame_image(knight, name, 0).get_data(), "armour art differs from plain " + name)
+	var z: PlayableCharacterProfile = load(AppState.PROFILES[&"zampano"])
+	assert_eq(z.armoured_frames, knight, "profile armoured slot")
+	assert_true(z.can_use_arms_when_armoured, "arms capability on the armoured costume (granted by 2.3, DOG-009)")
+
+
+## One PLAY_AS dog validates completely: profile wiring per source costumeFor(), both skins'
+## geometry, directions, anchors and timing.
+func _check_playable(play_as: String, normal: String, armoured: String) -> void:
+	var p := _playables()
+	assert_eq(p["costumes"][play_as], {"zampano": normal, "zampanoCross": normal, "zampanoKnight": armoured}, play_as + " costumes (source costumeFor)")
+	var prof: PlayableCharacterProfile = load(AppState.PROFILES[StringName(play_as)])
+	assert_eq([prof.id, prof.normal_frames, prof.cross_frames, prof.armoured_frames], [StringName(play_as), _frames(normal), _frames(normal), _frames(armoured)], play_as + " profile slots")
+	assert_true(prof.has_seated_idle, play_as + " sits when idle")
+	assert_eq(prof.collision_radius, GameConfig.Player.RADIUS, play_as + " player radius")
+	var timing: Dictionary = fixture()["animation_skins"]
+	for skin in [normal, armoured]:
+		_check_sheet_geometry(skin)
+		_check_directions(skin)
+		_check_feet_on_anchor(skin)
+		var sf := _frames(skin)
+		for anim: String in timing[skin]:
+			for dir in IsoGrid.DIRS8:
+				var name := StringName("%s_%s" % [anim, dir.to_lower()])
+				assert_eq([sf.get_frame_count(name), sf.get_animation_loop(name)], [int(timing[skin][anim]["frames"]), bool(timing[skin][anim]["loop"])], "%s %s frames/loop" % [skin, name])
+	for anim: String in timing[normal]:
+		assert_near(prof.action_durations[anim], float(timing[normal][anim]["duration"]), 1e-9, "%s %s duration" % [play_as, anim])
+
+
+func test_AST_008_sbrimbrulon_normal_and_armoured_profiles_validate() -> void:
+	_check_playable("sbrimbrulon", "sbrimbrulon", "sbrimbrulonKnight")
+	var timing: Dictionary = fixture()["animation_skins"]
+	assert_false(timing["sbrimbrulon"]["fetch"]["loop"] or timing["sbrimbrulon"]["hurt"]["loop"], "fetch and hurt play once (source SBRIMBRULON_ANIMS)")
+
+
+func test_AST_009_bagnaskiz_profiles_validate_with_full_colour_signature() -> void:
+	_check_playable("bagnaskiz", "bagnaskiz", "bagnaskizEmperor")
+	assert_true(bool(fixture()["animation_skins"]["bagnaskiz"]["hurt"]["loop"]), "the bully's hurt loops (source)")
+	# Full colour: the imported textures are the PNGs pixel for pixel (no palette reduction) and
+	# keep the delivery's colour depth and his yellow eyes in every front-facing action.
+	for skin in ["bagnaskiz", "bagnaskizEmperor"]:
+		var layout := _layout(skin)
+		for path: String in [layout["sheet"]] + (layout["anim_sheets"] as Dictionary).values():
+			var imported := (load(path) as Texture2D).get_image()
+			imported.convert(Image.FORMAT_RGBA8)
+			var decoded := Image.load_from_file(ProjectSettings.globalize_path(path))
+			decoded.convert(Image.FORMAT_RGBA8)
+			# The importer's only change is fix_alpha_border (RGB of fully transparent pixels).
+			var expected := decoded.duplicate() as Image
+			expected.fix_alpha_edges()
+			assert_true(imported.get_data() == expected.get_data(), path + " imported pixel for pixel (visible pixels and alpha unchanged)")
+			var colours := {}
+			for y in range(0, decoded.get_height(), 2):
+				for x in decoded.get_width():
+					var c := decoded.get_pixel(x, y)
+					if c.a > 0.5:
+						colours[c.to_rgba32()] = true
+			assert_true(colours.size() > 1000, "%s full colour (%d colours, not the pixel cast's 32)" % [path, colours.size()])
+		var sf := _frames(skin)
+		for anim: String in ACTIONS:
+			var img := _frame_image(sf, StringName(anim + "_s"), 0)
+			var eyes := 0
+			for y in img.get_height():
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					if c.a > 0.5 and c.r8 >= 200 and c.g8 >= 170 and c.b8 <= 90:
+						eyes += 1
+			assert_true(eyes > 0, "%s %s_s keeps the yellow eyes" % [skin, anim])
 
 
 func test_P_AST_012_environment_frames_and_tile_atlas() -> void:

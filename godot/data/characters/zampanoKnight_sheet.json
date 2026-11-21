@@ -1,0 +1,169 @@
+{
+ "audited_commit": "95b69c04c5c3b9626e49719f8f916a44659cd265",
+ "source": "src/assets/manifest.ts CHARACTERS.zampanoKnight",
+ "key": "zampanoKnight",
+ "frame_w": 40,
+ "frame_h": 40,
+ "anchor_x": 20,
+ "anchor_y": 36,
+ "sheet": "res://assets/sprites/zampanoKnight.png",
+ "anim_sheets": {
+  "tired": "res://assets/sprites/zampanoKnight-tired.png"
+ },
+ "sheet_dirs": [
+  "N",
+  "NE",
+  "E",
+  "SE",
+  "S",
+  "SW",
+  "W",
+  "NW"
+ ],
+ "anim_order": [
+  "idle",
+  "walk",
+  "run",
+  "sniff",
+  "pee",
+  "poop",
+  "eat",
+  "bark",
+  "fetch",
+  "hurt",
+  "sit",
+  "tired"
+ ],
+ "anims": {
+  "idle": {
+   "frames": 8,
+   "fps": 9.090909090909092,
+   "loop": true,
+   "frameDurationsMs": [
+    100,
+    110,
+    120,
+    110,
+    100,
+    110,
+    120,
+    110
+   ]
+  },
+  "walk": {
+   "frames": 8,
+   "fps": 10.81081081081081,
+   "loop": true,
+   "frameDurationsMs": [
+    90,
+    80,
+    90,
+    110,
+    90,
+    80,
+    90,
+    110
+   ]
+  },
+  "run": {
+   "frames": 8,
+   "fps": 18.6046511627907,
+   "loop": true,
+   "frameDurationsMs": [
+    50,
+    60,
+    60,
+    50,
+    60,
+    50,
+    50,
+    50
+   ]
+  },
+  "sniff": {
+   "frames": 2,
+   "fps": 5,
+   "loop": true
+  },
+  "pee": {
+   "frames": 8,
+   "fps": 5.128205128205129,
+   "loop": false,
+   "frameDurationsMs": [
+    120,
+    100,
+    130,
+    250,
+    360,
+    280,
+    140,
+    180
+   ]
+  },
+  "poop": {
+   "frames": 8,
+   "fps": 5.2631578947368425,
+   "loop": false,
+   "frameDurationsMs": [
+    120,
+    130,
+    150,
+    220,
+    360,
+    220,
+    140,
+    180
+   ]
+  },
+  "eat": {
+   "frames": 8,
+   "fps": 9.090909090909092,
+   "loop": true,
+   "frameDurationsMs": [
+    110,
+    100,
+    100,
+    90,
+    180,
+    90,
+    90,
+    120
+   ]
+  },
+  "bark": {
+   "frames": 2,
+   "fps": 10,
+   "loop": false
+  },
+  "fetch": {
+   "frames": 4,
+   "fps": 13,
+   "loop": true
+  },
+  "hurt": {
+   "frames": 2,
+   "fps": 10,
+   "loop": true
+  },
+  "sit": {
+   "frames": 8,
+   "fps": 7.8431372549019605,
+   "loop": true,
+   "frameDurationsMs": [
+    120,
+    120,
+    150,
+    120,
+    120,
+    120,
+    150,
+    120
+   ]
+  },
+  "tired": {
+   "frames": 2,
+   "fps": 4,
+   "loop": true
+  }
+ }
+}

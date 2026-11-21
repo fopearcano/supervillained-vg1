@@ -10,12 +10,12 @@ extends SceneTree
 ## difference with the committed outputs, without writing.
 
 const ENV_FRAMES := "res://data/environment/ch01_greenzone_frames.json"
-const SHEET_LAYOUT := "res://data/characters/zampano_sheet.json"
+const PROFILES_JSON := "res://data/characters/playable_profiles.json"
+## Display names of the PLAY_AS dogs.
+const DISPLAY_NAMES := {"zampano": "Zampanò", "sbrimbrulon": "Sbrimbrulòn", "bagnaskiz": "Bagnaskiz"}
 const TILE_ATLAS := "res://assets/generated/environment/ch01_greenzone_tiles.png"
 const TILESET_OUT := "res://data/environment/ch01_greenzone_tileset.tres"
 const SPRITES_OUT := "res://data/environment/green_zone_sprites.tres"
-const FRAMES_OUT := "res://data/characters/zampano_frames.tres"
-const PROFILE_OUT := "res://data/characters/zampano_profile.tres"
 const SFX_SILENCE_JSON := "res://data/audio/sfx_leading_silence.json"
 const SFX_SILENCE_OUT := "res://data/audio/sfx_leading_silence.tres"
 const FLOOR_ART_ATLAS := "res://assets/generated/environment/ch01_greenzone_floor_art.png"
@@ -50,7 +50,7 @@ func _initialize() -> void:
 	if phase == "resources" or phase == "all":
 		_build_tileset()
 		_build_sprite_catalog()
-		_build_character()
+		_build_characters()
 		_build_sfx_silence()
 	if _failures.is_empty():
 		if _check:
@@ -337,10 +337,35 @@ func _build_sprite_catalog() -> void:
 	_save_resource(cat, SPRITES_OUT)
 
 
-# --- Playable character -------------------------------------------------------------------------
+# --- Playable characters ------------------------------------------------------------------------
 
-func _build_character() -> void:
-	var layout := _json(SHEET_LAYOUT)
+static func sheet_layout_path(skin: String) -> String:
+	return "res://data/characters/%s_sheet.json" % skin
+
+
+static func frames_path(skin: String) -> String:
+	return "res://data/characters/%s_frames.tres" % skin
+
+
+static func profile_path(play_as: String) -> String:
+	return "res://data/characters/%s_profile.tres" % play_as
+
+
+## SpriteFrames for every playable skin, then one PlayableCharacterProfile per PLAY_AS dog whose
+## normal/cross/armoured slots are the source costumeFor() skins (aliases reuse the same frames).
+func _build_characters() -> void:
+	var profiles := _json(PROFILES_JSON)
+	if profiles.is_empty():
+		return
+	for skin: String in profiles["skins"]:
+		_build_frames(skin)
+	for play_as: String in profiles["play_as"]:
+		_build_profile(play_as, profiles)
+
+
+func _build_frames(skin: String) -> void:
+	var out := frames_path(skin)
+	var layout := _json(sheet_layout_path(skin))
 	if layout.is_empty():
 		return
 	var sheet: Texture2D = load(layout["sheet"])
@@ -348,12 +373,12 @@ func _build_character() -> void:
 	for anim: String in layout["anim_sheets"]:
 		own_sheets[anim] = load(layout["anim_sheets"][anim])
 	if sheet == null:
-		_failures.append("character sheet not imported")
+		_failures.append("character sheet not imported: " + skin)
 		return
-	sheet.set_id_for_path(FRAMES_OUT, "1_sheet")
+	sheet.set_id_for_path(out, "1_sheet")
 	var ext := 2
 	for anim: String in own_sheets:
-		(own_sheets[anim] as Texture2D).set_id_for_path(FRAMES_OUT, "%d_%s" % [ext, anim])
+		(own_sheets[anim] as Texture2D).set_id_for_path(out, "%d_%s" % [ext, anim])
 		ext += 1
 	var fw: int = layout["frame_w"]
 	var fh: int = layout["frame_h"]
@@ -361,16 +386,11 @@ func _build_character() -> void:
 	var dirs: Array = layout["sheet_dirs"]
 	var sf := SpriteFrames.new()
 	sf.remove_animation(&"default")
-	var durations := {}
-	var timed := PackedStringArray()
 	var row := 0
 	for anim: String in layout["anim_order"]:
 		var def: Dictionary = layout["anims"][anim]
 		var n: int = int(def["frames"])
 		var holds: Array = def.get("frameDurationsMs", [])
-		durations[anim] = float(n) / float(def["fps"])
-		if not holds.is_empty():
-			timed.append(anim)
 		var own: Texture2D = own_sheets.get(anim)
 		for d in dirs.size():
 			var anim_name := StringName("%s_%s" % [anim, String(dirs[d]).to_lower()])
@@ -388,7 +408,7 @@ func _build_character() -> void:
 					at.atlas = sheet
 					at.region = Rect2(f * fw, row * fh, fw, fh)
 				else:
-					_failures.append("sheet lacks rows for %s" % anim_name)
+					_failures.append("%s sheet lacks rows for %s" % [skin, anim_name])
 					continue
 				at.filter_clip = true
 				var duration := float(holds[f]) / 1000.0 if not holds.is_empty() else 1.0
@@ -396,18 +416,49 @@ func _build_character() -> void:
 			if own == null:
 				row += 1
 	if row * fh != sheet.get_height():
-		_failures.append("sheet rows used %d != sheet rows %d" % [row, rows])
-	_save_resource(sf, FRAMES_OUT)
-	var frames_res: SpriteFrames = load(FRAMES_OUT)
+		_failures.append("%s sheet rows used %d != sheet rows %d" % [skin, row, rows])
+	_save_resource(sf, out)
+
+
+func _build_profile(play_as: String, profiles: Dictionary) -> void:
+	var out := profile_path(play_as)
+	var costumes: Dictionary = profiles["costumes"][play_as]
+	var slots: Dictionary = profiles["costume_slots"]
+	var aliases: Dictionary = profiles["aliases"]
+	var skin_of := func(slot: String) -> String:
+		var skin := String(costumes[slots[slot]])
+		return String(aliases.get(skin, skin))
+	var normal_skin: String = skin_of.call("normal")
+	var layout := _json(sheet_layout_path(normal_skin))
+	if layout.is_empty():
+		return
 	var profile := PlayableCharacterProfile.new()
-	profile.id = &"zampano"
-	profile.display_name = "Zampanò"
-	profile.normal_frames = frames_res
-	frames_res.set_id_for_path(PROFILE_OUT, "1_frames")
+	profile.id = StringName(play_as)
+	profile.display_name = DISPLAY_NAMES[play_as]
+	var ext := 1
+	var loaded := {}
+	for slot: String in ["normal", "cross", "armoured"]:
+		var skin: String = skin_of.call(slot)
+		if not loaded.has(skin):
+			var res: SpriteFrames = load(frames_path(skin))
+			if res == null:
+				_failures.append("frames not built: " + skin)
+				return
+			res.set_id_for_path(out, "%d_frames" % ext)
+			ext += 1
+			loaded[skin] = res
+		profile.set(slot + "_frames", loaded[skin])
+	var durations := {}
+	var timed := PackedStringArray()
+	for anim: String in layout["anim_order"]:
+		var def: Dictionary = layout["anims"][anim]
+		durations[anim] = float(def["frames"]) / float(def["fps"])
+		if not (def.get("frameDurationsMs", []) as Array).is_empty():
+			timed.append(anim)
 	profile.foot_anchor = Vector2i(int(layout["anchor_x"]), int(layout["anchor_y"]))
-	profile.frame_size = Vector2i(fw, fh)
+	profile.frame_size = Vector2i(int(layout["frame_w"]), int(layout["frame_h"]))
 	profile.collision_radius = GameConfig.Player.RADIUS
 	profile.has_seated_idle = (layout["anims"] as Dictionary).has("sit")
 	profile.action_durations = durations
 	profile.timed_actions = timed
-	_save_resource(profile, PROFILE_OUT)
+	_save_resource(profile, out)
