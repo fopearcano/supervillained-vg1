@@ -19,7 +19,7 @@ the status section of `docs/porting/FEATURE_MATRIX.md` for the acceptance IDs ac
 
 ```bash
 godot --path godot                      # desktop window 432×864 (logical 216×432 at 2×)
-godot --path godot -- --as=zampano      # developer playable-profile override (Zampanò only for now)
+godot --path godot -- --as=zampano      # developer playable-profile override, validated (Zampanò only for now)
 ```
 
 Controls: WASD/arrows move, Shift or K run, Space pee, J/X or B bark, Esc/P menu. With a mouse the
@@ -44,7 +44,8 @@ Godot_v4.7.2-stable_win64_console.exe --headless --path godot --script res://tes
 Suites: `unit`, `content`, `integration`, `all`; filters `--file <substring>` and
 `--case <substring>`; `--repeat <n>`. The runner fails on assertion failures, engine
 errors/warnings, orphan nodes and timeouts, writes `test-results/results.json` and `junit.xml`
-(git-ignored) and exits non-zero on failure. Every case runs isolated (input, audio, a per-case
+(git-ignored) and exits non-zero on failure. The integration suite exports the Android preset as
+a PCK with the same binary and starts it as a packed runtime (`test_export_pack.gd`). Every case runs isolated (input, audio, a per-case
 save directory, app state and renderable IDs are reset first).
 
 Case naming: `test_<ID>_…` only when every clause of that TEST_PLAN acceptance ID is exercised;
@@ -108,7 +109,7 @@ the audit (exit 3), if Node is not v24.15.0 (exit 4) or if Playwright differs fr
    holds) and his PlayableCharacterProfile.
 
 Both steps only rewrite files whose bytes change; a second run produces no diff. With `--check`,
-`build_resources.gd` also rebuilds in memory and compares its 6 outputs.
+`build_resources.gd` also rebuilds in memory and compares its 7 outputs (TileSet, atlases, sprite catalogue, SpriteFrames, profile, leading-silence Resource).
 
 ## Layout
 

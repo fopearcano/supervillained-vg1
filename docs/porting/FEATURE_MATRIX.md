@@ -25,14 +25,14 @@ Acceptance IDs are claimed only through a `test_<ID>_…` suite case that exerci
 ID (TEST_PLAN.md case naming). `test_P_<ID>_…` cases are partial evidence and satisfy nothing;
 `test_SLICE_…` cases check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (56), Linux headless, Godot 4.7.2:**
-CORE-002; RNG-001, RNG-003; VIEW-001, VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-006;
+**Acceptance IDs satisfied by a full suite case (57), Linux headless, Godot 4.7.2:**
+CORE-002; RNG-001, RNG-003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001, MAP-002, MAP-004, MAP-005, MAP-006, MAP-007;
 DOG-001–004, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-014; FLOW-001, FLOW-002;
-SAV-001–004, SAV-018, SAV-019, SAV-020, SAV-022.
+SAV-001–004, SAV-018, SAV-019, SAV-020, SAV-022 (main, temp and backup).
+MAP-007 is one aggregator case (rows/topology, canonical route length, treat placements).
 
-**Partial evidence only (not satisfied):** ARCH-001 (no real story scene yet), RNG-002, VIEW-002
-(source band 135–191, F-09), VIEW-004 and CAM-004 (headless whole-pixel checks; the rendered
+**Partial evidence only (not satisfied):** ARCH-001 (no real story scene yet), RNG-002, VIEW-004 and CAM-004 (headless whole-pixel checks; the rendered
 30/60/90/120 FPS and static-shimmer checks pass in `tools/interpolation_probe.gd`, outside the
 suite), DOG-005 (fetch needs M3 balls), DOG-008 (spawn/teleport/camera-snap resets in the suite and
 the rendered probe; stage change does not exist before M5), MAP-003 (Green Zone + diagnostic maps
@@ -43,22 +43,28 @@ AST-017, AST-018, AST-020, AUD-001, SAV-021 (no user-visible notice yet), UI-001
 600-frame Main run, Linux); AST-019 (`build_assets.sh --check`: every generated output
 byte-identical; Linux and a simulated CRLF checkout, not a Windows host).
 
+**Export evidence (SLICE, no plan ID):** the Android preset exports as a PCK with the test binary and
+runs as a packed runtime: every runtime resource loads from the pack, no JSON/tests/tools/
+environment manifest is packed, the exported leading-silence Resource reaches AudioService, and a
+600-frame packed startup logs no engine error or warning. Not an APK and not device evidence.
+
 **Not claimed:** AUTO-001 is reserved for the M3 run that includes an attack
 (`test_SLICE_real_input_run_reaches_exit` is the current real-input run); FLOW-003/004, GZ-005 and
 every other ID not listed above.
 
 **Not verified (no device or host here):** everything on Android hardware (export, install, Back,
 immersive, keep-awake, display cutout safe area, touch hardware, audio focus, performance) and
-every Windows-host command (asset `--check` and the `_console.exe` suite are documented but were not
-executed on Windows).
+every Windows-host command (asset `--check` via `build_assets.ps1` and the `_console.exe` suite are
+documented but were not executed on Windows: no Windows host is reachable from this environment;
+a Windows CI workflow is proposed in `docs/porting/proposals/` pending approval, D-15).
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
 | Godot project isolated under `/godot` | Partial | CORE-001 command evidence; source-tree guard | Windows host unverified |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
-| Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-003; P: VIEW-002, VIEW-004; underlay/letterbox SLICE case; 4 viewport captures | VIEW-002 band (F-09); device safe area unverified |
+| Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004; underlay/letterbox SLICE case; 4 viewport captures | VIEW-004 rendered checks outside the suite; device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | no device (B-04) |
-| Native Android build | — | — | no templates/SDK/device here (B-04) |
+| Native Android build | — | SLICE: Android-preset PCK export + packed-runtime startup | no APK: no templates/SDK/device here (B-04) |
 | 2:1 projection | Slice | ISO-001–004 | 64-bit math (F-03) |
 | Screen-space movement semantics | Slice | ISO-004, MOVE-001 | — |
 | Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
@@ -90,9 +96,9 @@ executed on Windows).
 | Briefing/level end/game over | Partial | FLOW-001, FLOW-002; P: FLOW-005; captures 01/07/13/14 | Supervillained snap, CONTINUE handoff (D-08) |
 | Green Zone automated full-play coverage | Partial | SLICE real-input run (no teleports) | AUTO-001 needs the M3 attack |
 | Press Start 2P pixel font | Partial | P: AST-020; OFL exported | wrapping fixtures, glow (D-06) |
-| Recorded music/effects | Partial | P: AUD-001; intro/greenzone tracks; 6 effects; leading-silence offsets; lossless drink WAV; background suspension | other tracks/effects later milestones |
+| Recorded music/effects | Partial | P: AUD-001; intro/greenzone tracks; 6 effects; leading-silence offsets (exported Resource); lossless drink WAV; background suspension | other tracks/effects later milestones |
 | Synthesized audio | — | — | D-05 |
-| Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022; P: SAV-021 | user-visible notice, campaign schema, v1 migration (D-11) |
+| Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022 (future main/temp/backup); P: SAV-021; SLICE: a valid older main becomes the backup on temp recovery | user-visible notice, campaign schema, v1 migration (D-11) |
 | Everything else in this matrix | — | — | later milestones |
 
 ## 1. Platform and runtime

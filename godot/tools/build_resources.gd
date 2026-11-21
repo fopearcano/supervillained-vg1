@@ -16,6 +16,8 @@ const TILESET_OUT := "res://data/environment/ch01_greenzone_tileset.tres"
 const SPRITES_OUT := "res://data/environment/green_zone_sprites.tres"
 const FRAMES_OUT := "res://data/characters/zampano_frames.tres"
 const PROFILE_OUT := "res://data/characters/zampano_profile.tres"
+const SFX_SILENCE_JSON := "res://data/audio/sfx_leading_silence.json"
+const SFX_SILENCE_OUT := "res://data/audio/sfx_leading_silence.tres"
 const FLOOR_ART_ATLAS := "res://assets/generated/environment/ch01_greenzone_floor_art.png"
 const FLOOR_CELL := Vector2i(32, 16)
 const FLOOR_COLUMNS := 16
@@ -49,6 +51,7 @@ func _initialize() -> void:
 		_build_tileset()
 		_build_sprite_catalog()
 		_build_character()
+		_build_sfx_silence()
 	if _failures.is_empty():
 		if _check:
 			print("build_resources check (%s): OK, %d outputs identical" % [phase, _checked])
@@ -104,6 +107,23 @@ func _save_resource(res: Resource, res_path: String) -> void:
 	var text := FileAccess.get_file_as_string(tmp_abs).replace(tmp, res_path)
 	DirAccess.remove_absolute(tmp_abs)
 	_write_if_changed(res_path, text.to_utf8_buffer())
+
+
+## The recorded effects' leading silence as an exported Resource (the JSON stays out of exports).
+func _build_sfx_silence() -> void:
+	var src := _json(SFX_SILENCE_JSON)
+	if src.is_empty():
+		return
+	var res := SfxLeadingSilence.new()
+	res.audited_commit = src["audited_commit"]
+	res.runtime_rate = int(src["runtime_rate"])
+	res.trim_level = float(src["trim_level"])
+	var rate := str(res.runtime_rate)
+	var cues: Array = (src["offsets"] as Dictionary).keys()
+	cues.sort()
+	for cue: String in cues:
+		res.offsets[StringName(cue)] = float(src["offsets"][cue][rate]["offset"])
+	_save_resource(res, SFX_SILENCE_OUT)
 
 
 # --- Ground tiles -------------------------------------------------------------------------------

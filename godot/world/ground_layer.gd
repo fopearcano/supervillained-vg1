@@ -11,8 +11,11 @@ const DEAD_GRASS := Color8(0xb0, 0x78, 0x4a)
 var runtime_coords: Dictionary = {}
 var reset_pending: Dictionary = {}
 var notifications := 0
-## Diagnostics: the modulate the ENGINE-supplied runtime TileData received, per cell, and how many
-## times the engine called back (WORLD-005 evidence; not used by the game).
+## Diagnostics (WORLD-005 evidence; not used by the game): how many times the engine called back,
+## and, in debug builds only, the modulate the ENGINE-supplied runtime TileData received for at
+## most DIAG_LIMIT distinct cells.
+const DIAG_LIMIT := 256
+var diagnostics := OS.is_debug_build()
 var applied: Dictionary = {}
 var callback_calls := 0
 
@@ -66,4 +69,5 @@ func _tile_data_runtime_update(coords: Vector2i, tile_data: TileData) -> void:
 		tile_data.modulate = Color.WHITE
 		if reset_pending.has(coords):
 			reset_pending[coords] = true
-	applied[coords] = tile_data.modulate
+	if diagnostics and (applied.size() < DIAG_LIMIT or applied.has(coords)):
+		applied[coords] = tile_data.modulate

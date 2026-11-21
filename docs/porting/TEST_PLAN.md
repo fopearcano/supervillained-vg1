@@ -47,6 +47,8 @@ On Windows use the **console** binary so the exit code reaches the shell (the GU
 pwsh godot/tools/build_assets.ps1 -Godot 'C:\Program Files\Godot472\Godot_v4.7.2-stable_win64_console.exe' -Check
 ```
 
+The integration suite also exports the Android preset as a PCK with the running binary (`--export-pack`, no export templates needed) and runs it as the only `res://` (`--main-pack`): every runtime resource must load from the pack, excluded content must be absent, and a 600-frame packed startup must log no engine error or warning. The packed runs use their own user-data directory. This is not Android device evidence (AND-001…013).
+
 Case naming: `test_<ID>_…` only when every clause of that acceptance ID is exercised; `test_P_<ID>_…` is partial evidence toward the ID and never satisfies it; `test_SLICE_…` checks port behaviour that has no plan ID. The matrix and log claim only `test_<ID>` cases.
 
 The runner must:
@@ -104,7 +106,7 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | ID | Acceptance |
 |---|---|
 | VIEW-001 | Ported viewport calculation matches source fixtures for common CSS/device sizes and DPRs. |
-| VIEW-002 | Logical width is always 192–270, aspect is constrained to 0.42–0.62, and physical scale is an integer. *Note (M2 finding F-09): the source `computeViewport` itself yields 135–191 px for constrained areas 271–383 device px wide (scale 2); parity keeps that band until the owner decides.* |
+| VIEW-002 | Logical size and the integer scale equal the source `computeViewport`, executed by the extractor over a dense grid of device sizes and DPRs (M2 review resolution: the original executable algorithm is authoritative; no new clamp without the owner's explicit authorization). Consequently the logical width is 192–270 and the aspect 0.42–0.62 (within one pixel of flooring) wherever the source gives them; the source's own exceptions are kept: constrained areas narrower than 192 device px use scale 1 at their own width, and constrained areas 271–383 px use scale 2 at 135–191 px (finding F-09). |
 | VIEW-003 | Safe-area rectangle is honored; touch mapping round-trips physical→logical coordinates within 0.5 logical pixel. |
 | VIEW-004 | Nearest filtering and integer placement produce no fractional sprite/control transforms at capture checkpoints; physics-interpolated motion at 30/60/90/120 render FPS has no streak, double interpolation or static shimmer. |
 
@@ -382,7 +384,7 @@ Full-campaign policies:
 | SAV-019 | Temp write validates before replacing current save. |
 | SAV-020 | Failure before/after backup rotation recovers newest valid file. |
 | SAV-021 | Corrupt current + valid backup restores with user-visible notice and no data loss. |
-| SAV-022 | Unknown future format is preserved and reported; it is never overwritten by defaults. |
+| SAV-022 | Unknown future format is preserved and reported; it is never overwritten by defaults. Applies to the main, temp and backup files alike: each future payload is preserved byte-for-byte and every write is blocked. |
 
 ### Capacitor acquisition and Android upgrade
 

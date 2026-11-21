@@ -163,26 +163,79 @@ func test_SLICE_older_format_is_not_mistaken_for_future() -> void:
 	assert_false(_svc.write_blocked, "writes allowed (only a NEWER format blocks)")
 
 
-func test_SAV_022_future_version_preserved_never_overwritten() -> void:
-	var future := "{\"format_version\": 4, \"something\": \"new\"}"
-	_write("save_v3.json", future)
+## CRLF line ends, non-ASCII characters and trailing spaces must all survive unchanged.
+const FUTURE_BYTES := "{\"format_version\": 4,\r\n \"something\": \"nuovo \u2013 \u0259\"}\r\n  "
+
+
+func _valid_save(score: int, written: int) -> String:
+	var c: Dictionary = _svc.default_container()
+	c["written_at_unix_ms"] = written
+	c["records"] = {"level1": {"score": score, "stars": 0.0, "time": 1.0}}
+	return JSON.stringify(c)
+
+
+func _files() -> Dictionary:
+	var out := {}
+	for f in DirAccess.get_files_at(_dir):
+		out[f] = FileAccess.get_file_as_bytes(_dir + f)
+	return out
+
+
+func _clear() -> void:
+	for f in DirAccess.get_files_at(_dir):
+		DirAccess.remove_absolute(_dir + f)
+
+
+func test_SAV_022_future_format_in_main_temp_or_backup_is_preserved_and_blocks_writes() -> void:
+	var copies := {"save_v3.json": "save_v3.future.json", "save_v3.tmp": "save_v3.tmp.future.json", "save_v3.bak": "save_v3.bak.future.json"}
+	for loc: String in copies:
+		_clear()
+		# A valid current-format main (newest) and backup around the future payload.
+		if loc != "save_v3.json":
+			_write("save_v3.json", _valid_save(5, 2000))
+		if loc != "save_v3.bak":
+			_write("save_v3.bak", _valid_save(4, 1000))
+		_write(loc, FUTURE_BYTES)
+		var before := _files()
+		_svc.load_from_disk()
+		assert_eq([_svc.load_status, _svc.last_error, _svc.write_blocked], ["future_version", "future_format_version", true], loc + ": reported and blocked")
+		assert_eq(_svc.future_files, [loc] as Array[String], loc + ": location reported")
+		if loc == "save_v3.json":
+			assert_eq(_svc.data, ARCH_DEFAULT, loc + ": a future main means defaults, never stale data")
+		else:
+			assert_eq(_svc.get_record("level1")["score"], 5, loc + ": the valid main is shown read-only")
+		var failures := []
+		var cb := func(reason: String) -> void: failures.append(reason)
+		_svc.save_failed.connect(cb)
+		var r: Dictionary = _svc.save_record("level1", {"score": 99, "stars": 0, "time": 1})
+		var st: Dictionary = _svc.get_settings()
+		st["lives"] = 5
+		var rs: Dictionary = _svc.set_settings(st)
+		_svc.save_failed.disconnect(cb)
+		assert_eq([r["saved"], rs["saved"]], [false, false], loc + ": nothing saved")
+		assert_eq(failures, ["write_blocked_future_version", "write_blocked_future_version"], loc + ": each refused write reported")
+		var after := _files()
+		for f: String in before:
+			assert_eq(after.get(f), before[f], "%s: %s byte-for-byte untouched" % [loc, f])
+		assert_eq(after.get(copies[loc]), FUTURE_BYTES.to_utf8_buffer(), loc + ": byte-for-byte copy " + copies[loc])
+		assert_eq(after.keys().size(), before.keys().size() + 1, loc + ": only the copy was added")
+		_svc.load_from_disk()
+		assert_eq([_svc.load_status, _files()], ["future_version", after], loc + ": next launch still blocked, nothing rewritten")
+	_clear()
 	_svc.load_from_disk()
-	assert_eq(_svc.load_status, "future_version", "status")
-	assert_eq(_svc.last_error, "future_format_version", "reported")
-	assert_true(_svc.write_blocked, "writes blocked")
-	var failures := []
-	var cb := func(reason: String) -> void: failures.append(reason)
-	_svc.save_failed.connect(cb)
-	var r: Dictionary = _svc.save_record("level1", {"score": 1, "stars": 0, "time": 1})
-	var s: Dictionary = _svc.get_settings()
-	s["lives"] = 3
-	var rs: Dictionary = _svc.set_settings(s)
-	_svc.save_failed.disconnect(cb)
-	assert_eq(r, {"new_best": true, "saved": false}, "record kept for the session but not saved")
-	assert_eq(rs, {"changed": true, "saved": false}, "settings not saved")
-	assert_eq(failures, ["write_blocked_future_version", "write_blocked_future_version"], "each refused write reported")
-	assert_eq(FileAccess.get_file_as_string(_dir + "save_v3.json"), future, "file untouched")
-	assert_eq(FileAccess.get_file_as_string(_dir + "save_v3.future.json"), future, "byte copy preserved")
-	assert_false(_exists("save_v3.tmp") or _exists("save_v3.bak"), "no temp/backup created")
+
+
+func test_SLICE_temp_recovery_keeps_a_valid_older_main_as_backup() -> void:
+	_write("save_v3.json", _valid_save(5, 1000))
+	_write("save_v3.tmp", _valid_save(6, 2000))
 	_svc.load_from_disk()
-	assert_eq(_svc.load_status, "future_version", "still reported on the next launch")
+	assert_eq(_svc.load_status, "recovered_from_temp", "newer temp wins")
+	assert_eq(_svc.get_record("level1")["score"], 6, "temp data")
+	assert_false(_exists("save_v3.corrupt.json"), "a valid older main is not 'corrupt'")
+	assert_eq([_score_in("save_v3.json"), _score_in("save_v3.bak")], [6, 5], "temp promoted; the older main became the backup")
+	# An invalid main is still preserved before the temp replaces it.
+	_write("save_v3.json", "{ torn")
+	_write("save_v3.tmp", _valid_save(7, 9_999_999_999_999))
+	_svc.load_from_disk()
+	assert_eq(_svc.load_status, "recovered_from_temp", "status")
+	assert_eq(FileAccess.get_file_as_string(_dir + "save_v3.corrupt.json"), "{ torn", "invalid main preserved")

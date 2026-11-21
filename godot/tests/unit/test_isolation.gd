@@ -18,6 +18,8 @@ func test_SLICE_isolation_1_dirty_every_global() -> void:
 	s["lives"] = 9
 	root.get_node("AppState").update_settings(s)
 	root.get_node("SaveService").fault_after = "temp_written"
+	root.get_node("AppState").selected_profile = &"bagnaskiz"
+	root.get_node("AppState").rejected_profile = "bagnaskiz"
 	Engine.max_fps = 33
 	for k in 5:
 		IsoRenderable.new()
@@ -36,5 +38,16 @@ func test_SLICE_isolation_2_globals_are_back_to_defaults() -> void:
 	assert_eq(root.get_node("SaveService").load_status, "new", "nothing on disk")
 	assert_eq(root.get_node("SaveService").fault_after, "", "no fault injection")
 	assert_eq(root.get_node("AppState").lives(), GameConfig.Lives.START, "default settings")
+	assert_eq([root.get_node("AppState").selected_profile, root.get_node("AppState").rejected_profile], [&"zampano", ""], "playable profile reset to the validated default")
 	assert_eq(Engine.max_fps, 0, "engine pacing reset")
 	assert_eq(IsoRenderable.new().id, 1, "renderable ids restart")
+
+
+func test_SLICE_profile_override_is_validated() -> void:
+	var app: Node = (Engine.get_main_loop() as SceneTree).root.get_node("AppState")
+	assert_eq(app.resolve_profile(PackedStringArray()), {"profile": &"zampano", "rejected": ""}, "default")
+	assert_eq(app.resolve_profile(PackedStringArray(["--as=zampano"])), {"profile": &"zampano", "rejected": ""}, "known profile")
+	assert_eq(app.resolve_profile(PackedStringArray(["--as=bagnaskiz"])), {"profile": &"zampano", "rejected": "bagnaskiz"}, "profile not in this build is rejected")
+	assert_eq(app.resolve_profile(PackedStringArray(["--as=", "--x"])), {"profile": &"zampano", "rejected": ""}, "empty id rejected quietly")
+	for id: StringName in app.PROFILES:
+		assert_true(ResourceLoader.exists(app.PROFILES[id]), "%s profile resource exists" % id)

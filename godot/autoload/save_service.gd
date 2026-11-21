@@ -9,9 +9,11 @@ extends Node
 ## Write protocol: save_v3.tmp is written and closed, re-read and validated, the previous valid
 ## save is rotated to save_v3.bak, then the temp file is renamed over save_v3.json.
 ## Load picks the NEWEST valid file among main, temp (a validated write whose rename never
-## happened) and backup, preserves a corrupt main as save_v3.corrupt.json and promotes a recovered
-## file back to main. A newer, unknown container format is preserved byte-for-byte and every write
-## is refused for the session (reported through load_status, last_error and save_failed).
+## happened) and backup, preserves an INVALID main as save_v3.corrupt.json (a valid main that is
+## merely older than the temp becomes the backup instead) and promotes a recovered file back to
+## main. A newer, unknown container format in ANY of main, temp or backup is copied byte-for-byte
+## (save_v3.future.json, save_v3.tmp.future.json, save_v3.bak.future.json), no save file is
+## touched again and every write is refused for the session (load_status, last_error, save_failed).
 
 signal save_failed(reason: String)
 
@@ -19,6 +21,8 @@ const FORMAT_VERSION := 3
 const FILE_NAME := "save_v3.json"
 const TEMP_NAME := "save_v3.tmp"
 const BACKUP_NAME := "save_v3.bak"
+## Byte-for-byte copies of a future-format payload, per location.
+const FUTURE_COPY := {FILE_NAME: "save_v3.future.json", TEMP_NAME: "save_v3.tmp.future.json", BACKUP_NAME: "save_v3.bak.future.json"}
 
 const TEXT_SPEEDS := ["slow", "normal", "fast", "instant"]
 const GESTURE_BINDINGS := ["off", "action", "bark", "sword", "shield", "switch", "run"]
@@ -36,6 +40,8 @@ var last_error := ""
 var fault_after := ""
 ## When a newer/unknown format was found it is preserved and never overwritten.
 var write_blocked := false
+## Which of main/temp/backup hold a future format (last load).
+var future_files: Array[String] = []
 var data: Dictionary = {}
 
 
@@ -205,44 +211,44 @@ func _read_json(path: String) -> Dictionary:
 func load_from_disk() -> void:
 	write_blocked = false
 	last_error = ""
+	future_files.clear()
 	DirAccess.make_dir_recursive_absolute(base_dir)
-	var main := _read_json(_path(FILE_NAME))
-	if main["exists"]:
-		var vm := validate_container(main["parsed"])
-		if vm.get("error") == "future_format_version":
-			# Preserve the unknown save byte-for-byte and never overwrite it with defaults.
-			var keep := _path("save_v3.future.json")
-			if not FileAccess.file_exists(keep):
-				var f := FileAccess.open(keep, FileAccess.WRITE)
-				if f:
-					f.store_buffer(FileAccess.get_file_as_bytes(_path(FILE_NAME)))
-					f.close()
-			write_blocked = true
-			last_error = "future_format_version"
-			data = default_container()
-			load_status = "future_version"
-			return
-	var best: Dictionary = {}
+	var files := {}
+	var valid := {}
+	for name: String in [FILE_NAME, TEMP_NAME, BACKUP_NAME]:
+		files[name] = _read_json(_path(name))
+		if not files[name]["exists"]:
+			continue
+		var v := validate_container(files[name]["parsed"])
+		if v["ok"]:
+			valid[name] = v["data"]
+		elif v.get("error") == "future_format_version":
+			future_files.append(name)
+	# Newest valid file by write time (main wins ties: it is checked first).
 	var best_name := ""
-	for name in [FILE_NAME, TEMP_NAME, BACKUP_NAME]:
-		var r := main if name == FILE_NAME else _read_json(_path(name))
-		if not r["exists"]:
-			continue
-		var v := validate_container(r["parsed"])
-		if not v["ok"]:
-			continue
-		var written := int((v["data"] as Dictionary)["written_at_unix_ms"])
-		if best.is_empty() or written > int(best["written_at_unix_ms"]):
-			best = v["data"]
+	for name: String in [FILE_NAME, TEMP_NAME, BACKUP_NAME]:
+		if valid.has(name) and (best_name == "" or int(valid[name]["written_at_unix_ms"]) > int(valid[best_name]["written_at_unix_ms"])):
 			best_name = name
-	if main["exists"] and best_name != FILE_NAME:
+	if not future_files.is_empty():
+		# A newer app wrote here: keep every byte, touch no save file, refuse every write. The newest
+		# data is in the unknown format, so a future main means defaults; otherwise the valid
+		# current-format main/temp/backup is shown read-only.
+		for name in future_files:
+			_preserve_future(name)
+		write_blocked = true
+		last_error = "future_format_version"
+		data = default_container() if future_files.has(FILE_NAME) or best_name == "" else valid[best_name]
+		load_status = "future_version"
+		return
+	var main: Dictionary = files[FILE_NAME]
+	if main["exists"] and not valid.has(FILE_NAME):
 		_keep_corrupt(main["text"])
-	if best.is_empty():
+	if best_name == "":
 		data = default_container()
 		load_status = "corrupt" if main["exists"] else "new"
 		DirAccess.remove_absolute(_path(TEMP_NAME))
 		return
-	data = best
+	data = valid[best_name]
 	if best_name == FILE_NAME:
 		load_status = "loaded"
 		# A leftover temp is either invalid or older than main: never trusted.
@@ -250,6 +256,24 @@ func load_from_disk() -> void:
 		return
 	load_status = "recovered_from_temp" if best_name == TEMP_NAME else "recovered_from_backup"
 	write_to_disk()
+
+
+## Copies a future-format file byte-for-byte next to it (an identical copy is not rewritten; a
+## different earlier copy is kept and the new one gets a hash suffix).
+func _preserve_future(name: String) -> void:
+	var bytes := FileAccess.get_file_as_bytes(_path(name))
+	var keep := _path(FUTURE_COPY[name])
+	if FileAccess.file_exists(keep):
+		if FileAccess.get_file_as_bytes(keep) == bytes:
+			return
+		var ctx := HashingContext.new()
+		ctx.start(HashingContext.HASH_SHA256)
+		ctx.update(bytes)
+		keep = _path(FUTURE_COPY[name].get_basename() + "." + ctx.finish().hex_encode().substr(0, 12) + ".json")
+	var f := FileAccess.open(keep, FileAccess.WRITE)
+	if f:
+		f.store_buffer(bytes)
+		f.close()
 
 
 func _keep_corrupt(text: String) -> void:

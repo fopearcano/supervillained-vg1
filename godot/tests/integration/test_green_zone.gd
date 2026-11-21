@@ -230,8 +230,8 @@ func test_DEPTH_004_tree_fades_when_hiding_the_dog() -> void:
 	assert_true(w.player.z_index > tree_prop.z_index, "dog sorts in front when south-east of the tree")
 
 
-## AUTO-001: real-input Green Zone run. The driver only sets InputService movement and presses
-## PEE; it follows the BFS distance field toward the exit, detours to nearby treats, and pees on
+## Real-input Green Zone slice run (no plan ID: the M3 run with an attack is a different case).
+## The driver only sets InputService movement and presses PEE; it follows the BFS distance field toward the exit, detours to nearby treats, and pees on
 ## its poops. It must eat, poop, pee, clean, reach the exit and save the record.
 func test_SLICE_real_input_run_reaches_exit() -> void:
 	_spawn()
@@ -259,7 +259,7 @@ func test_SLICE_real_input_run_reaches_exit() -> void:
 	assert_true(scene._overlay is LevelEndOverlay, "level end overlay shown")
 	var rec: Variant = SaveService.get_record("level1")
 	assert_true(rec != null and int(rec["score"]) == int(scene.result["total"]), "record saved at completion")
-	print("       AUTO-001: %.1f s, treats %d, poops %d, pees %d, marks %d, lives %d, health %.4f, stars %.1f, total %d" % [
+	print("       real-input slice run: %.1f s, treats %d, poops %d, pees %d, marks %d, lives %d, health %.4f, stars %.1f, total %d" % [
 		st["time"], st["treats"], st["poops"], st["pees"], st["marks"], st["lives"], scene.result["health"], scene.result["stars"], scene.result["total"]])
 
 
@@ -331,6 +331,32 @@ func test_SLICE_audio_background_suspends_music_and_effects() -> void:
 		assert_false(AudioService.suspended, "resumed on %d" % pair[1])
 	AudioService.play(&"bark")
 	assert_false(AudioService.started[AudioService.started.size() - 1][2], "effects play normally after resuming")
+
+
+func test_SLICE_diagnostics_are_bounded_and_debug_only() -> void:
+	assert_eq(AudioService.diagnostics, OS.is_debug_build(), "effect log only in debug builds")
+	AudioService.diagnostics = true
+	for k in 200:
+		AudioService.play(&"bark")
+	assert_eq(AudioService.started.size(), AudioService.DIAG_LIMIT, "effect log bounded")
+	AudioService.diagnostics = false
+	AudioService.started.clear()
+	AudioService.play(&"bark")
+	assert_eq(AudioService.started.size(), 0, "nothing recorded with diagnostics off (release)")
+	for layer: TileMapLayer in [GroundLayer.new(), OverlayLayer.new()]:
+		assert_eq(layer.diagnostics, OS.is_debug_build(), "%s: TileData log only in debug builds" % layer.get_script().get_global_name())
+		var td := TileData.new()
+		for k in 300:
+			layer._tile_data_runtime_update(Vector2i(k, 0), td)
+		assert_eq(layer.applied.size(), layer.DIAG_LIMIT, "TileData log bounded to %d cells" % layer.DIAG_LIMIT)
+		layer._tile_data_runtime_update(Vector2i(0, 0), td)
+		assert_eq(layer.applied.size(), layer.DIAG_LIMIT, "known cells still update")
+		layer.applied.clear()
+		layer.diagnostics = false
+		layer._tile_data_runtime_update(Vector2i(1, 1), td)
+		assert_eq([layer.applied.size(), layer.callback_calls], [0, 302], "nothing recorded with diagnostics off; calls still counted")
+		layer.free()
+		td.free()
 
 
 func test_SLICE_audio_effects_skip_source_leading_silence() -> void:

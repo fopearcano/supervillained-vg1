@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SfxLeadingSilence" format=3]
+
+[ext_resource type="Script" path="res://core/resources/sfx_leading_silence.gd" id="1_b73x4"]
+
+[resource]
+script = ExtResource("1_b73x4")
+audited_commit = "95b69c04c5c3b9626e49719f8f916a44659cd265"
+trim_level = 0.01
+offsets = Dictionary[StringName, float]({
+&"bark": 0.09470833333333334,
+&"drink": 0.27989583333333334,
+&"pee": 0.00752083333333333,
+&"poop": 0.0,
+&"splash": 0.0,
+&"treat": 0.040375
+})

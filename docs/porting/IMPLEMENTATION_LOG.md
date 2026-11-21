@@ -5,6 +5,138 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 
 ---
 
+## Correction report 2: second M1/M2 review (M1 Partial, M2 Partial)
+
+Scope: the architect's nine items on `7b67122`, in one commit. No M3 content. IsoGrid,
+GridKinematicSolver, movement, camera, depth sorting, Green Zone rules, safe-area routing, the
+audio lifecycle and the three-layer pollution renderer are unchanged (the renderer layers and
+AudioService only gained the debug-only bounds of item 5).
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted) |
+| Base | `7b67122` |
+| Godot / toolchain | 4.7.2.stable.official.ed1daf0bf Linux x86_64; Node v24.15.0, Playwright 1.63.0, Chromium 157.0.8103.78 |
+| Hosts not available | **Windows** (none reachable from this environment; see "Windows evidence"); Android (no SDK, templates or device) |
+
+### Changes per review item
+
+1. **Windows dynamic imports.** All 22 dynamic imports of audited source modules in
+   `extract.mjs` go through `importSource(rel)` = `import(pathToFileURL(path.join(SRC, rel)).href)`
+   (a bare `C:\…` path is rejected by the ESM loader as an unsupported URL scheme). The TS resolve
+   hooks already used `pathToFileURL`. Verified on Linux (regeneration and `--check`); **not run on
+   Windows** (see below).
+2. **Export-safe leading silence.** `tools/build_resources.gd` builds
+   `data/audio/sfx_leading_silence.tres` (`SfxLeadingSilence`: audited commit, runtime rate 48000,
+   trim level, cue → seconds) from the extractor's JSON; `build_resources --check` now verifies 7
+   outputs. `AudioService` preloads the Resource and reads no JSON; the JSON stays a non-exported
+   build input (`data/*.json, data/*/*.json` exclusions unchanged). `assets/environment/manifest.json`
+   is excluded from the release package. New integration case
+   `test_SLICE_android_pck_has_runtime_data_and_starts_clean`: `--export-pack "Android"` with the
+   running binary (no export templates needed), then the pack as the only `res://` (`--main-pack`):
+   every runtime resource of the project (82, derived from the project tree, minus the font page
+   PNG that the `.fnt` import consumes) loads from the pack, OFL.txt is present, nothing under
+   `tests/`/`tools/` and no `.json`/`.md` is packed, AudioService has the 6 offsets from the pack,
+   the real main scene starts the Green Zone with Zampanò's SpriteFrames, and a 600-frame packed
+   startup exits 0 with no engine error or warning. Packed runs get their own user-data directory
+   (`XDG_DATA_HOME`/`APPDATA`), so they never touch a real save.
+3. **Future format in main, temp and backup.** `load_from_disk` validates all three files first.
+   Any future-format file is copied byte-for-byte (`save_v3.future.json`,
+   `save_v3.tmp.future.json`, `save_v3.bak.future.json`; an identical copy is not rewritten, a
+   different earlier copy is kept), `future_files` lists the locations, no save file is touched
+   again (no temp deletion, no promotion, no rotation) and every write is refused
+   (`write_blocked_future_version`). A future main loads defaults; otherwise the valid
+   current-format file is shown read-only. `test_SAV_022_…` covers each location with a payload
+   containing CRLF, non-ASCII characters and trailing spaces: status, blocked writes, every file
+   byte-identical after two refused writes, the copy byte-identical, and a second launch.
+4. **No corrupt copy of a valid older main.** Only an INVALID main is written to
+   `save_v3.corrupt.json`; on temp recovery a valid older main is rotated to the backup by the
+   normal write. `test_SLICE_temp_recovery_keeps_a_valid_older_main_as_backup` (plus the invalid
+   main case, still preserved).
+5. **Bounded, debug-only diagnostics.** `AudioService.started` records only when
+   `diagnostics` (default `OS.is_debug_build()`) and keeps the last 64 entries; the Ground and
+   overlay TileMap layers record `applied` only in debug builds and for at most 256 distinct cells
+   (the integer `callback_calls` counter stays). `test_SLICE_diagnostics_are_bounded_and_debug_only`.
+6. **MAP-007** is one aggregator, `test_MAP_007_green_zone_topology_route_and_treats_match_source`:
+   96×96 rows (and SHA-256), size, start/exit, playable tiles, every prop, every ground count,
+   the exit-distance field, the canonical start→exit route length (the source's `startDist` that
+   `placeTreats` walks) and the 30 treat placements (twice, same seed). The separate `MAP_007b`
+   case is gone.
+7. **Profile isolation.** `AppState.reload()` resets `selected_profile` to the validated default on
+   every call; `--as=<id>` is accepted only for profiles in `AppState.PROFILES` (Zampanò in this
+   build), otherwise rejected with a warning and recorded in `rejected_profile`. The isolation pair
+   dirties both fields; `test_SLICE_profile_override_is_validated` covers the pure resolver.
+8. **AUTO-001 label removed** from the slice driver, the slice run case and its output line.
+9. **VIEW-002 resolved for the original algorithm.** No new clamp. The extractor executes the
+   source `computeViewport` over a dense grid (5 DPRs × 26 widths × 22 heights = 2,860 cases,
+   device px 100–2,525 × 160–2,911) and stores the outputs; `test_VIEW_002_…` requires the Godot
+   result to equal the source in every case, an integer scale, and width 192–270 / aspect
+   0.42–0.62 wherever the source gives them, the only exceptions being the source's own (narrow
+   areas: scale 1 at their width, 360 cases; constrained areas 271–383 px: scale 2 at 135–191 px,
+   210 cases; 2,290 in range). TEST_PLAN VIEW-002 now states this resolution.
+
+### Commands executed and results (Linux)
+
+| Command | Result |
+|---|---|
+| `NODE=/opt/node24150/bin/node godot/tools/build_assets.sh --check godot` | `asset check OK: 33 outputs identical (15 copies), Node v24.15.0, Playwright 1.63.0, Chromium 157.0.8103.78`; `build_resources check (all): OK, 7 outputs identical`; exit 0 |
+| `rm -rf godot/.godot && godot --headless --path godot --import` | exit 0, 0 errors, 0 warnings |
+| `godot --headless --path godot --script res://tests/test_runner.gd -- --suite all` | **107 passed, 0 failed** (unit 59, content 14, integration 34), exit 0; VIEW-002 compared 2,860 source cases; the PCK case exported 5,183,640 bytes, checked 82 runtime resources against 169 packed files |
+| `godot --headless --path godot --quit-after 600` | exit 0, 0 errors, 0 warnings |
+| PixiJS under Node v24.15.0: `npm test`, `npm run build`, `npm run smoke`, `npm run playtest -- --skill 0.7 --ending knight --choice first` | 30 files / **248 tests passed**; build OK; smoke **36/36 sub-levels ok**; playtest 36 sub-levels, 0 unfinished, 0 flagged, 0 page errors, ending KNIGHT; all exit 0 |
+| `godot/tools/source_tree_guard.sh`; `git diff --check` | guard OK (only `/godot` and `docs/porting` differ from `95b69c0`); diff clean |
+
+Captures and the rendered probes were not re-run: nothing visual or in the interpolation path
+changed (the 18 captures of correction report 1 stand).
+
+### Windows evidence: not obtained (blocked)
+
+The two Windows items of the required evidence were **not** produced:
+
+- "Windows PowerShell asset check exits 0" — not run.
+- "Godot Windows console suite remains 104/104 or better" — not run.
+
+No Windows machine is reachable from this cloud environment (no attached computer). Two ways to get
+it were attempted and stopped by this environment's permission policy, deliberately not worked
+around:
+
+- A GitHub Actions workflow on a `windows-2025` runner (the repository is public, so the runner
+  is free) needs a file in `.github/workflows/`, outside the paths MILESTONES gate 5 allows, and an
+  exception in `godot/tools/source_tree_guard.sh`. Widening the guard was refused as an oversight
+  change that is the architect's to approve. The ready workflow is kept, **inactive**, at
+  `docs/porting/proposals/godot-port-windows.yml` (D-15): it verifies the official Godot 4.7.2
+  win64 zip against `SHA512-SUMS.txt`, uses the pinned Node, runs `npm ci` and the lockfile's
+  Chromium, then exactly `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check`, the
+  console import + suite, the 600-frame run, and fails if the checks modified tracked files.
+- Installing PowerShell 7 for Linux to at least execute `build_assets.ps1` here was refused too.
+
+The simulated Windows checkout below (`core.autocrlf=true`) is repeated for this commit; it is
+not Windows evidence.
+
+`git clone -c core.autocrlf=true` of this commit, then (pinned Node 24.15.0):
+
+| Step in the clone | Result |
+|---|---|
+| checkout | CRLF in 111 source `.ts` files; LF in every Godot text file (the only CRLF file under `godot/` is the verbatim `assets/environment/manifest.json`, binary by design); `git status` clean |
+| `npm ci` | exit 0 |
+| `NODE=… godot/tools/build_assets.sh --check godot` (includes a clean `--import`) | `asset check OK: 33 outputs identical (15 copies) …`; `build_resources check (all): OK, 7 outputs identical`; exit 0 |
+| full suite | **107 passed, 0 failed**, exit 0 (includes the PCK export/packed-runtime case) |
+| `--quit-after 600` | exit 0, 0 errors, 0 warnings; `git status` still clean |
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-15 | **New, needs approval:** Windows CI workflow outside `/godot` and `docs/porting` (gate 5 exception) to produce the Windows evidence; proposed only, not active |
+| F-09 / VIEW-002 | Closed by the review resolution: the source algorithm is authoritative |
+| D-01–D-14 | As in correction report 1 |
+
+### Architect review result
+
+Pending.
+
+---
+
 ## Correction report: M1/M2 review fixes (M1 Partial, M2 Partial)
 
 Scope: the architect's ten correction items on `5858dc7`, in one commit. No M3 content. IsoGrid,

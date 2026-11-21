@@ -4,9 +4,16 @@ extends Node
 
 signal settings_changed(settings: Dictionary)
 
-## Developer launch override for the playable profile (`-- --as=<id>`). The canonical game
-## plays Zampanò; other profiles are a debug capability only (ARCHITECTURE.md §9.1).
-var selected_profile: StringName = &"zampano"
+const DEFAULT_PROFILE := &"zampano"
+## Playable profiles present in this build (Sbrimbrulòn and Bagnaskiz arrive with M1 completion).
+const PROFILES := {&"zampano": "res://data/characters/zampano_profile.tres"}
+
+## Developer launch override for the playable profile (`-- --as=<id>`), validated against
+## PROFILES. The canonical game plays Zampanò; other profiles are a debug capability only
+## (ARCHITECTURE.md §9.1). Reset on every reload().
+var selected_profile: StringName = DEFAULT_PROFILE
+## The last rejected `--as=` value ("" when none).
+var rejected_profile := ""
 var settings: Dictionary = {}
 
 
@@ -17,10 +24,26 @@ func _ready() -> void:
 ## Re-reads the settings from SaveService and applies them (start-up, tests).
 func reload() -> void:
 	settings = SaveService.get_settings()
-	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--as="):
-			selected_profile = StringName(arg.substr(5))
+	var p := resolve_profile(OS.get_cmdline_user_args())
+	selected_profile = p["profile"]
+	rejected_profile = p["rejected"]
+	if rejected_profile != "":
+		push_warning("unknown playable profile '%s' (--as); playing %s" % [rejected_profile, DEFAULT_PROFILE])
 	_apply()
+
+
+## Pure: the profile selected by `--as=<id>` (the last one wins), or the default when absent or
+## unknown. Returns {"profile": StringName, "rejected": String}.
+static func resolve_profile(args: PackedStringArray) -> Dictionary:
+	var out := {"profile": DEFAULT_PROFILE, "rejected": ""}
+	for arg in args:
+		if arg.begins_with("--as="):
+			var id := StringName(arg.substr(5))
+			if PROFILES.has(id):
+				out = {"profile": id, "rejected": ""}
+			else:
+				out = {"profile": DEFAULT_PROFILE, "rejected": String(id)}
+	return out
 
 
 func update_settings(new_settings: Dictionary) -> void:

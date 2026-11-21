@@ -1,6 +1,6 @@
 class_name GreenZoneDriver
 extends RefCounted
-## Real-input Green Zone driver (AUTO-001, captures). It only sets InputService movement and
+## Real-input Green Zone driver (slice run and captures). It only sets InputService movement and
 ## presses PEE — never teleports or calls rules. It follows the BFS distance field toward the exit,
 ## detours to treats ahead, and pees on its own poops once the squat ends.
 

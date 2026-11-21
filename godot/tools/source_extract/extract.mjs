@@ -29,6 +29,7 @@ import { createRequire } from 'node:module';
 import * as nodeModule from 'node:module';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { encodePng, pngSize } from './png.mjs';
 
 const ROOT = process.cwd();
@@ -49,6 +50,9 @@ if (process.version !== `v${PINNED_NODE}`) {
   process.exit(4);
 }
 
+/** Dynamic import of an audited source module. ESM needs a file URL: a bare Windows path
+ *  (C:\...) is rejected as an unsupported URL scheme. */
+const importSource = (rel) => import(pathToFileURL(path.join(SRC, rel)).href);
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 const git = (args, opts = {}) => execFileSync('git', args, { cwd: ROOT, maxBuffer: 512 * 1024 * 1024, ...opts });
 /** Bytes of a file exactly as committed in the audited commit (independent of checkout EOLs). */
@@ -127,9 +131,9 @@ for (const c of INPUTS_ONLY) {
 
 // ---------------------------------------------------------------------------------------------
 // 2. Frozen procedural sprites (exact output of the source generators).
-const items = await import(path.join(SRC, 'assets/placeholders/items.ts'));
-const critters = await import(path.join(SRC, 'assets/placeholders/critters.ts'));
-const manifestTs = await import(path.join(SRC, 'assets/manifest.ts'));
+const items = await importSource('assets/placeholders/items.ts');
+const critters = await importSource('assets/placeholders/critters.ts');
+const manifestTs = await importSource('assets/manifest.ts');
 const SPR = manifestTs.SPRITES;
 const frozen = [
   ['treat', [() => items.drawTreat()]],
@@ -209,7 +213,7 @@ const font = await page.evaluate(() => window.__fontResult);
 const audioTs = blobText('src/core/audio.ts');
 const silenceSrc = audioTs.match(/function leadingSilence\(buffer: AudioBuffer\): number \{[\s\S]*?\n\}/);
 if (!silenceSrc) throw new Error('leadingSilence() not found in src/core/audio.ts; review the extractor');
-const configTsForTrim = await import(path.join(SRC, 'config.ts'));
+const configTsForTrim = await importSource('config.ts');
 const SFX_FILES = { bark: 'assets/sounds/dog-bark.mp3', treat: 'assets/sounds/food-collect.mp3', poop: 'assets/sounds/poos.mp3', pee: 'assets/sounds/pees-drop.mp3', drink: 'assets/sounds/pees-collect.wav', splash: 'assets/sounds/water.mp3' };
 const sfxPayload = Object.fromEntries(Object.entries(SFX_FILES).map(([k, rel]) => [k, blob(rel).toString('base64')]));
 const silenceJs = nodeModule.stripTypeScriptTypes(silenceSrc[0], { mode: 'strip' });
@@ -261,24 +265,24 @@ manifest.generated.push({ key: 'pixel_font_fnt', target: 'assets/fonts/pixel_fon
 
 // ---------------------------------------------------------------------------------------------
 // 4. Reference fixtures from the audited TypeScript.
-const config = await import(path.join(SRC, 'config.ts'));
-const { Rng, hash2 } = await import(path.join(SRC, 'core/rng.ts'));
-const proj = await import(path.join(SRC, 'iso/projection.ts'));
-const depth = await import(path.join(SRC, 'iso/depth.ts'));
-const { Camera, clampAxis } = await import(path.join(SRC, 'iso/camera.ts'));
-const { computeViewport } = await import(path.join(SRC, 'core/display.ts'));
-const { LEVEL_1, buildGreenZoneRows } = await import(path.join(SRC, 'levels/level1.ts'));
-const { loadLevel, parseAsciiMap } = await import(path.join(SRC, 'world/level.ts'));
-const { GameMap } = await import(path.join(SRC, 'world/map.ts'));
-const { placeTreats, randomSpotNear } = await import(path.join(SRC, 'systems/placement.ts'));
-const { Zampano } = await import(path.join(SRC, 'entities/zampano.ts'));
-const needs = await import(path.join(SRC, 'systems/needs.ts'));
-const scoring = await import(path.join(SRC, 'systems/scoring.ts'));
-const lives = await import(path.join(SRC, 'systems/lives.ts'));
-const { Rules } = await import(path.join(SRC, 'systems/rules.ts'));
-const { PollutionWaveDirector } = await import(path.join(SRC, 'systems/threatLogic.ts'));
-const { Emitter } = await import(path.join(SRC, 'core/events.ts'));
-const { animationFrame, animationDuration } = await import(path.join(SRC, 'assets/animationTiming.ts'));
+const config = await importSource('config.ts');
+const { Rng, hash2 } = await importSource('core/rng.ts');
+const proj = await importSource('iso/projection.ts');
+const depth = await importSource('iso/depth.ts');
+const { Camera, clampAxis } = await importSource('iso/camera.ts');
+const { computeViewport } = await importSource('core/display.ts');
+const { LEVEL_1, buildGreenZoneRows } = await importSource('levels/level1.ts');
+const { loadLevel, parseAsciiMap } = await importSource('world/level.ts');
+const { GameMap } = await importSource('world/map.ts');
+const { placeTreats, randomSpotNear } = await importSource('systems/placement.ts');
+const { Zampano } = await importSource('entities/zampano.ts');
+const needs = await importSource('systems/needs.ts');
+const scoring = await importSource('systems/scoring.ts');
+const lives = await importSource('systems/lives.ts');
+const { Rules } = await importSource('systems/rules.ts');
+const { PollutionWaveDirector } = await importSource('systems/threatLogic.ts');
+const { Emitter } = await importSource('core/events.ts');
+const { animationFrame, animationDuration } = await importSource('assets/animationTiming.ts');
 
 const fx = { audited_commit: AUDITED_COMMIT, note: 'Generated from the audited TypeScript; do not hand-edit or regenerate to match a Godot mismatch.' };
 const PICK = ['DISPLAY', 'LOOP', 'ISO', 'CAMERA', 'PLAYER', 'ENERGY', 'INPUT', 'OCCLUSION', 'HUNGER', 'TREAT', 'DIGESTION', 'POOP', 'BLADDER', 'POLLUTION', 'ZONE', 'LIVES', 'SCORE', 'BARK', 'FX'];
@@ -317,6 +321,18 @@ fx.viewport = [];
 for (const [w, h, dpr] of [[400, 860, 2], [360, 800, 3], [390, 844, 3], [412, 915, 2.625], [1920, 1080, 1], [1280, 720, 1.5], [432, 864, 1], [768, 1024, 2], [320, 480, 1], [216, 432, 1], [1080, 2400, 1], [800, 600, 1]]) {
   fx.viewport.push({ css_w: w, css_h: h, dpr, out: computeViewport(w, h, dpr) });
 }
+// VIEW-002: the source computeViewport over a dense grid of device sizes (css = device px / dpr),
+// one "width,height,scale,cssLeft,cssTop" group per case in loop order, ';'-separated (one line).
+fx.viewport_grid = { dprs: [1, 1.5, 2, 2.625, 3], w: [100, 2600, 97], h: [160, 3000, 131], out: [] };
+for (const dpr of fx.viewport_grid.dprs) {
+  for (let w = 100; w < 2600; w += 97) {
+    for (let h = 160; h < 3000; h += 131) {
+      const v = computeViewport(w / dpr, h / dpr, dpr);
+      fx.viewport_grid.out.push([v.width, v.height, v.scale, v.cssLeft, v.cssTop].join(','));
+    }
+  }
+}
+fx.viewport_grid.out = fx.viewport_grid.out.join(';');
 
 // Depth
 const sortables = [

@@ -396,8 +396,8 @@
   },
   {
    "target": "tests/fixtures/source_reference.json",
-   "sha256": "54b9aad5d8d61514756412376f2e1bbcbb33409100b889afb70042d889491a9a",
-   "bytes": 430124
+   "sha256": "5688ccd760741ec7c639c6165dffa6e0c7d0e1f83daf951c09e080ec4d2a02b7",
+   "bytes": 474556
   }
  ]
 }

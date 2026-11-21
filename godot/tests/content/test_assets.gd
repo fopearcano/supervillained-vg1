@@ -228,6 +228,16 @@ func test_SLICE_leading_silence_data_from_source() -> void:
 		var o: Dictionary = d["offsets"][cue]
 		assert_true(float(o["48000"]["offset"]) >= 0.0 and float(o["48000"]["offset"]) < float(o["48000"]["duration"]), cue + " offset inside the clip")
 		assert_near(float(o["48000"]["offset"]), float(o["44100"]["offset"]), 0.001, cue + " offset independent of the decode rate")
+	# The runtime reads the generated Resource (exported), never the JSON (not exported).
+	var res: SfxLeadingSilence = load("res://data/audio/sfx_leading_silence.tres")
+	assert_eq([res.audited_commit, res.runtime_rate, res.trim_level], [d["audited_commit"], 48000, 0.01], "resource header")
+	assert_eq(res.offsets.keys().size(), 6, "six effects")
+	for cue: String in d["offsets"]:
+		var want := float(d["offsets"][cue]["48000"]["offset"])
+		assert_near(res.offsets[StringName(cue)], want, absf(want) * 1e-14, cue + " offset equals the extracted value")
+	assert_eq(AudioService.LEADING_SILENCE, res, "AudioService preloads the generated Resource")
+	var audio_src := FileAccess.get_file_as_string("res://autoload/audio_service.gd")
+	assert_false(audio_src.contains(".json"), "AudioService reads no JSON")
 
 
 func test_SLICE_export_ships_ofl_and_the_app_label() -> void:

@@ -13,7 +13,10 @@ var source_id := 0
 var tiles: Array[Vector2i] = []
 var alpha_by_cell: Dictionary = {}
 var notifications := 0
-## Diagnostics: modulate received by the engine-supplied runtime TileData per cell (WORLD-005).
+## Diagnostics (WORLD-005): engine callback count, and in debug builds only the modulate received
+## by the engine-supplied runtime TileData for at most DIAG_LIMIT distinct cells.
+const DIAG_LIMIT := 256
+var diagnostics := OS.is_debug_build()
 var applied: Dictionary = {}
 var callback_calls := 0
 
@@ -60,4 +63,5 @@ func _use_tile_data_runtime_update(coords: Vector2i) -> bool:
 func _tile_data_runtime_update(coords: Vector2i, tile_data: TileData) -> void:
 	callback_calls += 1
 	tile_data.modulate = Color(1, 1, 1, alpha_by_cell.get(coords, 1.0))
-	applied[coords] = tile_data.modulate
+	if diagnostics and (applied.size() < DIAG_LIMIT or applied.has(coords)):
+		applied[coords] = tile_data.modulate

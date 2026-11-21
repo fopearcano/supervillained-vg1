@@ -22,13 +22,17 @@ const SFX := {
 	&"drink": "res://assets/audio/recorded/pees-collect.wav",
 	&"splash": "res://assets/audio/recorded/water.mp3",
 }
-const OFFSETS_JSON := "res://data/audio/sfx_leading_silence.json"
+## Generated Resource (exported); the source JSON is provenance only and is not exported.
+const LEADING_SILENCE: SfxLeadingSilence = preload("res://data/audio/sfx_leading_silence.tres")
 const POOL_SIZE := 8
 
 var missing_cues: Dictionary = {}
 ## Every cue/track requested (tests assert the event->cue mapping through this).
 var requested: Dictionary = {}
-## Effects actually started: [[cue, offset, started_suspended], ...] (tests/diagnostics).
+## Debug builds only: the last DIAG_LIMIT effects started, [[cue, offset, started_suspended], ...]
+## (tests/diagnostics). Release builds record nothing.
+const DIAG_LIMIT := 64
+var diagnostics := OS.is_debug_build()
 var started: Array = []
 ## False with the Dummy driver (headless, no sound card): requests are recorded, nothing plays,
 ## so no playback object is left unmixed at exit.
@@ -58,11 +62,7 @@ func _ready() -> void:
 		p.bus = &"SFX"
 		add_child(p)
 		_pool.append(p)
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(OFFSETS_JSON))
-	if parsed is Dictionary:
-		var rate := str(int(parsed["runtime_rate"]))
-		for cue: String in parsed["offsets"]:
-			offsets[StringName(cue)] = float(parsed["offsets"][cue][rate]["offset"])
+	offsets = LEADING_SILENCE.offsets.duplicate()
 
 
 func apply_settings(muted: bool, volume: float) -> void:
@@ -119,7 +119,10 @@ func play(cue: StringName, volume: float = 1.0, pitch: float = 1.0) -> void:
 		missing_cues[cue] = int(missing_cues.get(cue, 0)) + 1
 		return
 	var offset: float = offsets.get(cue, 0.0)
-	started.append([cue, offset, suspended])
+	if diagnostics:
+		started.append([cue, offset, suspended])
+		if started.size() > DIAG_LIMIT:
+			started.pop_front()
 	if not output_available:
 		return
 	var p := _pool[_next]
@@ -170,5 +173,6 @@ func reset_for_tests() -> void:
 	requested.clear()
 	missing_cues.clear()
 	started.clear()
+	diagnostics = OS.is_debug_build()
 	track_positions.clear()
 	_duck = 1.0

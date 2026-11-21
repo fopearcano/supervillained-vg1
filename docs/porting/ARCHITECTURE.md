@@ -480,7 +480,7 @@ Required scenes are RhythmGame for the current 4.1 parade and 4.3 rowing uses, B
 
 ## 15. Audio and visual effects
 
-Use audio buses `Master`, `Music`, `SFX`, and optional `UI`. `AudioService` keeps per-track playback positions when switching between reading screens and gameplay, applies current per-file gain trims, ducks for pause/attack/end, and suspends on application background.
+Use audio buses `Master`, `Music`, `SFX`, and optional `UI`. `AudioService` keeps per-track playback positions when switching between reading screens and gameplay, applies current per-file gain trims, ducks for pause/attack/end, and suspends on application background. Recorded effects start after the source's leading silence, read from the generated, exported `data/audio/sfx_leading_silence.tres` (`SfxLeadingSilence`, preloaded); the extractor's JSON is provenance only and is excluded from exports with every other build-input JSON. Runtime diagnostics (effect log, TileData log) exist only in debug builds and are bounded.
 
 Reuse the five recorded music files and twelve recorded effects currently imported by `src/fx/audioFiles.ts` byte-for-byte. Render the synthesized medieval loop and fourteen synthesized cues from `src/core/synth.ts`/`src/fx/sounds.ts` to deterministic mono 22,050 Hz, signed 16-bit little-endian PCM WAV. Quantization is `round(clamp(sample, -1, 1) * 32767)`; record recipe/input hashes, sample counts and output hashes. Do not introduce an OGG encoder or reimplement a WebAudio synthesizer at runtime.
 
@@ -600,7 +600,7 @@ Normalize/clamp every typed field and deduplicate arrays by first occurrence. Co
 - booleans: `pawOffered`, `longWay`, `vow`, `weptWell`, `zaraDeal`, `heardZara`, `clothRoute`, `dissent`, `comradeship`, `vanguard`, `visitedCity`, `sworn`, `followed`, `columnAgain`, `told`, `lawnHeld`, `ballReturned`;
 - compatibility: current `santinaBall` is `performed`, but v1 migration preserves any scalar value for this kept flag, including the tested legacy `kept` value.
 
-Invalid known values are omitted after the raw payload is backed up. Unknown v2 flag keys with scalar string/finite-number/boolean values are retained as pass-through data because the source copies the complete flag object; arrays/objects are rejected. Unknown future container versions are backed up and shown as a recoverable error, not silently overwritten.
+Invalid known values are omitted after the raw payload is backed up. Unknown v2 flag keys with scalar string/finite-number/boolean values are retained as pass-through data because the source copies the complete flag object; arrays/objects are rejected. Unknown future container versions are backed up and shown as a recoverable error, not silently overwritten. This holds for each of `save_v3.json`, `save_v3.tmp` and `save_v3.bak`: a future payload in any of them is copied byte-for-byte (`save_v3.future.json`, `save_v3.tmp.future.json`, `save_v3.bak.future.json`), no save file is touched again and every write is refused for the session; a future main loads defaults, otherwise the valid current-format file is shown read-only. Only an invalid main is preserved as `save_v3.corrupt.json`; a valid main that is merely older than a recovered temp becomes the backup.
 
 Write to `save_v3.tmp`, flush/close, parse and validate the temporary file, rotate the old valid save to `save_v3.bak`, then rename. `written_at_unix_ms` changes on any container write, but nested `campaign.savedAt` changes only at source-equivalent campaign saves so an option change cannot alter Couch's last-save date.
 

@@ -142,37 +142,41 @@ func test_VIEW_001_viewport_matches_source() -> void:
 		assert_near(v["cssHeight"], e["cssHeight"], 1e-9, "cssHeight")
 
 
-## VIEW-002 says the logical width is always 192..270. The SOURCE computeViewport (ported exactly,
-## VIEW-001) breaks that for constrained areas 271..383 device px wide: scale 1 gives > 270, so it
-## steps to scale 2 and floor(area/2) = 135..191. Parity is kept; the band is asserted as the
-## source's behaviour and reported as finding F-09.
-func test_P_VIEW_002_bounds_aspect_and_integer_scale() -> void:
-	var checked := 0
-	var band := 0
-	for dpr in [1.0, 1.5, 2.0, 2.625, 3.0]:
-		for w in range(200, 2600, 97):
-			for h in range(320, 3000, 131):
+## VIEW-002 (resolved in the M2 review in favour of the original executable algorithm): logical size
+## and integer scale equal the SOURCE computeViewport, executed by tools/source_extract over a dense
+## grid of device sizes and DPRs. The 192..270 width and 0.42..0.62 aspect then hold wherever the
+## source gives them; the only exceptions are the source's own: areas narrower than MIN_WIDTH (scale
+## 1, their own width) and constrained areas 271..383 px (scale 2, width 135..191). No new clamp.
+func test_VIEW_002_logical_size_and_scale_follow_the_source_algorithm() -> void:
+	var grid: Dictionary = fixture()["viewport_grid"]
+	var out: PackedStringArray = String(grid["out"]).split(";")
+	var n := 0
+	var counts := {"in_range": 0, "narrow": 0, "band": 0}
+	for dpr: float in grid["dprs"]:
+		for w in range(int(grid["w"][0]), int(grid["w"][1]), int(grid["w"][2])):
+			for h in range(int(grid["h"][0]), int(grid["h"][1]), int(grid["h"][2])):
 				var v := PixelViewportController.compute_viewport(w / dpr, h / dpr, dpr)
-				var width: int = v["width"]
-				var height: int = v["height"]
+				var got := "%d,%d,%d,%d,%d" % [v["width"], v["height"], v["scale"], v["cssLeft"], v["cssTop"]]
+				if not assert_eq(got, out[n], "case %d (%dx%d device px @%s)" % [n, w, h, dpr]):
+					return
+				n += 1
 				assert_true(typeof(v["scale"]) == TYPE_INT and v["scale"] >= 1, "integer scale")
-				# Whenever the constrained area is at least MIN_WIDTH device px wide the logical width
-				# lands in 192..270 and the aspect in 0.42..0.62 (floors cost at most one pixel).
-				var dev_w := int(floor(float(w / dpr) * dpr))
-				var dev_h := int(floor(float(h / dpr) * dpr))
-				var area_w := mini(dev_w, int(floor(dev_h * GameConfig.Display.MAX_ASPECT)))
+				var width: int = v["width"]
+				var area_w := mini(int(floor(float(w / dpr) * dpr)), int(floor(int(floor(float(h / dpr) * dpr)) * GameConfig.Display.MAX_ASPECT)))
 				if area_w < GameConfig.Display.MIN_WIDTH:
-					continue
-				if area_w > GameConfig.Display.MAX_WIDTH and area_w < 2 * GameConfig.Display.MIN_WIDTH:
-					band += 1
-					assert_eq(v["scale"], 2, "source band scale for area %d" % area_w)
-					assert_eq(width, area_w / 2, "source band width for area %d" % area_w)
-					continue
-				checked += 1
-				assert_true(width >= GameConfig.Display.MIN_WIDTH and width <= GameConfig.Display.MAX_WIDTH, "width %d for %dx%d@%s" % [width, w, h, dpr])
-				var aspect := float(width) / height
-				assert_true(aspect >= GameConfig.Display.MIN_ASPECT - 0.01 and aspect <= GameConfig.Display.MAX_ASPECT + 0.01, "aspect %.4f for %dx%d@%s" % [aspect, w, h, dpr])
-	assert_true(checked > 500 and band > 0, "enough constrained cases (%d) and band cases (%d)" % [checked, band])
+					counts["narrow"] += 1
+					assert_eq([v["scale"], width], [1, area_w], "narrow area keeps scale 1")
+				elif area_w > GameConfig.Display.MAX_WIDTH and area_w < 2 * GameConfig.Display.MIN_WIDTH:
+					counts["band"] += 1
+					assert_eq([v["scale"], width], [2, area_w / 2], "source band 135..191 at scale 2")
+				else:
+					counts["in_range"] += 1
+					assert_true(width >= GameConfig.Display.MIN_WIDTH and width <= GameConfig.Display.MAX_WIDTH, "width %d in 192..270" % width)
+					var aspect: float = float(width) / int(v["height"])
+					assert_true(aspect >= GameConfig.Display.MIN_ASPECT - 0.01 and aspect <= GameConfig.Display.MAX_ASPECT + 0.01, "aspect %.4f" % aspect)
+	assert_eq(n, out.size(), "every source case compared")
+	assert_true(counts["in_range"] > 500 and counts["band"] > 0 and counts["narrow"] > 0, "all three regimes sampled %s" % counts)
+	print("       %d source viewport cases: %s" % [n, counts])
 
 
 func test_DEPTH_001_sort_order_matches_source() -> void:

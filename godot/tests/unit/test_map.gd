@@ -35,15 +35,49 @@ func test_MAP_002_004_padding_markers_and_exitless_maps() -> void:
 	assert_eq(no_exit["level"]["exit"], no_exit["level"]["start"], "MAP-004 exit defaults to start")
 
 
-func test_MAP_007_green_zone_rows_identical() -> void:
+## MAP-007 in full: the 96×96 Green Zone (rows, start/exit, props, ground counts, playable and
+## reachable tiles, exit-distance field), its canonical start→exit route length (the source's
+## startDist that placeTreats walks) and the deterministic treat placements equal the source.
+func test_MAP_007_green_zone_topology_route_and_treats_match_source() -> void:
 	var rows := GreenZoneLevel.build_rows()
 	var expected: Array = _gz["rows"]
+	assert_eq([rows.size(), rows[0].length() if rows.size() > 0 else 0], [96, 96], "96x96 rows")
 	assert_eq(rows.size(), expected.size(), "row count")
 	for j in mini(rows.size(), expected.size()):
 		if rows[j] != expected[j]:
 			fail("row %d differs:\n  godot  %s\n  source %s" % [j, rows[j], expected[j]])
 			return
 	assert_eq("\n".join(rows).sha256_text(), _gz["rows_sha256"], "rows sha256")
+	var m := _model()
+	assert_eq([m.width, m.height], [_gz["width"], _gz["height"]], "map size")
+	assert_eq([m.start_tile, m.exit_tile], [Vector2i(_gz["start"]["i"], _gz["start"]["j"]), Vector2i(_gz["exit"]["i"], _gz["exit"]["j"])], "start and exit")
+	assert_eq(m.playable_count, _gz["playable_count"], "playable tiles")
+	var props: Array = _gz["props"]
+	assert_eq(m.props.size(), props.size(), "prop count")
+	for k in mini(m.props.size(), props.size()):
+		var p := m.props[k]
+		if [p.kind, p.i, p.j] != [props[k][0], int(props[k][1]), int(props[k][2])]:
+			fail("prop %d %s@%d,%d != %s" % [k, p.kind, p.i, p.j, props[k]])
+			return
+	var counts := {}
+	for g in m.ground:
+		counts[str(g)] = int(counts.get(str(g), 0)) + 1
+	assert_eq(counts.keys().size(), (_gz["ground_counts"] as Dictionary).size(), "ground kinds")
+	for key: String in _gz["ground_counts"]:
+		assert_eq(counts.get(key, 0), _gz["ground_counts"][key], "ground %s count" % key)
+	var parts := PackedStringArray()
+	for d in m.exit_distance:
+		parts.append(str(d))
+	assert_eq(",".join(parts).sha256_text(), _gz["exit_distance_sha256"], "exit-distance field (topology)")
+	assert_eq(m.exit_distance[m.index(m.start_tile.x, m.start_tile.y)], _gz["start_exit_distance"], "canonical start->exit route length")
+	var def := GreenZoneLevel.definition()
+	var treats := TreatPlacement.place_treats(m, def.spawns["treats"], def.seed)
+	var want: Array = _gz["treats"]
+	assert_eq(treats.size(), want.size(), "treat count")
+	for k in mini(treats.size(), want.size()):
+		assert_eq([treats[k][0], treats[k][1]], [want[k]["x"], want[k]["y"]], "treat %d position" % k)
+	# Deterministic: a second placement with the same seed is identical.
+	assert_eq(TreatPlacement.place_treats(m, def.spawns["treats"], def.seed), treats, "same seed, same treats")
 
 
 func test_MAP_005_bfs_field_and_topology() -> void:
@@ -74,17 +108,6 @@ func test_MAP_005_bfs_field_and_topology() -> void:
 	assert_eq(reachable, _gz["reachable_count"], "COLL-005 reachable tiles")
 	for row: Array in _gz["progress_samples"]:
 		assert_near(m.progress_at(row[0], row[1]), row[2], 1e-12, "progressAt(%s,%s)" % [row[0], row[1]])
-
-
-func test_MAP_007b_treat_placement_identical() -> void:
-	var m := _model()
-	var def := GreenZoneLevel.definition()
-	var treats := TreatPlacement.place_treats(m, def.spawns["treats"], def.seed)
-	var expected: Array = _gz["treats"]
-	assert_eq(treats.size(), expected.size(), "treat count")
-	for k in mini(treats.size(), expected.size()):
-		assert_eq(treats[k][0], expected[k]["x"], "treat %d x" % k)
-		assert_eq(treats[k][1], expected[k]["y"], "treat %d y" % k)
 
 
 func test_P_GZ_001_random_spot_near_identical() -> void:
