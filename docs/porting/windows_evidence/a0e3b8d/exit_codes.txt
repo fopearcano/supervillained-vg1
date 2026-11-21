@@ -1,0 +1,8 @@
+pwsh on PATH: %USERPROFILE%\sv-windows-tools\pwsh-7.7.0\pwsh.exe
+node on PATH: C:\Program Files\nodejs\node.exe v24.15.0
+a exit: 0  (8s)
+b exit: 0  (3s)
+c exit: 0  (38s)
+d exit: 0  (11s)
+e exit: 0
+done

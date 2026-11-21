@@ -1,0 +1,124 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS test_SLICE_config_matches_source                               9 ms
+PASS test_P_CORE_002_settings_and_tick_accumulator                  7 ms
+PASS test_RNG_001_mulberry32_sequences                             13 ms
+PASS test_P_RNG_002_int_range_reproduces                           14 ms
+PASS test_RNG_003_seeds_independent_and_hash2                      14 ms
+PASS test_ISO_001_grid_to_screen                                   14 ms
+PASS test_ISO_002_round_trip_1000_points                           14 ms
+PASS test_ISO_003_tile_centres_and_rows                            13 ms
+PASS test_ISO_004_screen_input_projects_parallel                   14 ms
+PASS test_MOVE_002_facing_classification                           14 ms
+PASS test_VIEW_001_viewport_matches_source                         14 ms
+       2860 source viewport cases: { "in_range": 2290, "narrow": 360, "band": 210 }
+PASS test_VIEW_002_logical_size_and_scale_follow_the_source_algorithm    31 ms
+PASS test_DEPTH_001_sort_order_matches_source                      13 ms
+PASS test_DEPTH_002_stable_across_frames_and_remove_readd         164 ms
+PASS test_GZ_019_020_half_stars_and_pee_deficit_penalty            13 ms
+PASS test_P_GZ_021_score_components_time_bonus_and_formats         14 ms
+PASS test_GZ_024_lives_clamp_2_to_9                                14 ms
+PASS test_P_GZ_025_speed_for_lives_factor                          14 ms
+PASS test_CAM_003_sway_and_shake_deterministic_and_decay_to_zero    14 ms
+PASS test_CAM_001_follow_lookahead_matches_source                  13 ms
+PASS test_MAP_001_parser_errors_match_source                       10 ms
+PASS test_MAP_002_004_padding_markers_and_exitless_maps            14 ms
+PASS test_MAP_007_green_zone_topology_route_and_treats_match_source   138 ms
+PASS test_MAP_005_bfs_field_and_topology                           66 ms
+PASS test_P_GZ_001_random_spot_near_identical                      65 ms
+PASS test_COLL_002_grid_solver_matches_source_traces              153 ms
+PASS test_P_COLL_004_walkability_rules                             63 ms
+PASS test_GZ_008_009_footprints_max_blend_and_clean                64 ms
+PASS test_P_GZ_002_needs_script_matches_source                     13 ms
+PASS test_SLICE_scripted_rules_run_matches_source                 322 ms
+PASS test_SLICE_exit_completes_level_like_source                   73 ms
+PASS test_DOG_004_poop_waits_for_the_busy_action                   85 ms
+PASS test_P_DOG_005_overlapping_actions_resolve_like_source        82 ms
+PASS test_SLICE_bark_is_gated_like_source_try_bark                 68 ms
+PASS test_MOVE_003_walk_run_traces_8_directions                   150 ms
+PASS test_MOVE_004_terrain_multipliers                             67 ms
+PASS test_MOVE_001_analog_never_runs                               62 ms
+PASS test_DOG_007_exhaustion_and_recovery                          91 ms
+PASS test_DOG_002_rest_sequence_and_reset_after_action             70 ms
+PASS test_DOG_001_idle_walk_run_selection_and_facing_kept          73 ms
+PASS test_MOVE_005_external_push_and_knockback_decay               76 ms
+PASS test_SLICE_scripted_run_costs_no_energy                       69 ms
+PASS test_DOG_003_pee_locks_movement_for_rule_duration             72 ms
+PASS test_P_AST_005_spriteframes_timing_matches_manifest           64 ms
+PASS test_SAV_001_defaults_match_architecture                       4 ms
+PASS test_SAV_002_settings_validate_and_clamp                      14 ms
+PASS test_SAV_003_settings_round_trip_and_signal_only_real_changes    14 ms
+PASS test_SAV_004_records_keep_bests_independently                 23 ms
+PASS test_SAV_018_round_trip_is_identical                          14 ms
+PASS test_SAV_019_temp_is_validated_before_it_replaces_the_save    21 ms
+PASS test_SAV_020_crash_at_every_write_stage_recovers_newest_valid    68 ms
+PASS test_P_SAV_021_corrupt_save_recovers_from_backup              26 ms
+PASS test_SLICE_corrupt_without_backup_uses_defaults_then_saves    16 ms
+PASS test_SLICE_older_format_is_not_mistaken_for_future            13 ms
+PASS test_SAV_022_future_format_in_main_temp_or_backup_is_preserved_and_blocks_writes    62 ms
+PASS test_SLICE_temp_recovery_keeps_a_valid_older_main_as_backup    28 ms
+PASS test_SLICE_future_copy_failures_are_reported_and_writes_stay_blocked    87 ms
+PASS test_SLICE_isolation_1_dirty_every_global                     44 ms
+PASS test_SLICE_isolation_2_globals_are_back_to_defaults           13 ms
+PASS test_SLICE_profile_override_is_validated                      14 ms
+PASS test_P_AST_001_copies_and_outputs_match_manifest_and_source   700 ms
+PASS test_SLICE_chromium_provenance_is_the_pinned_build            14 ms
+PASS test_P_AST_002_playable_sheet_geometry                        14 ms
+PASS test_P_AST_003_foot_anchor                                    14 ms
+PASS test_P_AST_004_every_action_has_eight_real_directions         13 ms
+PASS test_P_AST_012_environment_frames_and_tile_atlas              14 ms
+PASS test_SLICE_ground_tile_names_exclude_floor_art                14 ms
+PASS test_P_AST_016_lossless_nearest_no_mipmaps                    14 ms
+PASS test_P_AST_017_required_sprites_present                       14 ms
+PASS test_P_AST_018_no_forbidden_runtime_content                   13 ms
+PASS test_P_AST_020_bitmap_font_matches_source_glyphs              14 ms
+PASS test_P_AUD_001_recorded_audio_loads                           14 ms
+PASS test_SLICE_drink_wav_is_imported_lossless                     14 ms
+PASS test_SLICE_leading_silence_data_from_source                   14 ms
+PASS test_SLICE_export_ships_ofl_and_the_app_label                 13 ms
+PASS test_P_ARCH_001_dummy_story_map_reuses_iso_world               5 ms
+PASS test_P_MAP_003_tile_layer_matches_isogrid                    107 ms
+PASS test_WORLD_004_phase_rotated_animated_alternatives           112 ms
+PASS test_CAM_002_camera_clamps_small_and_large_maps              237 ms
+PASS test_COLL_001_blocked_tiles_stop_all_eight_directions         42 ms
+PASS test_COLL_006_repeated_collision_is_deterministic            141 ms
+PASS test_COLL_004_blocked_and_walkable_grounds_including_deep_water_and_walls    69 ms
+PASS test_SLICE_deep_water_and_wall_diagnostic_rendering           13 ms
+PASS test_MAP_006_floor_designs_change_visuals_only               322 ms
+PASS test_COLL_003_round_props_push_out_without_tunnelling        280 ms
+PASS test_P_COLL_005_start_exit_and_treats_reachable_under_the_solver   233 ms
+PASS test_DEPTH_003_only_visible_candidates_ranked_and_bands_separate   229 ms
+PASS test_SLICE_probe_and_hurtbox_are_projected_grid_ellipses_broad_phase_only    76 ms
+PASS test_P_ARCH_001_green_zone_scene_builds_shared_world         240 ms
+PASS test_FLOW_001_briefing_waits_for_confirmation_and_switches_music   274 ms
+PASS test_MOVE_001_keyboard_and_joystick_paths                    239 ms
+PASS test_P_UI_001_006_hud_and_buttons_mirror_for_left_hand       240 ms
+PASS test_FLOW_002_pause_freezes_and_resume_clears_input          243 ms
+PASS test_P_FLOW_005_game_over_flow_and_no_record                 248 ms
+PASS test_WORLD_005_pollution_layers_follow_the_model             301 ms
+PASS test_DEPTH_004_tree_fades_when_hiding_the_dog                334 ms
+       real-input slice run: 45.1 s, treats 30, poops 7, pees 6, marks 0, lives 2, health 0.9359, stars 3.0, total 5660
+PASS test_SLICE_real_input_run_reaches_exit                       729 ms
+PASS test_DOG_006_presentation_never_changes_rule_state           172 ms
+PASS test_SLICE_android_back_pauses_and_never_quits               238 ms
+PASS test_SLICE_audio_background_suspends_music_and_effects       236 ms
+PASS test_SLICE_diagnostics_are_bounded_and_debug_only             14 ms
+PASS test_SLICE_audio_effects_skip_source_leading_silence         238 ms
+PASS test_P_VIEW_004_whole_pixel_world_and_nearest_filtering      325 ms
+PASS test_AST_014_green_zone_never_applies_the_obsolete_arcade_floor   242 ms
+       COLL-002 native move_and_slide: 21/48 trajectories exceed 0.10 tile, max deviation 9.183 tile (start [89.3, 86.1] dir [1.0, 1.0]); 1194 static shapes
+       COLL-002 native, starts clear of obstacles only: 15/40 exceed, max deviation 6.924 tile
+       COLL-002 grid solver: max deviation 0.000000000000 tile
+PASS test_SLICE_collision_solver_decision_native_vs_grid         1594 ms
+PASS test_VIEW_003_safe_area_and_touch_round_trip                 438 ms
+PASS test_SLICE_subviewport_multi_touch_routing                   288 ms
+PASS test_SLICE_viewport_underlay_and_black_letterbox             262 ms
+        30 fps cap: 58 frames for 120 ticks in 1.88 s (30.9 frames/s, 63.8 ticks/s)
+        60 fps cap: 114 frames for 120 ticks in 1.88 s (60.6 frames/s, 63.8 ticks/s)
+        90 fps cap: 169 frames for 120 ticks in 1.87 s (90.4 frames/s, 64.2 ticks/s)
+       120 fps cap: 226 frames for 120 ticks in 1.88 s (120.2 frames/s, 63.8 ticks/s)
+PASS test_CORE_002_logic_independent_of_render_rate              8722 ms
+       PCK 5185812 bytes, 83 runtime resources checked, 171 packed files
+PASS test_SLICE_android_pck_has_runtime_data_and_starts_clean   15713 ms
+
+110 passed, 0 failed, 110 total (37.7 s), Godot 4.7.2-stable (official)
