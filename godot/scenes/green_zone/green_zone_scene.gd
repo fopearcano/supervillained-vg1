@@ -142,8 +142,15 @@ func _connect_rules() -> void:
 		if _poop_views.has(pile):
 			world.remove_dynamic((_poop_views[pile] as PoopView).iso)
 			_poop_views.erase(pile))
-	rules.pee_started.connect(func(_x: float, _y: float, _m: bool, _r: float, _s: int) -> void: AudioService.play(&"pee"))
+	# src/fx/gameAudio.ts: a marking pee adds the star 0.12 s later; tired and a cleaned poop reuse
+	# the empty and coin cues with the source's rate/volume.
+	rules.pee_started.connect(func(_x: float, _y: float, marking: bool, _r: float, _s: int) -> void:
+		AudioService.play(&"pee")
+		if marking:
+			AudioService.play(&"star", 1.0, 1.0, 0.12))
 	rules.pee_empty.connect(func(_x: float, _y: float) -> void: AudioService.play(&"empty"))
+	rules.tired.connect(func(_x: float, _y: float) -> void: AudioService.play(&"empty", 1.0, 0.8))
+	rules.poop_cleaned.connect(func(_x: float, _y: float, _s: int) -> void: AudioService.play(&"coin", 0.5, 1.5))
 	rules.drank.connect(func(_x: float, _y: float) -> void: AudioService.play(&"drink"))
 	rules.splashed.connect(func(_x: float, _y: float) -> void: AudioService.play(&"splash", 0.7))
 	rules.digest_warning.connect(func(_x: float, _y: float) -> void: AudioService.play(&"warning"))

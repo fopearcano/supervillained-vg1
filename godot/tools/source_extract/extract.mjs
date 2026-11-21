@@ -119,6 +119,15 @@ const COPIES = [
   { from: 'assets/sounds/pees-drop.mp3', to: 'assets/audio/recorded/pees-drop.mp3', use: 'SOUND_FILES.pee' },
   { from: 'assets/sounds/pees-collect.wav', to: 'assets/audio/recorded/pees-collect.wav', use: 'SOUND_FILES.drink (imported as lossless PCM)' },
   { from: 'assets/sounds/water.mp3', to: 'assets/audio/recorded/water.mp3', use: 'SOUND_FILES.splash' },
+  { from: 'assets/music/Level-2_SLY-Disco-Weapon.mp3', to: 'assets/audio/recorded/level2-music.mp3', use: 'MUSIC_FILES.level2 (Level 2, On the edge of dreams)' },
+  { from: 'assets/music/Level-3_HM-Plenty-Good-Lovin.mp3', to: 'assets/audio/recorded/level3-music.mp3', use: 'MUSIC_FILES.level3 (Level 3, Venice)' },
+  { from: 'assets/music/Level-4_CRI-Brother-Sister-(RM-Remix).mp3', to: 'assets/audio/recorded/level4-music.mp3', use: 'MUSIC_FILES.level4 (Level 4, The sea)' },
+  { from: 'assets/sounds/cat-meow.mp3', to: 'assets/audio/recorded/cat-meow.mp3', use: 'SOUND_FILES.meow' },
+  { from: 'assets/sounds/cash-after-cat.mp3', to: 'assets/audio/recorded/cash-after-cat.mp3', use: 'SOUND_FILES.coin' },
+  { from: 'assets/sounds/ball.mp3', to: 'assets/audio/recorded/ball.mp3', use: 'SOUND_FILES.ball' },
+  { from: 'assets/sounds/alarm-greenzone-under-attack.mp3', to: 'assets/audio/recorded/alarm-greenzone-under-attack.mp3', use: 'SOUND_FILES.alarm' },
+  { from: 'assets/sounds/siren.mp3', to: 'assets/audio/recorded/siren.mp3', use: 'SOUND_FILES.siren' },
+  { from: 'assets/sounds/laser-eyes.mp3', to: 'assets/audio/recorded/laser-eyes.mp3', use: 'SOUND_FILES.laser' },
 ];
 const INPUTS_ONLY = [
   { from: 'src/assets/fonts/PressStart2P.woff2', use: 'converter input for the bitmap font (not exported)' },
@@ -127,6 +136,9 @@ const INPUTS_ONLY = [
   { from: 'src/assets/placeholders/items.ts', use: 'procedural item/HUD sprite generators (executed)' },
   { from: 'src/assets/placeholders/critters.ts', use: 'procedural shadow generator (executed)' },
   { from: 'package-lock.json', use: 'pins Playwright (Chromium build used for the font and audio decoding)' },
+  { from: 'src/core/synth.ts', use: 'sfxr-style renderer (renderSound/renderVoice) executed for the synthesized WAVs' },
+  { from: 'src/fx/sounds.ts', use: 'SOUNDS recipes and renderMedievalMusic() executed for the synthesized WAVs' },
+  { from: 'src/fx/audioFiles.ts', use: 'SOUND_FILES / MUSIC_FILES cue-to-file tables (executed)' },
 ];
 
 const manifestRel = 'data/source_asset_manifest.json';
@@ -233,7 +245,10 @@ const audioTs = blobText('src/core/audio.ts');
 const silenceSrc = audioTs.match(/function leadingSilence\(buffer: AudioBuffer\): number \{[\s\S]*?\n\}/);
 if (!silenceSrc) throw new Error('leadingSilence() not found in src/core/audio.ts; review the extractor');
 const configTsForTrim = await importSource('config.ts');
-const SFX_FILES = { bark: 'assets/sounds/dog-bark.mp3', treat: 'assets/sounds/food-collect.mp3', poop: 'assets/sounds/poos.mp3', pee: 'assets/sounds/pees-drop.mp3', drink: 'assets/sounds/pees-collect.wav', splash: 'assets/sounds/water.mp3' };
+// The cue -> file tables exactly as the source declares them (src/fx/audioFiles.ts, executed).
+const audioFilesTs = await importSource('fx/audioFiles.ts');
+const SFX_FILES = { ...audioFilesTs.SOUND_FILES };
+const MUSIC_FILES = { ...audioFilesTs.MUSIC_FILES };
 const sfxPayload = Object.fromEntries(Object.entries(SFX_FILES).map(([k, rel]) => [k, blob(rel).toString('base64')]));
 const silenceJs = nodeModule.stripTypeScriptTypes(silenceSrc[0], { mode: 'strip' });
 const offsets = await page.evaluate(async ({ files, fnSrc, trim }) => {
@@ -251,6 +266,25 @@ const offsets = await page.evaluate(async ({ files, fnSrc, trim }) => {
   }
   return out;
 }, { files: sfxPayload, fnSrc: silenceJs, trim: configTsForTrim.AUDIO.TRIM_LEVEL });
+// AUD-001–004 reference: every recorded file decoded by Chromium WebAudio at 48 kHz (channels,
+// duration, peak |sample| over all channels). Peaks are rounded to 1e-3 so the fixture does not
+// depend on the decoder's last float bits.
+const recordedPayload = Object.fromEntries([...Object.entries(SFX_FILES), ...Object.entries(MUSIC_FILES)].map(([k, rel]) => [rel, blob(rel).toString('base64')]));
+const decoded = await page.evaluate(async ({ files }) => {
+  const out = {};
+  for (const [rel, b64] of Object.entries(files)) {
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const ctx = new OfflineAudioContext(1, 1, 48000);
+    const buffer = await ctx.decodeAudioData(bytes.slice().buffer);
+    let peak = 0;
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const ch = buffer.getChannelData(c);
+      for (let i = 0; i < ch.length; i++) { const a = Math.abs(ch[i]); if (a > peak) peak = a; }
+    }
+    out[rel] = { channels: buffer.numberOfChannels, duration: Math.round(buffer.duration * 1000) / 1000, peak: Math.round(peak * 1000) / 1000 };
+  }
+  return out;
+}, { files: recordedPayload });
 await browser.close();
 emit('data/audio/sfx_leading_silence.json', stableJson({ audited_commit: AUDITED_COMMIT, recipe: 'src/core/audio.ts leadingSilence() in Chromium WebAudio', trim_level: configTsForTrim.AUDIO.TRIM_LEVEL, runtime_rate: 48000, chromium: browserVersion, files: SFX_FILES, offsets }));
 if (!font.loaded) throw new Error('Press Start 2P failed to load in Chromium; refusing to emit a fallback font');
@@ -283,6 +317,62 @@ manifest.generated.push({ key: 'pixel_font', target: 'assets/fonts/pixel_font.pn
 manifest.generated.push({ key: 'pixel_font_fnt', target: 'assets/fonts/pixel_font.fnt', sha256: sha256(Buffer.from(fnt)) });
 
 // ---------------------------------------------------------------------------------------------
+// 3b. Synthesized audio (ARCHITECTURE §12): the source's own recipes and renderer, executed in Node
+// at the source rate (src/core/audio.ts SFX_RATE = MUSIC_RATE = 22050), written as mono 22,050 Hz
+// signed 16-bit little-endian PCM WAV. Quantization: round(clamp(sample, -1, 1) * 32767) with
+// JavaScript Math.round. No runtime synthesis remains in the port.
+const synthTs = await importSource('core/synth.ts');
+const soundsTs = await importSource('fx/sounds.ts');
+const SYNTH_RATE = 22050;
+const audioTsRates = audioTs.match(/const SFX_RATE = (\d+);\s*const MUSIC_RATE = (\d+);/);
+if (!audioTsRates || Number(audioTsRates[1]) !== SYNTH_RATE || Number(audioTsRates[2]) !== SYNTH_RATE) throw new Error('src/core/audio.ts SFX_RATE/MUSIC_RATE changed; review the extractor');
+const quantize = (s) => Math.round(Math.max(-1, Math.min(1, s)) * 32767);
+function encodeWav(samples) {
+  const pcm = Buffer.alloc(samples.length * 2);
+  for (let k = 0; k < samples.length; k++) pcm.writeInt16LE(quantize(samples[k]), k * 2);
+  const head = Buffer.alloc(44);
+  head.write('RIFF', 0, 'ascii');
+  head.writeUInt32LE(36 + pcm.length, 4);
+  head.write('WAVE', 8, 'ascii');
+  head.write('fmt ', 12, 'ascii');
+  head.writeUInt32LE(16, 16); // fmt chunk size
+  head.writeUInt16LE(1, 20); // PCM
+  head.writeUInt16LE(1, 22); // mono
+  head.writeUInt32LE(SYNTH_RATE, 24);
+  head.writeUInt32LE(SYNTH_RATE * 2, 28); // byte rate
+  head.writeUInt16LE(2, 32); // block align
+  head.writeUInt16LE(16, 34); // bits per sample
+  head.write('data', 36, 'ascii');
+  head.writeUInt32LE(pcm.length, 40);
+  return { wav: Buffer.concat([head, pcm]), pcm };
+}
+const synthFixture = { audited_commit: AUDITED_COMMIT, recipe: 'src/fx/sounds.ts + src/core/synth.ts executed in Node', rate: SYNTH_RATE, bits: 16, channels: 1, quantization: 'round(clamp(sample, -1, 1) * 32767), JavaScript Math.round', cues: {}, music: {} };
+function emitSynth(name, samples, recipe, kind) {
+  const { wav, pcm } = encodeWav(samples);
+  const target = `assets/audio/synth/${name}.wav`;
+  emit(target, wav);
+  let peak = 0;
+  for (let k = 0; k < pcm.length; k += 2) peak = Math.max(peak, Math.abs(pcm.readInt16LE(k)));
+  // A few float samples (as rendered, float32) with their quantized values: checks the formula.
+  const probe = [];
+  for (const k of [0, 1, Math.floor(samples.length / 7), Math.floor(samples.length / 3), Math.floor(samples.length / 2), samples.length - 2, samples.length - 1]) probe.push([k, samples[k], quantize(samples[k])]);
+  const peakAt = (() => { let best = 0; for (let k = 1; k < samples.length; k++) if (Math.abs(samples[k]) > Math.abs(samples[best])) best = k; return best; })();
+  probe.push([peakAt, samples[peakAt], quantize(samples[peakAt])]);
+  const entry = { target, sha256: sha256(wav), pcm_sha256: sha256(pcm), samples: samples.length, duration: samples.length / SYNTH_RATE, peak, recipe_sha256: sha256(stableJson(recipe)), probe };
+  synthFixture[kind][name] = entry;
+  manifest.generated.push({ key: `synth_${name}`, target, sha256: entry.sha256, samples: entry.samples, rate: SYNTH_RATE, recipe: kind === 'music' ? 'src/fx/sounds.ts renderMedievalMusic()' : `src/fx/sounds.ts SOUNDS.${name} via src/core/synth.ts renderSound()` });
+}
+for (const [name, recipe] of Object.entries(soundsTs.SOUNDS)) {
+  const samples = synthTs.renderSound(recipe, SYNTH_RATE);
+  const expected = Math.ceil(synthTs.soundDuration(recipe) * SYNTH_RATE) + 1;
+  if (samples.length !== expected) throw new Error(`synth ${name}: ${samples.length} samples, expected ${expected}`);
+  emitSynth(name, samples, recipe, 'cues');
+  synthFixture.cues[name].source_duration = synthTs.soundDuration(recipe);
+}
+emitSynth('medieval', soundsTs.renderMedievalMusic(SYNTH_RATE), { fn: soundsTs.renderMedievalMusic.toString(), voice: synthTs.renderVoice.toString() }, 'music');
+synthFixture.music.medieval.loop = { mode: 'forward', begin: 0, end: synthFixture.music.medieval.samples, note: 'AudioBufferSourceNode loop=true over the whole buffer, restarted from 0 on every setTrack' };
+
+// ---------------------------------------------------------------------------------------------
 // 4. Reference fixtures from the audited TypeScript.
 const config = await importSource('config.ts');
 const { Rng, hash2 } = await importSource('core/rng.ts');
@@ -306,7 +396,7 @@ const { animationFrame, animationDuration } = await importSource('assets/animati
 const fx = { audited_commit: AUDITED_COMMIT, note: 'Generated from the audited TypeScript; do not hand-edit or regenerate to match a Godot mismatch.' };
 const PICK = ['DISPLAY', 'LOOP', 'ISO', 'CAMERA', 'PLAYER', 'ENERGY', 'INPUT', 'OCCLUSION', 'HUNGER', 'TREAT', 'DIGESTION', 'POOP', 'BLADDER', 'POLLUTION', 'ZONE', 'LIVES', 'SCORE', 'BARK', 'FX'];
 fx.config = Object.fromEntries(PICK.map((k) => [k, config[k]]));
-fx.config.AUDIO = { DEFAULT_VOLUME: config.AUDIO.DEFAULT_VOLUME, MUSIC_FILE_VOLUME: config.AUDIO.MUSIC_FILE_VOLUME, SFX_VOLUME: config.AUDIO.SFX_VOLUME, FILE_GAIN: config.AUDIO.FILE_GAIN };
+fx.config.AUDIO = config.AUDIO;
 
 // RNG
 fx.rng = { sequences: {}, ints: {}, hash2: [] };
@@ -660,6 +750,7 @@ fx.rules_overlap = rulesScenario((t, c) => {
 }, 260);
 
 emit('tests/fixtures/source_reference.json', stableJson(fx));
+emit('tests/fixtures/source_audio.json', stableJson({ audited_commit: AUDITED_COMMIT, note: 'Generated from the audited TypeScript and Chromium WebAudio; do not hand-edit.', sound_files: SFX_FILES, music_files: MUSIC_FILES, decoded_48k: decoded, synth: synthFixture }));
 emit('tests/fixtures/source_font_glyphs.json', stableJson({ audited_commit: AUDITED_COMMIT, chromium: browserVersion, advance: font.advance, cell_h: font.cellH, glyph_alpha_sha256_16: glyphHashes }));
 manifest.toolchain = { node: `v${PINNED_NODE}`, pinned_node: PINNED_NODE, playwright: playwrightVersion, chromium: PINNED_CHROMIUM.version, chromium_revision: PINNED_CHROMIUM.revision, chromium_channel: PINNED_CHROMIUM.channel, chromium_pinned_by: 'node_modules/playwright-core/browsers.json' };
 // Every other generated output, so tests and --check can verify them by hash.

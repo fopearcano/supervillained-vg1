@@ -1,19 +1,29 @@
 extends Node
-## Music continuity, buses and cue playback (port of the recorded-file half of src/core/audio.ts
-## and src/fx/gameAudio.ts).
-## - Tracks: 'intro' on reading screens (briefing, result card), 'greenzone' during the walk. Each
-##   track resumes where it was left (source setTrack keeps every element's position).
-## - Effects start after their leading silence (source leadingSilence(): first sample above
-##   AUDIO.TRIM_LEVEL minus 10 ms), measured by tools/source_extract at 48 kHz.
+## Music continuity, buses and cue playback (port of src/core/audio.ts and src/fx/gameAudio.ts).
+## - Tracks: the recorded files of src/fx/audioFiles.ts MUSIC_FILES ('intro' on reading screens,
+##   'greenzone' during the walk, 'level2'-'level4') resume where they were left (source setTrack
+##   keeps every element's position); 'medieval' (the synthesized dream loop) restarts from 0 on
+##   every switch, like the source's new AudioBufferSourceNode.
+## - Music level: AUDIO.MUSIC_VOLUME for 'medieval', AUDIO.MUSIC_FILE_VOLUME x the track's
+##   AUDIO.MUSIC_FILE_GAIN trim for recorded tracks, times the duck factor.
+## - Recorded effects (SOUND_FILES) start after their leading silence (source leadingSilence():
+##   first sample above AUDIO.TRIM_LEVEL minus 10 ms), measured by tools/source_extract at 48 kHz.
+## - Synthesized effects (src/fx/sounds.ts SOUNDS) are editor-rendered mono 22,050 Hz 16-bit PCM
+##   WAVs (tools/source_extract); nothing is synthesized at runtime. They start at 0.
+## - `delay` (source play({delay})) counts audio time: it does not advance while suspended.
 ## - In the background everything is suspended (the source suspends its AudioContext) and resumes
 ##   on return.
-## Synthesized cues are rendered to WAV in a later milestone; until then a synthesized cue name is
-## a silent no-op counted in `missing_cues`.
 
 const MUSIC := {
 	&"intro": "res://assets/audio/recorded/intro-music.mp3",
 	&"greenzone": "res://assets/audio/recorded/greenzone-music.mp3",
+	&"level2": "res://assets/audio/recorded/level2-music.mp3",
+	&"level3": "res://assets/audio/recorded/level3-music.mp3",
+	&"level4": "res://assets/audio/recorded/level4-music.mp3",
+	&"medieval": "res://assets/audio/synth/medieval.wav",
 }
+## Tracks that restart from the beginning instead of resuming (synthesized buffers in the source).
+const RESTARTING_TRACKS: Array[StringName] = [&"medieval"]
 const SFX := {
 	&"bark": "res://assets/audio/recorded/dog-bark.mp3",
 	&"treat": "res://assets/audio/recorded/food-collect.mp3",
@@ -21,7 +31,17 @@ const SFX := {
 	&"pee": "res://assets/audio/recorded/pees-drop.mp3",
 	&"drink": "res://assets/audio/recorded/pees-collect.wav",
 	&"splash": "res://assets/audio/recorded/water.mp3",
+	&"meow": "res://assets/audio/recorded/cat-meow.mp3",
+	&"coin": "res://assets/audio/recorded/cash-after-cat.mp3",
+	&"ball": "res://assets/audio/recorded/ball.mp3",
+	&"alarm": "res://assets/audio/recorded/alarm-greenzone-under-attack.mp3",
+	&"siren": "res://assets/audio/recorded/siren.mp3",
+	&"laser": "res://assets/audio/recorded/laser-eyes.mp3",
 }
+const SYNTH_DIR := "res://assets/audio/synth/"
+## src/fx/sounds.ts SOUNDS, in source order.
+const SYNTH: Array[StringName] = [&"fetch", &"warning", &"empty", &"hurt", &"hit", &"swish", &"clang",
+	&"flee", &"saved", &"star", &"jingle", &"gameover", &"click", &"glitch"]
 ## Generated Resource (exported); the source JSON is provenance only and is not exported.
 const LEADING_SILENCE: SfxLeadingSilence = preload("res://data/audio/sfx_leading_silence.tres")
 const POOL_SIZE := 8
@@ -49,6 +69,8 @@ var _pool: Array[AudioStreamPlayer] = []
 var _next := 0
 var _streams: Dictionary = {}
 var _duck := 1.0
+## Delayed cues waiting for their start: [[cue, volume, pitch, seconds left], ...].
+var _pending: Array = []
 
 
 func _ready() -> void:
@@ -78,7 +100,23 @@ func _stream(path: String) -> AudioStream:
 
 
 func _music_db() -> float:
-	return linear_to_db(maxf(GameConfig.Audio.MUSIC_FILE_VOLUME * _duck, 0.0001))
+	return linear_to_db(maxf(music_level(current_track), 0.0001))
+
+
+## Linear music gain of `track` (source musicLevel() x the element's MUSIC_FILE_GAIN trim).
+func music_level(track: StringName) -> float:
+	if RESTARTING_TRACKS.has(track):
+		return GameConfig.Audio.MUSIC_VOLUME * _duck
+	return GameConfig.Audio.MUSIC_FILE_VOLUME * float(GameConfig.Audio.MUSIC_FILE_GAIN.get(String(track), 1.0)) * _duck
+
+
+## The stream file of an effect cue ("" when the name is unknown).
+func cue_path(cue: StringName) -> String:
+	if SFX.has(cue):
+		return SFX[cue]
+	if SYNTH.has(cue):
+		return SYNTH_DIR + String(cue) + ".wav"
+	return ""
 
 
 ## Switches the music; the previous track keeps its position, the new one resumes from its own.
@@ -96,7 +134,7 @@ func play_music(track: StringName) -> void:
 		(stream as AudioStreamMP3).loop = true
 	_music.stream = stream
 	_music.volume_db = _music_db()
-	_music.play(float(track_positions.get(track, 0.0)))
+	_music.play(0.0 if RESTARTING_TRACKS.has(track) else float(track_positions.get(track, 0.0)))
 	_music.stream_paused = suspended
 
 
@@ -113,11 +151,19 @@ func set_duck(factor: float) -> void:
 	_music.volume_db = _music_db()
 
 
-func play(cue: StringName, volume: float = 1.0, pitch: float = 1.0) -> void:
+func play(cue: StringName, volume: float = 1.0, pitch: float = 1.0, delay: float = 0.0) -> void:
 	requested[cue] = int(requested.get(cue, 0)) + 1
-	if not SFX.has(cue):
+	var path := cue_path(cue)
+	if path == "":
 		missing_cues[cue] = int(missing_cues.get(cue, 0)) + 1
 		return
+	if delay > 0.0:
+		_pending.append([cue, volume, pitch, delay])
+		return
+	_start(cue, path, volume, pitch)
+
+
+func _start(cue: StringName, path: String, volume: float, pitch: float) -> void:
 	var offset: float = offsets.get(cue, 0.0)
 	if diagnostics:
 		started.append([cue, offset, suspended])
@@ -127,12 +173,34 @@ func play(cue: StringName, volume: float = 1.0, pitch: float = 1.0) -> void:
 		return
 	var p := _pool[_next]
 	_next = (_next + 1) % POOL_SIZE
-	p.stream = _stream(SFX[cue])
+	p.stream = _stream(path)
 	var gain: float = GameConfig.Audio.FILE_GAIN.get(String(cue), 1.0)
 	p.volume_db = linear_to_db(GameConfig.Audio.SFX_VOLUME * gain * volume)
 	p.pitch_scale = pitch
 	p.play(offset)
 	p.stream_paused = suspended
+
+
+## Advances delayed cues by `delta` seconds of audio time (frozen while suspended).
+func advance_pending(delta: float) -> void:
+	if suspended or _pending.is_empty():
+		return
+	var due: Array = []
+	for item: Array in _pending:
+		item[3] = float(item[3]) - delta
+		if float(item[3]) <= 0.0:
+			due.append(item)
+	for item: Array in due:
+		_pending.erase(item)
+		_start(item[0], cue_path(item[0]), item[1], item[2])
+
+
+func pending_count() -> int:
+	return _pending.size()
+
+
+func _process(delta: float) -> void:
+	advance_pending(delta)
 
 
 ## Suspends (true) or resumes (false) every player: music and effects.
@@ -160,6 +228,7 @@ func _notification(what: int) -> void:
 
 ## Stops every player and forgets session state (scene teardown, app exit, tests).
 func stop_all() -> void:
+	_pending.clear()
 	stop_music()
 	_music.stream = null
 	for p in _pool:

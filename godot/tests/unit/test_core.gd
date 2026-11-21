@@ -15,11 +15,14 @@ func test_SLICE_config_matches_source() -> void:
 				continue
 			if not values_equal(consts[key], src[g][key]):
 				fail("GameConfig.%s.%s = %s, source %s" % [g, key, consts[key], src[g][key]])
+	# AUDIO: every source key (the whole group is in the fixture).
 	var audio: Dictionary = src["AUDIO"]
-	assert_eq(GameConfig.Audio.DEFAULT_VOLUME, audio["DEFAULT_VOLUME"], "AUDIO.DEFAULT_VOLUME")
-	assert_eq(GameConfig.Audio.MUSIC_FILE_VOLUME, audio["MUSIC_FILE_VOLUME"], "AUDIO.MUSIC_FILE_VOLUME")
-	assert_eq(GameConfig.Audio.SFX_VOLUME, audio["SFX_VOLUME"], "AUDIO.SFX_VOLUME")
-	assert_true(values_equal(GameConfig.Audio.FILE_GAIN, audio["FILE_GAIN"]), "AUDIO.FILE_GAIN")
+	var audio_script: Variant = GameConfig.Audio
+	var audio_consts: Dictionary = (audio_script as GDScript).get_script_constant_map()
+	assert_eq(audio.size(), 10, "source AUDIO keys")
+	for key: String in audio:
+		if assert_true(audio_consts.has(key), "GameConfig.Audio has " + key):
+			assert_true(values_equal(audio_consts[key], audio[key]), "AUDIO.%s = %s, source %s" % [key, audio_consts[key], audio[key]])
 
 
 func test_P_CORE_002_settings_and_tick_accumulator() -> void:

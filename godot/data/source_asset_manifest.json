@@ -131,6 +131,78 @@
    "bytes": 40437,
    "use": "SOUND_FILES.splash",
    "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/music/Level-2_SLY-Disco-Weapon.mp3",
+   "target": "assets/audio/recorded/level2-music.mp3",
+   "sha256": "b2a0919d2960920ac9935a4365ad187ccce82e7a00a9098f8cb068764ff9a4fe",
+   "bytes": 6614894,
+   "use": "MUSIC_FILES.level2 (Level 2, On the edge of dreams)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/music/Level-3_HM-Plenty-Good-Lovin.mp3",
+   "target": "assets/audio/recorded/level3-music.mp3",
+   "sha256": "83c3cb7424fd44d7ba85ff914be482cfc8db5f3f6de2409bf11dc4c17f8d234a",
+   "bytes": 5786048,
+   "use": "MUSIC_FILES.level3 (Level 3, Venice)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/music/Level-4_CRI-Brother-Sister-(RM-Remix).mp3",
+   "target": "assets/audio/recorded/level4-music.mp3",
+   "sha256": "1bfc7c01023e8702f0994353a4ae3542a3e1c1c4aaabb44977e0bdbadcac3f8e",
+   "bytes": 6371181,
+   "use": "MUSIC_FILES.level4 (Level 4, The sea)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/cat-meow.mp3",
+   "target": "assets/audio/recorded/cat-meow.mp3",
+   "sha256": "dcf53ce6b3300db646c251524ac69f1b492f663b47091e4484cd2f424ad01a52",
+   "bytes": 11378,
+   "use": "SOUND_FILES.meow",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/cash-after-cat.mp3",
+   "target": "assets/audio/recorded/cash-after-cat.mp3",
+   "sha256": "d874735e27c15b3547f3a15ca73cac3b4bf3b757694f3e5c8d5040a4e4d36a58",
+   "bytes": 74742,
+   "use": "SOUND_FILES.coin",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/ball.mp3",
+   "target": "assets/audio/recorded/ball.mp3",
+   "sha256": "c8daa713f7eb253fbf3205798492161676b01f315dedebb41fe7534b90d82735",
+   "bytes": 25679,
+   "use": "SOUND_FILES.ball",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/alarm-greenzone-under-attack.mp3",
+   "target": "assets/audio/recorded/alarm-greenzone-under-attack.mp3",
+   "sha256": "92456c3acfe52a479edd8f394bf096e0df2c78d78af05024825e604c07914f34",
+   "bytes": 86204,
+   "use": "SOUND_FILES.alarm",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/siren.mp3",
+   "target": "assets/audio/recorded/siren.mp3",
+   "sha256": "2118ac6c10a8ec8fd5bf9544670b14a89e61a2cb4bfef128824447659edd4a51",
+   "bytes": 48338,
+   "use": "SOUND_FILES.siren",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/laser-eyes.mp3",
+   "target": "assets/audio/recorded/laser-eyes.mp3",
+   "sha256": "db17db85ee5004246d5ae504c61df7787ee10a327d420356383f3d782e368ee3",
+   "bytes": 5771,
+   "use": "SOUND_FILES.laser",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)"
   }
  ],
  "inputs": [
@@ -169,6 +241,24 @@
    "sha256": "356bf44fb3ae7ee73800e80d8b654158c53f332b173367702b6023b2d58b2c8e",
    "bytes": 98532,
    "use": "pins Playwright (Chromium build used for the font and audio decoding)"
+  },
+  {
+   "source": "src/core/synth.ts",
+   "sha256": "eebc68db42b519692e51e1caa442a9e90ed167a32d49c1684e1f755d0f4f5e8a",
+   "bytes": 4459,
+   "use": "sfxr-style renderer (renderSound/renderVoice) executed for the synthesized WAVs"
+  },
+  {
+   "source": "src/fx/sounds.ts",
+   "sha256": "e47ddfca84d726a8a6e152256a2fc9a76e29483935cfdcc66e60b1c6678af3e7",
+   "bytes": 5781,
+   "use": "SOUNDS recipes and renderMedievalMusic() executed for the synthesized WAVs"
+  },
+  {
+   "source": "src/fx/audioFiles.ts",
+   "sha256": "1ff1e0875de54ea284e0c316bbacd454a5bf335c9c84e2779d1e0eb683a47b95",
+   "bytes": 2611,
+   "use": "SOUND_FILES / MUSIC_FILES cue-to-file tables (executed)"
   }
  ],
  "generated": [
@@ -305,6 +395,126 @@
    "key": "pixel_font_fnt",
    "target": "assets/fonts/pixel_font.fnt",
    "sha256": "cf5d257ed8eb9a1c16a4b4993e64d67ab0db13bf6d26e62d205d90cb82b48b5a"
+  },
+  {
+   "key": "synth_fetch",
+   "target": "assets/audio/synth/fetch.wav",
+   "sha256": "79650149e3a9065f11d2517df1d2687234ac7f23486be5e10d0a5e18d0ab0b7c",
+   "samples": 7939,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.fetch via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_warning",
+   "target": "assets/audio/synth/warning.wav",
+   "sha256": "7e5b0edc706acae993b7c0b50c293339818c54cfb20cab07c46ed89f00e38851",
+   "samples": 5404,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.warning via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_empty",
+   "target": "assets/audio/synth/empty.wav",
+   "sha256": "7bad4105f509fa7b9eee937fd0edd0a4199342e059678d57570a86f970d3ed4c",
+   "samples": 3640,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.empty via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_hurt",
+   "target": "assets/audio/synth/hurt.wav",
+   "sha256": "91474cc3fecf4a11d9909c3219237f0f95d947834d1e539dd8fa79aad467ae78",
+   "samples": 6661,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.hurt via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_hit",
+   "target": "assets/audio/synth/hit.wav",
+   "sha256": "26d62781e70c5b81339dd2bd372e6a39f5545afdc080b97201003320e8058fe9",
+   "samples": 3794,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.hit via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_swish",
+   "target": "assets/audio/synth/swish.wav",
+   "sha256": "fd99f4c6f6c67e94605e33e72dd03a25ad9f4eff202c877f1b75c10d5356b35a",
+   "samples": 3309,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.swish via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_clang",
+   "target": "assets/audio/synth/clang.wav",
+   "sha256": "4df64cea2fc1f2bad1270becfd8d751d9c7bdedb80345a3b8fd872bdf56417a9",
+   "samples": 8182,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.clang via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_flee",
+   "target": "assets/audio/synth/flee.wav",
+   "sha256": "f48d86416b1598ec7de0061c91b226314fec34e40a625851c09545d3ba570edf",
+   "samples": 10144,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.flee via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_saved",
+   "target": "assets/audio/synth/saved.wav",
+   "sha256": "4df99d9374440453dd29c219e86b6c496d5248b828c328d4a3d5bd3dd21dd645",
+   "samples": 13342,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.saved via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_star",
+   "target": "assets/audio/synth/star.wav",
+   "sha256": "e55fb9549147c801ff87dd738144e4069b0eb1095af3450bbd09dc268e96e3b3",
+   "samples": 6881,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.star via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_jingle",
+   "target": "assets/audio/synth/jingle.wav",
+   "sha256": "a06aa0199b804afbd2c64f80f5e3f9dc1cc49b409278774f25abfbfced32be0e",
+   "samples": 28997,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.jingle via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_gameover",
+   "target": "assets/audio/synth/gameover.wav",
+   "sha256": "b0c56eb2b18635c24ca3b442f69ed1225c8d391d2a8d982c299648b8951b2865",
+   "samples": 35061,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.gameover via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_click",
+   "target": "assets/audio/synth/click.wav",
+   "sha256": "93f7b2061bec39d9dfe47c5805a1958fb59e457ff0aeb0950fbe0a98245d344b",
+   "samples": 795,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.click via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_glitch",
+   "target": "assets/audio/synth/glitch.wav",
+   "sha256": "9095d769a5384f24b894c5f0daecf9e8780c08514d6db46a00555b78f59ad62f",
+   "samples": 4434,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts SOUNDS.glitch via src/core/synth.ts renderSound()"
+  },
+  {
+   "key": "synth_medieval",
+   "target": "assets/audio/synth/medieval.wav",
+   "sha256": "38963958a112e9d000f2938991274bb8c13a11159c08a719e0dee2a335863ccb",
+   "samples": 305308,
+   "rate": 22050,
+   "recipe": "src/fx/sounds.ts renderMedievalMusic()"
   }
  ],
  "toolchain": {
@@ -317,6 +527,81 @@
   "chromium_pinned_by": "node_modules/playwright-core/browsers.json"
  },
  "outputs": [
+  {
+   "target": "assets/audio/synth/clang.wav",
+   "sha256": "4df64cea2fc1f2bad1270becfd8d751d9c7bdedb80345a3b8fd872bdf56417a9",
+   "bytes": 16408
+  },
+  {
+   "target": "assets/audio/synth/click.wav",
+   "sha256": "93f7b2061bec39d9dfe47c5805a1958fb59e457ff0aeb0950fbe0a98245d344b",
+   "bytes": 1634
+  },
+  {
+   "target": "assets/audio/synth/empty.wav",
+   "sha256": "7bad4105f509fa7b9eee937fd0edd0a4199342e059678d57570a86f970d3ed4c",
+   "bytes": 7324
+  },
+  {
+   "target": "assets/audio/synth/fetch.wav",
+   "sha256": "79650149e3a9065f11d2517df1d2687234ac7f23486be5e10d0a5e18d0ab0b7c",
+   "bytes": 15922
+  },
+  {
+   "target": "assets/audio/synth/flee.wav",
+   "sha256": "f48d86416b1598ec7de0061c91b226314fec34e40a625851c09545d3ba570edf",
+   "bytes": 20332
+  },
+  {
+   "target": "assets/audio/synth/gameover.wav",
+   "sha256": "b0c56eb2b18635c24ca3b442f69ed1225c8d391d2a8d982c299648b8951b2865",
+   "bytes": 70166
+  },
+  {
+   "target": "assets/audio/synth/glitch.wav",
+   "sha256": "9095d769a5384f24b894c5f0daecf9e8780c08514d6db46a00555b78f59ad62f",
+   "bytes": 8912
+  },
+  {
+   "target": "assets/audio/synth/hit.wav",
+   "sha256": "26d62781e70c5b81339dd2bd372e6a39f5545afdc080b97201003320e8058fe9",
+   "bytes": 7632
+  },
+  {
+   "target": "assets/audio/synth/hurt.wav",
+   "sha256": "91474cc3fecf4a11d9909c3219237f0f95d947834d1e539dd8fa79aad467ae78",
+   "bytes": 13366
+  },
+  {
+   "target": "assets/audio/synth/jingle.wav",
+   "sha256": "a06aa0199b804afbd2c64f80f5e3f9dc1cc49b409278774f25abfbfced32be0e",
+   "bytes": 58038
+  },
+  {
+   "target": "assets/audio/synth/medieval.wav",
+   "sha256": "38963958a112e9d000f2938991274bb8c13a11159c08a719e0dee2a335863ccb",
+   "bytes": 610660
+  },
+  {
+   "target": "assets/audio/synth/saved.wav",
+   "sha256": "4df99d9374440453dd29c219e86b6c496d5248b828c328d4a3d5bd3dd21dd645",
+   "bytes": 26728
+  },
+  {
+   "target": "assets/audio/synth/star.wav",
+   "sha256": "e55fb9549147c801ff87dd738144e4069b0eb1095af3450bbd09dc268e96e3b3",
+   "bytes": 13806
+  },
+  {
+   "target": "assets/audio/synth/swish.wav",
+   "sha256": "fd99f4c6f6c67e94605e33e72dd03a25ad9f4eff202c877f1b75c10d5356b35a",
+   "bytes": 6662
+  },
+  {
+   "target": "assets/audio/synth/warning.wav",
+   "sha256": "7e5b0edc706acae993b7c0b50c293339818c54cfb20cab07c46ed89f00e38851",
+   "bytes": 10852
+  },
   {
    "target": "assets/fonts/pixel_font.fnt",
    "sha256": "cf5d257ed8eb9a1c16a4b4993e64d67ab0db13bf6d26e62d205d90cb82b48b5a",
@@ -374,8 +659,8 @@
   },
   {
    "target": "data/audio/sfx_leading_silence.json",
-   "sha256": "573611475988b2af9beaa43ec4f1b7f2466b1b97b19daed48b4aa86bf7a262bd",
-   "bytes": 1576
+   "sha256": "25d1aa1e8f971a6f7ffc9878c1a527badb4908e89575e007910ad50272810bc3",
+   "bytes": 2858
   },
   {
    "target": "data/characters/zampano_sheet.json",
@@ -393,14 +678,19 @@
    "bytes": 58302
   },
   {
+   "target": "tests/fixtures/source_audio.json",
+   "sha256": "0f47418a2b9696184191e8353a9bc92278c6f9c547d0bf8351652a3e75dca149",
+   "bytes": 16904
+  },
+  {
    "target": "tests/fixtures/source_font_glyphs.json",
    "sha256": "be0427029ced7ff272d3203224c8eeae95180f0088e4990743c333ec32a98a5d",
    "bytes": 2843
   },
   {
    "target": "tests/fixtures/source_reference.json",
-   "sha256": "5688ccd760741ec7c639c6165dffa6e0c7d0e1f83daf951c09e080ec4d2a02b7",
-   "bytes": 474556
+   "sha256": "494a2499327da361b67e76a9984157f00e3a21cea13cccc252fc9b77ee527c3e",
+   "bytes": 474763
   }
  ]
 }

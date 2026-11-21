@@ -224,15 +224,151 @@ func test_P_AST_020_bitmap_font_matches_source_glyphs() -> void:
 	assert_eq(PixelText.sanitize("café"), "caf?", "unknown glyphs show as ?")
 
 
-func test_P_AUD_001_recorded_audio_loads() -> void:
-	for path in ["res://assets/audio/recorded/intro-music.mp3", "res://assets/audio/recorded/greenzone-music.mp3", "res://assets/audio/recorded/dog-bark.mp3",
-			"res://assets/audio/recorded/food-collect.mp3", "res://assets/audio/recorded/poos.mp3",
-			"res://assets/audio/recorded/pees-drop.mp3", "res://assets/audio/recorded/pees-collect.wav",
-			"res://assets/audio/recorded/water.mp3"]:
-		var s: AudioStream = load(path)
-		if assert_true(s != null, path + " loads"):
-			assert_true(s.get_length() > 0.05, path + " has length (%.2f s)" % s.get_length())
+func _audio_fixture() -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/source_audio.json"))
 
+
+## Decodes a whole stream through its own playback at the mix rate; returns [peak, seconds].
+func _decode_peak(stream: AudioStream) -> Array:
+	var pb := stream.instantiate_playback()
+	pb.start(0.0)
+	var peak := 0.0
+	var frames := 0
+	var limit := int(AudioServer.get_mix_rate() * (stream.get_length() + 1.0))
+	while pb.is_playing() and frames < limit:
+		var chunk := pb.mix_audio(1.0, 8192)
+		frames += chunk.size()
+		for v in chunk:
+			peak = maxf(peak, maxf(absf(v.x), absf(v.y)))
+	pb.stop()
+	return [peak, frames / AudioServer.get_mix_rate()]
+
+
+## AUD-001 five recorded tracks, AUD-002 twelve recorded effects, AUD-003 each decodes and is
+## non-silent, AUD-004 each maps to the source's cue (src/fx/audioFiles.ts, executed).
+func test_AUD_001_002_003_004_recorded_tracks_and_effects_decode_and_map() -> void:
+	var fx := _audio_fixture()
+	var sound_files: Dictionary = fx["sound_files"]
+	var music_files: Dictionary = fx["music_files"]
+	assert_eq(music_files.size(), 5, "five recorded music tracks in the source")
+	assert_eq(sound_files.size(), 12, "twelve recorded effects in the source")
+	var copy_of := {}
+	for e: Dictionary in _manifest()["copies"]:
+		copy_of[String(e["source"])] = "res://" + String(e["target"])
+	var recorded_tracks: Array = AudioService.MUSIC.keys().filter(func(k: StringName) -> bool: return not AudioService.RESTARTING_TRACKS.has(k))
+	assert_eq(recorded_tracks.size(), 5, "AudioService: five recorded tracks")
+	assert_eq(AudioService.SFX.size(), 12, "AudioService: twelve recorded effects")
+	var pairs: Array = []
+	for track: String in music_files:
+		pairs.append([AudioService.MUSIC, StringName(track), String(music_files[track])])
+	for cue: String in sound_files:
+		pairs.append([AudioService.SFX, StringName(cue), String(sound_files[cue])])
+	for pair: Array in pairs:
+		var table: Dictionary = pair[0]
+		var cue_name: StringName = pair[1]
+		var source: String = pair[2]
+		if not assert_true(table.has(cue_name), "AudioService maps %s" % cue_name):
+			continue
+		# AUD-004: the cue plays the copy of exactly the source's file.
+		assert_eq(table[cue_name], copy_of.get(source, "?"), "%s -> %s" % [cue_name, source])
+		var stream: AudioStream = load(table[cue_name])
+		if not assert_true(stream != null, "%s decodes (loads)" % cue_name):
+			continue
+		var ref: Dictionary = fx["decoded_48k"][source]
+		assert_near(stream.get_length(), float(ref["duration"]), 0.002, "%s length equals Chromium's decode" % cue_name)
+		# AUD-003: a full decode through the stream's own playback reaches the end, is non-silent
+		# and is as loud as Chromium's decode (different decoders and resamplers: within 15 %).
+		var got := _decode_peak(stream)
+		assert_near(float(got[1]), stream.get_length(), 0.2, "%s decodes to its end" % cue_name)
+		assert_true(float(got[0]) > 0.3, "%s non-silent (peak %.3f)" % [cue_name, got[0]])
+		assert_near(float(got[0]) / float(ref["peak"]), 1.0, 0.15, "%s peak %.3f vs source decode %.3f" % [cue_name, got[0], ref["peak"]])
+	# Per-track trims of the source (AUDIO.MUSIC_FILE_GAIN).
+	for track: StringName in recorded_tracks:
+		assert_near(AudioService.music_level(track), GameConfig.Audio.MUSIC_FILE_VOLUME * float(GameConfig.Audio.MUSIC_FILE_GAIN.get(String(track), 1.0)), 1e-12, "%s music level" % track)
+	assert_near(AudioService.music_level(&"level4"), 0.55 * 0.5, 1e-12, "level 4 trimmed by 6 dB")
+
+
+## AUD-005-008: the medieval loop and the fourteen synthesized cues are the source's own render
+## (src/fx/sounds.ts via src/core/synth.ts, executed by tools/source_extract) as deterministic mono
+## 22,050 Hz signed 16-bit little-endian PCM WAV, imported without change; recipe/input hashes,
+## sample counts, output hashes, duration, amplitude, loop and cue behaviour match the fixture.
+func test_AUD_005_006_007_008_synthesized_wavs_match_the_source_render() -> void:
+	var fx: Dictionary = _audio_fixture()["synth"]
+	assert_eq([fx["rate"], fx["bits"], fx["channels"]], [22050, 16, 1], "format contract")
+	var cues: Dictionary = fx["cues"]
+	assert_eq(cues.size(), 14, "fourteen synthesized cues")
+	var names: Array[StringName] = []
+	for n: String in cues:
+		names.append(StringName(n))
+	assert_eq(AudioService.SYNTH, names, "AudioService.SYNTH lists the source SOUNDS in order")
+	# The WAVs come from the audited recipe sources.
+	var root := _repo_root()
+	var recipe_inputs := 0
+	for e: Dictionary in _manifest()["inputs"]:
+		if String(e["source"]) in ["src/core/synth.ts", "src/fx/sounds.ts"]:
+			recipe_inputs += 1
+			assert_eq(_sha_bytes(_lf(FileAccess.get_file_as_bytes(root.path_join(e["source"])))), e["sha256"], "recipe source " + String(e["source"]))
+	assert_eq(recipe_inputs, 2, "both recipe sources recorded as inputs")
+	var all := {}
+	for n: String in cues:
+		all[n] = cues[n]
+	all["medieval"] = fx["music"]["medieval"]
+	for n: String in all:
+		var e: Dictionary = all[n]
+		var path := "res://" + String(e["target"])
+		assert_eq(path, "res://assets/audio/synth/%s.wav" % n, n + " target")
+		assert_eq(String(e["recipe_sha256"]).length(), 64, n + " recipe hash recorded")
+		var bytes := FileAccess.get_file_as_bytes(path)
+		assert_eq(_sha_bytes(bytes), e["sha256"], n + " WAV bytes")
+		# RIFF/WAVE, PCM, mono, 22,050 Hz, 16-bit little-endian, one data chunk.
+		assert_eq(bytes.slice(0, 4).get_string_from_ascii() + bytes.slice(8, 16).get_string_from_ascii(), "RIFFWAVEfmt ", n + " RIFF header")
+		assert_eq([bytes.decode_u16(20), bytes.decode_u16(22), bytes.decode_u32(24), bytes.decode_u16(34)], [1, 1, 22050, 16], n + " PCM mono 22050 Hz 16-bit")
+		assert_eq(bytes.slice(36, 40).get_string_from_ascii(), "data", n + " data chunk")
+		var samples := int(e["samples"])
+		assert_eq(bytes.decode_u32(40), samples * 2, n + " data size")
+		if n != "medieval":
+			assert_eq(samples, ceili(float(e["source_duration"]) * 22050.0) + 1, n + " sample count = source renderSound length")
+		# Import: lossless and untouched.
+		var cfg := ConfigFile.new()
+		assert_eq(cfg.load(path + ".import"), OK, n + " .import")
+		assert_eq([cfg.get_value("params", "compress/mode"), cfg.get_value("params", "edit/trim"), cfg.get_value("params", "edit/normalize"),
+				cfg.get_value("params", "force/8_bit"), cfg.get_value("params", "force/mono"), cfg.get_value("params", "force/max_rate")],
+				[0, false, false, false, false, false], n + " imported as plain PCM")
+		var s: AudioStreamWAV = load(path)
+		assert_eq([s.format, s.mix_rate, s.stereo], [AudioStreamWAV.FORMAT_16_BITS, 22050, false], n + " stream format")
+		assert_eq(s.data.size(), samples * 2, n + " stream samples")
+		assert_eq(_sha_bytes(s.data), e["pcm_sha256"], n + " imported PCM equals the source render")
+		var peak := 0
+		for k in samples:
+			peak = maxi(peak, absi(s.data.decode_s16(k * 2)))
+		assert_eq(peak, int(e["peak"]), n + " peak amplitude")
+		assert_true(peak > 3000, n + " audible (peak %d)" % peak)
+		# Quantization round(clamp(x, -1, 1) * 32767) of the rendered float samples.
+		for p: Array in e["probe"]:
+			var q := s.data.decode_s16(int(p[0]) * 2)
+			assert_eq(q, int(p[2]), "%s sample %d" % [n, p[0]])
+			assert_true(absf(clampf(float(p[1]), -1.0, 1.0) * 32767.0 - q) <= 0.5 + 1e-6, "%s sample %d quantized from %.9f" % [n, p[0], p[1]])
+		# Loop and cue behaviour: mix a quarter second past the end.
+		var pb := s.instantiate_playback()
+		pb.start(0.0)
+		var frames := int(AudioServer.get_mix_rate() * (s.get_length() + 0.25))
+		while frames > 0:
+			pb.mix_audio(1.0, mini(frames, 8192))
+			frames -= 8192
+		if n == "medieval":
+			assert_eq([s.loop_mode, s.loop_begin, s.loop_end], [AudioStreamWAV.LOOP_FORWARD, 0, samples], "medieval loops over the whole buffer")
+			assert_eq([cfg.get_value("params", "edit/loop_mode"), cfg.get_value("params", "edit/loop_end")], [2, samples], "loop set at import")
+			assert_true(pb.is_playing(), "medieval still playing past its end (loops)")
+		else:
+			assert_eq(s.loop_mode, AudioStreamWAV.LOOP_DISABLED, n + " one-shot")
+			assert_false(pb.is_playing(), n + " ends")
+			assert_eq(AudioService.cue_path(StringName(n)), path, n + " cue path")
+		pb.stop()
+	assert_eq(int(fx["music"]["medieval"]["loop"]["end"]), int(fx["music"]["medieval"]["samples"]), "fixture loop end")
+	assert_eq(AudioService.MUSIC[&"medieval"], "res://assets/audio/synth/medieval.wav", "medieval track")
+	assert_true(AudioService.RESTARTING_TRACKS.has(&"medieval"), "medieval restarts from 0 (new buffer source in the source)")
+	assert_near(AudioService.music_level(&"medieval"), GameConfig.Audio.MUSIC_VOLUME, 1e-12, "medieval at AUDIO.MUSIC_VOLUME")
+	assert_false(FileAccess.get_file_as_string("res://autoload/audio_service.gd").contains("AudioStreamGenerator"), "no runtime synthesis")
 
 
 func test_SLICE_drink_wav_is_imported_lossless() -> void:
@@ -254,7 +390,7 @@ func test_SLICE_leading_silence_data_from_source() -> void:
 	# The runtime reads the generated Resource (exported), never the JSON (not exported).
 	var res: SfxLeadingSilence = load("res://data/audio/sfx_leading_silence.tres")
 	assert_eq([res.audited_commit, res.runtime_rate, res.trim_level], [d["audited_commit"], 48000, 0.01], "resource header")
-	assert_eq(res.offsets.keys().size(), 6, "six effects")
+	assert_eq(res.offsets.keys().size(), 12, "twelve recorded effects")
 	for cue: String in d["offsets"]:
 		var want := float(d["offsets"][cue]["48000"]["offset"])
 		assert_near(res.offsets[StringName(cue)], want, absf(want) * 1e-14, cue + " offset equals the extracted value")

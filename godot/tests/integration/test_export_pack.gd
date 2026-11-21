@@ -106,7 +106,7 @@ func test_SLICE_android_pck_has_runtime_data_and_starts_clean() -> void:
 	if not assert_false(report.is_empty(), "probe report"):
 		return
 	assert_eq([report["missing"], report["unloadable"], report["forbidden"]], [[], [], []], "every runtime resource loads from the pack; no excluded content")
-	assert_eq((report["audio_offsets"] as Dictionary).size(), 6, "exported leading silence reaches AudioService")
+	assert_eq((report["audio_offsets"] as Dictionary).size(), 12, "exported leading silence reaches AudioService")
 	assert_near(float(report["audio_offsets"]["bark"]), 0.0947083333333333, 1e-9, "bark offset from the pack")
 	assert_eq([report["running_scene"], report["quit_on_go_back"]], ["res://scenes/green_zone/green_zone_scene.tscn", false], "main scene starts the Green Zone; Back never quits")
 	assert_true(int(report["dog_frames"]) > 0, "Zampanò's SpriteFrames load from the pack")

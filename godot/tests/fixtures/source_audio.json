@@ -1,0 +1,909 @@
+{
+ "audited_commit": "95b69c04c5c3b9626e49719f8f916a44659cd265",
+ "note": "Generated from the audited TypeScript and Chromium WebAudio; do not hand-edit.",
+ "sound_files": {
+  "bark": "assets/sounds/dog-bark.mp3",
+  "treat": "assets/sounds/food-collect.mp3",
+  "poop": "assets/sounds/poos.mp3",
+  "pee": "assets/sounds/pees-drop.mp3",
+  "drink": "assets/sounds/pees-collect.wav",
+  "splash": "assets/sounds/water.mp3",
+  "meow": "assets/sounds/cat-meow.mp3",
+  "coin": "assets/sounds/cash-after-cat.mp3",
+  "ball": "assets/sounds/ball.mp3",
+  "alarm": "assets/sounds/alarm-greenzone-under-attack.mp3",
+  "siren": "assets/sounds/siren.mp3",
+  "laser": "assets/sounds/laser-eyes.mp3"
+ },
+ "music_files": {
+  "intro": "assets/music/intro-music.mp3",
+  "greenzone": "assets/music/greenzone-music.mp3",
+  "level2": "assets/music/Level-2_SLY-Disco-Weapon.mp3",
+  "level3": "assets/music/Level-3_HM-Plenty-Good-Lovin.mp3",
+  "level4": "assets/music/Level-4_CRI-Brother-Sister-(RM-Remix).mp3"
+ },
+ "decoded_48k": {
+  "assets/sounds/dog-bark.mp3": {
+   "channels": 2,
+   "duration": 1.149,
+   "peak": 0.903
+  },
+  "assets/sounds/food-collect.mp3": {
+   "channels": 1,
+   "duration": 0.81,
+   "peak": 0.762
+  },
+  "assets/sounds/poos.mp3": {
+   "channels": 2,
+   "duration": 0.853,
+   "peak": 1.021
+  },
+  "assets/sounds/pees-drop.mp3": {
+   "channels": 1,
+   "duration": 0.368,
+   "peak": 0.889
+  },
+  "assets/sounds/pees-collect.wav": {
+   "channels": 2,
+   "duration": 2.036,
+   "peak": 0.687
+  },
+  "assets/sounds/water.mp3": {
+   "channels": 2,
+   "duration": 1.677,
+   "peak": 1.023
+  },
+  "assets/sounds/cat-meow.mp3": {
+   "channels": 2,
+   "duration": 0.617,
+   "peak": 0.441
+  },
+  "assets/sounds/cash-after-cat.mp3": {
+   "channels": 2,
+   "duration": 3.042,
+   "peak": 0.647
+  },
+  "assets/sounds/ball.mp3": {
+   "channels": 2,
+   "duration": 0.887,
+   "peak": 0.744
+  },
+  "assets/sounds/alarm-greenzone-under-attack.mp3": {
+   "channels": 1,
+   "duration": 4.31,
+   "peak": 0.967
+  },
+  "assets/sounds/siren.mp3": {
+   "channels": 1,
+   "duration": 3.475,
+   "peak": 0.698
+  },
+  "assets/sounds/laser-eyes.mp3": {
+   "channels": 1,
+   "duration": 0.461,
+   "peak": 0.636
+  },
+  "assets/music/intro-music.mp3": {
+   "channels": 2,
+   "duration": 63.393,
+   "peak": 0.839
+  },
+  "assets/music/greenzone-music.mp3": {
+   "channels": 2,
+   "duration": 177.7,
+   "peak": 0.901
+  },
+  "assets/music/Level-2_SLY-Disco-Weapon.mp3": {
+   "channels": 2,
+   "duration": 374.608,
+   "peak": 1.11
+  },
+  "assets/music/Level-3_HM-Plenty-Good-Lovin.mp3": {
+   "channels": 2,
+   "duration": 346.661,
+   "peak": 1.01
+  },
+  "assets/music/Level-4_CRI-Brother-Sister-(RM-Remix).mp3": {
+   "channels": 2,
+   "duration": 396.259,
+   "peak": 1.252
+  }
+ },
+ "synth": {
+  "audited_commit": "95b69c04c5c3b9626e49719f8f916a44659cd265",
+  "recipe": "src/fx/sounds.ts + src/core/synth.ts executed in Node",
+  "rate": 22050,
+  "bits": 16,
+  "channels": 1,
+  "quantization": "round(clamp(sample, -1, 1) * 32767), JavaScript Math.round",
+  "cues": {
+   "fetch": {
+    "target": "assets/audio/synth/fetch.wav",
+    "sha256": "79650149e3a9065f11d2517df1d2687234ac7f23486be5e10d0a5e18d0ab0b7c",
+    "pcm_sha256": "a42e58ef5035ddba1c6b402eaf8a8df4c7c45493f457ab8aceba11c15694ef66",
+    "samples": 7939,
+    "duration": 0.3600453514739229,
+    "peak": 8025,
+    "recipe_sha256": "d4a8426b0a1fdd78338fef71d1a8232a3577d5aeed6ff56ec5aa560863dcdb6e",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.001133786397986114,
+      37
+     ],
+     [
+      1134,
+      0.24491865932941437,
+      8025
+     ],
+     [
+      2646,
+      0.24491865932941437,
+      8025
+     ],
+     [
+      3969,
+      0.24491865932941437,
+      8025
+     ],
+     [
+      7937,
+      -0.00007558579090982676,
+      -2
+     ],
+     [
+      7938,
+      0,
+      0
+     ],
+     [
+      221,
+      0.24491865932941437,
+      8025
+     ]
+    ],
+    "source_duration": 0.36
+   },
+   "warning": {
+    "target": "assets/audio/synth/warning.wav",
+    "sha256": "7e5b0edc706acae993b7c0b50c293339818c54cfb20cab07c46ed89f00e38851",
+    "pcm_sha256": "23c51ebc804d6725164d8cb19042381ffa22a77ba6377a9be611abeb0dfbfb2c",
+    "samples": 5404,
+    "duration": 0.2450793650793651,
+    "peak": 7095,
+    "recipe_sha256": "92533725555d2871fed00738de5813ec59da812300c48e458d3f907762fb87af",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.0019954622257500887,
+      65
+     ],
+     [
+      772,
+      0.21651805937290192,
+      7095
+     ],
+     [
+      1801,
+      -0.16937969624996185,
+      -5550
+     ],
+     [
+      2702,
+      0,
+      0
+     ],
+     [
+      5402,
+      0,
+      0
+     ],
+     [
+      5403,
+      0,
+      0
+     ],
+     [
+      111,
+      0.21651805937290192,
+      7095
+     ]
+    ],
+    "source_duration": 0.24500000000000002
+   },
+   "empty": {
+    "target": "assets/audio/synth/empty.wav",
+    "sha256": "7bad4105f509fa7b9eee937fd0edd0a4199342e059678d57570a86f970d3ed4c",
+    "pcm_sha256": "0328715b45013c75e739d15d49b7cdefa77b421e002255012d2d1fa315d10cab",
+    "samples": 3640,
+    "duration": 0.16507936507936508,
+    "peak": 8025,
+    "recipe_sha256": "d85264a8a42f8d850c3b909fdd5bbb3b9361c752175433ad87cb47bda3571149",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.0022675697691738605,
+      74
+     ],
+     [
+      520,
+      -0.24491865932941437,
+      -8025
+     ],
+     [
+      1213,
+      0.24491865932941437,
+      8025
+     ],
+     [
+      1820,
+      -0.24491865932941437,
+      -8025
+     ],
+     [
+      3638,
+      0,
+      0
+     ],
+     [
+      3639,
+      0,
+      0
+     ],
+     [
+      111,
+      0.24491865932941437,
+      8025
+     ]
+    ],
+    "source_duration": 0.165
+   },
+   "hurt": {
+    "target": "assets/audio/synth/hurt.wav",
+    "sha256": "91474cc3fecf4a11d9909c3219237f0f95d947834d1e539dd8fa79aad467ae78",
+    "pcm_sha256": "e99e535d491c90dba1cab2180261f54115afcec3bfc4a04ee46920a8e98d5fd2",
+    "samples": 6661,
+    "duration": 0.3020861678004535,
+    "peak": 17393,
+    "recipe_sha256": "939296083261ebdcdecbe72c6dd735dfcc7f9d8415a70fd723787b51a195886e",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.0022732799407094717,
+      74
+     ],
+     [
+      951,
+      -0.18799474835395813,
+      -6160
+     ],
+     [
+      2220,
+      -0.4979974925518036,
+      -16318
+     ],
+     [
+      3330,
+      -0.1304911971092224,
+      -4276
+     ],
+     [
+      6659,
+      0,
+      0
+     ],
+     [
+      6660,
+      0,
+      0
+     ],
+     [
+      827,
+      -0.5308008193969727,
+      -17393
+     ]
+    ],
+    "source_duration": 0.30200000000000005
+   },
+   "hit": {
+    "target": "assets/audio/synth/hit.wav",
+    "sha256": "26d62781e70c5b81339dd2bd372e6a39f5545afdc080b97201003320e8058fe9",
+    "pcm_sha256": "110e9034e6f5243370bd43bfafb30e065f18a11712df429547056bf50b4f3d30",
+    "samples": 3794,
+    "duration": 0.17206349206349206,
+    "peak": 18670,
+    "recipe_sha256": "733b700639df607ccce00a6e55353eceba078a6ccbc15e379d4c0916b62f8b69",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      -0.0011267916997894645,
+      -37
+     ],
+     [
+      542,
+      0.28158754110336304,
+      9227
+     ],
+     [
+      1264,
+      0.1428196132183075,
+      4680
+     ],
+     [
+      1897,
+      -0.36427736282348633,
+      -11936
+     ],
+     [
+      3792,
+      0,
+      0
+     ],
+     [
+      3793,
+      0,
+      0
+     ],
+     [
+      850,
+      -0.5697742700576782,
+      -18670
+     ]
+    ],
+    "source_duration": 0.172
+   },
+   "swish": {
+    "target": "assets/audio/synth/swish.wav",
+    "sha256": "fd99f4c6f6c67e94605e33e72dd03a25ad9f4eff202c877f1b75c10d5356b35a",
+    "pcm_sha256": "2dcaccdc85ed0d7a1b76a2dd0f3c4d09a5cada4985ede9d2f358cab6bf6ac939",
+    "samples": 3309,
+    "duration": 0.15006802721088436,
+    "peak": 6952,
+    "recipe_sha256": "85b060e0080c552803e9433f1cba5a4c11eb20376e4b796e09939488d720f1b3",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      -0.0009976064320653677,
+      -33
+     ],
+     [
+      472,
+      -0.09573286771774292,
+      -3137
+     ],
+     [
+      1103,
+      -0.1840391457080841,
+      -6030
+     ],
+     [
+      1654,
+      -0.004078185651451349,
+      -134
+     ],
+     [
+      3307,
+      0,
+      0
+     ],
+     [
+      3308,
+      0,
+      0
+     ],
+     [
+      254,
+      -0.21215568482875824,
+      -6952
+     ]
+    ],
+    "source_duration": 0.15
+   },
+   "clang": {
+    "target": "assets/audio/synth/clang.wav",
+    "sha256": "4df64cea2fc1f2bad1270becfd8d751d9c7bdedb80345a3b8fd872bdf56417a9",
+    "pcm_sha256": "826fb00b97186c247228561a8c321a71ee855265db4908c1aed73a41d17e1fde",
+    "samples": 8182,
+    "duration": 0.3710657596371882,
+    "peak": 18893,
+    "recipe_sha256": "60bf86eda81ed21089aaac1e8eda4a942851ea62efc747056ae51bc0955e4d45",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      -0.023029746487736702,
+      -755
+     ],
+     [
+      1168,
+      -0.06014171987771988,
+      -1971
+     ],
+     [
+      2727,
+      -0.25977620482444763,
+      -8512
+     ],
+     [
+      4091,
+      0.020507464185357094,
+      672
+     ],
+     [
+      8180,
+      0,
+      0
+     ],
+     [
+      8181,
+      0,
+      0
+     ],
+     [
+      274,
+      -0.5765993595123291,
+      -18893
+     ]
+    ],
+    "source_duration": 0.371
+   },
+   "flee": {
+    "target": "assets/audio/synth/flee.wav",
+    "sha256": "f48d86416b1598ec7de0061c91b226314fec34e40a625851c09545d3ba570edf",
+    "pcm_sha256": "4d975f043f4e40d6a8f08ab9d5e59f2f1ae32890c2417125c221e178b3abd4ac",
+    "samples": 10144,
+    "duration": 0.4600453514739229,
+    "peak": 8025,
+    "recipe_sha256": "f3ca6ba36ed12e09dfd65ae9c3581c5914b46f2e6e239cdbecf239ce7b364917",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.001133786397986114,
+      37
+     ],
+     [
+      1449,
+      -0.24491865932941437,
+      -8025
+     ],
+     [
+      3381,
+      -0.24491865932941437,
+      -8025
+     ],
+     [
+      5072,
+      -0.24491865932941437,
+      -8025
+     ],
+     [
+      10142,
+      0.00005668934318237007,
+      2
+     ],
+     [
+      10143,
+      0,
+      0
+     ],
+     [
+      221,
+      0.24491865932941437,
+      8025
+     ]
+    ],
+    "source_duration": 0.46
+   },
+   "saved": {
+    "target": "assets/audio/synth/saved.wav",
+    "sha256": "4df99d9374440453dd29c219e86b6c496d5248b828c328d4a3d5bd3dd21dd645",
+    "pcm_sha256": "0718ea1bb5068db257201610e252af3d359a768be61c2506b4a38750a11d7a38",
+    "samples": 13342,
+    "duration": 0.6050793650793651,
+    "peak": 13000,
+    "recipe_sha256": "b6b6b9e88a3a79aa62a79b080374787ab068af642ff7dd13d57f768b366710f1",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.0025396770797669888,
+      83
+     ],
+     [
+      1906,
+      -0.2635509967803955,
+      -8636
+     ],
+     [
+      4447,
+      -0.25169554352760315,
+      -8247
+     ],
+     [
+      6671,
+      -0.2729050815105438,
+      -8942
+     ],
+     [
+      13340,
+      0,
+      0
+     ],
+     [
+      13341,
+      0,
+      0
+     ],
+     [
+      2316,
+      -0.39672982692718506,
+      -13000
+     ]
+    ],
+    "source_duration": 0.605
+   },
+   "star": {
+    "target": "assets/audio/synth/star.wav",
+    "sha256": "e55fb9549147c801ff87dd738144e4069b0eb1095af3450bbd09dc268e96e3b3",
+    "pcm_sha256": "26d82508a7cde188aba404e422133f42ea78059f2f279400d4ea28c5d491cd3c",
+    "samples": 6881,
+    "duration": 0.31206349206349204,
+    "peak": 8942,
+    "recipe_sha256": "26315b500f8b81d0cd4609a5cce360574dc72549b649b9ad9d076db5c77237bf",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.00634912122040987,
+      208
+     ],
+     [
+      983,
+      -0.2729050815105438,
+      -8942
+     ],
+     [
+      2293,
+      0.22884488105773926,
+      7499
+     ],
+     [
+      3440,
+      0.17295369505882263,
+      5667
+     ],
+     [
+      6879,
+      0,
+      0
+     ],
+     [
+      6880,
+      0,
+      0
+     ],
+     [
+      45,
+      -0.2729050815105438,
+      -8942
+     ]
+    ],
+    "source_duration": 0.312
+   },
+   "jingle": {
+    "target": "assets/audio/synth/jingle.wav",
+    "sha256": "a06aa0199b804afbd2c64f80f5e3f9dc1cc49b409278774f25abfbfced32be0e",
+    "pcm_sha256": "4e008af933aa93ccef22cf6dcf19d0570613ef2223c792517acff1838bf66855",
+    "samples": 28997,
+    "duration": 1.3150566893424036,
+    "peak": 18057,
+    "recipe_sha256": "395204eba1aade73054a7e71e402f995ec7ef1dd846c102ae1347b329a6cc25d",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      -0.0005749556003138423,
+      -19
+     ],
+     [
+      4142,
+      -0.004174667410552502,
+      -137
+     ],
+     [
+      9665,
+      0.1309177279472351,
+      4290
+     ],
+     [
+      14498,
+      -0.27706676721572876,
+      -9079
+     ],
+     [
+      28995,
+      0,
+      0
+     ],
+     [
+      28996,
+      0,
+      0
+     ],
+     [
+      12304,
+      -0.5510709881782532,
+      -18057
+     ]
+    ],
+    "source_duration": 1.315
+   },
+   "gameover": {
+    "target": "assets/audio/synth/gameover.wav",
+    "sha256": "b0c56eb2b18635c24ca3b442f69ed1225c8d391d2a8d982c299648b8951b2865",
+    "pcm_sha256": "66b4d1482d22f69073a8c188afdcf4cfcf6a1a4487df86d52943acdc7c3251aa",
+    "samples": 35061,
+    "duration": 1.5900680272108842,
+    "peak": 10337,
+    "recipe_sha256": "7149f20d82a1f125433a018a3a20d6c07a407ff257a6ece5b7d4d767fa96a28a",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.0012698405189439654,
+      42
+     ],
+     [
+      5008,
+      0.2729050815105438,
+      8942
+     ],
+     [
+      11687,
+      -0.2729050815105438,
+      -8942
+     ],
+     [
+      17530,
+      0.2729050815105438,
+      8942
+     ],
+     [
+      35059,
+      0,
+      0
+     ],
+     [
+      35060,
+      0,
+      0
+     ],
+     [
+      21389,
+      0.31547480821609497,
+      10337
+     ]
+    ],
+    "source_duration": 1.5899999999999999
+   },
+   "click": {
+    "target": "assets/audio/synth/click.wav",
+    "sha256": "93f7b2061bec39d9dfe47c5805a1958fb59e457ff0aeb0950fbe0a98245d344b",
+    "pcm_sha256": "657e433985d2fb856e33f8f1321d944857244282585932fbcac328c37e2b1a93",
+    "samples": 795,
+    "duration": 0.03605442176870748,
+    "peak": 6467,
+    "recipe_sha256": "c133c401fa08168894f8e752b565f2cf4d1ea25873a0173434df40845806c6c4",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0.009070046246051788,
+      297
+     ],
+     [
+      113,
+      0.1973753273487091,
+      6467
+     ],
+     [
+      265,
+      0.1973753273487091,
+      6467
+     ],
+     [
+      397,
+      -0.17803695797920227,
+      -5834
+     ],
+     [
+      793,
+      0,
+      0
+     ],
+     [
+      794,
+      0,
+      0
+     ],
+     [
+      23,
+      0.1973753273487091,
+      6467
+     ]
+    ],
+    "source_duration": 0.036000000000000004
+   },
+   "glitch": {
+    "target": "assets/audio/synth/glitch.wav",
+    "sha256": "9095d769a5384f24b894c5f0daecf9e8780c08514d6db46a00555b78f59ad62f",
+    "pcm_sha256": "0a349316883d2c13ce75a6a9e07e31e7de93ec8e468692969827d4be65060d4f",
+    "samples": 4434,
+    "duration": 0.20108843537414967,
+    "peak": 7986,
+    "recipe_sha256": "84f0f20b1b57fe871502d980c29e5fcf59775de29e34a239077b079384214f8f",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      -0.011335955932736397,
+      -371
+     ],
+     [
+      633,
+      -0.08245381712913513,
+      -2702
+     ],
+     [
+      1478,
+      -0.047296542674303055,
+      -1550
+     ],
+     [
+      2217,
+      -0.04900388792157173,
+      -1606
+     ],
+     [
+      4432,
+      0,
+      0
+     ],
+     [
+      4433,
+      0,
+      0
+     ],
+     [
+      150,
+      0.2437070906162262,
+      7986
+     ]
+    ],
+    "source_duration": 0.201
+   }
+  },
+  "music": {
+   "medieval": {
+    "target": "assets/audio/synth/medieval.wav",
+    "sha256": "38963958a112e9d000f2938991274bb8c13a11159c08a719e0dee2a335863ccb",
+    "pcm_sha256": "98f2ef471069cf94fb04cf8dc6d11e44666c24914616a9fc7eff32653d7c12c7",
+    "samples": 305308,
+    "duration": 13.846167800453514,
+    "peak": 18020,
+    "recipe_sha256": "2662fe98db6636959d751c2a5ea64a1c2d54870886343645932022729e96c585",
+    "probe": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      -0.0038459363859146833,
+      -126
+     ],
+     [
+      43615,
+      0.04868188500404358,
+      1595
+     ],
+     [
+      101769,
+      0.0253915898501873,
+      832
+     ],
+     [
+      152654,
+      -0.005231546238064766,
+      -171
+     ],
+     [
+      305306,
+      -0.0015140114119276404,
+      -50
+     ],
+     [
+      305307,
+      -0.0014909247402101755,
+      -49
+     ],
+     [
+      267573,
+      0.5499336123466492,
+      18020
+     ]
+    ],
+    "loop": {
+     "mode": "forward",
+     "begin": 0,
+     "end": 305308,
+     "note": "AudioBufferSourceNode loop=true over the whole buffer, restarted from 0 on every setTrack"
+    }
+   }
+  }
+ }
+}

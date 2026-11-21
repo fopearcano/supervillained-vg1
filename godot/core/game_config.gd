@@ -172,9 +172,20 @@ class Fx:
 
 class Audio:
 	const DEFAULT_VOLUME := 0.7
+	## Synthesized music (the dream's medieval loop).
+	const MUSIC_VOLUME := 0.32
+	## Recorded music (intro, Green Zone, levels 2-4).
 	const MUSIC_FILE_VOLUME := 0.55
+	## Per-track loudness trims of the recorded music (1 = as recorded).
+	const MUSIC_FILE_GAIN := {"level2": 0.58, "level3": 0.84, "level4": 0.5}
 	const SFX_VOLUME := 0.9
 	const FILE_GAIN := {"coin": 2.4, "laser": 1.3, "poop": 1.2, "meow": 1.1, "siren": 0.6}
+	const TRIM_LEVEL := 0.01
+	## The cash after a caught cat starts this many seconds after the meow.
+	const CASH_DELAY := 0.35
+	## The siren starts after the "under attack" alarm, quieter, and loops until the attack ends.
+	const SIREN_DELAY := 3.9
+	const SIREN_VOLUME := 0.45
 
 
 ## Subset of COMBAT used outside story fights (src/config.ts COMBAT.SHIELD.SPEED).

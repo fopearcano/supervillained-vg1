@@ -362,7 +362,8 @@ func test_SLICE_diagnostics_are_bounded_and_debug_only() -> void:
 func test_SLICE_audio_effects_skip_source_leading_silence() -> void:
 	_spawn()
 	var fx: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/audio/sfx_leading_silence.json"))
-	for cue in ["bark", "treat", "poop", "pee", "drink", "splash"]:
+	assert_eq((fx["offsets"] as Dictionary).size(), 12, "every recorded effect measured")
+	for cue: String in fx["offsets"]:
 		AudioService.play(StringName(cue))
 		var last: Array = AudioService.started[AudioService.started.size() - 1]
 		assert_eq(last[0], StringName(cue), cue)
@@ -371,6 +372,34 @@ func test_SLICE_audio_effects_skip_source_leading_silence() -> void:
 	# Gameplay events reach the recorded cues.
 	scene.rules.treat_eaten.emit(0, 1.0, 1.0, 50)
 	assert_eq(AudioService.requested.get(&"treat", 0), 2, "treat cue on a treat")
+
+
+## src/fx/gameAudio.ts mappings with the source's rate, volume and delay, synthesized cues included:
+## a marking pee adds the star 0.12 s later (audio time: frozen while suspended), tired plays the
+## empty cue, a cleaned poop the coin; no requested cue lacks a stream any more.
+func test_SLICE_gameplay_events_reach_synthesized_and_delayed_cues() -> void:
+	_spawn()
+	AudioService.started.clear()
+	scene.rules.pee_started.emit(1.0, 1.0, true, 1.2, 100)
+	assert_eq(AudioService.started.map(func(e: Array) -> StringName: return e[0]), [&"pee"], "the pee starts at once")
+	assert_eq(AudioService.pending_count(), 1, "the star waits")
+	AudioService.advance_pending(0.1)
+	assert_eq(AudioService.pending_count(), 1, "not yet at 0.10 s")
+	AudioService.set_suspended(true)
+	AudioService.advance_pending(1.0)
+	assert_eq(AudioService.pending_count(), 1, "delays do not run while suspended")
+	AudioService.set_suspended(false)
+	AudioService.advance_pending(0.021)
+	assert_eq(AudioService.pending_count(), 0, "star due at 0.12 s")
+	assert_eq(AudioService.started[AudioService.started.size() - 1].slice(0, 2), [&"star", 0.0], "synthesized star starts at 0")
+	scene.rules.pee_started.emit(1.0, 1.0, false, 1.2, 10)
+	assert_eq(AudioService.pending_count(), 0, "no star on a plain pee")
+	for case: Array in [["tired", [1.0, 1.0], &"empty"], ["poop_cleaned", [1.0, 1.0, 25], &"coin"],
+			["digest_warning", [1.0, 1.0], &"warning"], ["level_complete", [1.0, 1.0], &"jingle"]]:
+		var before := int(AudioService.requested.get(case[2], 0))
+		scene.rules.callv("emit_signal", [case[0]] + case[1])
+		assert_eq(int(AudioService.requested.get(case[2], 0)), before + 1, "%s -> %s" % [case[0], case[2]])
+	assert_eq(AudioService.missing_cues, {}, "every requested cue has a stream")
 
 
 func test_P_VIEW_004_whole_pixel_world_and_nearest_filtering() -> void:
