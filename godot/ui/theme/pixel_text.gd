@@ -63,8 +63,11 @@ static func draw_centered(ci: CanvasItem, cx: float, y: float, text: String, col
 		draw(ci, Vector2(floor(cx - width(line, scale) / 2.0), y + k * (CELL_H * scale + 3)), line, color, scale, shadow)
 
 
-## Greedy word wrap to a pixel width (monospace).
+## Greedy word wrap to a pixel width (monospace), src/ui/pixelText.ts layoutLines(): runs of
+## spaces separate words, a word longer than the line stays whole, 0 = no wrap.
 static func wrap(text: String, max_width: int, scale: int = 1) -> PackedStringArray:
+	if max_width <= 0:
+		return text.split("\n")
 	var out := PackedStringArray()
 	var cols := maxi(1, max_width / (ADVANCE * scale))
 	for para in text.split("\n"):

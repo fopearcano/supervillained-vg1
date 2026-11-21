@@ -12,5 +12,6 @@ export class Sprite extends Container { constructor(texture) { super(); this.tex
 export class Graphics extends Container { clear() { return this; } }
 export class Texture { static EMPTY = new Texture(); }
 export class TextureSource {}
+export class CanvasSource extends TextureSource {}
 export class Rectangle {}
 export const Assets = {};

@@ -34,7 +34,11 @@ static func _lf(bytes: PackedByteArray) -> PackedByteArray:
 	return out
 
 
-func test_P_AST_001_copies_and_outputs_match_manifest_and_source() -> void:
+## AST-001: every required source asset exists in the port and matches the approved manifest
+## byte for byte: the runtime-authoritative source files (all sprite sheets and the pixel cast,
+## the fifteen Color Ink banks and their manifest, the twelve effects and five music tracks, the
+## font licence, the launcher art) are all copies, and every generated output matches its hash.
+func test_AST_001_required_assets_present_and_match_manifest() -> void:
 	var m := _manifest()
 	assert_eq(m["audited_commit"], "95b69c04c5c3b9626e49719f8f916a44659cd265", "audited commit")
 	var root := _repo_root()
@@ -55,6 +59,24 @@ func test_P_AST_001_copies_and_outputs_match_manifest_and_source() -> void:
 		assert_eq(_sha("res://" + String(e["target"])), e["sha256"], "output " + String(e["target"]))
 	assert_eq(m["toolchain"]["node"], "v" + FileAccess.get_file_as_string("res://tools/.node-version").strip_edges(), "generated under the pinned Node")
 	assert_true(have_source, "source tree present next to /godot (guard)")
+	# Coverage: every runtime-authoritative source file is copied (the title WebP is a converter input).
+	var copied := {}
+	for e: Dictionary in m["copies"]:
+		copied[String(e["source"])] = true
+	var required: Array[String] = []
+	for dir in ["public/sprites", "public/sprites/pixel-cast", "public/environment-ink", "assets/sounds", "assets/music"]:
+		for f in DirAccess.get_files_at(root.path_join(dir)):
+			required.append(dir + "/" + f)
+	required.append_array(["src/assets/fonts/OFL.txt", "public/icon-192.png"])
+	assert_true(required.size() >= 72, "required source files (%d)" % required.size())
+	for r in required:
+		assert_true(copied.has(r), "required source asset copied: " + r)
+	var inputs := {}
+	for e: Dictionary in m["inputs"]:
+		inputs[String(e["source"])] = e
+	for r in ["assets/starting-page-images/app/Zampano-Samemala-3.webp", "src/assets/fonts/PressStart2P.woff2"]:
+		if assert_true(inputs.has(r), "converter input recorded: " + r):
+			assert_eq(_sha(root.path_join(r)), inputs[r]["sha256"], "input hash " + r)
 
 
 ## Chromium provenance is deterministic: every generated file records the build pinned by the
@@ -610,26 +632,178 @@ func test_AST_018_export_excludes_archives_originals_and_unused_files() -> void:
 		assert_true(exclude.contains(f), "export excludes " + f)
 
 
-func test_P_AST_020_bitmap_font_matches_source_glyphs() -> void:
+## Frame delays (seconds) stored in an animated WebP's ANMF chunks (24-bit little-endian ms at
+## payload offset 12), read straight from the file.
+static func _webp_delays(bytes: PackedByteArray) -> Array:
+	var out: Array = []
+	var pos := 12
+	while pos + 8 <= bytes.size():
+		var fourcc := bytes.slice(pos, pos + 4).get_string_from_ascii()
+		var size := bytes.decode_u32(pos + 4)
+		if fourcc == "ANMF":
+			var p := pos + 8 + 12
+			out.append(bytes[p] | (bytes[p + 1] << 8) | (bytes[p + 2] << 16))
+		pos += 8 + size + (size & 1)
+	return out
+
+
+## AST-010: the title conversion (src/ui/titleAnim.ts executed in Chromium by the extractor): 99
+## frames, the WebP's exact delays (source rule max(0.02 s, delay)), frame 0 probed at 256 px,
+## alpha cut 110, one shared DOG_CROP_MARGIN crop, the 2x resize and second alpha cut (binary
+## alpha), canonical width ceil(270 * 0.46) = 125, pages <= 2048x2048, < 12 MB of frames; shown
+## only through TitlePortrait (linear sampling + alpha-cut shader). The first/middle/last images
+## for approval are docs/porting/captures/title_m1 (tools/title_capture.gd, real renderer).
+func test_AST_010_title_conversion() -> void:
+	var t: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/title/title_frames.json"))
+	var root := _repo_root()
+	var anim_src := FileAccess.get_file_as_string(root.path_join("src/ui/titleAnim.ts"))
+	var config_src := FileAccess.get_file_as_string(root.path_join("src/config.ts"))
+	assert_true(anim_src.contains("const PROBE_WIDTH = 256;") and anim_src.contains("const ALPHA_CUT = 110;") and anim_src.contains("resizeWidth: fw * 2, resizeHeight: fh * 2, resizeQuality: 'high'"), "source probe, cut and 2x resize")
+	assert_true(config_src.contains("DOG_CROP_MARGIN: [0.05, 0.03]") and config_src.contains("DOG_WIDTH: 0.46") and config_src.contains("MAX_WIDTH: 270"), "source title constants")
+	assert_eq([int(t["probe_width"]), int(t["alpha_cut"]), t["crop_margin"]], [256, 110, [0.05, 0.03]], "conversion parameters")
+	assert_eq([int(t["canonical_width"]), int(t["frame_w"])], [ceili(270 * 0.46), 125], "canonical width 125")
+	# One shared crop: every frame has the size makeFrame derives from the frame-0 box.
+	var crop: Dictionary = t["crop"]
+	assert_true(Rect2i(0, 0, int(t["source_size"][0]), int(t["source_size"][1])).encloses(Rect2i(int(crop["x"]), int(crop["y"]), int(crop["w"]), int(crop["h"]))), "crop inside the source frame")
+	assert_eq(int(t["frame_h"]), maxi(1, roundi(float(crop["h"]) * 125.0 / float(crop["w"]))), "frame height from the shared crop")
+	# 99 frames, the WebP's own delays.
+	var webp := FileAccess.get_file_as_bytes(root.path_join(String(t["source"]["source"])))
+	assert_eq(_sha_bytes(webp), t["source"]["sha256"], "title WebP is the audited source")
+	var ms := _webp_delays(webp)
+	assert_eq([int(t["count"]), ms.size()], [99, 99], "99 frames")
+	var durations: Array = t["durations"]
+	for k in ms.size():
+		assert_near(float(durations[k]), maxf(0.02, float(ms[k]) / 1000.0), 1e-12, "frame %d delay" % k)
+	# Atlas pages and memory.
+	var memory := int(t["count"]) * int(t["frame_w"]) * int(t["frame_h"]) * 4
+	assert_eq(int(t["memory_bytes"]), memory, "frame memory")
+	assert_true(memory < 12 * 1000 * 1000, "under 12 MB of uncompressed frames (%d bytes)" % memory)
+	var pages := {}
+	for p: Dictionary in t["pages"]:
+		var tex: Texture2D = load(p["target"])
+		assert_true(tex.get_width() <= 2048 and tex.get_height() <= 2048, "%s within 2048x2048" % p["target"])
+		var img := tex.get_image()
+		img.convert(Image.FORMAT_RGBA8)
+		pages[p["target"]] = img
+	# Frames: non-blank, binary alpha (second alpha cut), in their page.
+	var sf: SpriteFrames = load("res://data/title/title_animation.tres")
+	assert_eq([sf.get_frame_count(&"portrait"), sf.get_animation_loop(&"portrait"), sf.get_animation_speed(&"portrait")], [99, true, 1.0], "looping portrait animation")
+	for k in 99:
+		var at := sf.get_frame_texture(&"portrait", k) as AtlasTexture
+		assert_near(sf.get_frame_duration(&"portrait", k), float(durations[k]), 1e-6, "frame %d hold (float32 in SpriteFrames)" % k)
+		var img: Image = (pages[at.atlas.resource_path] as Image).get_region(Rect2i(at.region))
+		assert_eq(img.get_size(), Vector2i(125, int(t["frame_h"])), "frame %d size" % k)
+		assert_false(img.is_invisible(), "frame %d not blank" % k)
+		if k % 7 == 0:
+			for y in img.get_height():
+				for x in img.get_width():
+					var a := img.get_pixel(x, y).a8
+					if a != 0 and a != 255:
+						fail("frame %d pixel %d,%d alpha %d not cut" % [k, x, y, a])
+	# Title-only smooth scaling.
+	var portrait := TitlePortrait.new()
+	tree.root.add_child(portrait)
+	assert_eq([portrait.texture_filter, portrait.sprite_frames, portrait.animation, portrait.is_playing()], [CanvasItem.TEXTURE_FILTER_LINEAR, sf, &"portrait", true], "linear-sampled looping portrait")
+	var mat := portrait.material as ShaderMaterial
+	assert_true(mat != null and mat.shader.resource_path == "res://ui/title/title_portrait.gdshader", "alpha-cut shader")
+	# The headless dummy renderer compiles no shaders: read the uniform's default from the code.
+	var code := mat.shader.code
+	var cut := code.get_slice("uniform float alpha_cut = ", 1).get_slice(";", 0)
+	assert_near(cut.to_float(), 110.0 / 255.0, 1e-12, "alpha cut 110 of 255")
+	assert_true(code.contains("c.a = c.a >= alpha_cut ? 1.0 : 0.0;"), "binary alpha after linear sampling")
+	portrait.fit_width(99.0)
+	assert_near(portrait.scale.x, 99.0 / 125.0, 1e-6, "smooth scale to the logical width (float32 Vector2)")
+	portrait.free()
+	var linear_users: PackedStringArray = []
+	var stack: Array[String] = ["res://"]
+	while not stack.is_empty():
+		var dir: String = stack.pop_back()
+		for sub in DirAccess.get_directories_at(dir):
+			if not sub.begins_with(".") and sub not in ["tests", "tools", "test-results"]:
+				stack.append(dir.path_join(sub))
+		for f in DirAccess.get_files_at(dir):
+			if f.ends_with(".gd") or f.ends_with(".tscn"):
+				var text := FileAccess.get_file_as_string(dir.path_join(f))
+				if text.contains("TEXTURE_FILTER_LINEAR") or text.contains("texture_filter = 2"):
+					linear_users.append(dir.path_join(f))
+	assert_eq(linear_users, PackedStringArray(["res://ui/title/title_portrait.gd"]), "only the title portrait samples linearly")
+	for idx in [0, 49, 98]:
+		assert_true(FileAccess.file_exists(root.path_join("docs/porting/captures/title_m1/title_frame_%02d_widths_88_99_124.png" % idx)), "review image for frame %d" % idx)
+
+
+## AST-020: the generated bitmap font matches the source (src/ui/pixelFont.ts in Chromium): glyph
+## image hashes, 8 px advance and union cell height, the source's word wrap (layoutLines, executed),
+## the ASCII fallback ('?'), the borrowed IPA marks (ˈ = ', ː = :) and the schwa as the font's own
+## "e" turned by 180 degrees; the WOFF2 source and the OFL licence are retained.
+func test_AST_020_bitmap_font_matches_source() -> void:
 	var src: Dictionary = fixture("source_font_glyphs")
+	var advance := int(src["advance"])
+	var cell_h := int(src["cell_h"])
+	assert_eq([advance, PixelText.ADVANCE, PixelText.CELL_H], [8, 8, cell_h], "8 px advance, union cell height")
 	var img := Image.load_from_file(ProjectSettings.globalize_path("res://assets/fonts/pixel_font.png"))
-	assert_eq(img.get_height(), int(src["cell_h"]), "cell height")
+	img.convert(Image.FORMAT_RGBA8)
+	assert_eq([img.get_width(), img.get_height()], [advance * 96, cell_h], "95 ASCII cells + the schwa cell")
+	# Glyph images.
 	for code_s: String in src["glyph_alpha_sha256_16"]:
 		var code := int(code_s)
 		var bits := PackedByteArray()
-		var x0 := (code - 32) * int(src["advance"])
-		for y in int(src["cell_h"]):
-			for x in int(src["advance"]):
+		var x0 := (code - 32) * advance
+		for y in cell_h:
+			for x in advance:
 				bits.append(1 if img.get_pixel(x0 + x, y).a > 0.0 else 0)
-		var ctx := HashingContext.new()
-		ctx.start(HashingContext.HASH_SHA256)
-		ctx.update(bits)
-		assert_eq(ctx.finish().hex_encode().substr(0, 16), src["glyph_alpha_sha256_16"][code_s], "glyph %d" % code)
+		assert_eq(_sha_bytes(bits).substr(0, 16), src["glyph_alpha_sha256_16"][code_s], "glyph %d" % code)
+	# Schwa: "e" rotated by 180 degrees inside its own bounding box, in the extra cell.
+	var ek := ("e".unicode_at(0) - 32) * advance
+	var bx0 := advance
+	var by0 := cell_h
+	var bx1 := -1
+	var by1 := -1
+	for y in cell_h:
+		for x in advance:
+			if img.get_pixel(ek + x, y).a > 0.0:
+				bx0 = mini(bx0, x)
+				bx1 = maxi(bx1, x)
+				by0 = mini(by0, y)
+				by1 = maxi(by1, y)
+	assert_true(bx1 >= bx0 and by1 >= by0, "the e glyph has pixels")
+	var schwa_x := 95 * advance
+	for y in cell_h:
+		for x in advance:
+			var want := false
+			if x >= bx0 and x <= bx1 and y >= by0 and y <= by1:
+				want = img.get_pixel(ek + bx0 + bx1 - x, by0 + by1 - y).a > 0.0
+			assert_eq(img.get_pixel(schwa_x + x, y).a > 0.0, want, "schwa pixel %d,%d" % [x, y])
+	# Every probed character resolves to the source's atlas cell through the port's font path
+	# (PixelText.sanitize, then the BMFont glyph): '?' fallback, borrowed marks, the schwa.
 	var font: FontFile = load("res://assets/fonts/pixel_font.fnt")
-	for ch in ["A", "ə", "ˈ", "ː"]:
-		assert_true(font.has_char(ch.unicode_at(0)), "font has %s" % ch)
+	var glyph_x: Dictionary = src["glyph_x"]
+	assert_true(glyph_x.size() >= 15, "probe characters")
+	for ch: String in glyph_x:
+		var shown := PixelText.sanitize(ch)
+		var code := shown.unicode_at(0)
+		if not assert_true(font.has_char(code), "font has %s for %s" % [shown, ch]):
+			continue
+		var uv := font.get_glyph_uv_rect(0, Vector2i(8, 0), font.get_glyph_index(8, code, 0))
+		assert_eq(int(uv.position.x), int(glyph_x[ch]), "%s (U+%04X) shows the source cell" % [ch, ch.unicode_at(0)])
 	assert_eq(font.get_char_size("W".unicode_at(0), 8), Vector2(8, 8), "8 px advance and cell")
-	assert_eq(PixelText.sanitize("café"), "caf?", "unknown glyphs show as ?")
+	# Word wrap: the source's layoutLines() cases, line for line.
+	var cases: Array = src["wrap"]
+	assert_true(cases.size() >= 100, "wrapping fixtures")
+	for c: Dictionary in cases:
+		assert_eq(Array(PixelText.wrap(c["text"], int(c["max_width"]), int(c["scale"]))), c["lines"], "wrap %s at %d px x%d" % [JSON.stringify(c["text"]), c["max_width"], c["scale"]])
+	# Sources retained: the WOFF2 converter input (not exported) and the OFL licence (exported).
+	var root := _repo_root()
+	var woff := false
+	for e: Dictionary in _manifest()["inputs"]:
+		if e["source"] == "src/assets/fonts/PressStart2P.woff2":
+			woff = true
+			assert_eq(_sha(root.path_join(e["source"])), e["sha256"], "WOFF2 source hash")
+	assert_true(woff, "WOFF2 recorded as the converter input")
+	var ofl := false
+	for e: Dictionary in _manifest()["copies"]:
+		if e["target"] == "assets/fonts/OFL.txt":
+			ofl = true
+	assert_true(ofl and FileAccess.get_file_as_string("res://assets/fonts/OFL.txt").contains("SIL OPEN FONT LICENSE"), "OFL retained")
 
 
 func _audio_fixture() -> Dictionary:

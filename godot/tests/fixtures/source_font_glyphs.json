@@ -99,5 +99,1413 @@
   "124": "aac524eee5d55930",
   "125": "c74b42ff28a8fb31",
   "126": "d851ef95f71698fc"
- }
+ },
+ "glyph_x": {
+  "0": 128,
+  "é": 248,
+  "?": 248,
+  "ü": 248,
+  "ñ": 248,
+  "→": 248,
+  "—": 248,
+  "…": 248,
+  "ə": 760,
+  " ": 0,
+  "ˈ": 56,
+  "ː": 208,
+  "~": 752,
+  "\t": 248,
+  "€": 248,
+  ":": 208,
+  "A": 264,
+  "a": 520
+ },
+ "wrap": [
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 0,
+   "scale": 1,
+   "lines": [
+    "GREEN ZONE UNDER ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 0,
+   "scale": 2,
+   "lines": [
+    "GREEN ZONE UNDER ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 7,
+   "scale": 1,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 7,
+   "scale": 2,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 8,
+   "scale": 1,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 8,
+   "scale": 2,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 16,
+   "scale": 1,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 16,
+   "scale": 2,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 40,
+   "scale": 1,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 40,
+   "scale": 2,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 64,
+   "scale": 1,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 64,
+   "scale": 2,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 100,
+   "scale": 1,
+   "lines": [
+    "GREEN ZONE",
+    "UNDER ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 100,
+   "scale": 2,
+   "lines": [
+    "GREEN",
+    "ZONE",
+    "UNDER",
+    "ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 216,
+   "scale": 1,
+   "lines": [
+    "GREEN ZONE UNDER ATTACK"
+   ]
+  },
+  {
+   "text": "GREEN ZONE UNDER ATTACK",
+   "max_width": 216,
+   "scale": 2,
+   "lines": [
+    "GREEN ZONE",
+    "UNDER ATTACK"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 0,
+   "scale": 1,
+   "lines": [
+    "A  B   C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 0,
+   "scale": 2,
+   "lines": [
+    "A  B   C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 7,
+   "scale": 1,
+   "lines": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 7,
+   "scale": 2,
+   "lines": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 8,
+   "scale": 1,
+   "lines": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 8,
+   "scale": 2,
+   "lines": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 16,
+   "scale": 1,
+   "lines": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 16,
+   "scale": 2,
+   "lines": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 40,
+   "scale": 1,
+   "lines": [
+    "A B C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 40,
+   "scale": 2,
+   "lines": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 64,
+   "scale": 1,
+   "lines": [
+    "A B C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 64,
+   "scale": 2,
+   "lines": [
+    "A B",
+    "C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 100,
+   "scale": 1,
+   "lines": [
+    "A B C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 100,
+   "scale": 2,
+   "lines": [
+    "A B C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 216,
+   "scale": 1,
+   "lines": [
+    "A B C"
+   ]
+  },
+  {
+   "text": "A  B   C",
+   "max_width": 216,
+   "scale": 2,
+   "lines": [
+    "A B C"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 0,
+   "scale": 1,
+   "lines": [
+    " LEADING AND TRAILING "
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 0,
+   "scale": 2,
+   "lines": [
+    " LEADING AND TRAILING "
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 7,
+   "scale": 1,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 7,
+   "scale": 2,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 8,
+   "scale": 1,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 8,
+   "scale": 2,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 16,
+   "scale": 1,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 16,
+   "scale": 2,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 40,
+   "scale": 1,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 40,
+   "scale": 2,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 64,
+   "scale": 1,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 64,
+   "scale": 2,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 100,
+   "scale": 1,
+   "lines": [
+    "LEADING AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 100,
+   "scale": 2,
+   "lines": [
+    "LEADING",
+    "AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 216,
+   "scale": 1,
+   "lines": [
+    "LEADING AND TRAILING"
+   ]
+  },
+  {
+   "text": " LEADING AND TRAILING ",
+   "max_width": 216,
+   "scale": 2,
+   "lines": [
+    "LEADING AND",
+    "TRAILING"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 0,
+   "scale": 1,
+   "lines": [
+    "SUPERCALIFRAGILISTIC WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 0,
+   "scale": 2,
+   "lines": [
+    "SUPERCALIFRAGILISTIC WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 7,
+   "scale": 1,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 7,
+   "scale": 2,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 8,
+   "scale": 1,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 8,
+   "scale": 2,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 16,
+   "scale": 1,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 16,
+   "scale": 2,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 40,
+   "scale": 1,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 40,
+   "scale": 2,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 64,
+   "scale": 1,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 64,
+   "scale": 2,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 100,
+   "scale": 1,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 100,
+   "scale": 2,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 216,
+   "scale": 1,
+   "lines": [
+    "SUPERCALIFRAGILISTIC WORD"
+   ]
+  },
+  {
+   "text": "SUPERCALIFRAGILISTIC WORD",
+   "max_width": 216,
+   "scale": 2,
+   "lines": [
+    "SUPERCALIFRAGILISTIC",
+    "WORD"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 0,
+   "scale": 1,
+   "lines": [
+    "ONE",
+    "TWO THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 0,
+   "scale": 2,
+   "lines": [
+    "ONE",
+    "TWO THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 7,
+   "scale": 1,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 7,
+   "scale": 2,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 8,
+   "scale": 1,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 8,
+   "scale": 2,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 16,
+   "scale": 1,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 16,
+   "scale": 2,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 40,
+   "scale": 1,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 40,
+   "scale": 2,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 64,
+   "scale": 1,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 64,
+   "scale": 2,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 100,
+   "scale": 1,
+   "lines": [
+    "ONE",
+    "TWO THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 100,
+   "scale": 2,
+   "lines": [
+    "ONE",
+    "TWO",
+    "THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 216,
+   "scale": 1,
+   "lines": [
+    "ONE",
+    "TWO THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "ONE\nTWO THREE\n\nFOUR",
+   "max_width": 216,
+   "scale": 2,
+   "lines": [
+    "ONE",
+    "TWO THREE",
+    "",
+    "FOUR"
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 0,
+   "scale": 1,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 0,
+   "scale": 2,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 7,
+   "scale": 1,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 7,
+   "scale": 2,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 8,
+   "scale": 1,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 8,
+   "scale": 2,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 16,
+   "scale": 1,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 16,
+   "scale": 2,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 40,
+   "scale": 1,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 40,
+   "scale": 2,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 64,
+   "scale": 1,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 64,
+   "scale": 2,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 100,
+   "scale": 1,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 100,
+   "scale": 2,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 216,
+   "scale": 1,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "",
+   "max_width": 216,
+   "scale": 2,
+   "lines": [
+    ""
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 0,
+   "scale": 1,
+   "lines": [
+    "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 0,
+   "scale": 2,
+   "lines": [
+    "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 7,
+   "scale": 1,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 7,
+   "scale": 2,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 8,
+   "scale": 1,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 8,
+   "scale": 2,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 16,
+   "scale": 1,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 16,
+   "scale": 2,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 40,
+   "scale": 1,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 40,
+   "scale": 2,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 64,
+   "scale": 1,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 64,
+   "scale": 2,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 100,
+   "scale": 1,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS: KEEP",
+    "THE LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 100,
+   "scale": 2,
+   "lines": [
+    "THE",
+    "PROFESSOR",
+    "SAYS:",
+    "KEEP",
+    "THE",
+    "LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 216,
+   "scale": 1,
+   "lines": [
+    "THE PROFESSOR SAYS: KEEP",
+    "THE LAWN CLEAN, ZAMPANO!"
+   ]
+  },
+  {
+   "text": "THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!",
+   "max_width": 216,
+   "scale": 2,
+   "lines": [
+    "THE PROFESSOR",
+    "SAYS: KEEP",
+    "THE LAWN",
+    "CLEAN,",
+    "ZAMPANO!"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 0,
+   "scale": 1,
+   "lines": [
+    "X Y Z W V U T S R Q P O N M L K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 0,
+   "scale": 2,
+   "lines": [
+    "X Y Z W V U T S R Q P O N M L K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 7,
+   "scale": 1,
+   "lines": [
+    "X",
+    "Y",
+    "Z",
+    "W",
+    "V",
+    "U",
+    "T",
+    "S",
+    "R",
+    "Q",
+    "P",
+    "O",
+    "N",
+    "M",
+    "L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 7,
+   "scale": 2,
+   "lines": [
+    "X",
+    "Y",
+    "Z",
+    "W",
+    "V",
+    "U",
+    "T",
+    "S",
+    "R",
+    "Q",
+    "P",
+    "O",
+    "N",
+    "M",
+    "L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 8,
+   "scale": 1,
+   "lines": [
+    "X",
+    "Y",
+    "Z",
+    "W",
+    "V",
+    "U",
+    "T",
+    "S",
+    "R",
+    "Q",
+    "P",
+    "O",
+    "N",
+    "M",
+    "L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 8,
+   "scale": 2,
+   "lines": [
+    "X",
+    "Y",
+    "Z",
+    "W",
+    "V",
+    "U",
+    "T",
+    "S",
+    "R",
+    "Q",
+    "P",
+    "O",
+    "N",
+    "M",
+    "L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 16,
+   "scale": 1,
+   "lines": [
+    "X",
+    "Y",
+    "Z",
+    "W",
+    "V",
+    "U",
+    "T",
+    "S",
+    "R",
+    "Q",
+    "P",
+    "O",
+    "N",
+    "M",
+    "L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 16,
+   "scale": 2,
+   "lines": [
+    "X",
+    "Y",
+    "Z",
+    "W",
+    "V",
+    "U",
+    "T",
+    "S",
+    "R",
+    "Q",
+    "P",
+    "O",
+    "N",
+    "M",
+    "L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 40,
+   "scale": 1,
+   "lines": [
+    "X Y Z",
+    "W V U",
+    "T S R",
+    "Q P O",
+    "N M L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 40,
+   "scale": 2,
+   "lines": [
+    "X",
+    "Y",
+    "Z",
+    "W",
+    "V",
+    "U",
+    "T",
+    "S",
+    "R",
+    "Q",
+    "P",
+    "O",
+    "N",
+    "M",
+    "L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 64,
+   "scale": 1,
+   "lines": [
+    "X Y Z W",
+    "V U T S",
+    "R Q P O",
+    "N M L K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 64,
+   "scale": 2,
+   "lines": [
+    "X Y",
+    "Z W",
+    "V U",
+    "T S",
+    "R Q",
+    "P O",
+    "N M",
+    "L K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 100,
+   "scale": 1,
+   "lines": [
+    "X Y Z W V U",
+    "T S R Q P O",
+    "N M L K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 100,
+   "scale": 2,
+   "lines": [
+    "X Y Z",
+    "W V U",
+    "T S R",
+    "Q P O",
+    "N M L",
+    "K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 216,
+   "scale": 1,
+   "lines": [
+    "X Y Z W V U T S R Q P O N M",
+    "L K"
+   ]
+  },
+  {
+   "text": "X Y Z W V U T S R Q P O N M L K",
+   "max_width": 216,
+   "scale": 2,
+   "lines": [
+    "X Y Z W V U T",
+    "S R Q P O N M",
+    "L K"
+   ]
+  }
+ ]
 }

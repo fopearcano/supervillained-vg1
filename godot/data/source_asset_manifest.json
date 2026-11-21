@@ -699,6 +699,12 @@
    "use": "bitmap font rasterization contract (executed in Chromium)"
   },
   {
+   "source": "src/ui/pixelText.ts",
+   "sha256": "1cbd7fe0ec14ea2b07075b96673c23a47e4102ea60b15812dc2f13e061804f9e",
+   "bytes": 9502,
+   "use": "layoutLines() word wrap (executed for the wrapping fixtures)"
+  },
+  {
    "source": "src/core/audio.ts",
    "sha256": "82f5f0871e8d7d802d60666d4a034b8ce0e8bfc223e2c138aa521daccd8cbd5b",
    "bytes": 11347,
@@ -769,6 +775,18 @@
    "sha256": "1ff1e0875de54ea284e0c316bbacd454a5bf335c9c84e2779d1e0eb683a47b95",
    "bytes": 2611,
    "use": "SOUND_FILES / MUSIC_FILES cue-to-file tables (executed)"
+  },
+  {
+   "source": "assets/starting-page-images/app/Zampano-Samemala-3.webp",
+   "sha256": "1591cfaef72db346d16f7861e2777705c6393984588baf1567431c6dc169676c",
+   "bytes": 2332180,
+   "use": "title portrait (99-frame lossless WebP) decoded in Chromium; not exported"
+  },
+  {
+   "source": "src/ui/titleAnim.ts",
+   "sha256": "4c35292a3a50a67982305973b8e3cf8b2a6cec5f985edbc88720a146fdf80c9a",
+   "bytes": 8105,
+   "use": "title conversion (crop, 2x resize, alpha cuts) executed in Chromium"
   }
  ],
  "generated": [
@@ -1450,6 +1468,14 @@
    "recipe": "src/assets/build.ts characterEntries(): placeholders/cast.ts CAST_SPECS + critters.ts poseFor/drawCritter"
   },
   {
+   "key": "title_page_0",
+   "target": "assets/generated/title/title_page_0.png",
+   "sha256": "13c19b8b05e71fafb4a049b01d014d15ef0002c6b2c1e2c3962908e82fe12a7c",
+   "w": 2000,
+   "h": 1176,
+   "recipe": "src/ui/titleAnim.ts titleFrames() executed in Chromium"
+  },
+  {
    "key": "pixel_font",
    "target": "assets/fonts/pixel_font.png",
    "sha256": "ff691d31d7c31918faa64be8c342e104cd4e7e49aca46cc4b9a2c7f9c4aa03c6",
@@ -1963,6 +1989,11 @@
    "bytes": 168
   },
   {
+   "target": "assets/generated/title/title_page_0.png",
+   "sha256": "13c19b8b05e71fafb4a049b01d014d15ef0002c6b2c1e2c3962908e82fe12a7c",
+   "bytes": 703877
+  },
+  {
    "target": "data/audio/sfx_leading_silence.json",
    "sha256": "25d1aa1e8f971a6f7ffc9878c1a527badb4908e89575e007910ad50272810bc3",
    "bytes": 2858
@@ -2213,6 +2244,11 @@
    "bytes": 45173
   },
   {
+   "target": "data/title/title_frames.json",
+   "sha256": "7040b5cfc374325b7e7c6600f0213409a0349fafcd7e559ceea70b551b673ba2",
+   "bytes": 6410
+  },
+  {
    "target": "tests/fixtures/floor_design_1_arcade.json",
    "sha256": "31f3377aaff733c585fa39b5ae023d98a1c9b09e964be427ae7576de4dd9b6e6",
    "bytes": 58302
@@ -2229,8 +2265,8 @@
   },
   {
    "target": "tests/fixtures/source_font_glyphs.json",
-   "sha256": "be0427029ced7ff272d3203224c8eeae95180f0088e4990743c333ec32a98a5d",
-   "bytes": 2843
+   "sha256": "fd10ac00d90c40d49717c9f2b2d2c0ea74c8499bf55b05868a4839f10a6cd03b",
+   "bytes": 22142
   },
   {
    "target": "tests/fixtures/source_reference.json",

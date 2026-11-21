@@ -12,6 +12,8 @@ extends SceneTree
 const ENV_FRAMES := "res://data/environment/ch01_greenzone_frames.json"
 const PROFILES_JSON := "res://data/characters/playable_profiles.json"
 const CAST_ROLES_JSON := "res://data/characters/cast_roles.json"
+const TITLE_JSON := "res://data/title/title_frames.json"
+const TITLE_OUT := "res://data/title/title_animation.tres"
 ## Display names of the PLAY_AS dogs.
 const DISPLAY_NAMES := {"zampano": "Zampanò", "sbrimbrulon": "Sbrimbrulòn", "bagnaskiz": "Bagnaskiz"}
 const TILE_ATLAS := "res://assets/generated/environment/ch01_greenzone_tiles.png"
@@ -52,6 +54,7 @@ func _initialize() -> void:
 		_build_tileset()
 		_build_sprite_catalog()
 		_build_characters()
+		_build_title()
 		_build_sfx_silence()
 	if _failures.is_empty():
 		if _check:
@@ -473,3 +476,41 @@ func _build_profile(play_as: String, profiles: Dictionary) -> void:
 	profile.action_durations = durations
 	profile.timed_actions = timed
 	_save_resource(profile, out)
+
+
+# --- Title portrait -----------------------------------------------------------------------------
+
+## The 99 converted title frames (tools/source_extract, src/ui/titleAnim.ts in Chromium) as one
+## looping SpriteFrames animation with the WebP's own delays (speed 1, per-frame seconds).
+func _build_title() -> void:
+	var t := _json(TITLE_JSON)
+	if t.is_empty():
+		return
+	var pages: Array[Texture2D] = []
+	for k in (t["pages"] as Array).size():
+		var tex: Texture2D = load(t["pages"][k]["target"])
+		if tex == null:
+			_failures.append("title page not imported: " + String(t["pages"][k]["target"]))
+			return
+		tex.set_id_for_path(TITLE_OUT, "%d_page" % (k + 1))
+		pages.append(tex)
+	var sf := SpriteFrames.new()
+	sf.remove_animation(&"default")
+	sf.add_animation(&"portrait")
+	sf.set_animation_loop(&"portrait", true)
+	sf.set_animation_speed(&"portrait", 1.0)
+	var fw := int(t["frame_w"])
+	var fh := int(t["frame_h"])
+	var frames: Array = t["frames"]
+	if frames.size() != int(t["count"]) or (t["durations"] as Array).size() != frames.size():
+		_failures.append("title frame/delay counts differ")
+		return
+	for k in frames.size():
+		var f: Dictionary = frames[k]
+		var at := AtlasTexture.new()
+		at.resource_scene_unique_id = "title_%d" % k
+		at.atlas = pages[int(f["page"])]
+		at.region = Rect2(int(f["x"]), int(f["y"]), fw, fh)
+		at.filter_clip = true
+		sf.add_frame(&"portrait", at, float(t["durations"][k]))
+	_save_resource(sf, TITLE_OUT)

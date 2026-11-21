@@ -180,6 +180,7 @@ const COPIES = [
 const INPUTS_ONLY = [
   { from: 'src/assets/fonts/PressStart2P.woff2', use: 'converter input for the bitmap font (not exported)' },
   { from: 'src/ui/pixelFont.ts', use: 'bitmap font rasterization contract (executed in Chromium)' },
+  { from: 'src/ui/pixelText.ts', use: 'layoutLines() word wrap (executed for the wrapping fixtures)' },
   { from: 'src/core/audio.ts', use: 'leadingSilence() executed in Chromium for the SFX start offsets' },
   { from: 'src/assets/placeholders/items.ts', use: 'procedural item/HUD sprite generators (executed)' },
   { from: 'src/assets/placeholders/critters.ts', use: 'procedural shadow and critter generators (executed)' },
@@ -397,7 +398,7 @@ let fontJs = nodeModule.stripTypeScriptTypes(fontTs, { mode: 'strip' });
 const importLine = /import fontUrl from '..\/assets\/fonts\/PressStart2P\.woff2\?url';/;
 if (!importLine.test(fontJs)) throw new Error('pixelFont.ts import line changed; review the extractor');
 fontJs = fontJs.replace(importLine, `const fontUrl = 'data:font/woff2;base64,${woff2.toString('base64')}';`);
-fontJs += `\nwindow.__fontResult = (async () => { const f = await loadPixelFont(); return { loaded: f.loaded, advance: f.advance, cellH: f.cellH, w: f.atlas.width, h: f.atlas.height, png: f.atlas.toDataURL('image/png'), rgba: Array.from(f.atlas.getContext('2d').getImageData(0, 0, f.atlas.width, f.atlas.height).data), schwaX: f.glyphX('ə'), stressX: f.glyphX('ˈ'), lengthX: f.glyphX('ː'), unknownX: f.glyphX('é') }; })();\n`;
+fontJs += `\nwindow.__fontResult = (async () => { const f = await loadPixelFont(); return { loaded: f.loaded, advance: f.advance, cellH: f.cellH, w: f.atlas.width, h: f.atlas.height, png: f.atlas.toDataURL('image/png'), rgba: Array.from(f.atlas.getContext('2d').getImageData(0, 0, f.atlas.width, f.atlas.height).data), schwaX: f.glyphX('ə'), stressX: f.glyphX('ˈ'), lengthX: f.glyphX('ː'), unknownX: f.glyphX('é'), glyphMap: Object.fromEntries(Array.from('é?üñ→—…ə ˈː~\\t€:Aa0', (c) => [c, f.glyphX(c)])) }; })();\n`;
 const browser = await chromium.launch({ channel: PINNED_CHROMIUM.channel });
 const hostChromium = browser.version();
 if (hostChromium !== PINNED_CHROMIUM.version) {
@@ -457,6 +458,107 @@ const decoded = await page.evaluate(async ({ files }) => {
   }
   return out;
 }, { files: recordedPayload });
+// AST-010: the title portrait, converted by the source's own title code (src/ui/titleAnim.ts,
+// executed unchanged in Chromium apart from its three imports): WebCodecs ImageDecoder over the
+// current lossless WebP, frame 0 probed at 256 px, alpha cut 110, one shared TITLE.DOG_CROP_MARGIN
+// crop, every frame through the 2x high-quality createImageBitmap resize and the second alpha
+// cut, the WebP's own delays. Rendered at the canonical maximum logical width
+// ceil(270 * TITLE.DOG_WIDTH) = 125 (ARCHITECTURE §15) and packed row-major into atlas pages
+// no larger than 2048x2048.
+const titleTs = blobText('src/ui/titleAnim.ts');
+const TITLE_WEBP = 'assets/starting-page-images/app/Zampano-Samemala-3.webp';
+const titleImports = [
+  [/import \{ Texture \} from 'pixi\.js';/, 'const Texture = { from: (c) => c };'],
+  [/import gifUrl from '\.\.\/\.\.\/assets\/starting-page-images\/app\/Zampano-Samemala-3\.webp\?url';/, "const gifUrl = 'https://title.invalid/Zampano-Samemala-3.webp';"],
+  [/import \{ TITLE \} from '\.\.\/config';/, `const TITLE = ${JSON.stringify({ DOG_CROP_MARGIN: configTsForTrim.TITLE.DOG_CROP_MARGIN })};`],
+];
+let titleJs = titleTs;
+for (const [re, repl] of titleImports) {
+  if (!re.test(titleJs)) throw new Error(`src/ui/titleAnim.ts import ${re} changed; review the extractor`);
+  titleJs = titleJs.replace(re, repl);
+}
+titleJs = nodeModule.stripTypeScriptTypes(titleJs, { mode: 'transform' });
+const TITLE_WIDTH = Math.ceil(configTsForTrim.DISPLAY.MAX_WIDTH * configTsForTrim.TITLE.DOG_WIDTH);
+titleJs += `
+window.__title = (async () => {
+  const f = titleFrames(${TITLE_WIDTH});
+  while (!f.done) await new Promise((r) => setTimeout(r, 25));
+  const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  // The shared crop, measured again by the source cropBox() on frame 0 (titleFrames keeps it private).
+  const dec = new ImageDecoder({ data: await (await fetch(gifUrl)).arrayBuffer(), type: 'image/webp' });
+  await dec.tracks.ready;
+  const first = (await dec.decode({ frameIndex: 0 })).image;
+  const crop = { box: cropBox(first, first.displayWidth, first.displayHeight), source_size: [first.displayWidth, first.displayHeight] };
+  first.close();
+  dec.close();
+  return { crop, count: f.count, width: f.width, height: f.height, durations: f.durations, frames: f.frames.map((c) => b64(new Uint8Array(c.getContext('2d').getImageData(0, 0, c.width, c.height).data.buffer))), sizes: f.frames.map((c) => [c.width, c.height]) };
+})();
+`;
+const titleBytes = blob(TITLE_WEBP);
+const titlePage = await browser.newPage();
+titlePage.on('console', (m) => { if (m.type() === 'warning' || m.type() === 'error') console.error('[title page]', m.text()); });
+// Page and WebP share one (offline, intercepted) origin, so the decoded frames stay readable.
+await titlePage.route('https://title.invalid/**', (route) => (route.request().url().endsWith('.webp')
+  ? route.fulfill({ status: 200, contentType: 'image/webp', body: titleBytes })
+  : route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><html><body></body></html>' })));
+await titlePage.goto('https://title.invalid/index.html');
+await titlePage.addScriptTag({ type: 'module', content: titleJs });
+await titlePage.waitForFunction(() => window.__title !== undefined, null, { timeout: 120000 });
+const title = await titlePage.evaluate(() => window.__title);
+await titlePage.close();
+// Atlas pages: row-major, as many frames per page as fit in 2048x2048.
+if (title.count !== title.frames.length || title.count < 1) throw new Error(`title: decoded ${title.frames.length} of ${title.count} frames`);
+const tfw = title.width;
+const tfh = title.height;
+for (const [w, h] of title.sizes) if (w !== tfw || h !== tfh) throw new Error('title frames differ in size');
+const TCOLS = Math.floor(2048 / tfw);
+const TROWS = Math.floor(2048 / tfh);
+const perPage = TCOLS * TROWS;
+const titleFramesOut = [];
+const titlePages = [];
+for (let p0 = 0; p0 < title.count; p0 += perPage) {
+  const n = Math.min(perPage, title.count - p0);
+  const cols = Math.min(TCOLS, n);
+  const rows = Math.ceil(n / TCOLS);
+  const pw = cols * tfw;
+  const ph = rows * tfh;
+  const out = new Uint8Array(pw * ph * 4);
+  for (let k = 0; k < n; k++) {
+    const px = (k % TCOLS) * tfw;
+    const py = Math.floor(k / TCOLS) * tfh;
+    const rgba = Buffer.from(title.frames[p0 + k], 'base64');
+    for (let y = 0; y < tfh; y++) out.set(rgba.subarray(y * tfw * 4, (y + 1) * tfw * 4), ((py + y) * pw + px) * 4);
+    titleFramesOut.push({ page: titlePages.length, x: px, y: py });
+  }
+  const png = encodePng(pw, ph, out);
+  const target = `assets/generated/title/title_page_${titlePages.length}.png`;
+  emit(target, png);
+  titlePages.push({ target: `res://${target}`, w: pw, h: ph });
+  manifest.generated.push({ key: `title_page_${titlePages.length - 1}`, target, sha256: sha256(png), w: pw, h: ph, recipe: 'src/ui/titleAnim.ts titleFrames() executed in Chromium' });
+}
+const titleSrc = { source: TITLE_WEBP, sha256: sha256(titleBytes), bytes: titleBytes.length };
+manifest.inputs.push({ source: TITLE_WEBP, sha256: titleSrc.sha256, bytes: titleSrc.bytes, use: 'title portrait (99-frame lossless WebP) decoded in Chromium; not exported' });
+manifest.inputs.push({ source: 'src/ui/titleAnim.ts', sha256: sha256(blob('src/ui/titleAnim.ts')), bytes: blob('src/ui/titleAnim.ts').length, use: 'title conversion (crop, 2x resize, alpha cuts) executed in Chromium' });
+emit('data/title/title_frames.json', stableJson({
+  audited_commit: AUDITED_COMMIT,
+  recipe: 'src/ui/titleAnim.ts titleFrames() in Chromium (ImageDecoder, cropBox, makeFrame)',
+  chromium: browserVersion,
+  source: titleSrc,
+  canonical_width: TITLE_WIDTH,
+  width_rule: 'ceil(DISPLAY.MAX_WIDTH * TITLE.DOG_WIDTH)',
+  probe_width: Number(titleTs.match(/const PROBE_WIDTH = (\d+);/)[1]),
+  alpha_cut: Number(titleTs.match(/const ALPHA_CUT = (\d+);/)[1]),
+  crop_margin: configTsForTrim.TITLE.DOG_CROP_MARGIN,
+  crop: title.crop.box,
+  source_size: title.crop.source_size,
+  frame_w: tfw,
+  frame_h: tfh,
+  count: title.count,
+  durations: title.durations,
+  memory_bytes: tfw * tfh * 4 * title.count,
+  pages: titlePages,
+  frames: titleFramesOut,
+}));
 await browser.close();
 emit('data/audio/sfx_leading_silence.json', stableJson({ audited_commit: AUDITED_COMMIT, recipe: 'src/core/audio.ts leadingSilence() in Chromium WebAudio', trim_level: configTsForTrim.AUDIO.TRIM_LEVEL, runtime_rate: 48000, chromium: browserVersion, files: SFX_FILES, offsets }));
 if (!font.loaded) throw new Error('Press Start 2P failed to load in Chromium; refusing to emit a fallback font');
@@ -997,7 +1099,21 @@ fx.rules_overlap = rulesScenario((t, c) => {
 
 emit('tests/fixtures/source_reference.json', stableJson(fx));
 emit('tests/fixtures/source_audio.json', stableJson({ audited_commit: AUDITED_COMMIT, note: 'Generated from the audited TypeScript and Chromium WebAudio; do not hand-edit.', sound_files: SFX_FILES, music_files: MUSIC_FILES, decoded_48k: decoded, synth: synthFixture }));
-emit('tests/fixtures/source_font_glyphs.json', stableJson({ audited_commit: AUDITED_COMMIT, chromium: browserVersion, advance: font.advance, cell_h: font.cellH, glyph_alpha_sha256_16: glyphHashes }));
+// AST-020 wrapping fixtures: the source's own layoutLines() (src/ui/pixelText.ts, executed) with
+// PixelText's maxChars rule (letterSpacing 0): floor(maxWidth / (advance * scale)), 0 = no wrap.
+const pixelTextTs = await importSource('ui/pixelText.ts');
+const WRAP_TEXTS = ['GREEN ZONE UNDER ATTACK', 'A  B   C', ' LEADING AND TRAILING ', 'SUPERCALIFRAGILISTIC WORD', 'ONE\nTWO THREE\n\nFOUR', '', 'THE PROFESSOR SAYS: KEEP THE LAWN CLEAN, ZAMPANO!', 'X Y Z W V U T S R Q P O N M L K'];
+const wrapCases = [];
+for (const text of WRAP_TEXTS) {
+  for (const maxWidth of [0, 7, 8, 16, 40, 64, 100, 216]) {
+    for (const scale of [1, 2]) {
+      const maxChars = maxWidth > 0 ? Math.max(1, Math.floor(maxWidth / (font.advance * scale))) : 0;
+      const glyphs = [...text].map((ch) => ({ ch, color: '#fff' }));
+      wrapCases.push({ text, max_width: maxWidth, scale, lines: pixelTextTs.layoutLines(glyphs, maxChars).map((l) => l.line.map((g) => g.ch).join('')) });
+    }
+  }
+}
+emit('tests/fixtures/source_font_glyphs.json', stableJson({ audited_commit: AUDITED_COMMIT, chromium: browserVersion, advance: font.advance, cell_h: font.cellH, glyph_alpha_sha256_16: glyphHashes, glyph_x: font.glyphMap, wrap: wrapCases }));
 manifest.toolchain = { node: `v${PINNED_NODE}`, pinned_node: PINNED_NODE, playwright: playwrightVersion, chromium: PINNED_CHROMIUM.version, chromium_revision: PINNED_CHROMIUM.revision, chromium_channel: PINNED_CHROMIUM.channel, chromium_pinned_by: 'node_modules/playwright-core/browsers.json' };
 // Every other generated output, so tests and --check can verify them by hash.
 manifest.outputs = [...outputs.entries()].filter(([rel]) => !manifest.copies.some((c) => c.target === rel)).map(([rel, buf]) => ({ target: rel, sha256: sha256(buf), bytes: buf.length })).sort((a, b) => (a.target < b.target ? -1 : 1));
