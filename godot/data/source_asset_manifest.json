@@ -705,6 +705,12 @@
    "use": "layoutLines() word wrap (executed for the wrapping fixtures)"
   },
   {
+   "source": "src/story/maps.ts",
+   "sha256": "ca37b1c25907861b88b8dceb365d576790c0bd355dc67dc3f3eaba51f6e4d885",
+   "bytes": 18902,
+   "use": "story maps STORY_MAPS (executed for the MAP-003/COLL-005 fixtures)"
+  },
+  {
    "source": "src/campaign/state.ts",
    "sha256": "7f69658c0ff6d2a0779eaa06fc330baabb2f97bf95479dcee5881d4c089d18d2",
    "bytes": 12806,
@@ -2289,6 +2295,11 @@
    "target": "tests/fixtures/source_reference.json",
    "sha256": "07a8fbe64de2c1883a859ddc12d23e6e6c5ce3919e91dd43967d86fc4a1a2d39",
    "bytes": 487235
+  },
+  {
+   "target": "tests/fixtures/source_story_maps.json",
+   "sha256": "313e1810ee9b3cd01cc2cf890119d2d23f8a97605106a00d0de7e6c6ccec9440",
+   "bytes": 41655
   }
  ]
 }

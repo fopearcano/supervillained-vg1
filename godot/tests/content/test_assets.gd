@@ -492,6 +492,44 @@ func test_AST_013_floor_composition_keys_and_counts() -> void:
 		assert_eq([ref["chapter_selects_environment"], int(ref["invalid_tiles"])], [true, 0], key + " valid in the source")
 
 
+## AST-015: the four map keys without an authored floor composition (lawn, darkwood, interior,
+## desert) use approved theme/fallback art and keep their topology: each theme resolves (source
+## paletteForChapter: chapterThemes, then themeFallbacks) to a delivered bank that supplies every
+## native frame, no composition exists for the key, and the parsed map is the source's (visual
+## choices never change ground, props or markers). None of the four is staged by the current
+## chapter scripts (audited source).
+func test_AST_015_exception_maps_use_theme_fallback_art_without_topology_change() -> void:
+	var env := _env_manifest()
+	var fixture_maps: Dictionary = fixture("source_story_maps")["maps"]
+	var native: Dictionary = _env_fixture()["native_contract"]
+	var expected := {"lawn": ["greenzone", "ch01_greenzone"], "darkwood": ["darkwood", "ch02_darkwood"], "interior": ["emir", "ch07_palace"], "desert": ["desert", "ch02_road"]}
+	var root := _repo_root()
+	var chapters := ""
+	for k in range(1, 9):
+		chapters += FileAccess.get_file_as_string(root.path_join("src/campaign/chapters/ch%d.ts" % k))
+	for key: String in expected:
+		var src: Dictionary = fixture_maps[key]
+		assert_eq(src["theme"], expected[key][0], key + " theme")
+		var bank := String(env["themeFallbacks"].get(src["theme"], ""))
+		assert_eq(bank, expected[key][1], key + " theme fallback bank")
+		# A chapter may select its own bank for the theme (8: ch08_greenzone); every candidate is delivered.
+		var banks := {bank: true}
+		for ch: String in env["chapterThemes"]:
+			if (env["chapterThemes"][ch] as Dictionary).has(src["theme"]):
+				banks[String(env["chapterThemes"][ch][src["theme"]])] = true
+		for b: String in banks:
+			var frames: Dictionary = env["zones"][b]["frames"]
+			for name: String in native:
+				assert_true(frames.has(name), "%s bank %s delivers %s" % [key, b, name])
+		for design: String in env["floorDesigns"]:
+			assert_false(design.ends_with(":" + key), "%s has no authored composition (%s)" % [key, design])
+		var parsed := AsciiMapLoader.parse(PackedStringArray(src["rows"]), src["base"], false)
+		assert_true(parsed["ok"], key + " parses")
+		var m := WorldMapModel.new(parsed["level"])
+		assert_eq([m.width, m.height, m.props.size(), m.markers.size(), m.playable_count], [int(src["width"]), int(src["height"]), (src["props"] as Array).size(), (src["markers"] as Dictionary).size(), int(src["playable_count"])], key + " topology unchanged")
+		assert_false(chapters.contains("tage('%s'" % key), key + " is not staged by the current chapters")
+
+
 ## AST-016: every texture the game ships imports losslessly without mipmaps and is filtered nearest
 ## (project default, no per-node override in the runtime scenes); the font atlas is raw BMFont data.
 func test_AST_016_lossless_nearest_no_mipmaps() -> void:

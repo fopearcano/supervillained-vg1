@@ -67,14 +67,97 @@ func test_P_ARCH_001_dummy_story_map_reuses_iso_world() -> void:
 	assert_true(w.visible_count >= 3, "objects depth-sorted (%d)" % w.visible_count)
 
 
-func test_P_MAP_003_tile_layer_matches_isogrid() -> void:
+func _story_maps() -> Dictionary:
+	return fixture("source_story_maps")["maps"]
+
+
+func _story_model(src: Dictionary) -> WorldMapModel:
+	var parsed := AsciiMapLoader.parse(PackedStringArray(src["rows"]), src["base"], false)
+	if not parsed["ok"]:
+		fail("story map does not parse: " + String(parsed.get("error", "")))
+		return null
+	return WorldMapModel.new(parsed["level"])
+
+
+static func _sha_text(text: String) -> String:
+	var ctx := HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	ctx.update(text.to_utf8_buffer())
+	return ctx.finish().hex_encode()
+
+
+static func _join(values: Variant) -> String:
+	var parts := PackedStringArray()
+	for v: Variant in values:
+		parts.append(str(int(v)))
+	return ",".join(parts)
+
+
+## MAP-003: every current map parses like the source (storyScene parseAsciiMap(rows, { base,
+## requireExit: false }) for the twenty story maps; the Green Zone and diagnostic maps are MAP-007
+## and the parser cases): dimensions, ground per cell, props, markers, start/exit and playable tiles
+## match the source fixtures, and map_to_local(cell) + IsoGrid.TILE_LAYER_OFFSET is the source tile
+## centre over every map's extent.
+func test_MAP_003_every_map_parses_and_aligns_with_isogrid() -> void:
+	var maps := _story_maps()
+	assert_eq(maps.size(), 20, "twenty story maps")
 	var w := _make(GreenZoneLevel.definition().rows, false)
-	for c: Vector2i in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(17, 42), Vector2i(95, 95), Vector2i(90, 90)]:
-		var drawn := w.ground_layer.map_to_local(c) + w.ground_layer.position
-		assert_vec_near(drawn, IsoGrid.tile_center_screen(c.x, c.y), 1e-4, "cell %s centre" % c)
 	assert_eq(w.ground_layer.position, IsoGrid.TILE_LAYER_OFFSET, "layer offset")
 	assert_eq(w.ground_layer.tile_set.tile_size, Vector2i(32, 16), "tile size")
 	assert_eq(w.ground_layer.tile_set.tile_layout, TileSet.TILE_LAYOUT_DIAMOND_DOWN, "layout")
+	for c: Vector2i in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(17, 42), Vector2i(95, 95), Vector2i(90, 90)]:
+		assert_vec_near(w.ground_layer.map_to_local(c) + w.ground_layer.position, IsoGrid.tile_center_screen(c.x, c.y), 1e-4, "Green Zone cell %s centre" % c)
+	for key: String in maps:
+		var src: Dictionary = maps[key]
+		var m := _story_model(src)
+		if m == null:
+			continue
+		assert_eq([m.width, m.height], [int(src["width"]), int(src["height"])], key + " size")
+		assert_eq(_sha_text(_join(m.ground)), src["ground_sha256"], key + " ground per cell")
+		var counts := {}
+		for g in m.ground:
+			counts[str(g)] = int(counts.get(str(g), 0)) + 1
+		assert_eq(counts, src["ground_counts"], key + " ground counts")
+		assert_eq(m.props.map(func(p: WorldMapModel.MapProp) -> Array: return [p.kind, p.i, p.j]), src["props"], key + " props")
+		var markers := {}
+		for name: String in m.markers:
+			var t: Vector2i = m.markers[name]
+			markers[name] = [t.x, t.y]
+		assert_eq(markers, src["markers"], key + " markers")
+		assert_eq([[m.start_tile.x, m.start_tile.y], [m.exit_tile.x, m.exit_tile.y], m.playable_count], [src["start"], src["exit"], int(src["playable_count"])], key + " start/exit/playable")
+		for c: Vector2i in [Vector2i(0, 0), Vector2i(m.width - 1, 0), Vector2i(0, m.height - 1), Vector2i(m.width - 1, m.height - 1), m.start_tile]:
+			assert_vec_near(w.ground_layer.map_to_local(c) + w.ground_layer.position, IsoGrid.tile_center_screen(c.x, c.y), 1e-4, "%s cell %s centre" % [key, c])
+
+
+## Drives the selected grid solver (WorldMapModel.move_circle, walking speed, player radius) from
+## `from` along the source BFS gradient to tile `target`; true when it arrives.
+static func _solver_reaches(m: WorldMapModel, from: Vector2, target: Vector2i) -> bool:
+	var dist := m.bfs(target.x, target.y)
+	var x := from.x
+	var y := from.y
+	var step := GameConfig.Player.WALK_SPEED / 60.0
+	for t in 60 * 60:
+		if JsMath.hypot(x - (target.x + 0.5), y - (target.y + 0.5)) < 0.5:
+			return true
+		var i := int(floor(x))
+		var j := int(floor(y))
+		var here := dist[m.index(i, j)]
+		var next := Vector2i(i, j)
+		for nb: Vector2i in [Vector2i(i + 1, j), Vector2i(i - 1, j), Vector2i(i, j + 1), Vector2i(i, j - 1)]:
+			if m.is_walkable(nb.x, nb.y) and dist[m.index(nb.x, nb.y)] == here - 1:
+				next = nb
+				break
+		var dx := next.x + 0.5 - x
+		var dy := next.y + 0.5 - y
+		var len := JsMath.hypot(dx, dy)
+		if len < 1e-9:
+			dx = target.x + 0.5 - x
+			dy = target.y + 0.5 - y
+			len = maxf(JsMath.hypot(dx, dy), 1e-9)
+		var r: Array = m.move_circle(x, y, dx / len * step, dy / len * step, GameConfig.Player.RADIUS)
+		x = r[0]
+		y = r[1]
+	return false
 
 
 func test_WORLD_004_phase_rotated_animated_alternatives() -> void:
@@ -357,6 +440,27 @@ func test_P_COLL_005_start_exit_and_treats_reachable_under_the_solver() -> void:
 	var def := GreenZoneLevel.definition()
 	for tr: Array in TreatPlacement.place_treats(m, def.spawns["treats"], def.seed):
 		assert_true(m.exit_distance[m.index(int(floor(tr[0])), int(floor(tr[1])))] >= 0, "treat %s on the connected area" % [tr])
+	# The twenty story maps: the BFS from the start equals the source's, and every marker and exit the
+	# source can reach is reached by the grid solver from the start. The only markers the source
+	# cannot reach are actor spawn points (ship 5/6: Watson below deck; neighborhood 0/9: Santina and
+	# her friend behind the gate), never player goals. Partial: pickups, spots and marvels at literal
+	# coordinates are placed by the story scripts (M5).
+	const ACTOR_ONLY := {"ship": ["5", "6"], "neighborhood": ["0", "9"]}
+	var maps := _story_maps()
+	for key: String in maps:
+		var src: Dictionary = maps[key]
+		var sm := _story_model(src)
+		if sm == null:
+			continue
+		var from_start := sm.bfs(sm.start_tile.x, sm.start_tile.y)
+		assert_eq(_sha_text(_join(from_start)), src["bfs_sha256"], key + " BFS from the start equals the source")
+		var reach: Dictionary = src["reach_from_start"]
+		for name: String in reach:
+			var tile: Vector2i = sm.exit_tile if name == "E" else sm.markers[name]
+			if int(reach[name]) < 0:
+				assert_true((ACTOR_ONLY.get(key, []) as Array).has(name), "%s marker %s unreachable only as an actor spawn point" % [key, name])
+				continue
+			assert_true(_solver_reaches(sm, sm.start, tile), "%s: solver reaches %s from the start" % [key, name])
 
 
 func test_DEPTH_003_only_visible_candidates_ranked_and_bands_separate() -> void:

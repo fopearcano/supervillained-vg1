@@ -181,6 +181,7 @@ const INPUTS_ONLY = [
   { from: 'src/assets/fonts/PressStart2P.woff2', use: 'converter input for the bitmap font (not exported)' },
   { from: 'src/ui/pixelFont.ts', use: 'bitmap font rasterization contract (executed in Chromium)' },
   { from: 'src/ui/pixelText.ts', use: 'layoutLines() word wrap (executed for the wrapping fixtures)' },
+  { from: 'src/story/maps.ts', use: 'story maps STORY_MAPS (executed for the MAP-003/COLL-005 fixtures)' },
   { from: 'src/campaign/state.ts', use: 'campaign v1->v2 migration and load rules (executed for the SAV-013-017 fixtures)' },
   { from: 'src/story/storyFlow.ts', use: 'one-time dream-rewritten notice (showNotice) mirrored in the fixtures' },
   { from: 'src/core/audio.ts', use: 'leadingSilence() executed in Chromium for the SFX start offsets' },
@@ -1166,6 +1167,43 @@ fx.rules_overlap = rulesScenario((t, c) => {
     sequences,
     existing_backup_kept: keptBackup,
   }));
+}
+
+// MAP-003 / COLL-005 fixtures: every current story map (src/story/maps.ts STORY_MAPS, parsed as
+// storyScene.loadMap does: parseAsciiMap(rows, { base, requireExit: false })) through the source
+// GameMap: dimensions, ground (counts and hash), props, markers, start/exit, playable tiles and the
+// source BFS distance from the start to every marker and the exit.
+{
+  const mapsTs = await importSource('story/maps.ts');
+  const storyMaps = {};
+  for (const [key, def] of Object.entries(mapsTs.STORY_MAPS)) {
+    const level = parseAsciiMap(def.rows, { base: def.base, requireExit: false });
+    const m = new GameMap({ ...level, def: null });
+    const fromStart = m.bfs(m.startTile.i, m.startTile.j);
+    const counts = {};
+    for (const g of m.ground) counts[g] = (counts[g] ?? 0) + 1;
+    const reach = {};
+    for (const [name, p] of Object.entries(level.markers)) reach[name] = fromStart[m.index(p.i, p.j)];
+    reach.E = fromStart[m.index(m.exitTile.i, m.exitTile.j)];
+    storyMaps[key] = {
+      theme: def.theme,
+      base: def.base,
+      rows: def.rows,
+      width: m.width,
+      height: m.height,
+      ground_counts: counts,
+      ground_sha256: sha256(Array.from(m.ground).join(',')),
+      props: m.props.map((p) => [p.kind, p.i, p.j]),
+      markers: Object.fromEntries(Object.entries(level.markers).map(([k, p]) => [k, [p.i, p.j]])),
+      start: [m.startTile.i, m.startTile.j],
+      exit: [m.exitTile.i, m.exitTile.j],
+      playable_count: m.playableCount,
+      reach_from_start: reach,
+      reachable_count: Array.from(fromStart).filter((d) => d >= 0).length,
+      bfs_sha256: sha256(Array.from(fromStart).join(',')),
+    };
+  }
+  emit('tests/fixtures/source_story_maps.json', stableJson({ audited_commit: AUDITED_COMMIT, recipe: 'src/story/maps.ts STORY_MAPS -> src/world/level.ts parseAsciiMap(rows, { base, requireExit: false }) -> src/world/map.ts GameMap (bfs from the start)', maps: storyMaps }));
 }
 
 emit('tests/fixtures/source_reference.json', stableJson(fx));
