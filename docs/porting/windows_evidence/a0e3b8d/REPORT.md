@@ -42,8 +42,9 @@ Notes:
 ## Logs in this folder
 
 Each step's stdout and stderr were merged (`2>&1`) and saved as the step ran. The only edits are:
-ANSI colour codes and carriage returns stripped, and the local user-profile path shown as
-`%USERPROFILE%`.
+ANSI colour codes and carriage returns stripped, the local user-profile path shown as
+`%USERPROFILE%`, and (correction report 4) trailing spaces and final blank lines removed so
+`git diff --check` passes; `git diff -w --ignore-blank-lines` shows no other change.
 
 - `step_a_build_assets_check.txt`
 - `step_b_import.txt`

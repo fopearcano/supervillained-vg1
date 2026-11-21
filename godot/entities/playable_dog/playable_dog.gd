@@ -88,7 +88,8 @@ func _ready() -> void:
 
 
 ## InteractionProbe and Hurtbox are projected grid circles on the foot point (GridShapes): broad
-## phase only. Rules decide contacts with the exact grid distance, like the source.
+## phase only. The probe reaches prop centres at rule distance + prop radius (GridShapes.PROBE_RADIUS);
+## rules decide contacts with the exact grid distance, like the source.
 func _build_contact_shapes() -> void:
 	var radius := profile.collision_radius if profile else GameConfig.Player.RADIUS
 	for pair: Array in [[interaction_probe, GridShapes.PROBE_RADIUS], [hurtbox, radius]]:

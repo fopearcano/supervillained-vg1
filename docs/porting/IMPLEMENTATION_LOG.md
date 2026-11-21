@@ -3,9 +3,118 @@
 Evidence record per milestone (TEST_PLAN.md §21). Feature-matrix boxes stay unchecked until the
 architect accepts the evidence; the matrix carries a pending-review status section instead.
 
+The first section is the current report. Every later section is a **historical** record of the
+commit it names: where one says Windows evidence was not obtained, that was true then and is
+superseded by the real Windows evidence in correction report 4.
+
 ---
 
-## Correction report 3: third M1/M2 review (M1 Partial, M2 Partial)
+## Correction report 4: fourth M1/M2 review (M1 Partial, M2 Partial) — current
+
+Scope: the architect's three items on `e2768cf` (`a0e3b8d` plus its Windows evidence), in one
+commit. No M3 content. The asset pipeline, SaveService candidate selection, IsoGrid,
+GridKinematicSolver, movement, camera, depth sorting, the TileMap renderer, the audio lifecycle
+and the PCK export test are unchanged.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted) |
+| Base | `e2768cf` (`a0e3b8d` + `docs/porting/windows_evidence/a0e3b8d/`) |
+| Host | **Windows 11 Pro N for Workstations 25H2, build 26200.8037**: a real Windows PC (the project owner's), not a simulation |
+| Godot / toolchain | Godot 4.7.2.stable.official.ed1daf0bf, `Godot_v4.7.2-stable_win64_console.exe`; PowerShell 7.7.0 (official portable zip, SHA-256 verified); Git 2.54.0.windows.1, `core.autocrlf=true`; Node v24.15.0, npm 11.12.1; Playwright 1.63.0; **Chromium 153.0.8010.12 (revision 1243, pinned)** |
+| Hosts not available | Android (no SDK, templates or device). Linux was not used for this report |
+
+### Windows evidence: obtained on a real Windows host
+
+A fresh `git clone` of `a0e3b8d` with Git for Windows' default line endings
+(`core.autocrlf=true`), `npm ci`, `npx playwright install chromium`, then from the clone root in
+PowerShell 7.7.0. Report and every step's merged stdout/stderr:
+`docs/porting/windows_evidence/a0e3b8d/REPORT.md`.
+
+| Step | Exit | Result |
+|---|---|---|
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | 0 | `asset check OK: 33 outputs identical (15 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12)`; `build_resources check (all): OK, 7 outputs identical` |
+| `<console exe> --headless --path godot --import` | 0 | no errors or warnings |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | 0 | **110 passed, 0 failed** |
+| `<console exe> --headless --path godot --quit-after 600` | 0 | engine banner only, no errors or warnings |
+| `git status --porcelain` | 0 | empty: the checks modified no tracked file |
+
+This produces, for `a0e3b8d`, the two Windows items earlier reports could not: the Windows
+PowerShell asset check exits 0, and the Godot Windows console suite passes (110/110). The asset
+check regenerates every output on the host and compares bytes, so Windows Chromium's font
+rasterization and WebAudio decoding yield the committed bytes. This commit is re-verified the same
+way below.
+
+### Changes per review item
+
+1. **Interaction broad phase covers the target radius (finding F-14).** The source measures prop
+   interactions to the prop's **edge** (`WorldMapModel.nearest_prop`:
+   `hypot(prop − player) − radius ≤ distance`; marking 1.05 to any vertical prop, drinking 1.0 to
+   a fountain), so an accepted prop's centre can lie distance + radius away: tree 1.37, pole 1.21,
+   fountain 1.41 (marking) and 1.36 (drinking) tiles. The previous probe (`PROBE_RADIUS` = 1.05,
+   the bare rule distance) would have missed every such target registered at its centre. The
+   probe is now conservatively inflated: `GridShapes.PROBE_RADIUS` = the largest prop rule
+   distance 1.05 + `MAX_TARGET_RADIUS` 0.5 (the widest catalog prop: house, gate) +
+   `SNAP_MARGIN` 0.1 (probe and target nodes both sit on whole pixels; a half-pixel diagonal is
+   0.0494 tiles) = **1.65 tiles**; `GridShapes.reach(rule, radius)` names the reach. The exact
+   source edge-distance logic (`nearest_prop`, as used by `try_pee` and `_check_drink`) is
+   unchanged and stays authoritative; no rule reads the probe before M3.
+   `test_SLICE_interaction_broad_phase_covers_prop_edge_reach`: the widest-prop and snap-margin
+   contract for every catalog prop; tree, pole and fountain (marking) and fountain (drinking) at
+   reach ± 1e-9 tiles in 16 grid directions (8 compass points and the 8 edge midpoints of the
+   probe polygon, its tightest directions); the exact decision accepts every inside point and
+   rejects every outside point; the old bare-distance polygon misses every inside point; and a
+   real physics-server overlap with a point-like target on the whole-pixel prop centre reports all
+   128 placements. Mutation check: with the old 1.05 probe this case fails all 128 broad-phase
+   assertions while the exact decisions still pass.
+   `test_SLICE_probe_and_hurtbox_are_projected_grid_ellipses_broad_phase_only` now uses the new
+   radius (a target at the probe radius overlaps; one 0.05 tile beyond the polygon vertex does
+   not). ARCHITECTURE §7.2 describes the reach.
+2. **Current evidence status.** This section carries the real Windows evidence. FEATURE_MATRIX:
+   CORE-001 and AST-019 command evidence name the Windows clean clone, a Windows verification note
+   was added, the Windows-host item was removed from "Not verified", and the isolated-project and
+   contact-shape rows were updated. Older reports are marked historical.
+3. **Windows evidence logs normalized.** Trailing spaces (23 Godot progress lines in step a) and
+   final blank lines (steps b and d) removed in `docs/porting/windows_evidence/a0e3b8d/`;
+   `git diff -w --ignore-blank-lines` shows no other change, and REPORT.md records it.
+
+### Commands executed and results (Windows 11)
+
+A fresh `git clone` of this commit's code (taken before this table was written; the tested tree
+differs from this commit only in this table) with Git for Windows' defaults
+(`core.autocrlf=true`), `npm ci` (exit 0) and `npx playwright install chromium` (exit 0), then
+from the clone root in PowerShell 7.7.0:
+
+| Command | Exit | Result |
+|---|---|---|
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | 0 | `asset check OK: 33 outputs identical (15 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12)`; `build_resources check (all): OK, 7 outputs identical` |
+| `<console exe> --headless --path godot --import` | 0 | no errors or warnings |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | 0 | **111 passed, 0 failed** (the 110 earlier cases + `test_SLICE_interaction_broad_phase_covers_prop_edge_reach`) |
+| `<console exe> --headless --path godot --quit-after 600` | 0 | engine banner only, no errors or warnings |
+| `git status --porcelain` | 0 | empty: the checks modified no tracked file |
+| `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | 0 | clean (whole port against the audited source; this commit) |
+| `bash godot/tools/source_tree_guard.sh` (Git Bash) | 0 | guard OK: only `/godot` and `docs/porting` differ from `95b69c0` |
+
+Not re-run for this commit: the PixiJS source checks (no source file changed), the captures and
+the rendered interpolation probe (nothing visual changed), and Linux.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-15 | Still proposed only (Windows CI outside the gate-5 paths); no longer the only route to Windows evidence, which now comes from a real host run |
+| D-01–D-14 | As in correction report 1 |
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 3: third M1/M2 review (`a0e3b8d`; M1 Partial, M2 Partial)
+
+> Historical record of `a0e3b8d`, superseded by correction report 4. Its "Windows evidence: still
+> not obtained" was true when written; real Windows evidence for `a0e3b8d` is in correction report 4.
 
 Scope: the architect's four items on `9f458f8`, in one commit. No M3 content. IsoGrid,
 GridKinematicSolver, movement, camera, depth sorting, TileMap rendering, Green Zone rules, the
@@ -78,7 +187,7 @@ under 157 and 153, so those outputs do not depend on the Chromium build.
 | PixiJS under Node v24.15.0: `npm test`, `npm run build`, `npm run smoke`, `npm run playtest -- --skill 0.7 --ending knight --choice first` | 30 files / **248 tests passed**; build OK; smoke **36/36 sub-levels ok**; playtest 36 sub-levels, 0 unfinished, 0 flagged, 0 page errors, ending KNIGHT; all exit 0 |
 | `godot/tools/source_tree_guard.sh`; `git diff --check` | guard OK (only `/godot` and `docs/porting` differ from `95b69c0`); diff clean |
 
-### Windows evidence: still not obtained
+### Windows evidence: still not obtained (historical; obtained since, see correction report 4)
 
 "Windows PowerShell asset check exits 0" and "Godot Windows suite remains 107/107 or better" were
 **not** run: no Windows machine is attached to this session and none is reachable from this
@@ -100,7 +209,9 @@ Pending.
 
 ---
 
-## Correction report 2: second M1/M2 review (M1 Partial, M2 Partial)
+## Historical — correction report 2: second M1/M2 review (`9f458f8`; M1 Partial, M2 Partial)
+
+> Historical record of `9f458f8`, superseded by later reports; current status is correction report 4.
 
 Scope: the architect's nine items on `7b67122`, in one commit. No M3 content. IsoGrid,
 GridKinematicSolver, movement, camera, depth sorting, Green Zone rules, safe-area routing, the
@@ -184,7 +295,7 @@ AudioService only gained the debug-only bounds of item 5).
 Captures and the rendered probes were not re-run: nothing visual or in the interpolation path
 changed (the 18 captures of correction report 1 stand).
 
-### Windows evidence: not obtained (blocked)
+### Windows evidence: not obtained (blocked) (historical; obtained since, see correction report 4)
 
 The two Windows items of the required evidence were **not** produced:
 
@@ -232,7 +343,9 @@ Pending.
 
 ---
 
-## Correction report: M1/M2 review fixes (M1 Partial, M2 Partial)
+## Historical — correction report 1: M1/M2 review fixes (`7b67122`; M1 Partial, M2 Partial)
+
+> Historical record of `7b67122`, superseded by later reports; current status is correction report 4.
 
 Scope: the architect's ten correction items on `5858dc7`, in one commit. No M3 content. IsoGrid,
 GridKinematicSolver, movement, depth sorting, camera, needs, pollution and scoring logic are
@@ -400,7 +513,9 @@ Pending.
 
 ---
 
-## Milestone report: M1 foundation (partial) + M2 Green Zone vertical slice (first submission, `5858dc7`)
+## Historical — milestone report: M1 foundation (partial) + M2 Green Zone vertical slice (first submission, `5858dc7`)
+
+> Historical record of `5858dc7`, superseded by later reports; current status is correction report 4.
 
 **Errata (corrected by the report above; this report is kept as submitted otherwise):**
 - The "Automated cases" list below used plan IDs for partial checks. Of those, AUTO-001, CFG-001,

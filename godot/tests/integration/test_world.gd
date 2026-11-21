@@ -399,7 +399,8 @@ func test_SLICE_probe_and_hurtbox_are_projected_grid_ellipses_broad_phase_only()
 	holder.add_child(dog)
 	dog.set_grid_position(20.0, 20.0)
 	var radii := {"InteractionProbe": GridShapes.PROBE_RADIUS, "Hurtbox": GameConfig.Player.RADIUS}
-	assert_true(GridShapes.PROBE_RADIUS >= maxf(GameConfig.Player.MARK_DISTANCE, maxf(GameConfig.Player.DRINK_DISTANCE, GameConfig.Treat.PICKUP_RADIUS)), "probe gates every Green Zone interaction radius")
+	var widest_reach := GridShapes.reach(maxf(GameConfig.Player.MARK_DISTANCE, GameConfig.Player.DRINK_DISTANCE), GridShapes.MAX_TARGET_RADIUS)
+	assert_true(GridShapes.PROBE_RADIUS >= maxf(widest_reach + GridShapes.SNAP_MARGIN, GameConfig.Treat.PICKUP_RADIUS), "probe gates every Green Zone interaction reach (rule distance + target radius)")
 	var rng := DeterministicRng.new(17)
 	for area_name: String in radii:
 		var r: float = radii[area_name]
@@ -424,10 +425,11 @@ func test_SLICE_probe_and_hurtbox_are_projected_grid_ellipses_broad_phase_only()
 		assert_true(Geometry2D.is_point_in_polygon(IsoGrid.grid_vec_to_screen(corner, 0.0), poly) and GridShapes.distance(0.0, 0.0, corner, 0.0) > r, area_name + ": the shape alone over-reports; the exact grid check decides")
 	# The exact decision is the source arithmetic.
 	assert_eq(GridShapes.distance(1.5, 2.0, 0.25, -1.0), JsMath.hypot(1.25, 3.0), "exact grid distance (V8 hypot)")
-	# Real physics overlap: a point-like Interaction area at grid distance 1.0 (east) overlaps the
-	# probe, one at 1.3 does not; the hurtbox is monitored by attack areas, not monitoring itself.
+	# Real physics overlap: a point-like Interaction area at the probe radius (east) overlaps the
+	# probe, one just beyond the polygon's vertex does not; the hurtbox is monitored by attack
+	# areas, not monitoring itself.
 	var targets: Array[Area2D] = []
-	for d in [1.0, 1.3]:
+	for d in [GridShapes.PROBE_RADIUS, GridShapes.PROBE_RADIUS / cos(PI / GridShapes.SEGMENTS) + 0.05]:
 		var t := Area2D.new()
 		t.collision_layer = 8
 		t.collision_mask = 0
@@ -445,5 +447,99 @@ func test_SLICE_probe_and_hurtbox_are_projected_grid_ellipses_broad_phase_only()
 	var hits := dog.interaction_probe.get_overlapping_areas()
 	assert_eq([hits.has(targets[0]), hits.has(targets[1])], [true, false], "Area2D overlap follows the projected grid ellipse")
 	assert_false(dog.hurtbox.monitoring, "hurtbox does not monitor")
+	tree.root.remove_child(holder)
+	holder.free()
+
+
+## Interaction broad phase before M3 consumers. Prop rules measure to the prop's EDGE like the source
+## (WorldMapModel.nearest_prop: hypot - radius <= distance), so the InteractionProbe must reach a
+## target registered at its grid centre at rule distance + prop radius. Tree, pole and fountain at
+## +-1e-9 tiles around each boundary, in 16 grid directions (the 8 compass points and 8 edge
+## midpoints of the probe polygon, its tightest directions): the exact decision accepts inside and
+## rejects outside, and the physics-server overlap with a point-like target on the whole-pixel prop
+## centre reports every case, so an accepted contact is never missed. A probe of the bare rule
+## distance (the previous contract) misses every accepted case.
+func test_SLICE_interaction_broad_phase_covers_prop_edge_reach() -> void:
+	const EPS := 1e-9
+	const P := GameConfig.Player
+	# Contract: every catalog prop at either prop rule distance, with both nodes on whole pixels.
+	var widest := 0.0
+	for kind: String in TileCatalog.PROP_INFO:
+		widest = maxf(widest, TileCatalog.prop_radius(kind))
+	assert_eq(GridShapes.MAX_TARGET_RADIUS, widest, "largest target radius = widest catalog prop")
+	var half_px := maxf(IsoGrid.screen_to_grid(0.5, 0.5).length(), IsoGrid.screen_to_grid(0.5, -0.5).length())
+	assert_true(GridShapes.SNAP_MARGIN >= 2.0 * half_px, "snap margin covers whole-pixel probe and target nodes")
+	assert_true(GridShapes.reach(maxf(P.MARK_DISTANCE, P.DRINK_DISTANCE), widest) + GridShapes.SNAP_MARGIN <= GridShapes.PROBE_RADIUS, "every catalog prop's edge reach is inside the probe")
+	# Isolated props on open grass, 10 tiles apart (beyond nearest_prop's search window).
+	var parsed := AsciiMapLoader.parse(PackedStringArray([
+		"##################################",
+		"#................................#",
+		"#................................#",
+		"#................................#",
+		"#....T.........P.........F.....S.#",
+		"#................................#",
+		"#................................#",
+		"#................................#",
+		"##################################",
+	]), ".", false)
+	assert_true(parsed["ok"], "map parses")
+	var map := WorldMapModel.new(parsed["level"])
+	var props := {}
+	for p in map.props:
+		props[p.kind] = p
+	assert_eq(props.keys(), ["tree", "pole", "fountain"], "one tree, pole and fountain")
+	# The rules' own queries (green_zone_rules.gd try_pee and _check_drink).
+	var vertical := func(p: WorldMapModel.MapProp) -> bool: return p.vertical
+	var is_fountain := func(p: WorldMapModel.MapProp) -> bool: return p.kind == "fountain"
+	var cases := [
+		["mark tree", props["tree"], P.MARK_DISTANCE, vertical],
+		["mark pole", props["pole"], P.MARK_DISTANCE, vertical],
+		["mark fountain", props["fountain"], P.MARK_DISTANCE, vertical],
+		["drink fountain", props["fountain"], P.DRINK_DISTANCE, is_fountain],
+	]
+	var holder := Node2D.new()
+	tree.root.add_child(holder)
+	var targets := {}
+	for kind: String in props:
+		var p: WorldMapModel.MapProp = props[kind]
+		var t := Area2D.new()
+		t.collision_layer = 8
+		t.collision_mask = 0
+		t.monitoring = false
+		var cs := CollisionShape2D.new()
+		var point := CircleShape2D.new()
+		point.radius = 0.5
+		cs.shape = point
+		t.add_child(cs)
+		var s := IsoGrid.grid_to_screen(p.x, p.y)
+		t.position = Vector2(JsMath.round(s.x), JsMath.round(s.y))
+		holder.add_child(t)
+		targets[kind] = t
+	var placed: Array = []
+	for c: Array in cases:
+		var p: WorldMapModel.MapProp = c[1]
+		var rule: float = c[2]
+		var reach := GridShapes.reach(rule, p.radius)
+		var bare := GridShapes.ellipse_polygon(rule)
+		for n in 8:
+			for offset: float in [0.0, 11.25]:
+				var a := deg_to_rad(45.0 * n + offset)
+				for side: float in [-1.0, 1.0]:
+					var x := p.x + (reach + side * EPS) * cos(a)
+					var y := p.y + (reach + side * EPS) * sin(a)
+					var label := "%s at %.2f deg, %s" % [c[0], rad_to_deg(a), "inside" if side < 0.0 else "outside"]
+					assert_eq(map.nearest_prop(x, y, rule, c[3]) == p, side < 0.0, label + ": exact edge-distance decision")
+					if side < 0.0:
+						assert_false(Geometry2D.is_point_in_polygon(IsoGrid.grid_vec_to_screen(p.x - x, p.y - y), bare), label + ": a probe without the prop radius would miss it")
+					var dog: PlayableDog = preload("res://entities/playable_dog/playable_dog.tscn").instantiate()
+					holder.add_child(dog)
+					dog.set_grid_position(x, y)
+					placed.append([label, dog, targets[p.kind]])
+	assert_eq(placed.size(), 128, "4 cases x 16 directions x inside/outside")
+	for k in 4:
+		await tree.physics_frame
+	for e: Array in placed:
+		var dog: PlayableDog = e[1]
+		assert_true(dog.interaction_probe.get_overlapping_areas().has(e[2]), e[0] + ": broad phase reports the target")
 	tree.root.remove_child(holder)
 	holder.free()

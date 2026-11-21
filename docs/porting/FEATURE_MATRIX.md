@@ -16,7 +16,8 @@ Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCE
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted.
-Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs).
+Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
+`docs/porting/windows_evidence/` (real Windows host runs).
 Row status: **Slice** = the row's listed IDs are satisfied by full suite cases for the current
 slice; **Partial** = implemented with a listed gap or only partial cases; **Config** = configured,
 not executed; **—** = not started.
@@ -25,7 +26,7 @@ Acceptance IDs are claimed only through a `test_<ID>_…` suite case that exerci
 ID (TEST_PLAN.md case naming). `test_P_<ID>_…` cases are partial evidence and satisfy nothing;
 `test_SLICE_…` cases check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (57), Linux headless, Godot 4.7.2:**
+**Acceptance IDs satisfied by a full suite case (57), Linux headless and the Windows console build, Godot 4.7.2:**
 CORE-002; RNG-001, RNG-003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001, MAP-002, MAP-004, MAP-005, MAP-006, MAP-007;
 DOG-001–004, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-014; FLOW-001, FLOW-002;
@@ -40,9 +41,18 @@ only), COLL-005 (Green Zone only), GZ-001, GZ-002, GZ-021, GZ-025, AST-001–005
 AST-017, AST-018, AST-020, AUD-001, SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
 
 **Command-level evidence (no suite case, architect to judge):** CORE-001 (clean-cache import and
-600-frame Main run, Linux); AST-019 (`build_assets.sh --check`: every generated output
-byte-identical under the Chromium build pinned by the locked playwright-core, 153.0.8010.12;
-Linux and a simulated CRLF checkout, not a Windows host).
+600-frame Main run, Linux and a real Windows 11 clean clone); AST-019 (every generated output
+byte-identical under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
+`build_assets.sh --check` on Linux, and `pwsh godot/tools/build_assets.ps1 -Check` on a real
+Windows 11 clean clone with `core.autocrlf=true`).
+
+**Windows verification (real host, Windows 11 25H2, PowerShell 7.7.0, Godot 4.7.2 console exe,
+Node 24.15.0, pinned Chromium 153.0.8010.12):** a fresh `core.autocrlf=true` clone of `a0e3b8d`
+passed `build_assets.ps1 -Check` (33 + 7 outputs identical), the console import, the console suite
+(110 passed, 0 failed), the 600-frame Main run (no errors or warnings) and an empty
+`git status --porcelain` (`docs/porting/windows_evidence/a0e3b8d/REPORT.md`, with logs). The
+current commit was re-verified the same way (IMPLEMENTATION_LOG.md, correction report 4). Windows is
+a development host only; the D-15 Windows CI workflow stays a proposal.
 
 **Export evidence (SLICE, no plan ID):** the Android preset exports as a PCK with the test binary and
 runs as a packed runtime: every runtime resource loads from the pack, no JSON/tests/tools/
@@ -53,15 +63,12 @@ environment manifest is packed, the exported leading-silence Resource reaches Au
 (`test_SLICE_real_input_run_reaches_exit` is the current real-input run); FLOW-003/004, GZ-005 and
 every other ID not listed above.
 
-**Not verified (no device or host here):** everything on Android hardware (export, install, Back,
-immersive, keep-awake, display cutout safe area, touch hardware, audio focus, performance) and
-every Windows-host command (asset `--check` via `build_assets.ps1` and the `_console.exe` suite are
-documented but were not executed on Windows: no Windows host is reachable from this environment;
-a Windows CI workflow is proposed in `docs/porting/proposals/` pending approval, D-15).
+**Not verified (no device here):** everything on Android hardware (export, install, Back,
+immersive, keep-awake, display cutout safe area, touch hardware, audio focus, performance).
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Partial | CORE-001 command evidence; source-tree guard | Windows host unverified |
+| Godot project isolated under `/godot` | Partial | CORE-001 command evidence (Linux and Windows 11 clean clone); source-tree guard | command evidence only, architect to judge |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
 | Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004; underlay/letterbox SLICE case; 4 viewport captures | VIEW-004 rendered checks outside the suite; device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | no device (B-04) |
@@ -78,7 +85,7 @@ a Windows CI workflow is proposed in `docs/porting/proposals/` pending approval,
 | Animated terrain and pollution presentation | Slice | WORLD-004, WORLD-005 (engine TileData), captures 10/11/20 | three layers, approved in ARCHITECTURE §7 |
 | ASCII maps and markers | Partial | MAP-001, MAP-002, MAP-004–007; P: MAP-003 | story maps M5 |
 | Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
-| Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap | consumers arrive with M3 |
+| Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap; SLICE: probe reaches prop centres at rule distance + prop radius (tree/pole/fountain ±1e-9 boundaries, 16 directions, exact edge-distance decision authoritative) | consumers arrive with M3 |
 | Zampanò state controller | Partial | DOG-001–004, DOG-006, DOG-007; P: DOG-005, DOG-008 | fetch (M3), stage change (M5) |
 | Zampanò normal art | Partial | P: AST-002–005 | other playable dogs M1 completion |
 | Redesigned 96×96 park/topology | Slice | MAP-007 | — |
