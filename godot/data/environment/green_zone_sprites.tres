@@ -1,0 +1,254 @@
+[gd_resource type="Resource" script_class="SpriteCatalog" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/ch01_greenzone.png" id="1_wd3be"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/treat.png" id="2_6n61w"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/poop.png" id="3_2g0ot"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/shadow.png" id="4_v0skl"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/shadowSmall.png" id="5_1xaxm"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/star.png" id="6_n4vns"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/dogFace.png" id="7_x1q0b"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/peeIcon.png" id="8_gqgo6"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/barkIcon.png" id="9_47cn7"]
+[ext_resource type="Texture2D" path="res://assets/generated/sprites/drop.png" id="10_5stiu"]
+[ext_resource type="Texture2D" path="res://assets/sprites/run_icon.png" id="11_p4njg"]
+[ext_resource type="Script" path="res://core/resources/sprite_catalog.gd" id="12_7f6ay"]
+
+[sub_resource type="AtlasTexture" id="spr_tree_0"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(215, 1, 40, 60)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_tree_1"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(257, 1, 40, 60)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_tree_2"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(299, 1, 40, 60)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_forestTree_0"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(425, 1, 36, 56)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_forestTree_1"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(463, 1, 36, 56)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_bush_0"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(185, 127, 26, 18)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_bush_1"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(213, 127, 26, 18)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_pole_0"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(57, 69, 12, 52)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_fountain_0"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(447, 69, 18, 26)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_exitFlag_0"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(347, 69, 26, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_exitRing_0"]
+atlas = ExtResource("1_wd3be")
+region = Rect2(171, 153, 32, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_treat_0"]
+atlas = ExtResource("2_6n61w")
+region = Rect2(0, 0, 13, 8)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_poop_0"]
+atlas = ExtResource("3_2g0ot")
+region = Rect2(0, 0, 10, 9)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_shadow_0"]
+atlas = ExtResource("4_v0skl")
+region = Rect2(0, 0, 20, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_shadowSmall_0"]
+atlas = ExtResource("5_1xaxm")
+region = Rect2(0, 0, 10, 4)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_star_0"]
+atlas = ExtResource("6_n4vns")
+region = Rect2(0, 0, 11, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_star_1"]
+atlas = ExtResource("6_n4vns")
+region = Rect2(11, 0, 11, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_star_2"]
+atlas = ExtResource("6_n4vns")
+region = Rect2(22, 0, 11, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_dogFace_0"]
+atlas = ExtResource("7_x1q0b")
+region = Rect2(0, 0, 17, 14)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_peeIcon_0"]
+atlas = ExtResource("8_gqgo6")
+region = Rect2(0, 0, 9, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_barkIcon_0"]
+atlas = ExtResource("9_47cn7")
+region = Rect2(0, 0, 13, 11)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_drop_0"]
+atlas = ExtResource("10_5stiu")
+region = Rect2(0, 0, 5, 7)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_drop_1"]
+atlas = ExtResource("10_5stiu")
+region = Rect2(5, 0, 5, 7)
+filter_clip = true
+
+[resource]
+script = ExtResource("12_7f6ay")
+entries = {
+"barkIcon_0": {
+"anchor": Vector2i(6, 5),
+"size": Vector2i(13, 11),
+"texture": SubResource("spr_barkIcon_0")
+},
+"bush_0": {
+"anchor": Vector2i(13, 14),
+"size": Vector2i(26, 18),
+"texture": SubResource("spr_bush_0")
+},
+"bush_1": {
+"anchor": Vector2i(13, 14),
+"size": Vector2i(26, 18),
+"texture": SubResource("spr_bush_1")
+},
+"dogFace_0": {
+"anchor": Vector2i(0, 0),
+"size": Vector2i(17, 14),
+"texture": SubResource("spr_dogFace_0")
+},
+"drop_0": {
+"anchor": Vector2i(2, 3),
+"size": Vector2i(5, 7),
+"texture": SubResource("spr_drop_0")
+},
+"drop_1": {
+"anchor": Vector2i(2, 3),
+"size": Vector2i(5, 7),
+"texture": SubResource("spr_drop_1")
+},
+"exitFlag_0": {
+"anchor": Vector2i(6, 38),
+"size": Vector2i(26, 40),
+"texture": SubResource("spr_exitFlag_0")
+},
+"exitRing_0": {
+"anchor": Vector2i(16, 0),
+"size": Vector2i(32, 16),
+"texture": SubResource("spr_exitRing_0")
+},
+"forestTree_0": {
+"anchor": Vector2i(18, 52),
+"size": Vector2i(36, 56),
+"texture": SubResource("spr_forestTree_0")
+},
+"forestTree_1": {
+"anchor": Vector2i(18, 52),
+"size": Vector2i(36, 56),
+"texture": SubResource("spr_forestTree_1")
+},
+"fountain_0": {
+"anchor": Vector2i(9, 22),
+"size": Vector2i(18, 26),
+"texture": SubResource("spr_fountain_0")
+},
+"peeIcon_0": {
+"anchor": Vector2i(4, 5),
+"size": Vector2i(9, 11),
+"texture": SubResource("spr_peeIcon_0")
+},
+"pole_0": {
+"anchor": Vector2i(6, 50),
+"size": Vector2i(12, 52),
+"texture": SubResource("spr_pole_0")
+},
+"poop_0": {
+"anchor": Vector2i(5, 8),
+"size": Vector2i(10, 9),
+"texture": SubResource("spr_poop_0")
+},
+"runIcon_0": {
+"anchor": Vector2i(0, 0),
+"size": Vector2i(13, 11),
+"texture": ExtResource("11_p4njg")
+},
+"shadowSmall_0": {
+"anchor": Vector2i(5, 2),
+"size": Vector2i(10, 4),
+"texture": SubResource("spr_shadowSmall_0")
+},
+"shadow_0": {
+"anchor": Vector2i(10, 3),
+"size": Vector2i(20, 7),
+"texture": SubResource("spr_shadow_0")
+},
+"star_0": {
+"anchor": Vector2i(0, 0),
+"size": Vector2i(11, 11),
+"texture": SubResource("spr_star_0")
+},
+"star_1": {
+"anchor": Vector2i(0, 0),
+"size": Vector2i(11, 11),
+"texture": SubResource("spr_star_1")
+},
+"star_2": {
+"anchor": Vector2i(0, 0),
+"size": Vector2i(11, 11),
+"texture": SubResource("spr_star_2")
+},
+"treat_0": {
+"anchor": Vector2i(6, 7),
+"size": Vector2i(13, 8),
+"texture": SubResource("spr_treat_0")
+},
+"tree_0": {
+"anchor": Vector2i(20, 56),
+"size": Vector2i(40, 60),
+"texture": SubResource("spr_tree_0")
+},
+"tree_1": {
+"anchor": Vector2i(20, 56),
+"size": Vector2i(40, 60),
+"texture": SubResource("spr_tree_1")
+},
+"tree_2": {
+"anchor": Vector2i(20, 56),
+"size": Vector2i(40, 60),
+"texture": SubResource("spr_tree_2")
+}
+}

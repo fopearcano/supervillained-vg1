@@ -1,0 +1,296 @@
+{
+ "audited_commit": "95b69c04c5c3b9626e49719f8f916a44659cd265",
+ "generated_by": "godot/tools/source_extract/extract.mjs",
+ "copies": [
+  {
+   "source": "public/sprites/zampano.png",
+   "target": "assets/sprites/zampano.png",
+   "sha256": "07075090a6ed4b5bacfe928c88607ee0763e289783ab7168740d8f1f05785b1b",
+   "bytes": 683263,
+   "use": "Zampanò normal 8-direction main sheet (11 actions x 8 dirs, 40x40)",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 320,
+   "h": 3520
+  },
+  {
+   "source": "public/sprites/zampano-tired.png",
+   "target": "assets/sprites/zampano-tired.png",
+   "sha256": "e9d0f58f6ac2655cc3df46bb7ad8a64e2703cb575d40caa43ff1e6ac14626ed1",
+   "bytes": 23690,
+   "use": "Zampanò normal tired sheet (2 frames x 8 dirs)",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 80,
+   "h": 320
+  },
+  {
+   "source": "public/sprites/runIcon.png",
+   "target": "assets/sprites/run_icon.png",
+   "sha256": "7e61c0c7719b34c5413463150ae7a076f4128ac9f61950d4fd3e25b2b2c54f91",
+   "bytes": 162,
+   "use": "RUN button icon",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 13,
+   "h": 11
+  },
+  {
+   "source": "public/environment-ink/ch01_greenzone.png",
+   "target": "assets/environment/ch01_greenzone.png",
+   "sha256": "13e9c7b2651374cfb5423e7f2320eb407d4b379c93f21539d016b9621fc0290d",
+   "bytes": 44545,
+   "use": "Color Ink Green Zone environment bank",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 512,
+   "h": 512
+  },
+  {
+   "source": "public/environment-ink/manifest.json",
+   "target": "assets/environment/manifest.json",
+   "sha256": "6ca3940ef6b66d3ed49c90c6ccac0697e1e80cff6a48613da0b20134a420a0c8",
+   "bytes": 932476,
+   "use": "Color Ink environment manifest (frames, themes); floorDesigns ignored for 1:arcade",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "public/icon-192.png",
+   "target": "assets/branding/icon.png",
+   "sha256": "dc4d98b0e9dff3243082ee52e06d3471c7c270b512fc3ac811d123632ea729c9",
+   "bytes": 14620,
+   "use": "application icon (launcher art)",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "source": "src/assets/fonts/OFL.txt",
+   "target": "assets/fonts/OFL.txt",
+   "sha256": "98e451fe911e5ee4a1a45359535dc30ea7df28b8d9a9cd1f741778efab1387ee",
+   "bytes": 4412,
+   "use": "Press Start 2P license (OFL)",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/music/greenzone-music.mp3",
+   "target": "assets/audio/recorded/greenzone-music.mp3",
+   "sha256": "709817c4efa5c1d44f40d18fc25e081d044c3a82c3065b8ae37dfedf56f1a639",
+   "bytes": 2711272,
+   "use": "Green Zone music (MUSIC_FILES.greenzone)",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/dog-bark.mp3",
+   "target": "assets/audio/recorded/dog-bark.mp3",
+   "sha256": "12cf5bfa2d535e5b150652cf1c3ff4390996e65c2cfff794f9ac545d1eea6df2",
+   "bytes": 31810,
+   "use": "SOUND_FILES.bark",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/food-collect.mp3",
+   "target": "assets/audio/recorded/food-collect.mp3",
+   "sha256": "90d8c51993c878297a0387e0a0cad76fbbc016d76dbac9a96ccae7911ad4d9ce",
+   "bytes": 16196,
+   "use": "SOUND_FILES.treat",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/poos.mp3",
+   "target": "assets/audio/recorded/poos.mp3",
+   "sha256": "f46419f3666240e119121e685f4e95ac3ba7e1bbaa0bd299a1565a49566e9f8f",
+   "bytes": 22961,
+   "use": "SOUND_FILES.poop",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/pees-drop.mp3",
+   "target": "assets/audio/recorded/pees-drop.mp3",
+   "sha256": "bb55e5b7088049be992a1225de1fa748a94a2afd7bc359569b33bacfcbb4be3f",
+   "bytes": 5077,
+   "use": "SOUND_FILES.pee",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/pees-collect.wav",
+   "target": "assets/audio/recorded/pees-collect.wav",
+   "sha256": "4d4babc0433e64062979d79a97b89228b3a6e0d8b22bf2a8c551a1f41ee9911c",
+   "bytes": 359268,
+   "use": "SOUND_FILES.drink",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  },
+  {
+   "source": "assets/sounds/water.mp3",
+   "target": "assets/audio/recorded/water.mp3",
+   "sha256": "fe5c4f992618d811031f7fecf758a1d0366c87cd8aedefd194bdfe4b91aad0f7",
+   "bytes": 40437,
+   "use": "SOUND_FILES.splash",
+   "provenance": "repository file at audited commit; distribution rights to be recorded by owner (REL-001)"
+  }
+ ],
+ "inputs": [
+  {
+   "source": "src/assets/fonts/PressStart2P.woff2",
+   "sha256": "afec86997fdaf54af1f59358fa2c1e2a0f1d04146edad18e5cd141d0384a7548",
+   "bytes": 12512,
+   "use": "converter input for the bitmap font (not exported)"
+  },
+  {
+   "source": "src/ui/pixelFont.ts",
+   "sha256": "f4951035674303c11391faa4825fbbdae809651ecff61b0c11a709c2973c2d38",
+   "bytes": 5076,
+   "use": "bitmap font rasterization contract (executed in Chromium)"
+  },
+  {
+   "source": "src/assets/placeholders/items.ts",
+   "sha256": "746f4ca5e4796439766a1cfeda824e0c47ae3e0ff324f85e1ff15b66f0dd4b75",
+   "bytes": 7454,
+   "use": "procedural item/HUD sprite generators (executed)"
+  },
+  {
+   "source": "src/assets/placeholders/critters.ts",
+   "sha256": "417807d6b758f632d1cc3114c18f3f103543d282dd0fe4727fa491bb98c6ace4",
+   "bytes": 19475,
+   "use": "procedural shadow generator (executed)"
+  }
+ ],
+ "generated": [
+  {
+   "key": "treat",
+   "target": "assets/generated/sprites/treat.png",
+   "sha256": "b872648795ef3ebb5fa0d034bdc7dd436b8207fe011bf7b90a0973806863f3ff",
+   "w": 13,
+   "h": 8,
+   "frame_w": 13,
+   "frame_h": 8,
+   "variants": 1,
+   "anchor_x": 6,
+   "anchor_y": 7,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "poop",
+   "target": "assets/generated/sprites/poop.png",
+   "sha256": "21b1064d913d2df196aa01221ce351d847cadcc8a032963de8d9a5198203bf65",
+   "w": 10,
+   "h": 9,
+   "frame_w": 10,
+   "frame_h": 9,
+   "variants": 1,
+   "anchor_x": 5,
+   "anchor_y": 8,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "shadow",
+   "target": "assets/generated/sprites/shadow.png",
+   "sha256": "44bfee0a54a27b56cf9b7c6d35d16825f39589234165e2bb8fa2df73027c8512",
+   "w": 20,
+   "h": 7,
+   "frame_w": 20,
+   "frame_h": 7,
+   "variants": 1,
+   "anchor_x": 10,
+   "anchor_y": 3,
+   "recipe": "src/assets/placeholders/critters.ts drawShadow"
+  },
+  {
+   "key": "shadowSmall",
+   "target": "assets/generated/sprites/shadowSmall.png",
+   "sha256": "f5170d1b1667e21d79699df25ccbce0a06420d745b0c37199bf7cf6e821eb039",
+   "w": 10,
+   "h": 4,
+   "frame_w": 10,
+   "frame_h": 4,
+   "variants": 1,
+   "anchor_x": 5,
+   "anchor_y": 2,
+   "recipe": "src/assets/placeholders/critters.ts drawShadow"
+  },
+  {
+   "key": "star",
+   "target": "assets/generated/sprites/star.png",
+   "sha256": "5c24c9dfec027d8bed453352b4bd965436907437782afce305781e3861e21394",
+   "w": 33,
+   "h": 11,
+   "frame_w": 11,
+   "frame_h": 11,
+   "variants": 3,
+   "anchor_x": 0,
+   "anchor_y": 0,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "dogFace",
+   "target": "assets/generated/sprites/dogFace.png",
+   "sha256": "d79c55d023edb5cdbd25ecaa30e07299f4cddd29d6d9114a5fdde5af2930b324",
+   "w": 17,
+   "h": 14,
+   "frame_w": 17,
+   "frame_h": 14,
+   "variants": 1,
+   "anchor_x": 0,
+   "anchor_y": 0,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "peeIcon",
+   "target": "assets/generated/sprites/peeIcon.png",
+   "sha256": "51ce1ee99fd1b4191e7d0a27db2bbc427fd9e3276565ba5cc55be9c073f933c5",
+   "w": 9,
+   "h": 11,
+   "frame_w": 9,
+   "frame_h": 11,
+   "variants": 1,
+   "anchor_x": 4,
+   "anchor_y": 5,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "barkIcon",
+   "target": "assets/generated/sprites/barkIcon.png",
+   "sha256": "910c2d04a2e441e0bcfb40bd97f8541c19a02ce73618da4035b3b5ef70d66780",
+   "w": 13,
+   "h": 11,
+   "frame_w": 13,
+   "frame_h": 11,
+   "variants": 1,
+   "anchor_x": 6,
+   "anchor_y": 5,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "drop",
+   "target": "assets/generated/sprites/drop.png",
+   "sha256": "3c8308aa65e67f5af1c48b415ca591220d49bc1909b544f6ae004b6530701688",
+   "w": 10,
+   "h": 7,
+   "frame_w": 5,
+   "frame_h": 7,
+   "variants": 2,
+   "anchor_x": 2,
+   "anchor_y": 3,
+   "recipe": "src/assets/placeholders/items.ts"
+  },
+  {
+   "key": "pixel_font",
+   "target": "assets/fonts/pixel_font.png",
+   "sha256": "ff691d31d7c31918faa64be8c342e104cd4e7e49aca46cc4b9a2c7f9c4aa03c6",
+   "w": 768,
+   "h": 8,
+   "advance": 8,
+   "cell_h": 8,
+   "recipe": "src/ui/pixelFont.ts executed in Chromium",
+   "chromium": "157.0.8103.78",
+   "unknown_glyph_x": 248
+  },
+  {
+   "key": "pixel_font_fnt",
+   "target": "assets/fonts/pixel_font.fnt",
+   "sha256": "cf5d257ed8eb9a1c16a4b4993e64d67ab0db13bf6d26e62d205d90cb82b48b5a"
+  }
+ ],
+ "toolchain": {
+  "node": "v24.22.3",
+  "playwright": "1.63.0",
+  "chromium": "157.0.8103.78",
+  "pinned_node": "24.15.0"
+ }
+}

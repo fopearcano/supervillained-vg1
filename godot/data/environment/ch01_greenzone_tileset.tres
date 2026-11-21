@@ -1,0 +1,189 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/generated/environment/ch01_greenzone_tiles.png" id="1_h4hww"]
+
+[sub_resource type="TileSetAtlasSource" id="atlas_ground"]
+texture = ExtResource("1_h4hww")
+texture_region_size = Vector2i(32, 22)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -3)
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, -3)
+2:0/0 = 0
+2:0/0/texture_origin = Vector2i(0, -3)
+3:0/0 = 0
+3:0/0/texture_origin = Vector2i(0, -3)
+4:0/0 = 0
+4:0/0/texture_origin = Vector2i(0, -3)
+5:0/0 = 0
+5:0/0/texture_origin = Vector2i(0, -3)
+6:0/0 = 0
+6:0/0/texture_origin = Vector2i(0, -3)
+7:0/0 = 0
+7:0/0/texture_origin = Vector2i(0, -3)
+8:0/0 = 0
+8:0/0/texture_origin = Vector2i(0, -3)
+9:0/0 = 0
+9:0/0/texture_origin = Vector2i(0, -3)
+10:0/0 = 0
+10:0/0/texture_origin = Vector2i(0, -3)
+11:0/0 = 0
+11:0/0/texture_origin = Vector2i(0, -3)
+12:0/0 = 0
+12:0/0/texture_origin = Vector2i(0, -3)
+0:1/0 = 0
+0:1/0/texture_origin = Vector2i(0, -3)
+1:1/0 = 0
+1:1/0/texture_origin = Vector2i(0, -3)
+2:1/0 = 0
+2:1/0/texture_origin = Vector2i(0, -3)
+3:1/0 = 0
+3:1/0/texture_origin = Vector2i(0, -3)
+4:1/0 = 0
+4:1/0/texture_origin = Vector2i(0, -3)
+5:1/0 = 0
+5:1/0/texture_origin = Vector2i(0, -3)
+6:1/0 = 0
+6:1/0/texture_origin = Vector2i(0, -3)
+7:1/0 = 0
+7:1/0/texture_origin = Vector2i(0, -3)
+8:1/0 = 0
+8:1/0/texture_origin = Vector2i(0, -3)
+9:1/0 = 0
+9:1/0/texture_origin = Vector2i(0, -3)
+10:1/0 = 0
+10:1/0/texture_origin = Vector2i(0, -3)
+11:1/0 = 0
+11:1/0/texture_origin = Vector2i(0, -3)
+12:1/0 = 0
+12:1/0/texture_origin = Vector2i(0, -3)
+13:1/0 = 0
+13:1/0/texture_origin = Vector2i(0, -3)
+14:1/0 = 0
+14:1/0/texture_origin = Vector2i(0, -3)
+15:1/0 = 0
+15:1/0/texture_origin = Vector2i(0, -3)
+0:2/0 = 0
+0:2/0/texture_origin = Vector2i(0, -3)
+1:2/0 = 0
+1:2/0/texture_origin = Vector2i(0, -3)
+2:2/0 = 0
+2:2/0/texture_origin = Vector2i(0, -3)
+3:2/0 = 0
+3:2/0/texture_origin = Vector2i(0, -3)
+4:2/0 = 0
+4:2/0/texture_origin = Vector2i(0, -3)
+5:2/0 = 0
+5:2/0/texture_origin = Vector2i(0, -3)
+6:2/0 = 0
+6:2/0/texture_origin = Vector2i(0, -3)
+7:2/0 = 0
+7:2/0/texture_origin = Vector2i(0, -3)
+8:2/0 = 0
+8:2/0/texture_origin = Vector2i(0, -3)
+9:2/0 = 0
+9:2/0/texture_origin = Vector2i(0, -3)
+10:2/0 = 0
+10:2/0/texture_origin = Vector2i(0, -3)
+11:2/0 = 0
+11:2/0/texture_origin = Vector2i(0, -3)
+12:2/0 = 0
+12:2/0/texture_origin = Vector2i(0, -3)
+13:2/0 = 0
+13:2/0/texture_origin = Vector2i(0, -3)
+14:2/0 = 0
+14:2/0/texture_origin = Vector2i(0, -3)
+15:2/0 = 0
+15:2/0/texture_origin = Vector2i(0, -3)
+0:3/animation_frame_0/duration = 0.55
+0:3/animation_frame_1/duration = 0.55
+0:3/0 = 0
+0:3/0/texture_origin = Vector2i(0, -3)
+2:3/animation_frame_0/duration = 0.55
+2:3/animation_frame_1/duration = 0.55
+2:3/0 = 0
+2:3/0/texture_origin = Vector2i(0, -3)
+0:4/animation_frame_0/duration = 0.24
+0:4/animation_frame_1/duration = 0.24
+0:4/animation_frame_2/duration = 0.24
+0:4/animation_frame_3/duration = 0.24
+0:4/0 = 0
+0:4/0/texture_origin = Vector2i(0, 2)
+4:4/animation_frame_0/duration = 0.24
+4:4/animation_frame_1/duration = 0.24
+4:4/animation_frame_2/duration = 0.24
+4:4/animation_frame_3/duration = 0.24
+4:4/0 = 0
+4:4/0/texture_origin = Vector2i(0, 2)
+8:4/animation_frame_0/duration = 0.24
+8:4/animation_frame_1/duration = 0.24
+8:4/animation_frame_2/duration = 0.24
+8:4/animation_frame_3/duration = 0.24
+8:4/0 = 0
+8:4/0/texture_origin = Vector2i(0, 2)
+12:4/animation_frame_0/duration = 0.24
+12:4/animation_frame_1/duration = 0.24
+12:4/animation_frame_2/duration = 0.24
+12:4/animation_frame_3/duration = 0.24
+12:4/0 = 0
+12:4/0/texture_origin = Vector2i(0, 2)
+
+[resource]
+tile_shape = 1
+tile_layout = 5
+tile_size = Vector2i(32, 16)
+sources/0 = SubResource("atlas_ground")
+metadata/tile_coords = {
+"dirt_0": Vector2i(7, 0),
+"dirt_1": Vector2i(8, 0),
+"dirt_2": Vector2i(9, 0),
+"dirt_3": Vector2i(10, 0),
+"exitRing_0": Vector2i(12, 0),
+"forest_0": Vector2i(4, 0),
+"forest_1": Vector2i(5, 0),
+"forest_2": Vector2i(6, 0),
+"fresh_0": Vector2i(11, 0),
+"grass_0": Vector2i(0, 0),
+"grass_1": Vector2i(1, 0),
+"grass_2": Vector2i(2, 0),
+"grass_3": Vector2i(3, 0),
+"path_0_0": Vector2i(0, 1),
+"path_0_1": Vector2i(1, 1),
+"path_10_0": Vector2i(4, 2),
+"path_10_1": Vector2i(5, 2),
+"path_11_0": Vector2i(6, 2),
+"path_11_1": Vector2i(7, 2),
+"path_12_0": Vector2i(8, 2),
+"path_12_1": Vector2i(9, 2),
+"path_13_0": Vector2i(10, 2),
+"path_13_1": Vector2i(11, 2),
+"path_14_0": Vector2i(12, 2),
+"path_14_1": Vector2i(13, 2),
+"path_15_0": Vector2i(14, 2),
+"path_15_1": Vector2i(15, 2),
+"path_1_0": Vector2i(2, 1),
+"path_1_1": Vector2i(3, 1),
+"path_2_0": Vector2i(4, 1),
+"path_2_1": Vector2i(5, 1),
+"path_3_0": Vector2i(6, 1),
+"path_3_1": Vector2i(7, 1),
+"path_4_0": Vector2i(8, 1),
+"path_4_1": Vector2i(9, 1),
+"path_5_0": Vector2i(10, 1),
+"path_5_1": Vector2i(11, 1),
+"path_6_0": Vector2i(12, 1),
+"path_6_1": Vector2i(13, 1),
+"path_7_0": Vector2i(14, 1),
+"path_7_1": Vector2i(15, 1),
+"path_8_0": Vector2i(0, 2),
+"path_8_1": Vector2i(1, 2),
+"path_9_0": Vector2i(2, 2),
+"path_9_1": Vector2i(3, 2),
+"tallGrass_phase0": Vector2i(0, 4),
+"tallGrass_phase1": Vector2i(4, 4),
+"tallGrass_phase2": Vector2i(8, 4),
+"tallGrass_phase3": Vector2i(12, 4),
+"water_phase0": Vector2i(0, 3),
+"water_phase1": Vector2i(2, 3)
+}
+metadata/source = "public/environment-ink ch01_greenzone (audited 95b69c0)"

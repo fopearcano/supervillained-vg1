@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="PlayableCharacterProfile" format=3]
+
+[ext_resource type="SpriteFrames" path="res://data/characters/zampano_frames.tres" id="1_xxmy3"]
+[ext_resource type="Script" path="res://core/resources/playable_character_profile.gd" id="2_kwltx"]
+
+[resource]
+script = ExtResource("2_kwltx")
+id = &"zampano"
+display_name = "Zampanò"
+normal_frames = ExtResource("1_xxmy3")
+action_durations = {
+"bark": 0.2,
+"eat": 0.8799999999999999,
+"fetch": 0.3076923076923077,
+"hurt": 0.2,
+"idle": 0.8799999999999999,
+"pee": 1.5599999999999998,
+"poop": 1.5199999999999998,
+"run": 0.43,
+"sit": 1.0200000000000002,
+"sniff": 0.4,
+"tired": 0.5,
+"walk": 0.74
+}
+timed_actions = PackedStringArray("idle", "walk", "run", "pee", "poop", "eat", "sit")

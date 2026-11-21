@@ -1,0 +1,12 @@
+# Godot editor/import cache and local state (never committed).
+.godot/
+*.translation
+export/
+build/
+*.apk
+*.aab
+*.keystore
+*.jks
+export_credentials.cfg
+test-results/
+tests/captures/latest/

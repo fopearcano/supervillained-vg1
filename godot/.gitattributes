@@ -1,0 +1,7 @@
+# Byte-identical copies of source-repository files: their SHA-256 is asserted by the content tests
+# (AST-001), so git must never normalize line endings or whitespace in them.
+assets/environment/manifest.json binary
+assets/fonts/OFL.txt binary
+*.png binary
+*.mp3 binary
+*.wav binary

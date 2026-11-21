@@ -12,6 +12,54 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 
 Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
+## Godot implementation status — M1 (partial) + M2 vertical slice, awaiting architect review
+
+Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
+Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/`.
+Status: **Slice** = implemented with passing automated evidence; **Partial** = implemented with a listed gap; **Config** = configured, not executed; **—** = not started.
+
+| Matrix row | Godot status | Evidence | Gap / note |
+|---|---|---|---|
+| Godot project isolated under `/godot` | Slice | CORE-001 clean-cache import, 600-frame main-loop run, source-tree guard | — |
+| Fixed 60 Hz game rules | Slice | CORE-002; scene tick in source order | — |
+| Adaptive pixel-perfect viewport | Slice | VIEW-001/002; captures at 192/216/270 logical widths | VIEW-003/004 safe-area and multi-rate checks pending (D-14) |
+| Portrait / Back / immersive / keep-awake | Config | project settings, `export_presets.cfg`, Back/background pause handlers | no device (B-04) |
+| Native Android build | — | — | no templates/SDK/device here (B-04) |
+| 2:1 projection | Slice | ISO-001–004 | 64-bit math (F-03) |
+| Screen-space movement semantics | Slice | ISO-004, MOVE-001 | — |
+| Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
+| Walk/run/terrain speed | Slice | MOVE-003/004 vs real source `Zampano` (≤1e-9 tile) | — |
+| Collision and sliding | Slice | COLL-001/002/004/006; decision test (GridKinematicSolver selected) | native slide rejected, see log |
+| Shared Green Zone/story world | Slice | ARCH-001, ARCH-001b (dummy story map) | — |
+| Camera lag/look-ahead/sway/shake/clamp | Slice | CAM-001/002/004 | shake noise seeded (D-04) |
+| Stable depth sorting | Slice | DEPTH-001/002 | — |
+| Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |
+| Animated terrain and pollution presentation | Slice | WORLD-004/005, captures 10/11 | three runtime layers (D-02) |
+| ASCII maps and markers | Slice | MAP-001/002/004/005/007, MAP-003b | TileMap offset contract corrected (F-01) |
+| Zampanò state controller | Partial | DOG-001/002/003/007 | fetch/hurt states present but unexercised until M3 |
+| Zampanò normal art | Slice | AST-002/003/004/005 | — |
+| Redesigned 96×96 park/topology | Slice | MAP-007 (rows, props, BFS identical) | — |
+| Hunger | Slice | GZ-002, GZ-005 | — |
+| Digestion and poop warning | Slice | GZ-005 | warning bubble simplified (D-07) |
+| Surface-dependent pollution | Slice | GZ-008, GZ-005 | — |
+| Bladder and pee | Slice | GZ-005, captures 06/11 | — |
+| Marking | Partial | ported rule; MARK paths not yet fixture-covered | — |
+| Zone health and half-stars | Slice | GZ-018–020 | — |
+| Score/time/records | Slice | GZ-021, SAV-004, AUTO-001 | — |
+| Lives for speed | Partial | GZ-024; speed applied from settings | title counter UI is M4 |
+| Run energy | Slice | DOG-007; HUD energy ring | — |
+| Treats | Slice | GZ-029; AUTO-001 | — |
+| Cats and coins / Magnet balls / Under Attack / Bagnaskiz | — | — | M3 (D-10) |
+| Pollution waves | Partial | director + placement ported | RNG sharing with cats (D-03) |
+| HUD/radar/touch controls | Partial | UI-001, MOVE-001, captures | gestures/switcher (D-09) |
+| Briefing/level end/game over | Partial | FLOW-001/002/004/005, AUTO-001, captures 01/07/13/14 | Supervillained snap, CONTINUE handoff (D-08) |
+| Green Zone automated full-play coverage | Slice | AUTO-001 (real input, no teleports) | on-device run pending |
+| Press Start 2P pixel font | Partial | AST-020 glyph hashes, IPA marks | wrapping fixtures, glow (D-06) |
+| Recorded music/effects | Partial | AUD-001; Green Zone music + 6 effects mapped | other tracks/effects later milestones |
+| Synthesized audio | — | — | D-05 |
+| Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–022 | campaign schema, v1 migration (D-11) |
+| Everything else in this matrix | — | — | later milestones |
+
 ## 1. Platform and runtime
 
 | Target | Feature | Source status and evidence | Godot parity requirement | Milestone / tests |
