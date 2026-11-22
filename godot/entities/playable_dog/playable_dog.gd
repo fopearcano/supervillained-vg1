@@ -22,7 +22,14 @@ const STATE_ANIM := {
 const TERRAIN_SPEED := {TileCatalog.Ground.TALL_GRASS: 0.85, TileCatalog.Ground.WATER: 0.8}
 const BUSH_SPEED := 0.7
 
+## The playable character. Callers inject it before add_child() (IsoWorld: AppState's `--as`
+## selection); the scene itself references no profile.
 @export var profile: PlayableCharacterProfile
+## Zampanò, loaded lazily only when a dog is used without an injected profile (direct
+## instantiation by tools and unit tests). A path, not a preload: no static dependency.
+const FALLBACK_PROFILE_PATH := "res://data/characters/zampano_profile.tres"
+## True when this dog fell back to FALLBACK_PROFILE_PATH.
+var used_fallback_profile := false
 
 var gx := 0.0
 var gy := 0.0
@@ -73,13 +80,21 @@ var _anim_restart := false
 @onready var hurtbox: Area2D = $Hurtbox
 
 
+## The injected profile, or the lazy Zampanò fallback for an unconfigured dog.
+func active_profile() -> PlayableCharacterProfile:
+	if profile == null:
+		profile = load(FALLBACK_PROFILE_PATH)
+		used_fallback_profile = true
+	return profile
+
+
 func _ready() -> void:
 	iso.node = self
 	iso.bounds = Rect2(-15, -32, 30, 35)
-	if profile:
-		body_sprite.sprite_frames = profile.normal_frames
-		body_sprite.centered = false
-		body_sprite.offset = -Vector2(profile.foot_anchor)
+	var p := active_profile()
+	body_sprite.sprite_frames = p.normal_frames
+	body_sprite.centered = false
+	body_sprite.offset = -Vector2(p.foot_anchor)
 	_build_contact_shapes()
 	_sync_node()
 	_apply_animation()
@@ -91,7 +106,7 @@ func _ready() -> void:
 ## phase only. The probe reaches prop centres at rule distance + prop radius (GridShapes.PROBE_RADIUS);
 ## rules decide contacts with the exact grid distance, like the source.
 func _build_contact_shapes() -> void:
-	var radius := profile.collision_radius if profile else GameConfig.Player.RADIUS
+	var radius := active_profile().collision_radius
 	for pair: Array in [[interaction_probe, GridShapes.PROBE_RADIUS], [hurtbox, radius]]:
 		var shape := ConvexPolygonShape2D.new()
 		shape.points = GridShapes.ellipse_polygon(pair[1])
@@ -239,7 +254,7 @@ func _play(new_anim: String, dir: String, restart: bool = false) -> void:
 
 func _update_animation(dt: float) -> void:
 	var speed := JsMath.hypot(vx, vy)
-	var has_seated_idle := profile == null or profile.has_seated_idle
+	var has_seated_idle := active_profile().has_seated_idle
 	var next := "idle"
 	var state_anim: String = STATE_ANIM.get(state, "")
 	if state_anim != "" and state != "free":
@@ -263,7 +278,7 @@ func _update_animation(dt: float) -> void:
 	_idle_time = 0.0 if speed > 0.25 or state != "free" else _idle_time + dt
 	_play(next, facing)
 	# Fit the authored holds to the action timer, including the final standing pose.
-	var timed := profile != null and profile.timed_actions.has(next)
+	var timed := active_profile().timed_actions.has(next)
 	if next == state_anim and timed and state_duration > 0.0:
 		anim_speed = float(profile.action_durations[next]) / state_duration
 	else:

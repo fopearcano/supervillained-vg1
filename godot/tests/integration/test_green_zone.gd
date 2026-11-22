@@ -317,20 +317,25 @@ func test_SLICE_android_back_pauses_and_never_quits() -> void:
 
 
 ## Live playbacks cannot run in the suite (the Dummy driver never mixes them, so they leak at
-## exit); tools/audio_suspend_probe.gd checks real playbacks pause and resume.
+## exit); tools/audio_suspend_probe.gd checks real playbacks pause and resume. A new effect
+## requested in the background is dropped (source: the AudioContext is not running), not started
+## paused, and nothing is replayed on return.
 func test_SLICE_audio_background_suspends_music_and_effects() -> void:
 	_spawn()
 	for pair in [[Node.NOTIFICATION_APPLICATION_PAUSED, Node.NOTIFICATION_APPLICATION_RESUMED],
 			[Node.NOTIFICATION_APPLICATION_FOCUS_OUT, Node.NOTIFICATION_APPLICATION_FOCUS_IN]]:
 		AudioService.notification(pair[0])
 		assert_true(AudioService.suspended, "suspended on %d" % pair[0])
+		var before := AudioService.started.size()
+		var dropped := int(AudioService.dropped.get(&"suspended", 0))
 		AudioService.play(&"pee")
-		var last: Array = AudioService.started[AudioService.started.size() - 1]
-		assert_true(last[2], "an effect requested in the background starts suspended")
+		assert_eq([AudioService.started.size(), int(AudioService.dropped.get(&"suspended", 0)), AudioService.pending_count()], [before, dropped + 1, 0], "an effect requested in the background is dropped")
 		AudioService.notification(pair[1])
 		assert_false(AudioService.suspended, "resumed on %d" % pair[1])
+		AudioService.advance_pending(0.5)
+		assert_eq(AudioService.started.size(), before, "nothing replayed on return")
 	AudioService.play(&"bark")
-	assert_false(AudioService.started[AudioService.started.size() - 1][2], "effects play normally after resuming")
+	assert_eq(AudioService.started[AudioService.started.size() - 1][0], &"bark", "effects play normally after resuming")
 
 
 func test_SLICE_diagnostics_are_bounded_and_debug_only() -> void:
@@ -338,9 +343,11 @@ func test_SLICE_diagnostics_are_bounded_and_debug_only() -> void:
 	AudioService.diagnostics = true
 	for k in 200:
 		AudioService.play(&"bark")
+		AudioService.advance_pending(0.05)
 	assert_eq(AudioService.started.size(), AudioService.DIAG_LIMIT, "effect log bounded")
 	AudioService.diagnostics = false
 	AudioService.started.clear()
+	AudioService.advance_pending(0.05)
 	AudioService.play(&"bark")
 	assert_eq(AudioService.started.size(), 0, "nothing recorded with diagnostics off (release)")
 	for layer: TileMapLayer in [GroundLayer.new(), OverlayLayer.new()]:
@@ -432,3 +439,94 @@ func test_AST_014_green_zone_never_applies_the_obsolete_arcade_floor() -> void:
 			fail("authored floor frame drawn at %s" % c)
 			return
 	assert_eq(scene.world.floor_design_rejection, "", "no design was requested")
+
+
+# --- AudioService parity with src/core/audio.ts AudioEngine.play() ------------------------------
+
+func _audio_started(cue: StringName) -> int:
+	return AudioService.started.filter(func(e: Array) -> bool: return e[0] == cue).size()
+
+
+## Muted: new immediate and delayed requests are dropped and never replayed after unmuting.
+func test_SLICE_audio_mute_drops_new_effects_and_unmute_replays_nothing() -> void:
+	_spawn()
+	AudioService.started.clear()
+	AudioService.apply_settings(true, 0.7)
+	assert_true(AudioService.muted and AudioServer.is_bus_mute(AudioServer.get_bus_index(&"Master")), "muted state tracked, master bus silent")
+	AudioService.play(&"bark")
+	AudioService.play(&"star", 1.0, 1.0, 0.12)
+	assert_eq([AudioService.started.size(), AudioService.pending_count(), int(AudioService.dropped.get(&"muted", 0))], [0, 0, 2], "immediate and delayed requests dropped while muted")
+	AudioService.apply_settings(false, 0.7)
+	AudioService.advance_pending(1.0)
+	assert_eq(AudioService.started.size(), 0, "nothing replayed after unmuting")
+	assert_false(AudioServer.is_bus_mute(AudioServer.get_bus_index(&"Master")), "audible again")
+	AudioService.play(&"bark")
+	assert_eq(_audio_started(&"bark"), 1, "a new request after unmuting plays")
+
+
+## Suspended: new requests (immediate or delayed) are dropped; on resume nothing is replayed.
+func test_SLICE_audio_suspend_drops_new_effects_and_resume_replays_nothing() -> void:
+	_spawn()
+	AudioService.started.clear()
+	AudioService.set_suspended(true)
+	AudioService.play(&"pee")
+	AudioService.play(&"star", 1.0, 1.0, 0.12)
+	assert_eq([AudioService.started.size(), AudioService.pending_count(), int(AudioService.dropped.get(&"suspended", 0))], [0, 0, 2], "dropped while suspended")
+	var t := AudioService.audio_time
+	AudioService.advance_pending(1.0)
+	assert_eq(AudioService.audio_time, t, "the audio clock does not run while suspended")
+	AudioService.set_suspended(false)
+	AudioService.advance_pending(1.0)
+	assert_eq(AudioService.started.size(), 0, "nothing replayed on resume")
+
+
+## A delayed cue scheduled before suspension waits (audio time frozen) and starts after resuming.
+func test_SLICE_audio_delayed_cue_from_before_suspension_resumes() -> void:
+	_spawn()
+	AudioService.started.clear()
+	AudioService.play(&"star", 1.0, 1.0, 0.12)
+	AudioService.advance_pending(0.1)
+	AudioService.set_suspended(true)
+	AudioService.advance_pending(5.0)
+	assert_eq([AudioService.pending_count(), _audio_started(&"star")], [1, 0], "kept, not started, while suspended")
+	AudioService.set_suspended(false)
+	AudioService.advance_pending(0.019)
+	assert_eq(_audio_started(&"star"), 0, "0.119 s of audio time: not yet")
+	AudioService.advance_pending(0.002)
+	assert_eq([AudioService.pending_count(), _audio_started(&"star")], [0, 1], "starts at 0.12 s of audio time")
+
+
+## Volume 0 is silence (master bus muted), not -80 dB; the source still starts the sources.
+func test_SLICE_audio_volume_zero_is_silence() -> void:
+	_spawn()
+	var master := AudioServer.get_bus_index(&"Master")
+	AudioService.apply_settings(false, 0.0)
+	assert_true(AudioServer.is_bus_mute(master), "volume 0: master bus muted")
+	assert_false(AudioService.muted, "volume 0 is not the mute setting")
+	AudioService.started.clear()
+	AudioService.play(&"bark")
+	assert_eq(_audio_started(&"bark"), 1, "requests still start, silently (source gain 0)")
+	AudioService.apply_settings(false, 0.5)
+	assert_false(AudioServer.is_bus_mute(master), "volume 0.5 audible")
+	assert_near(AudioServer.get_bus_volume_db(master), linear_to_db(0.5), 1e-4, "master level = volume")
+
+
+## The same cue within 45 ms of audio time is dropped (source lastPlayed); other cues are not.
+func test_SLICE_audio_same_cue_within_45_ms_is_suppressed() -> void:
+	_spawn()
+	AudioService.started.clear()
+	AudioService.play(&"bark")
+	AudioService.play(&"bark")
+	AudioService.play(&"pee")
+	assert_eq([_audio_started(&"bark"), _audio_started(&"pee"), int(AudioService.dropped.get(&"duplicate", 0))], [1, 1, 1], "second bark dropped, pee not")
+	AudioService.advance_pending(0.044)
+	AudioService.play(&"bark")
+	assert_eq(_audio_started(&"bark"), 1, "44 ms later: still dropped")
+	AudioService.advance_pending(0.001)
+	AudioService.play(&"bark")
+	assert_eq(_audio_started(&"bark"), 2, "45 ms later: plays")
+	# A delayed request takes its time when made (source lastPlayed at request).
+	AudioService.advance_pending(0.1)
+	AudioService.play(&"star", 1.0, 1.0, 0.12)
+	AudioService.play(&"star")
+	assert_eq([AudioService.pending_count(), _audio_started(&"star")], [1, 0], "a star right after a delayed star is dropped")

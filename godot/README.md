@@ -81,7 +81,8 @@ godot --path godot --rendering-driver opengl3 --script res://tools/title_capture
 double interpolation; teleport resets; no static shimmer under the following camera). On a 60 Hz
 display with VSync the 90/120 caps cannot be reached: its interpolation-off control then shows no
 repeated frames and the probe exits 1 (inconclusive), so use `--disable-vsync` there.
-`audio_suspend_probe.gd` checks that live music/effects pause in the background and resume (with
+`audio_suspend_probe.gd` checks that live music/effects pause in the background and resume, and
+that a new effect requested in the background is dropped like the source's (with
 `--headless` the Dummy driver reports the started playbacks as leaked at exit, F-07).
 `title_capture.gd` renders the title portrait's first/middle/last frames at three logical widths.
 

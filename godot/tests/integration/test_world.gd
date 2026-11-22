@@ -726,3 +726,34 @@ func test_SLICE_interaction_broad_phase_covers_prop_edge_reach() -> void:
 		assert_true(dog.interaction_probe.get_overlapping_areas().has(e[2]), e[0] + ": broad phase reports the target")
 	tree.root.remove_child(holder)
 	holder.free()
+
+
+## The dog scene references no profile; the world injects the selected one before add_child()
+## (`--as` for all three PLAY_AS dogs, or an explicit option); only a directly instantiated,
+## unconfigured dog falls back, lazily, to Zampanò.
+func test_SLICE_playable_profile_injected_before_add_child() -> void:
+	var scene_path := "res://entities/playable_dog/playable_dog.tscn"
+	var deps := ResourceLoader.get_dependencies(scene_path)
+	for d in deps:
+		assert_false(d.contains("zampano"), "playable_dog.tscn has no Zampanò dependency: " + d)
+	assert_false(FileAccess.get_file_as_string(scene_path).contains("zampano"), "scene text names no Zampanò resource")
+	assert_false(FileAccess.get_file_as_string("res://entities/playable_dog/playable_dog.gd").contains("preload(\"res://data/characters"), "no preloaded profile in the script")
+	var app: Node = tree.root.get_node("AppState")
+	var saved: StringName = app.selected_profile
+	for id: StringName in [&"zampano", &"sbrimbrulon", &"bagnaskiz"]:
+		assert_eq(app.resolve_profile(PackedStringArray(["--as=" + String(id)])), {"profile": id, "rejected": ""}, "--as=%s accepted" % id)
+		app.selected_profile = id
+		var w := _make(PackedStringArray(DIAG), false)
+		var dog := w.player
+		assert_eq([dog.profile.id, dog.used_fallback_profile], [id, false], "%s injected before add_child (no fallback)" % id)
+		assert_eq((dog.get_node("VisualRoot/Body") as AnimatedSprite2D).sprite_frames, dog.profile.normal_frames, id + " frames on the body")
+		var other: StringName = &"bagnaskiz" if id != &"bagnaskiz" else &"sbrimbrulon"
+		var w2 := _make(PackedStringArray(DIAG), false, {"profile": other})
+		assert_eq([w2.player.profile.id, w2.player.used_fallback_profile], [other, false], "explicit option %s overrides --as %s" % [other, id])
+	app.selected_profile = saved
+	# Direct instantiation without a profile: the lazy Zampanò fallback, only then.
+	var bare: PlayableDog = load(scene_path).instantiate()
+	assert_eq([bare.profile, bare.used_fallback_profile], [null, false], "an instantiated scene carries no profile")
+	tree.root.add_child(bare)
+	assert_eq([bare.profile.id, bare.used_fallback_profile], [&"zampano", true], "unconfigured dog falls back to Zampanò lazily")
+	bare.free()

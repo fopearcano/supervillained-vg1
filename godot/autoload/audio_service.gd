@@ -10,9 +10,14 @@ extends Node
 ##   first sample above AUDIO.TRIM_LEVEL minus 10 ms), measured by tools/source_extract at 48 kHz.
 ## - Synthesized effects (src/fx/sounds.ts SOUNDS) are editor-rendered mono 22,050 Hz 16-bit PCM
 ##   WAVs (tools/source_extract); nothing is synthesized at runtime. They start at 0.
-## - `delay` (source play({delay})) counts audio time: it does not advance while suspended.
-## - In the background everything is suspended (the source suspends its AudioContext) and resumes
-##   on return.
+## - Effect requests follow src/core/audio.ts AudioEngine.play(): a request made while muted or
+##   while the application is suspended (the source's AudioContext is not running) is dropped, not
+##   deferred; the same cue again within 45 ms of audio time is dropped; `delay` (source
+##   play({delay})) counts audio time, which does not advance while suspended.
+## - In the background everything already playing or already scheduled is suspended (the source
+##   suspends its AudioContext) and resumes on return.
+## - Master level: muted or volume 0 is silence (bus muted), otherwise the volume (source master
+##   gain `muted ? 0 : volume`).
 
 const MUSIC := {
 	&"intro": "res://assets/audio/recorded/intro-music.mp3",
@@ -61,6 +66,15 @@ var output_available := true
 var current_track: StringName = &""
 var track_positions: Dictionary = {}
 var suspended := false
+## Settings applied by AppState (source settings.muted / settings.volume).
+var muted := false
+var volume := 1.0
+## Audio clock (source AudioContext.currentTime): seconds of unsuspended time since reset.
+var audio_time := 0.0
+## Effect requests dropped like the source drops them, by reason: muted, suspended, duplicate.
+var dropped: Dictionary = {}
+## Same-cue suppression window of the source play() (seconds of audio time).
+const SAME_CUE_GAP := 0.045
 ## Seconds of leading silence skipped per effect.
 var offsets: Dictionary = {}
 
@@ -71,6 +85,8 @@ var _streams: Dictionary = {}
 var _duck := 1.0
 ## Delayed cues waiting for their start: [[cue, volume, pitch, seconds left], ...].
 var _pending: Array = []
+## Audio time of each cue's last accepted request (source lastPlayed).
+var _last_played: Dictionary = {}
 
 
 func _ready() -> void:
@@ -87,10 +103,13 @@ func _ready() -> void:
 	offsets = LEADING_SILENCE.offsets.duplicate()
 
 
-func apply_settings(muted: bool, volume: float) -> void:
+func apply_settings(p_muted: bool, p_volume: float) -> void:
+	muted = p_muted
+	volume = clampf(p_volume, 0.0, 1.0)
 	var master := AudioServer.get_bus_index(&"Master")
-	AudioServer.set_bus_mute(master, muted)
-	AudioServer.set_bus_volume_db(master, linear_to_db(maxf(volume, 0.0001)))
+	# Source master gain `muted ? 0 : volume`: zero is true silence, not a very low level.
+	AudioServer.set_bus_mute(master, muted or volume <= 0.0)
+	AudioServer.set_bus_volume_db(master, linear_to_db(volume) if volume > 0.0 else -80.0)
 
 
 func _stream(path: String) -> AudioStream:
@@ -151,19 +170,35 @@ func set_duck(factor: float) -> void:
 	_music.volume_db = _music_db()
 
 
-func play(cue: StringName, volume: float = 1.0, pitch: float = 1.0, delay: float = 0.0) -> void:
+func play(cue: StringName, gain: float = 1.0, pitch: float = 1.0, delay: float = 0.0) -> void:
 	requested[cue] = int(requested.get(cue, 0)) + 1
 	var path := cue_path(cue)
 	if path == "":
 		missing_cues[cue] = int(missing_cues.get(cue, 0)) + 1
 		return
-	if delay > 0.0:
-		_pending.append([cue, volume, pitch, delay])
+	# Source play(): nothing while muted or while the context is not running (background); the
+	# same cue again within 45 ms is dropped; the time is taken when the request is made.
+	if muted:
+		_drop(&"muted")
 		return
-	_start(cue, path, volume, pitch)
+	if suspended:
+		_drop(&"suspended")
+		return
+	if audio_time - float(_last_played.get(cue, -1.0)) < SAME_CUE_GAP:
+		_drop(&"duplicate")
+		return
+	_last_played[cue] = audio_time
+	if delay > 0.0:
+		_pending.append([cue, gain, pitch, delay])
+		return
+	_start(cue, path, gain, pitch)
 
 
-func _start(cue: StringName, path: String, volume: float, pitch: float) -> void:
+func _drop(reason: StringName) -> void:
+	dropped[reason] = int(dropped.get(reason, 0)) + 1
+
+
+func _start(cue: StringName, path: String, gain_scale: float, pitch: float) -> void:
 	var offset: float = offsets.get(cue, 0.0)
 	if diagnostics:
 		started.append([cue, offset, suspended])
@@ -175,15 +210,18 @@ func _start(cue: StringName, path: String, volume: float, pitch: float) -> void:
 	_next = (_next + 1) % POOL_SIZE
 	p.stream = _stream(path)
 	var gain: float = GameConfig.Audio.FILE_GAIN.get(String(cue), 1.0)
-	p.volume_db = linear_to_db(GameConfig.Audio.SFX_VOLUME * gain * volume)
+	p.volume_db = linear_to_db(GameConfig.Audio.SFX_VOLUME * gain * gain_scale)
 	p.pitch_scale = pitch
 	p.play(offset)
-	p.stream_paused = suspended
 
 
-## Advances delayed cues by `delta` seconds of audio time (frozen while suspended).
+## Advances the audio clock and the delayed cues by `delta` seconds (both frozen while suspended,
+## like the source AudioContext).
 func advance_pending(delta: float) -> void:
-	if suspended or _pending.is_empty():
+	if suspended:
+		return
+	audio_time += delta
+	if _pending.is_empty():
 		return
 	var due: Array = []
 	for item: Array in _pending:
@@ -229,6 +267,7 @@ func _notification(what: int) -> void:
 ## Stops every player and forgets session state (scene teardown, app exit, tests).
 func stop_all() -> void:
 	_pending.clear()
+	_last_played.clear()
 	stop_music()
 	_music.stream = null
 	for p in _pool:
@@ -241,6 +280,8 @@ func reset_for_tests() -> void:
 	set_suspended(false)
 	requested.clear()
 	missing_cues.clear()
+	dropped.clear()
+	audio_time = 0.0
 	started.clear()
 	diagnostics = OS.is_debug_build()
 	track_positions.clear()

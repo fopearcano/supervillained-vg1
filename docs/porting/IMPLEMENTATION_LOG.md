@@ -6,11 +6,126 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5.
+in progress report 5. Correction report 6 is current.
 
 ---
 
-## Progress report 5: remaining M1/M2 work (M1 Partial, M2 Partial) — current
+## Correction report 6: fifth M1/M2 review (M1 Partial, M2 Partial) — current
+
+Scope: the architect's three items on `5a4a486`, in one correction-only commit. No M3 content and
+no PixiJS source change. Beyond the two places the review names (AudioService effect requests and
+the dog scene's profile reference) nothing is rewritten: IsoGrid, GridKinematicSolver, movement,
+camera, depth sorting, the TileMap renderer, SaveService, interaction geometry, the asset pipeline,
+the test runner and the PCK test are unchanged.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted) |
+| Base | `5a4a486` (progress report 5) |
+| Host | Windows 11 Pro N for Workstations 25H2, build 26200.8037 (RTX 3090, WASAPI audio) |
+| Godot / toolchain | Godot 4.7.2.stable.official.ed1daf0bf (win64 console); PowerShell 7.7.0; Git 2.54.0.windows.1 (`core.autocrlf=true`); Node v24.15.0; Playwright 1.63.0; Chromium 153.0.8010.12 (revision 1243, pinned) |
+| Not available | an Android device, SDK, export templates or signing identity; a human tester |
+
+### Changes per review item
+
+1. **AudioService effect requests now follow `src/core/audio.ts` `AudioEngine.play()`
+   (finding F-18).** The source returns before scheduling anything while `settings.muted` or while
+   its AudioContext is not running (background), drops the same cue again within 45 ms of
+   `ctx.currentTime`, and its master gain is `muted ? 0 : volume`. The port had started a request
+   made in the background paused (audible on return), had no mute drop and no 45 ms rule, and set
+   volume 0 to -80 dB. Now:
+   - `muted` and `volume` are tracked explicitly (`apply_settings`);
+   - a new immediate or delayed request made while muted or suspended is dropped (counted in
+     `dropped` by reason) and nothing is replayed on unmute or resume;
+   - sounds already playing and delayed cues already scheduled before suspension still pause and
+     resume (an audio clock, `audio_time`, advances only while not suspended, like
+     `ctx.currentTime`; delays and the 45 ms rule use it, the time taken when the request is made);
+   - the same cue within 45 ms of audio time is dropped;
+   - muted or volume 0 mutes the master bus (true silence); otherwise the bus level is the volume.
+
+   Tests: `test_SLICE_audio_background_suspends_music_and_effects` now requires a background
+   request to be dropped (not started paused) and nothing replayed on return; new regressions
+   `test_SLICE_audio_mute_drops_new_effects_and_unmute_replays_nothing`,
+   `test_SLICE_audio_suspend_drops_new_effects_and_resume_replays_nothing`,
+   `test_SLICE_audio_delayed_cue_from_before_suspension_resumes`,
+   `test_SLICE_audio_volume_zero_is_silence`,
+   `test_SLICE_audio_same_cue_within_45_ms_is_suppressed`; the bounded-log case advances audio
+   time between requests. `tools/audio_suspend_probe.gd` now requires the late background cue to
+   be dropped (`late_effect_dropped`) and nothing to start on resume (`replayed_on_resume: false`).
+2. **The dog scene no longer references Zampanò.** `playable_dog.tscn` has no `profile`
+   ext_resource; `IsoWorld` injects the selected profile (AppState's `--as` choice or an explicit
+   option) before `add_child()`. `PlayableDog.active_profile()` loads Zampanò lazily from a path
+   string (no preload, so no static dependency) only when a dog is used unconfigured, and records
+   it (`used_fallback_profile`). `test_SLICE_playable_profile_injected_before_add_child`: the
+   PackedScene's dependencies and text name no Zampanò resource and the script preloads no profile;
+   `--as=zampano|sbrimbrulon|bagnaskiz` each reach the spawned dog with no fallback, and an explicit
+   option overrides the `--as` choice; a bare instantiated scene carries no profile and falls back
+   to Zampanò only once added.
+3. **Milestone wording.** The format-3 campaign converter and its SaveService integration are
+   **M4**; the Android legacy-store acquisition and the signed-upgrade/MIG-001–010 proof are
+   **M9**. Corrected in the FEATURE_MATRIX status section and campaign row, in the deviations below,
+   and by an erratum on progress report 5, which is now historical. Earlier evidence folders and
+   reports are kept unchanged as historical records.
+
+### Commands executed and results (Windows 11)
+
+A fresh `git clone` (Git for Windows defaults, `core.autocrlf=true`) of this commit's code, taken
+before this table and the log folder were written: the tested `godot/` tree is
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876`, which equals `git rev-parse HEAD:godot` of this
+commit (only this report and its log folder differ). `npm ci` and `npx playwright install
+chromium` exit 0; then, from the clone root in PowerShell 7.7.0
+(logs: `docs/porting/windows_evidence/correction-6-godot-tree-fd20ac1/`):
+
+| Check | Command | Exit | Result |
+|---|---|---|---|
+| Deterministic asset check | `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | 0 | `asset check OK: 206 outputs identical (72 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12)`; `build_resources check (all): OK, 55 outputs identical` |
+| Clean Godot import | `<console exe> --headless --path godot --import` | 0 | no ERROR/WARNING lines |
+| Full suite | `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | 0 | **134 passed, 0 failed, 134 total** (128 earlier cases + 5 audio regressions + the profile-injection case; the background-audio case now requires the drop) |
+| 600-frame launch | `<console exe> --headless --path godot --quit-after 600` | 0 | engine banner only |
+| PCK smoke | `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite integration --file test_export_pack` | 0 | `test_SLICE_android_pck_has_runtime_data_and_starts_clean` passed: PCK 32,905,976 bytes, 254 runtime resources load from the pack, 512 packed files, no excluded content, packed 600-frame startup with no error or warning |
+| Audio probe (real WASAPI device) | `<console exe> --path godot --script res://tools/audio_suspend_probe.gd` | 0 | `{"late_effect_dropped":true,"live_players":2,"ok":true,"paused_in_background":[true,true],"replayed_on_resume":false,"resumed":[true,true]}`, clean exit |
+| PixiJS tests | `npm test` | 0 | 30 files, **248 tests passed** |
+| PixiJS build | `npm run build` | 0 | TypeScript + Vite build OK |
+| Working tree | `git status --porcelain` | 0 | empty |
+| Diff check | `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | 0 | clean (whole port; this commit) |
+| Source-tree guard | `bash godot/tools/source_tree_guard.sh` (Git Bash) | 0 | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+
+Not re-run for this commit: Linux (no Linux-specific code changed), the rendered interpolation
+probe and the captures (nothing visual changed).
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign: the pure v1→v2 rules are ported (SAV-013–017); the format-3 converter and SaveService integration are M4; the Android legacy-store acquisition and the signed-upgrade/MIG proof are M9 |
+| D-13 | Mostly closed (title, synthesized audio, profiles, cast); what remains is the Android legacy-store acquisition and MIG proof, which are M9, not M1/M2 evidence |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — progress report 5: remaining M1/M2 work (`5a4a486`; M1 Partial, M2 Partial)
+
+> Historical record of `5a4a486`, superseded by correction report 6. **Errata** (corrected there,
+> text below kept as submitted): "legacy import into the container stays M9" and the D-13 /
+> "Android (M1 spike, device evidence)" items should read: the format-3 converter and SaveService
+> integration are M4, the Android legacy-store acquisition and signed-upgrade/MIG proof are M9
+> (not M1/M2 completion evidence). The audio behaviour then recorded, a new effect requested in
+> the background "starts paused" (also in `windows_evidence/d12bedd/`), was not source parity: the
+> source drops it (F-18).
 
 Scope: the architect's instruction after the fourth review ("continue only the remaining documented
 M1/M2 work"). No M3 content. The accepted foundations are not rewritten: IsoGrid,

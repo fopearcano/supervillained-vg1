@@ -71,10 +71,14 @@ environment manifest is packed, the exported leading-silence Resource reaches Au
 every other ID not listed above.
 
 **Not verified (no device or tester here):** everything on Android hardware (export, install,
-Back, immersive, keep-awake, display cutout safe area, touch hardware, audio focus, performance,
-the M1 migration spike); the manual M1/M2 checks (desktop and touch play sessions, occlusion and
-camera-edge inspection, crisp rendering at two sizes and one non-integer aspect, animation preview,
-listening to the audio, approval of the title images).
+Back, immersive, keep-awake, display cutout safe area, touch hardware, audio focus, performance);
+the manual M1/M2 checks (desktop and touch play sessions, occlusion and camera-edge inspection,
+crisp rendering at two sizes and one non-integer aspect, animation preview, listening to the audio,
+approval of the title images).
+
+**Later milestones, not M1/M2 evidence:** the format-3 campaign converter and its SaveService
+integration are **M4**; the Android legacy-store acquisition (Capacitor WebView localStorage) and
+the signed same-package upgrade / MIG-001–010 proof are **M9**.
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
@@ -98,7 +102,7 @@ listening to the audio, approval of the title images).
 | Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap; SLICE: probe reaches prop centres at rule distance + prop radius (tree/pole/fountain ±1e-9 boundaries, 16 directions, exact edge-distance decision authoritative) | consumers arrive with M3 |
 | Zampanò state controller | Partial | DOG-001–004, DOG-006, DOG-007; P: DOG-005, DOG-008 | fetch (M3), stage change (M5) |
 | Zampanò normal art | Slice | AST-002–005 (every playable skin) | — |
-| Playable profiles (cross, armour, Sbrimbrulòn, Bagnaskiz) | Slice | AST-006–009; `--as` applied by the world | arms capability DOG-009 (M6); ALT-001–003 (M8) |
+| Playable profiles (cross, armour, Sbrimbrulòn, Bagnaskiz) | Slice | AST-006–009; SLICE: the dog scene references no profile, the world injects the `--as` choice before `add_child()` (all three), lazy Zampanò fallback only for an unconfigured dog | arms capability DOG-009 (M6); ALT-001–003 (M8) |
 | Story cast art | Slice | AST-011 (23 delivered, 17 frozen procedural roles + cat) | actors M5 |
 | Color Ink environments | Partial | AST-012, AST-013, AST-014, AST-015, AST-016 | story TileSets per bank with the story scenes (M5) |
 | Procedural art frozen, no fallback | Slice | AST-017, AST-018; AST-019 command evidence | — |
@@ -120,10 +124,10 @@ listening to the audio, approval of the title images).
 | Briefing/level end/game over | Partial | FLOW-001, FLOW-002; P: FLOW-005; captures 01/07/13/14 | Supervillained snap, CONTINUE handoff (D-08) |
 | Green Zone automated full-play coverage | Partial | SLICE real-input run (no teleports) | AUTO-001 needs the M3 attack |
 | Press Start 2P pixel font | Slice | AST-020 (glyphs, metrics, wrapping, fallback, IPA, schwa); OFL exported | glow (D-06) |
-| Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
+| Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
 | Synthesized audio | Slice | AUD-005–008 (14 cues + medieval loop as source-rendered PCM WAV) | chapter routing (M5–M8) |
 | Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022 (future main/temp/backup); P: SAV-021; SLICE: a valid older main becomes the backup on temp recovery; SLICE: failed future copies reported as `future_copy_failed:<file>` with writes still blocked | user-visible notice, campaign schema (D-11) |
-| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | legacy import into the container M9 (MIG-008) |
+| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | format-3 converter and SaveService integration M4; Android legacy-store acquisition and signed-upgrade/MIG proof M9 |
 | Everything else in this matrix | — | — | later milestones |
 
 ## 1. Platform and runtime
