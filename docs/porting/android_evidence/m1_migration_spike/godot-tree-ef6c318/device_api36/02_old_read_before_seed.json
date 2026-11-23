@@ -1,0 +1,15 @@
+{
+  "target_url": "https://localhost/",
+  "value": {
+    "origin": "https://localhost",
+    "href": "https://localhost/",
+    "keys": {
+      "settings": null,
+      "records": null,
+      "coins": null,
+      "story": null,
+      "story-v1-backup": null
+    },
+    "prefixed_keys": []
+  }
+}

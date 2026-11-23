@@ -6,14 +6,183 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 13 is current. Erratum for the historical reports: their
+in progress report 5. Progress report 14 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 13: accepted command evidence, ARCH-001a review confirmed, totals (M1 Partial, M2 Partial) — current
+## Progress report 14: M1 legacy-save migration spike (M1 Partial, M2 Partial) — current
+
+Scope: the architect's M1 task on `f7cf91f`, the controlled Android legacy-save migration
+feasibility spike, in one commit. New files only: the throwaway spike under
+`/godot/platform/android/` (the committed Godot project ignores it through `.gdignore`) and its
+evidence under `docs/porting/android_evidence/m1_migration_spike/godot-tree-ef6c318/`;
+FEATURE_MATRIX.md and this log updated. No gameplay, test, tool, asset, PixiJS, Capacitor
+configuration or root `android/` file changed. M3 and the stronger rendered probe were not started.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither milestone completion accepted); M1 migration spike executed, pending architect review; open M1 items: the manual checks; open M2 items: the rendered clauses of VIEW-004, CAM-004 and DOG-008a, and the manual desktop and touch play checks |
+| Base | `f7cf91f` (correction report 13) |
+| Current `godot/` tree | `ef6c3188da5b9d9a8c2c836afa0119c54b9f7e50` (the `9bbe179` tree plus `platform/android/`), verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2; Linux not rerun |
+| Android | emulators only: `sv_m1_api36` (`emulator-5554`, Android 16 / API 36, Google WebView 133.0.6943.137) and `sv_m1_api34` (`emulator-5556`, Android 14 / API 34, WebView 113.0.5672.136; system image installed for this spike); no physical device |
+
+### Decision
+
+**`native_bridge_viable_for_controlled_lineage`** (`android_evidence/…/DECISION.md`). After a
+genuine `adb install -r` upgrade (same package `com.zampano.supervillained`, same test certificate,
+no uninstall, no data clearing), the Godot spike APK's native plugin read all five legacy keys with
+raw values identical to the old Capacitor app's, on both emulators. Verified constraints: the same
+application id and signing certificate; Capacitor's default WebView profile and origin
+`https://localhost` (Capacitor 8.6.2 defaults, no `server` config); a WebView at runtime (no
+network, no INTERNET permission); read-only `getItem` on the five keys. Not claimed: physical
+devices, the production signing lineage, real user data, MIG-001–010 (M4/M9).
+
+### What was built (`godot/platform/android/m1_migration_spike/`, README there)
+
+- `native/src/com/zampano/svspike/MigrationSpikePlugin.java`: Godot Android v2 plugin
+  `SvMigrationSpike`. On `readLegacyStore()` it creates a hidden WebView in the app's default
+  profile, loads `https://localhost/__sv_m1_migration_spike__/read.html` served by request
+  interception (every other request answered 404, nothing fetched), checks `location.origin`, calls
+  `localStorage.getItem` for exactly the five prefixed keys and emits `legacy_read_completed(json)`:
+  status (`success` / `not_found` / `error`), verified origin, per-key presence, raw string or null,
+  per-key error, WebView package and version, UTC timestamp, diagnostics (whether the WebView profile
+  existed before the read). No set/remove/clear, no LevelDB/SQLite access, no value parsing, no
+  save. Errors: missing activity, busy, timeout, WebView unavailable, origin mismatch, storage
+  unavailable, per-key error.
+- `editor/`: an editor/export plugin that adds the compiled JAR to Android gradle builds and its
+  `org.godotengine.plugin.v2.SvMigrationSpike` manifest entry.
+- `harness/`: the spike APK's main scene. Checks the singleton and its signal, reads twice, prints
+  `M1_SPIKE_*` logcat lines (the plugin's raw JSON in base64 chunks, per-key SHA-256, idempotence,
+  final status), quits; driven by `adb shell am start` without touch input.
+- `tools/`: test keystores outside the repo, the old Capacitor APK from a clean clone, the spike APK
+  from a scratch copy of `godot/` (javac, `--install-android-build-template --export-debug`), the
+  device test (`run_upgrade_test.ps1`), a DevTools/logcat tool and the old-app page scripts.
+
+### Controlled lineage and results
+
+| APK | Package | versionCode | Certificate SHA-256 |
+|---|---|---|---|
+| old Capacitor (stock `debug` variant from a clean clone of `f7cf91f`, re-signed) | `com.zampano.supervillained` | 1 | `034b187e0b72e1567af589678c888f03dd48e58d4a920a13e9a08ace512d2191` |
+| Godot spike (gradle build, debug export; no permissions) | `com.zampano.supervillained` | 2 | the same |
+| spike, wrong key (negative) | `com.zampano.supervillained` | 2 | `b2df28e1e40cefe5918371dc1228976e5ee796f3f7a9bdb920bb3b06def97a26` |
+| spike, wrong package (negative) | `com.zampano.supervillained.m1negative` | 2 | `034b187e…2191` |
+
+The old app's page wrote settings (non-default audio, text speed, lives and every control), a
+`level1` record and coins, and a version-1 campaign; its own boot migrated the campaign (v2 under
+`story`, the v1 save under `story-v1-backup`). Expected SHA-256 after a cold restart (identical on
+both emulators): settings `bcdce149…5427`, records `00b8ac69…a308`, coins `73475cb4…8049`, story
+`6e7b6d6e…5f5d`, story-v1-backup `54677975…b084` (full values and hashes in the evidence REPORT.md).
+
+| Check | API 36 / WebView 133 | API 34 / WebView 113 |
+|---|---|---|
+| old install, seeding through the old runtime, exactly five keys, values stable across a cold restart | pass | pass |
+| wrong-key update rejected (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`), old app untouched | pass | pass |
+| wrong package beside the old store: `not_found` | pass | pass |
+| `adb install -r`: versionCode 2, same firstInstallTime, same certificate | pass | pass |
+| two spike processes × two reads: `success`, origin `https://localhost`, all five raw values identical to the old app's | pass | pass |
+| no production save written; WebView `Local Storage` still present | pass | pass |
+| fresh install after uninstall: `not_found`, no profile before the first read | pass | pass |
+| **Total** | **30/30** | **30/30** |
+
+### Commands executed and results (Windows 11 and the two emulators)
+
+| Command | Result |
+|---|---|
+| `tools/new_test_keystores.ps1` (keystores outside the repository) | exit 0: two PKCS12 test keys; passwords kept in a local file, never printed or committed (no log contains them) |
+| `tools/build_old_capacitor_apk.ps1` (clean clone of `f7cf91f`: `npm ci`, `npm run build`, `npx cap sync android`, `gradlew assembleDebug`, `apksigner sign` with the test key, `apksigner verify`, `aapt2 dump badging`) | exit 0 (second run, see "Development attempts"): `com.zampano.supervillained` versionCode 1, v2+v3 signatures, certificate `034b187e…2191`; the sync changed only the generated `capacitor.build.gradle` / `capacitor.settings.gradle` of that clone; Gradle fetched build-tools 35.0.0 into the portable SDK |
+| `tools/build_spike_apk.ps1` ×3 from a fresh clone of this commit's code (javac `--release 17`, warnings only for the Godot library's Kotlin metadata; JAR; scratch project; `godot --headless --import`; `godot --headless --install-android-build-template --export-debug Android`; `apksigner verify`; `aapt2 dump badging`) | exit 0 each: the upgrade, wrong-key and wrong-package APKs (277 MB each: debug engine libraries for x86_64, arm64-v8a and armeabi-v7a), versionCode 2, no `uses-permission` |
+| `tools/run_upgrade_test.ps1 -Serial emulator-5554` (API 36 / WebView 133) | exit 0: **30/30 checks** |
+| `tools/run_upgrade_test.ps1 -Serial emulator-5556 -DevToolsPort 9334` (API 34 / WebView 113) | exit 0: **30/30 checks** |
+| Fresh `git clone` of this commit's code (`core.autocrlf=true`; tested `godot/` tree `ef6c3188da5b9d9a8c2c836afa0119c54b9f7e50` = `git rev-parse HEAD:godot` of this commit; only the docs and the evidence folder were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | exit 0: 206 outputs identical (72 copies); 55 build_resources outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | exit 0, no ERROR/WARNING line |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | exit 0: **138 passed, 0 failed, 138 total** |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame desktop launch) | exit 0, engine banner only |
+| `… --suite integration --file test_export_pack` (Android-preset PCK smoke) | exit 0: PCK 32,905,976 bytes and 512 packed files (both unchanged); 257 runtime resources checked (254 before: the test's DirAccess walk also lists the spike's three ignored Godot files; an `--export-pack Android` of the same clone contains no `platform/android` path, so the packed probe resolved them outside the pack, a limit of that existing check, left unchanged) |
+| `npm test`; `npm run build` | exit 0: 30 files, 248 tests passed; build OK |
+| `git status --porcelain` (before and after the checks); `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --stat f7cf91f HEAD -- src android public capacitor.config.ts package.json package-lock.json godot/tests godot/tools godot/project.godot godot/export_presets.cfg godot/main godot/scenes godot/autoload godot/entities godot/world godot/iso godot/systems godot/core godot/data godot/assets docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/captures` (before the docs were written) | empty: only `godot/platform/android/` was added |
+| `git diff --check` (working tree, final text) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 63 checks` |
+
+Evidence: `docs/porting/android_evidence/m1_migration_spike/godot-tree-ef6c318/` (REPORT.md,
+DECISION.md, `builds/`, `device_api36/`, `device_api34/`, `dev_attempts/`, `host_checks/`). Not run:
+Linux; a physical Android device; the game itself on the emulators; manual play; listening to the
+audio.
+
+Host evidence: current tree above. Previous Windows trees: `9bbe179` (correction report 12, 138
+passed), `a06b1df` (correction report 11, 138 passed), `1532143` (correction report 10, 137 passed),
+`6a3c53b` (correction report 9, 137 passed), `b1c3595` (correction report 8, 137 passed), `b8535ab`
+(correction report 7 addendum, 137 passed), `81906cd` / `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876`
+(correction report 6, 134 passed). Linux: the prior tree `d12bedd`, 128 passed (progress report 5).
+Correction 6 was not rerun on Linux, and neither were correction 7's addendum, corrections 8 to 13
+and this report.
+
+### Development attempts (kept as found)
+
+- The old APK's first build failed in Gradle ("Unable to establish loopback connection", Java on
+  this host); with `-JavaTmpDir` the second build succeeded.
+- Trial builds from the working tree: `has_method()` does not list a Java singleton's methods, so
+  the harness checks the signal and lets the call fail instead.
+- Attempt 1 (tree `f80ebd6`, API 36): 27/29. Every read's raw values matched, but Godot's Android
+  logger cut the harness's summary line at 1023 characters, so the per-key hash check failed. Fixed:
+  per-key lines plus a truncation check.
+- Attempt 2 (tree `e285294`, API 36): 28/29. All reads matched; pulling the 277 MB installed APK
+  back for the certificate check failed once (adb exit 1). Fixed: retry with logging.
+- Final tree `ef6c318`: 30/30 on both emulators. Logs of attempts 1 and 2:
+  `android_evidence/…/dev_attempts/`.
+
+### Legacy-save plan (MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike: executed, pending architect review.** The native-bridge versus
+   staged-Capacitor decision is the one above; it does not claim production viability.
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005 (raw five-key payload written exactly with timestamp and SHA-256 before any parsing).
+3. **M9 — production proof:** the installed lineage and signing certificate, representative real
+   user data, two WebView/device versions, end-to-end MIG-001–010. Audit note: the repository's
+   Capacitor `release` build type signs with the builder's debug signing config, so updating installed
+   copies in place needs that same key.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017) and the M1 spike found the native bridge viable for a controlled lineage. Remaining: the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005; the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | M1 migration spike done on two emulators with a throwaway key (decision `native_bridge_viable_for_controlled_lineage`, pending architect review); physical devices and the production lineage are M9 |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **Architect review of the M1 spike** (evidence and decision above).
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+- **Rendered clauses of VIEW-004, CAM-004 and DOG-008a (M2):** a strengthened renderer-backed probe
+  with the checks listed in TEST_PLAN.md (combined evidence), run at 30/60/90/120 FPS and accepted
+  by the architect.
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 13: accepted command evidence, ARCH-001a review confirmed, totals (`f7cf91f`; M1 Partial, M2 Partial)
+
+> Historical record of `f7cf91f`, superseded by progress report 14 (text below kept as
+> submitted). **Supersession:** its decisions and totals stand. Its "open M1 blocker: the
+> migration-plugin spike" is superseded: progress report 14 executed the spike on two emulators
+> (decision `native_bridge_viable_for_controlled_lineage`, pending architect review); M1 stays
+> Partial for its manual checks.
 
 Scope: the architect's review of `46d7ad9`, in one documentation-only commit
 (`docs/porting/FEATURE_MATRIX.md`, `TEST_PLAN.md` and this log). No gameplay, test, tool, asset,

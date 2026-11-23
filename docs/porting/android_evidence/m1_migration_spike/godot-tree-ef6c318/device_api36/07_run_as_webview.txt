@@ -1,0 +1,13 @@
+total 192
+drwx------ 8 u0_a223 u0_a223  4096 2026-11-23 23:09 .
+drwx------ 3 u0_a223 u0_a223  4096 2026-11-23 23:09 ..
+-rw------- 1 u0_a223 u0_a223 24576 2026-11-23 23:08 Cookies
+-rw------- 1 u0_a223 u0_a223     0 2026-11-23 23:08 Cookies-journal
+drwx------ 3 u0_a223 u0_a223  4096 2026-11-23 23:08 Local Storage
+drwx------ 2 u0_a223 u0_a223  4096 2026-11-23 23:09 PersistentOriginTrials
+drwx------ 2 u0_a223 u0_a223  4096 2026-11-23 23:09 Session Storage
+drwx------ 3 u0_a223 u0_a223  4096 2026-11-23 23:08 Shared Dictionary
+-rw------- 1 u0_a223 u0_a223 90112 2026-11-23 23:08 Web Data
+-rw------- 1 u0_a223 u0_a223     0 2026-11-23 23:08 Web Data-journal
+drwx------ 3 u0_a223 u0_a223  4096 2026-11-23 23:09 blob_storage
+drwx------ 3 u0_a223 u0_a223  4096 2026-11-23 23:09 shared_proto_db

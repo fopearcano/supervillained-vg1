@@ -1,0 +1,30 @@
+PASS precondition: no com.zampano.supervillained* package installed ()
+PASS old APK installs (normal install)
+PASS old app versionCode 1 (1)
+PASS old app installed certificate recorded (034b187e0b72e1567af589678c888f03dd48e58d4a920a13e9a08ace512d2191)
+PASS old app origin is https://localhost (https://localhost)
+PASS fresh old app: no supervillained key before seeding
+PASS old boot migrated the campaign: story is version 2
+PASS old boot kept the v1 campaign under story-v1-backup
+PASS exactly the five supervillained keys exist (supervillained:coins,supervillained:records,supervillained:settings,supervillained:story,supervillained:story-v1-backup)
+PASS old values persist across a cold restart (identical)
+PASS expected values and hashes recorded
+PASS wrong-key update rejected (INSTALL_FAILED_UPDATE_INCOMPATIBLE) ()
+PASS old app untouched after the rejected update (1 2026-11-23 22:57:37)
+PASS wrong-package spike (com.zampano.supervillained.m1negative) installs beside the old app
+PASS 04_wrong_package_run: harness finished (M1_SPIKE_DONE)
+PASS 04_wrong_package_run: every attempt not_found and matches the old app's values (PASS: 18/18 checks)
+PASS adb install -r of the spike APK succeeds
+PASS upgraded in place: versionCode 2, same firstInstallTime, new lastUpdateTime (2 first 2026-11-23 22:57:37 last 2026-11-23 22:58:36)
+PASS same signing certificate before and after the upgrade (034b187e0b72e1567af589678c888f03dd48e58d4a920a13e9a08ace512d2191)
+PASS 06_spike_run_1: harness finished (M1_SPIKE_DONE)
+FAIL 06_spike_run_1: every attempt success and matches the old app's values (FAIL: 38/48 checks)
+PASS 06_spike_run_2: harness finished (M1_SPIKE_DONE)
+FAIL 06_spike_run_2: every attempt success and matches the old app's values (FAIL: 38/48 checks)
+PASS no production save written (no save_v3 file in user://)
+PASS WebView profile with Local Storage still present after the reads
+PASS fresh install of the spike APK
+PASS 08_fresh_install_run: harness finished (M1_SPIKE_DONE)
+PASS 08_fresh_install_run: every attempt not_found and matches the old app's values (PASS: 18/18 checks)
+PASS fresh install: no WebView profile existed before the first read (False)
+RESULT: FAIL (27/29 checks passed)
