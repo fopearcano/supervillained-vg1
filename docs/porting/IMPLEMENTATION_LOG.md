@@ -6,11 +6,202 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 10 is current.
+in progress report 5. Correction report 11 is current.
 
 ---
 
-## Correction report 10: ARCH-001a static gate and collision-row wording (M1 Partial, M2 Partial) — current
+## Correction report 11: architect decisions, real restart coverage, gate removal (M1 Partial, M2 Partial) — current
+
+Scope: the architect's decisions and required changes on `6b91fd3`, in one commit. Code changes
+are in two test files (`godot/tests/integration/test_world.gd`, `test_main_and_rates.gd`); no
+gameplay module, movement, collision, camera, `PlayableDog`, animation, audio, save, asset-pipeline
+or PixiJS file changed.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted); open M1 blocker: the migration-plugin spike; open M2 items: the manual desktop and touch play checks |
+| Base | `6b91fd3` (correction report 10) |
+| Current `godot/` tree | `a06b1df5e3db91f0fc7690785d94932fdf6bca24`, verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2 (RTX 3090, WASAPI audio); Linux not rerun |
+| Android on this host | available: Android SDK (platform-tools/adb 37.0.3, build-tools 36.1.0, platform 36), Godot's 4.7.2 Android export templates, JDK 21, emulator device `sv_m1_api36` (adb serial `emulator-5554`, Android 16 / API 36, Google WebView 133.0.6943.137). Remaining blocker: the migration plugin and a controlled signed old→new APK lineage |
+
+### Architect decisions recorded (review of `6b91fd3`)
+
+- The current-tree rendered interpolation probe (`tools/interpolation_probe.gd`) was rerun
+  independently on an RTX 3090 with VSync disabled and passed at 30/60/90/120 FPS. It is accepted as
+  **command-level rendered evidence** (TEST_PLAN.md "Combined evidence"): **VIEW-004** and
+  **CAM-004** are accepted; DOG-008a's rendered presentation and teleport-reset clauses are
+  accepted, and DOG-008a was left incomplete only for the missing real restart-path assertion.
+- **AST-007 / finding F-15 accepted:** the sword and shield are baked into the armoured frames, so
+  shared frame and foot-anchor alignment is the applicable contract.
+- The rendered clauses did not run in the headless suite; the matrix and this report name the probe
+  for them.
+
+### Changes
+
+1. **Source-parser gate removed.** `_code_only()`, `_matches()`, `_duplicate_player_controllers()`,
+   their synthetic source samples, the repository-wide source scan and its positive control are gone
+   from `test_world.gd`. "No duplicate playable/input movement controller" is now a static
+   code-review requirement (TEST_PLAN.md ARCH-001, ARCH-001a): only `PlayableDog` turns player input
+   into movement; `ActorBody` controllers (NPCs, cats, Bagnaskiz, companions, combat actors) may use
+   approved behaviour controllers with the shared `WorldMapModel` solver. Kept in
+   `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`: the real dummy Story host scene;
+   the shared `IsoWorld`, `PlayableDog` and `CameraRig` scenes, scripts and public interfaces; the
+   host's distinct chapter environment resources; `IsoGrid` placement and `IsoDepthSorter` ranking;
+   tick-for-tick movement equivalence; lifecycle and cleanup, now checked recursively (every
+   descendant of the host, world, dog and camera included, is freed).
+2. **Real restart coverage for DOG-008a:**
+   `test_P_DOG_008a_main_restart_resets_interpolation_and_run_state` (in `test_main_and_rates.gd`)
+   uses only the shipped flow. Main starts the Green Zone with its real ticks and briefing; Enter
+   (a key event) closes the briefing; the dog walks on `InputService` movement in real 60 Hz physics
+   ticks and pees (Space), so the dog and the camera have interpolation history; Esc opens the pause
+   menu; Down and Enter choose RESTART, whose `restart_requested` reaches `Main.start_green_zone`
+   (the existing deferred scene replacement). No replacement dog is created by the test and there
+   is no test-only gameplay path. It verifies:
+   - the old scene, dog, camera and pause menu are freed; one scene, one `PlayableDog` and one
+     `CameraRig` remain, the replacement camera is current and only the new briefing is shown;
+   - the replacement dog starts at the canonical spawn (`GreenZoneLevel` start, exact grid
+     coordinates and spawn pixel), at rest;
+   - interpolation: an observation-only child node added as each replacement dog and camera enters
+     the tree records every `NOTIFICATION_RESET_PHYSICS_INTERPOLATION` with its process frame and
+     position. Both reset in the process frame in which they enter the tree, before that frame is
+     drawn; the dog's last reset is at the spawn pixel and the camera's at the snapped spawn view;
+     no reset of either is at the old run's position; the runtime reset counters agree; the dog then
+     stays on the spawn pixel under the briefing;
+   - nothing of the old run survives: fresh stats (`ScoringRules.new_stats` with the settings'
+     lives), all 30 treats, playing state, full bladder, start hunger and energy, an unpolluted map,
+     the briefing music;
+   - settings persist: non-default volume, text speed, lives, run toggle and left hand are
+     unchanged in `SaveService` and `AppState`, still applied to `InputService` and `AudioService`,
+     and the lives setting drives the new run's speed; the selected profile is kept.
+   Mutation check (working tree, reverted before the commit; not in the logs): without the dog's
+   placement and camera-snap resets the case fails ("dog: last entry-frame reset at the spawn view
+   expected (0.0, 1448.0), got (0.0, 0.0)"); without the camera snap's reset it fails ("camera:
+   interpolation reset in its entry frame … ([])").
+3. **Evidence wording.** TEST_PLAN.md: the combined-evidence rule (a rendered clause may be
+   satisfied by an architect-accepted command-level probe; every other clause by named suite cases;
+   rendered clauses never presented as suite results); ARCH-001/ARCH-001a state the code-review
+   requirement. FEATURE_MATRIX.md: VIEW-004, CAM-004 and DOG-008a satisfied on combined evidence
+   (96 IDs in total), the probe listed as accepted command-level evidence, AST-007/F-15 accepted,
+   the viewport, camera, state-controller and shared-world rows updated.
+
+### Legacy-save plan (unchanged; MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike, open M1 blocker:** a throwaway native migration plugin under
+   `/godot/platform/android/` on a controlled same-package/same-signature old→new APK lineage; the
+   five legacy keys read without mutation, or a documented reproducible failure, plus the written
+   native-bridge versus staged-Capacitor decision. Not started; the tools are available (above).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005.
+3. **M9 — production proof:** the installed lineage and signing certificate, two WebView/device
+   versions, end-to-end MIG-001–010.
+
+### M2 automated acceptance IDs
+
+| ID | Status | Evidence |
+|---|---|---|
+| ARCH-001a | **satisfied** | `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world` (no duplicate controller: static code-review requirement) |
+| COLL-005a | **satisfied** | `test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver` |
+| DOG-005a | **satisfied** | `test_DOG_005a_…` |
+| VIEW-004 | **satisfied (combined)** | `test_P_VIEW_004_whole_pixel_world_and_nearest_filtering` + the accepted rendered probe |
+| CAM-004 | **satisfied (combined)** | whole-pixel origin in `test_CAM_002_…` and `test_P_VIEW_004_…` + the probe's static-shimmer pass |
+| DOG-008a | **satisfied (combined)** | `test_CORE_002_…` (spawn, teleport, camera snap, hook defaults) + `test_P_DOG_008a_main_restart_resets_interpolation_and_run_state` (restart) + the accepted probe (presentation, teleport) |
+| ARCH-001b, DOG-008b / COLL-005b / DOG-005b | later | M5 / M5–M7 (aggregate M7) / M3 |
+
+### Commands executed and results (Windows 11)
+
+| Command | Result |
+|---|---|
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all --case DOG_008a` (working tree, while writing it) | after two test-side fixes (the selection was read one frame early; a lambda held the freed old scene): `1 passed, 0 failed` |
+| Mutation check of that case (working tree; runtime files restored and confirmed by `git status` before the commit) | fails without the dog's placement and camera-snap resets, and fails without the camera snap's reset (messages in "Changes" above) |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` (working tree) | `138 passed, 0 failed, 138 total` |
+| Fresh `git clone` of this commit's code (`core.autocrlf=true`; tested `godot/` tree `a06b1df5e3db91f0fc7690785d94932fdf6bca24` = `git rev-parse HEAD:godot` of this commit; only the docs and the log folder were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (deterministic asset check) | exit 0: `asset check OK: 206 outputs identical (72 copies) …`; `build_resources check (all): OK, 55 outputs identical` |
+| `<console exe> --headless --path godot --import` (clean import) | exit 0, no ERROR/WARNING lines |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | exit 0: **138 passed, 0 failed, 138 total** |
+| `… --suite all --case ARCH_001a` (focused, fresh clone) | exit 0: `PASS test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`, `1 passed, 0 failed` |
+| `… --suite all --case DOG_008a` (focused restart case, fresh clone) | exit 0: `PASS test_P_DOG_008a_main_restart_resets_interpolation_and_run_state`, `1 passed, 0 failed`; recorded resets: dog entered frame 553 with resets at (0, 0) (its `_ready`, before placement), then (0, 1448) twice (spawn placement, camera snap); camera entered frame 553 with one reset at (0, 1328) (snapped spawn view, view 216×432) |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame Main launch) | exit 0, engine banner only |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite integration --file test_export_pack` (Android-preset PCK smoke) | exit 0: PCK 32,905,976 bytes, 254 runtime resources, 512 packed files, packed 600-frame startup clean |
+| `<console exe> --path godot --rendering-driver opengl3 --disable-vsync --script res://tools/interpolation_probe.gd` (rendered probe, VSync off, RTX 3090) | exit 0 (table below) |
+| `<console exe> --path godot --script res://tools/audio_suspend_probe.gd` (real WASAPI device; run by the same script) | exit 0, `"ok":true` |
+| `npm test`; `npm run build` | exit 0: 30 files, 248 tests passed; build OK |
+| `git status --porcelain` (before and after every other step); `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --stat 6b91fd3 HEAD -- godot` | only `godot/tests/integration/test_main_and_rates.gd` and `godot/tests/integration/test_world.gd` |
+| `git diff --stat 6b91fd3 HEAD -- godot/tests/support godot/entities godot/world godot/iso godot/main godot/scenes godot/autoload godot/systems godot/core godot/tools godot/data godot/assets src docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/captures` (before the new log folder was added) | empty: runtime code, the dummy Story host, tools, assets, the PixiJS source and historical evidence unchanged |
+| `git diff --check` (working tree) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 51 checks` |
+
+Logs of the fresh-clone run: `docs/porting/windows_evidence/correction-11-godot-tree-a06b1df/`. Not
+run: Linux; Android device or emulator; manual play; listening to the audio.
+
+### Rendered interpolation probe (current tree, VSync off, RTX 3090)
+
+`tools/interpolation_probe.gd` on the fresh clone of the current tree, OpenGL 3.3 Compatibility on the
+NVIDIA GeForce RTX 3090 (driver 610.47), `--disable-vsync`, 432×432 window; exit 0. Command-level
+rendered evidence, not a suite result.
+
+| Run | FPS cap | Achieved FPS | Repeated frames | Max px/frame (expected) | Teleport error px | ok |
+|---|---|---|---|---|---|---|
+| interpolation on | 30 | 30.0 | 0 | 6.5 (5.65) | 4.5 | true |
+| interpolation on | 60 | 60.0 | 0 | 3.5 (2.83) | 1.5 | true |
+| interpolation on | 90 | 90.2 | 0 | 2.5 (1.88) | 1.0 | true |
+| interpolation on | 120 | 120.0 | 0 | 2.5 (1.41) | 1.0 | true |
+| control, interpolation off | 120 | 120.0 | **21** (expected above 60 FPS) | 3.0 (1.41) | 1.0 | false by design |
+
+Moving `CameraRig`, static markers: one distinct marker gap, 40 px, on all 48 measured frames at
+90 and at 120 FPS (`ok: true` both). No repeated frame (stutter or streak), no jump beyond two
+frames' worth (double interpolation), the teleport shows the new position at once, and the control
+proves the metric detects repeats.
+
+Host evidence: current tree above. Previous Windows trees: `1532143` (correction report 10, 137
+passed), `6a3c53b` (correction report 9, 137 passed), `b1c3595` (correction report 8, 137
+passed), `b8535ab` (correction report 7 addendum, 137 passed), `81906cd` /
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed). Linux: the prior tree
+`d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on Linux, and neither were
+correction 7's addendum and corrections 8, 9, 10 and 11.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017). Remaining, per the approved plan: the M1 migration-plugin spike (open M1 blocker), the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005, the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | Not done from M1: the Android migration-plugin spike (open M1 blocker). The Android tools and the emulator are available; missing are the plugin and a controlled signed old→new APK lineage |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **M1 migration-plugin spike (open M1 blocker):** a controlled test keystore, the old Capacitor
+  APK built and signed with it, a few representative saves, the spike plugin and APK with the same
+  package and signature installed over it without uninstalling (`adb install -r`) on
+  `sv_m1_api36`; result: the five keys read unmutated, or a documented reproducible failure, plus
+  the written native-bridge / staged-Capacitor decision.
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+- No automated M2 acceptance ID remains unsatisfied.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 10: ARCH-001a static gate and collision-row wording (`6b91fd3`; M1 Partial, M2 Partial)
+
+> Historical record of `6b91fd3`, superseded by correction report 11 (text below kept as
+> submitted). **Supersession:** on review of `6b91fd3` the architect replaced its ARCH-001a static
+> source-parser gate with a static code-review requirement (the gate's code is removed), accepted
+> the rendered probe for VIEW-004 and CAM-004 and for DOG-008a's rendered presentation and
+> teleport-reset clauses, and accepted AST-007 / finding F-15. Its "Unsatisfied automated M2
+> gates" list (VIEW-004, CAM-004 pending the gate decision; DOG-008a) is superseded: VIEW-004 and
+> CAM-004 are satisfied on combined evidence, and DOG-008a on combined evidence with the real
+> restart case added in correction report 11.
 
 Scope: the architect's two items on `d7933a7`, in one commit. Code changes are in one test file
 (`godot/tests/integration/test_world.gd`: the ARCH-001a gate and its synthetic cases); no gameplay

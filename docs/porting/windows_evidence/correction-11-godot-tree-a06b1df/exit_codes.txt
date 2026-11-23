@@ -1,0 +1,23 @@
+clone exit: 0
+HEAD: b7f74a4 WIP correction report 11
+godot tree: a06b1df5e3db91f0fc7690785d94932fdf6bca24
+core.autocrlf: true
+npm ci exit: 0  (7s)
+playwright install exit: 0  (1s)
+a asset check exit: 0  (26s)
+b clean import exit: 0  (3s)
+c suite exit: 0  (71s)
+d 600 frames exit: 0  (11s)
+e PCK smoke exit: 0  (16s)
+f audio probe (real device) exit: 0  (1s)
+g npm test exit: 0  (3s)
+h npm run build exit: 0  (1s)
+i git status exit: 0  (1s)
+j diff check (port vs audit) exit: 0  (0s)
+k diff check (this commit) exit: 0  (0s)
+l source-tree guard exit: 0  (0s)
+m focused ARCH-001a exit: 0  (1s)
+n focused DOG-008a restart exit: 0  (5s)
+o rendered probe (VSync off) exit: 0  (8s)
+p git status (after all steps) exit: 0  (0s)
+done

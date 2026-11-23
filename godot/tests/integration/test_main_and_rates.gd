@@ -128,9 +128,10 @@ func test_SLICE_viewport_underlay_and_black_letterbox() -> void:
 
 
 ## The same input gives the same logic at 30/60/90/120 rendered FPS (60 Hz physics, interpolation
-## only in presentation); test hooks are off in the shipped scene defaults. CORE-002 in full. The interpolation-reset assertions (spawn, teleport, camera snap) are partial
-## DOG-008 evidence: stage change does not exist before M5, and the rendered 30/60/90/120 FPS
-## presentation is measured by tools/interpolation_probe.gd under a real renderer.
+## only in presentation); test hooks are off in the shipped scene defaults. CORE-002 in full. The interpolation-reset assertions (spawn, teleport, camera snap) are part
+## of DOG-008a's combined evidence: the restart reset is test_P_DOG_008a_main_restart_…, the
+## rendered 30/60/90/120 FPS presentation is the architect-accepted tools/interpolation_probe.gd
+## run under a real renderer, and stage change is DOG-008b (M5).
 func test_CORE_002_logic_independent_of_render_rate() -> void:
 	assert_eq([Engine.physics_ticks_per_second, ProjectSettings.get_setting("physics/common/physics_ticks_per_second")], [60, 60], "60 Hz physics")
 	# Reference: 150 manual ticks.
@@ -196,3 +197,190 @@ func test_CORE_002_logic_independent_of_render_rate() -> void:
 	InputService.clear_injection()
 	InputService.update(DT)
 	assert_eq([InputService.move_x, InputService.move_y], [0.0, 0.0], "no injected movement after clearing")
+
+
+## Observation only: records each physics-interpolation reset that reaches its parent
+## (Node.reset_physics_interpolation() propagates NOTIFICATION_RESET_PHYSICS_INTERPOLATION to the
+## children) with the process frame, the parent's position and, for a CameraRig, its view size.
+class ResetSpy extends Node:
+	var resets: Array = []
+
+	func _notification(what: int) -> void:
+		if what != NOTIFICATION_RESET_PHYSICS_INTERPOLATION:
+			return
+		var p := get_parent() as Node2D
+		var rec := {"frame": Engine.get_process_frames(), "position": p.position}
+		if p is CameraRig:
+			rec["view"] = Vector2((p as CameraRig).model.view_w, (p as CameraRig).model.view_h)
+		resets.append(rec)
+
+
+func _key(code: Key, pressed: bool) -> void:
+	var e := InputEventKey.new()
+	e.keycode = code
+	e.physical_keycode = code
+	e.pressed = pressed
+	Input.parse_input_event(e)
+
+
+## Presses a key, releases it after the frame that delivers it (key events are buffered until the
+## next frame) and returns once that frame's _process callbacks have read it.
+func _tap_key(code: Key) -> void:
+	await tree.process_frame
+	_key(code, true)
+	await tree.process_frame
+	_key(code, false)
+	await tree.process_frame
+
+
+func _frames_until(cond: Callable, max_frames: int) -> bool:
+	for k in max_frames:
+		if cond.call():
+			return true
+		await tree.process_frame
+	return cond.call()
+
+
+static func _nodes_of(node: Node, type: Script) -> Array:
+	var out: Array = []
+	if is_instance_of(node, type):
+		out.append(node)
+	for c in node.get_children():
+		out.append_array(_nodes_of(c, type))
+	return out
+
+
+## DOG-008a restart clause, through the real flow only (partial case: the spawn, teleport and
+## camera-snap resets and the test-hook defaults are test_CORE_002; the rendered 30/60/90/120 FPS
+## presentation and teleport clauses are the architect-accepted tools/interpolation_probe.gd runs).
+## Main starts the Green Zone; Enter closes the briefing; the dog walks on InputService movement in
+## real 60 Hz physics ticks (interpolation history for the dog and the camera) and pees (Space);
+## Esc opens the pause menu; Down and Enter choose RESTART, whose restart_requested reaches
+## Main.start_green_zone (deferred scene replacement). The old scene, dog, camera and pause menu
+## are freed; the replacement dog starts at the canonical spawn; the replacement dog and camera
+## reset physics interpolation at the spawn view in the frame they enter the tree, before that frame
+## is drawn, no reset keeps the old run's position, and the dog stays on the spawn pixel; settings
+## persist while the run state starts over.
+func test_P_DOG_008a_main_restart_resets_interpolation_and_run_state() -> void:
+	AppState.update_settings({"muted": false, "volume": 0.35, "textSpeed": "fast", "lives": 5,
+		"controls": {"swipeUp": "sword", "swipeDown": "shield", "doubleTap": "bark", "run": "toggle", "switcher": false, "hand": "left"}})
+	var settings := SaveService.get_settings()
+	assert_eq([settings["volume"], settings["lives"], settings["controls"]["hand"], settings["controls"]["run"]], [0.35, 5, "left", "toggle"], "non-default settings stored")
+	var canon := GreenZoneLevel.load_model(GreenZoneLevel.definition())
+	var s := IsoGrid.grid_to_screen_xy(canon.start.x, canon.start.y)
+	var spawn_px := Vector2(JsMath.round(s[0]), JsMath.round(s[1]))
+	InputService.auto_update = true
+	tree.root.size = Vector2i(432, 864)
+	main = MAIN.instantiate()
+	tree.root.add_child(main)
+	await tree.process_frame
+	var gz: GreenZoneScene = main.current_scene
+	assert_eq([gz.manual_ticks, gz.show_briefing], [false, true], "Main runs the shipped scene: real ticks, briefing first")
+	var briefing: OverlayPanel = gz._overlay
+	assert_true(briefing is BriefingOverlay, "briefing shown")
+	await _frames_until(func() -> bool: return briefing.time > 0.6, 5000)
+	await _tap_key(KEY_ENTER)
+	if not assert_true(await _frames_until(func() -> bool: return gz.active, 300), "Enter closed the briefing"):
+		return
+	var old_dog := gz.world.player
+	var old_rig := gz.world.camera_rig
+	assert_eq(old_dog.position, spawn_px, "the first run starts at the canonical spawn")
+	var cam0 := old_rig.position
+	# Walk, pee and walk on, in real physics ticks.
+	InputService.inject_move(0.8, -0.3)
+	await _frames_until(func() -> bool: return gz.ticks >= 60, 20000)
+	InputService.clear_injection()
+	await _tap_key(KEY_SPACE)
+	var t1 := gz.ticks
+	await _frames_until(func() -> bool: return gz.ticks >= t1 + 60, 20000)
+	InputService.inject_move(0.8, -0.3)
+	await _frames_until(func() -> bool: return gz.ticks >= t1 + 150, 20000)
+	InputService.clear_injection()
+	var old_pos := old_dog.position
+	var old_cam := old_rig.position
+	assert_true(old_pos.distance_to(spawn_px) > 24.0, "the dog walked away from the spawn (%s -> %s)" % [spawn_px, old_pos])
+	assert_true(old_cam.distance_to(cam0) > 8.0, "the camera followed (%s -> %s)" % [cam0, old_cam])
+	assert_true(old_dog.is_physics_interpolated_and_enabled() and old_rig.camera.is_physics_interpolated_and_enabled(), "dog and camera physics-interpolated")
+	var old_stats: Dictionary = gz.rules.stats.duplicate()
+	assert_true(old_stats["time"] > 2.0 and old_stats["pees"] >= 1, "run state accumulated (time %.2f s, pees %d)" % [old_stats["time"], old_stats["pees"]])
+	assert_true(gz.rules.bladder.charges < gz.rules.bladder.max_charges, "a bladder charge spent")
+	# Esc opens the pause menu; Down + Enter choose RESTART.
+	await _tap_key(KEY_ESCAPE)
+	if not assert_true(await _frames_until(func() -> bool: return gz.paused, 300), "Esc opened the pause menu"):
+		return
+	var pause: PauseOverlay = gz._overlay
+	await _frames_until(func() -> bool: return pause.time > 0.4, 5000)
+	await _tap_key(KEY_DOWN)
+	assert_eq(pause.items[pause.selected]["label"], "RESTART", "Down selects RESTART")
+	# Observe the replacement's dog and camera from the moment they enter the tree (before _ready).
+	var spies := {}
+	var on_added := func(n: Node) -> void:
+		if (n is PlayableDog or n is CameraRig) and not spies.has(n):
+			var spy := ResetSpy.new()
+			n.add_child(spy)
+			spies[n] = {"spy": spy, "entered": Engine.get_process_frames()}
+	tree.node_added.connect(on_added)
+	var old_id := gz.get_instance_id()
+	await _tap_key(KEY_ENTER)
+	var replaced := await _frames_until(func() -> bool: return main.current_scene.get_instance_id() != old_id, 300)
+	tree.node_added.disconnect(on_added)
+	if not assert_true(replaced, "RESTART replaced the scene (restart_requested -> Main.start_green_zone)"):
+		return
+	var fresh: GreenZoneScene = main.current_scene
+	var dog: PlayableDog = fresh.world.player
+	var rig: CameraRig = fresh.world.camera_rig
+	await tree.process_frame
+	# The old scene, dog, camera and pause menu are gone; one scene, dog and camera remain.
+	assert_false(is_instance_valid(gz) or is_instance_valid(old_dog) or is_instance_valid(old_rig) or is_instance_valid(pause), "old scene, dog, camera and pause menu freed")
+	assert_eq(main.scene_host.get_children().size(), 1, "one scene in the host")
+	assert_eq(_nodes_of(tree.root, PlayableDog), [dog], "one PlayableDog in the tree")
+	assert_eq(_nodes_of(tree.root, CameraRig), [rig], "one CameraRig in the tree")
+	assert_eq(main.game_viewport.get_camera_2d(), rig.camera, "the replacement camera is current")
+	assert_true(fresh._overlay is BriefingOverlay and main.overlay_host.get_children().size() == 1, "only the new briefing overlay")
+	# The replacement starts at the canonical spawn, at rest.
+	assert_eq([dog.gx, dog.gy], [canon.start.x, canon.start.y], "replacement at the canonical spawn")
+	assert_eq([dog.position, dog.vx, dog.vy, dog.state], [spawn_px, 0.0, 0.0, "free"], "at rest on the spawn pixel")
+	# Interpolation reset at the spawn view, in the entry frame (before its draw), never at the old position.
+	assert_true(dog.is_physics_interpolated_and_enabled() and rig.camera.is_physics_interpolated_and_enabled(), "replacement dog and camera physics-interpolated")
+	assert_true(dog.interpolation_resets >= 2 and rig.interpolation_resets >= 1, "runtime reset counters (dog %d, camera %d)" % [dog.interpolation_resets, rig.interpolation_resets])
+	var bounds := fresh.world.walkable_bounds(4)
+	for pair: Array in [["dog", dog], ["camera", rig]]:
+		var rec: Dictionary = spies.get(pair[1], {})
+		if not assert_false(rec.is_empty(), "%s observed from its tree entry" % pair[0]):
+			continue
+		var resets: Array = (rec["spy"] as ResetSpy).resets
+		var entry: Array = resets.filter(func(r: Dictionary) -> bool: return r["frame"] == rec["entered"])
+		if not assert_true(entry.size() >= 1, "%s: interpolation reset in its entry frame %d (%s)" % [pair[0], rec["entered"], resets]):
+			continue
+		var last: Dictionary = entry[entry.size() - 1]
+		print("       %s: entered frame %d, resets %s" % [pair[0], rec["entered"], resets])
+		var expected := spawn_px
+		if pair[1] is CameraRig:
+			var view: Vector2 = last["view"]
+			var cm := CameraModel.new()
+			cm.view_w = view.x
+			cm.view_h = view.y
+			cm.set_bounds(bounds)
+			cm.snap_to(s[0], s[1] - fresh.world.camera_lift)
+			expected = cm.view_origin() + view / 2.0
+		assert_eq(last["position"], expected, "%s: last entry-frame reset at the spawn view" % pair[0])
+		var old_here := old_pos if pair[1] is PlayableDog else old_cam
+		assert_true(resets.all(func(r: Dictionary) -> bool: return r["position"] != old_here), "%s: no reset at the old run's position %s" % [pair[0], old_here])
+	assert_true(old_cam.distance_to(rig.position) > 8.0, "camera not at the old view (%s vs %s)" % [rig.position, old_cam])
+	# Under the briefing the dog stays on the spawn pixel (no motion after the reset).
+	await _frames_until(func() -> bool: return fresh.ticks >= 10, 20000)
+	assert_eq([dog.position, fresh.active], [spawn_px, false], "still on the spawn pixel under the briefing")
+	# Run state starts over; settings persist.
+	assert_eq(fresh.rules.stats, ScoringRules.new_stats(5), "fresh run stats (lives from the settings)")
+	assert_eq(fresh.rules.treats.size(), 30, "all 30 treats back")
+	assert_eq([fresh.rules.state, fresh.paused, fresh.world.process_mode], ["playing", false, Node.PROCESS_MODE_INHERIT], "playing state, not paused")
+	assert_eq(fresh.rules.bladder.charges, fresh.rules.bladder.max_charges, "bladder full again")
+	assert_eq([fresh.rules.hunger.value, dog.energy.value], [NeedsSystem.Hunger.new().value, NeedsSystem.Energy.new().value], "hunger and energy at their start values")
+	assert_eq(fresh.world.map.health(), canon.health(), "fresh map (no pollution from the old run)")
+	assert_eq(AudioService.current_track, &"intro", "briefing music again")
+	assert_eq(SaveService.get_settings(), settings, "settings unchanged in storage")
+	assert_eq(AppState.settings, settings, "AppState settings unchanged")
+	assert_eq([InputService.left_handed, InputService.run_toggle, AudioService.volume], [true, true, 0.35], "settings still applied")
+	assert_eq(dog.speed_mul, LivesRules.lives_speed(5), "the lives setting drives the new run")
+	assert_eq(dog.profile, load(AppState.PROFILES[AppState.selected_profile]), "same selected profile")
+	InputService.auto_update = false
