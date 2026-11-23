@@ -758,37 +758,83 @@ func test_SLICE_playable_profile_injected_before_add_child() -> void:
 	assert_eq([bare.profile.id, bare.used_fallback_profile], [&"zampano", true], "unconfigured dog falls back to Zampanò lazily")
 	bare.free()
 
+## A script's public interface: public method names with their argument counts and public script
+## variables, sorted.
+static func _public_interface(script: Script) -> Array:
+	var out: Array = []
+	for m: Dictionary in script.get_script_method_list():
+		if not String(m["name"]).begins_with("_"):
+			out.append("%s(%d)" % [m["name"], (m["args"] as Array).size()])
+	for p: Dictionary in script.get_script_property_list():
+		if not String(p["name"]).begins_with("_") and int(p["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE:
+			out.append("var " + String(p["name"]))
+	out.sort()
+	return out
+
+
+## ARCH-001a static review gate, scoped to duplicate playable/input movement controllers: flags a
+## script other than PlayableDog that defines the playable controller API (update_movement,
+## set_intent), or that reads player movement input (move_x / move_y / run_held) and moves a body
+## itself. Actor controllers (ActorBody, cats, Bagnaskiz, companions) may move through the shared
+## WorldMapModel solver with their approved behaviour controllers and are not flagged.
+static func _duplicate_player_controllers(sources: Dictionary) -> PackedStringArray:
+	var out := PackedStringArray()
+	for path: String in sources:
+		if path == "res://entities/playable_dog/playable_dog.gd":
+			continue
+		var src: String = sources[path]
+		var defines_controller := src.contains("func update_movement(") or src.contains("func set_intent(")
+		var reads_input := src.contains("move_x") or src.contains("move_y") or src.contains("run_held")
+		var moves_body := src.contains(".move_circle(") or src.contains(".circle_blocked(") or src.contains("move_and_slide(") or src.contains("move_and_collide(")
+		if defines_controller or (reads_input and moves_body):
+			out.append(path)
+	return out
+
+
 ## ARCH-001a (M2 dummy-story-scene contract, TEST_PLAN §5): a real dummy Story host scene
-## (tests/support/dummy_story_scene.tscn) instantiates the shared IsoWorld as its child, configures a
-## story-style map through IsoWorld.setup(), and runs its lifecycle (ready, ticks driven by the
-## shared InputService, rendered frames, cleanup); its world, dog, camera, sorter and resources are
-## the GreenZoneScene's; its movement is the shared controller and grid solver tick for tick; and
-## the static review gate finds a single movement implementation. The production story scene is
-## ARCH-001b (M5).
+## (tests/support/dummy_story_scene.tscn) instantiates the shared IsoWorld as its child, supplies its
+## own chapter-specific environment resources (tile set, sprite catalogue, bank id) through the
+## world's public properties, configures a story-style map through IsoWorld.setup(), and runs its
+## lifecycle (ready, ticks driven by the shared InputService, rendered frames, cleanup). Its
+## IsoWorld, PlayableDog, CameraRig classes and public interfaces are GreenZoneScene's, IsoGrid and
+## IsoDepthSorter place and rank both worlds, its movement is the shared controller and grid solver
+## tick for tick, and the static gate finds no duplicate playable/input controller (actor
+## controllers may use the shared solver). The production story scene is ARCH-001b (M5).
 func test_ARCH_001a_dummy_story_host_shares_the_green_zone_world() -> void:
 	var gz: GreenZoneScene = load("res://scenes/green_zone/green_zone_scene.tscn").instantiate()
 	gz.show_briefing = false
 	gz.manual_ticks = true
 	tree.root.add_child(gz)
+	var gw: IsoWorld = gz.world
+	# The story stage's own environment resources (stand-ins for a chapter's bank: distinct instances).
+	var env_tiles: TileSet = gw.tileset.duplicate()
+	var env_catalog: SpriteCatalog = gw.catalog.duplicate()
 	var host: Node2D = load("res://tests/support/dummy_story_scene.tscn").instantiate()
 	host.manual_ticks = true
+	host.environment_tileset = env_tiles
+	host.environment_catalog = env_catalog
+	host.environment_id = "story_stage_test"
 	tree.root.add_child(host)
 	var sw: IsoWorld = host.world
-	var gw: IsoWorld = gz.world
 	# Lifecycle: the world is the host's child, built through the public setup() on the story map.
 	assert_eq([sw.get_parent(), gw.get_parent()], [host, gz], "each host owns its world as a child")
 	assert_eq(sw.map.exit_tile, sw.map.start_tile, "story map without exit uses the start")
 	assert_eq(sw.map.markers.keys().size(), 2, "named markers")
 	assert_true(sw.map.ground.has(TileCatalog.Ground.WATER), "water on the story map")
-	# Shared classes and resources.
-	for pair: Array in [["world scene", sw.scene_file_path, gw.scene_file_path], ["world class", sw.get_script(), gw.get_script()],
-			["dog scene", sw.player.scene_file_path, gw.player.scene_file_path], ["dog class", sw.player.get_script(), gw.player.get_script()],
-			["dog profile", sw.player.profile, gw.player.profile], ["camera class", sw.camera_rig.get_script(), gw.camera_rig.get_script()],
-			["tile set", sw.tileset, gw.tileset], ["sprite catalogue", sw.catalog, gw.catalog]]:
-		assert_eq(pair[1], pair[2], "same %s as GreenZoneScene" % pair[0])
-	assert_eq(sw.scene_file_path, "res://world/world_2d.tscn", "the IsoWorld scene")
-	assert_eq(sw.player.scene_file_path, "res://entities/playable_dog/playable_dog.tscn", "the PlayableDog scene")
+	# Identical classes and public interfaces.
+	for pair: Array in [["IsoWorld", sw, gw], ["PlayableDog", sw.player, gw.player], ["CameraRig", sw.camera_rig, gw.camera_rig]]:
+		var a: Script = (pair[1] as Node).get_script()
+		var b: Script = (pair[2] as Node).get_script()
+		assert_eq(a, b, "same %s class as GreenZoneScene" % pair[0])
+		assert_eq(_public_interface(a), _public_interface(b), "same %s public interface" % pair[0])
+		assert_true(_public_interface(a).size() > 3, "%s has a public interface" % pair[0])
+	assert_eq([sw.scene_file_path, sw.player.scene_file_path], [gw.scene_file_path, gw.player.scene_file_path], "same IsoWorld and PlayableDog scenes")
+	assert_eq(sw.player.profile, gw.player.profile, "same injected profile (AppState selection)")
 	assert_false(sw.player.used_fallback_profile, "the profile was injected by the world")
+	# Chapter-specific environment resources: the host's, not the Green Zone's.
+	assert_eq([sw.tileset, sw.ground_layer.tile_set, sw.catalog, sw.environment], [env_tiles, env_tiles, env_catalog, "story_stage_test"], "the story stage's own environment resources are used")
+	assert_true(sw.tileset != gw.tileset and sw.catalog != gw.catalog, "distinct from GreenZoneScene's resources")
+	assert_eq([gw.tileset.resource_path, gw.environment], ["res://data/environment/ch01_greenzone_tileset.tres", "ch01_greenzone"], "the Green Zone keeps its own")
 	# Movement through the host's tick: InputService -> shared controller -> grid solver; camera follows.
 	var start_view := sw.camera_rig.view_rect().position
 	var intents: Array = []
@@ -802,21 +848,24 @@ func test_ARCH_001a_dummy_story_host_shares_the_green_zone_world() -> void:
 		if k % 4 == 3:
 			host._process(DT)
 	InputService.clear_injection()
+	gz._process(DT)
 	assert_eq(host.ticks, 200, "host ticked")
 	var right_wall := float(sw.map.width - 1)
 	assert_true(sw.player.gx > host.marker("S").x + 3.0, "moved east (%.3f)" % sw.player.gx)
 	assert_true(sw.player.gx <= right_wall - GameConfig.Player.RADIUS + 1e-9, "stopped by the wall through the grid solver (%.4f)" % sw.player.gx)
 	assert_true(sw.camera_rig.view_rect().position != start_view, "camera followed")
 	assert_eq(sw.camera_rig.view_rect().position, sw.camera_rig.view_rect().position.round(), "whole-pixel camera origin")
-	assert_eq(sw.player.position, IsoGrid.grid_to_screen(sw.player.gx, sw.player.gy).round(), "IsoGrid foot point")
-	# Depth sorting by the shared IsoDepthSorter: visible objects ranked 0..n-1.
-	var ranks: Array = []
-	for n in sw.object_layer.get_children():
-		if n.visible:
-			ranks.append(n.z_index)
-	ranks.sort()
-	assert_true(sw.visible_count >= 3 and ranks == range(ranks.size()), "depth-sorted visible set (%d)" % sw.visible_count)
-	# The same intents through a bare PlayableDog on the same map: identical, tick for tick (no host-specific movement).
+	# IsoGrid places and IsoDepthSorter ranks both worlds.
+	for pair: Array in [["story", sw], ["Green Zone", gw]]:
+		var w: IsoWorld = pair[1]
+		assert_eq(w.player.position, IsoGrid.grid_to_screen(w.player.gx, w.player.gy).round(), pair[0] + ": IsoGrid foot point")
+		var ranks: Array = []
+		for n in w.object_layer.get_children():
+			if n.visible:
+				ranks.append(n.z_index)
+		ranks.sort()
+		assert_true(w.visible_count >= 3 and ranks == range(ranks.size()), "%s: visible set ranked 0..n-1 by IsoDepthSorter (%d)" % [pair[0], w.visible_count])
+	# The same intents through a bare PlayableDog on the same map: identical, tick for tick.
 	var parsed := AsciiMapLoader.parse(host.rows, host.base, false)
 	var m := WorldMapModel.new(parsed["level"])
 	var bare: PlayableDog = load("res://entities/playable_dog/playable_dog.tscn").instantiate()
@@ -830,8 +879,16 @@ func test_ARCH_001a_dummy_story_host_shares_the_green_zone_world() -> void:
 			diverged = k
 	bare.free()
 	assert_eq(diverged, -1, "host movement equals the shared controller and solver tick for tick")
-	# Static review gate: no runtime script but PlayableDog moves a body (grid solver or physics bodies).
-	var movers: PackedStringArray = []
+	# Static review gate (scope checked first): duplicate playable/input controllers are flagged,
+	# actor behaviour controllers on the shared solver are not.
+	var samples := {
+		"res://entities/actor/actor_body.gd": "func behave(dt):\n\tvar r := map.move_circle(gx, gy, dx, dy, radius)\n",
+		"res://entities/critters/cat.gd": "func flee(dt):\n\tvar r = map.move_circle(gx, gy, -dx, -dy, 0.2)\n",
+		"res://entities/actor/second_dog.gd": "func set_intent(x, y, run):\n\tpass\n",
+		"res://scenes/story/walk_hack.gd": "func tick(dt):\n\tvar r = map.move_circle(gx, gy, InputService.move_x, InputService.move_y, 0.26)\n",
+	}
+	assert_eq(_duplicate_player_controllers(samples), PackedStringArray(["res://entities/actor/second_dog.gd", "res://scenes/story/walk_hack.gd"]), "gate scope: duplicates flagged, actor controllers allowed")
+	var sources := {}
 	var stack: Array[String] = ["res://"]
 	while not stack.is_empty():
 		var dir: String = stack.pop_back()
@@ -839,14 +896,11 @@ func test_ARCH_001a_dummy_story_host_shares_the_green_zone_world() -> void:
 			if not sub.begins_with(".") and sub not in ["tests", "tools", "test-results"]:
 				stack.append(dir.path_join(sub))
 		for f in DirAccess.get_files_at(dir):
-			if not f.ends_with(".gd") or dir.path_join(f) == "res://world/world_map_model.gd":
-				continue
-			var src := FileAccess.get_file_as_string(dir.path_join(f))
-			for pattern in [".move_circle(", ".circle_blocked(", "func update_movement(", "move_and_slide(", "move_and_collide("]:
-				if src.contains(pattern):
-					movers.append("%s: %s" % [dir.path_join(f), pattern])
-	assert_eq(movers, PackedStringArray(["res://entities/playable_dog/playable_dog.gd: .move_circle(", "res://entities/playable_dog/playable_dog.gd: func update_movement("]), "one movement implementation")
-	# Cleanup: freeing the host frees its world, dog and props.
+			if f.ends_with(".gd"):
+				sources[dir.path_join(f)] = FileAccess.get_file_as_string(dir.path_join(f))
+	assert_true(sources.has("res://entities/playable_dog/playable_dog.gd") and sources.size() > 20, "runtime scripts scanned (%d)" % sources.size())
+	assert_eq(_duplicate_player_controllers(sources), PackedStringArray(), "no duplicate playable/input movement controller")
+	# Cleanup: freeing the host frees its world and dog.
 	var dog := sw.player
 	tree.root.remove_child(host)
 	host.free()

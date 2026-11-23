@@ -21,6 +21,12 @@ const WORLD_SCENE := preload("res://world/world_2d.tscn")
 @export var base := "."
 ## Tests tick by hand; the real host ticks in _physics_process.
 @export var manual_ticks := false
+## Chapter-specific environment (a story stage's own tile set, sprite catalogue and bank id), given
+## to the shared world through its public properties before setup(); unset keeps the world's
+## defaults. The classes stay shared: only the resources differ per chapter.
+@export var environment_tileset: TileSet
+@export var environment_catalog: SpriteCatalog
+@export var environment_id := ""
 
 var world: IsoWorld
 var ticks := 0
@@ -30,6 +36,12 @@ func _ready() -> void:
 	var parsed := AsciiMapLoader.parse(rows, base, false)
 	assert(parsed["ok"], "dummy story map: %s" % parsed.get("error", ""))
 	world = WORLD_SCENE.instantiate()
+	if environment_tileset:
+		world.tileset = environment_tileset
+	if environment_catalog:
+		world.catalog = environment_catalog
+	if environment_id != "":
+		world.environment = environment_id
 	add_child(world)
 	world.setup(WorldMapModel.new(parsed["level"]))
 	world.camera_rig.set_view_size(Vector2(216, 432))

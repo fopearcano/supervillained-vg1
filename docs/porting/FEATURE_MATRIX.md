@@ -28,7 +28,7 @@ Acceptance IDs are claimed only through a `test_<ID>_…` suite case that exerci
 ID (TEST_PLAN.md case naming). `test_P_<ID>_…` cases are partial evidence and satisfy nothing;
 `test_SLICE_…` cases check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (93, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `b1c3595`, 137 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
+**Acceptance IDs satisfied by a full suite case (93, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `6a3c53b`, 137 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
 CORE-002; RNG-001–003; ARCH-001a; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-005a, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
@@ -40,9 +40,10 @@ shared anchor (finding F-15, architect to accept).
 
 **Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
 ARCH-001a (M2, satisfied) + ARCH-001b (M5, production story scene); COLL-005 = COLL-005a (M2,
-satisfied) + COLL-005b (M5–M7: scripted spatial objectives; moving and runtime-placed targets
-belong to WALK/NPC/MINI and each scene's STY real-input completion; `test_P_COLL_005b` evidence in
-M5/M6, the full aggregate in M7); DOG-005 = DOG-005a (M2,
+satisfied) + COLL-005b (M5–M7: scripted-position objectives; `test_P_COLL_005b` evidence in
+M5/M6, the full aggregate in M7). COLL-005 covers static and scripted-position reachability only;
+dynamic goals (moving or runtime-placed targets) are owned by WALK/NPC/MINI and each scene's STY
+real-input completion. DOG-005 = DOG-005a (M2,
 satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, **not satisfied**) + DOG-008b (M5,
 stage change).
 
@@ -59,24 +60,26 @@ is the same probe and waits for the same decision; a restart reset is not assert
 SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
 
 **Command-level evidence (no suite case, architect to judge):** CORE-001 (clean-cache import and
-600-frame Main run on a clean Windows 11 clone of the current tree (`godot/` `b1c3595`), and on a clean
+600-frame Main run on a clean Windows 11 clone of the current tree (`godot/` `6a3c53b`), and on a clean
 Ubuntu 26.04 clone of the prior tree `d12bedd`); AST-019 (all 206 generated outputs byte-identical
 under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
 `pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true` for the current tree,
 and `build_assets.sh --check` on Ubuntu 26.04 for `d12bedd`, the same bytes; the generated outputs
 did not change between the two trees).
 
-**Host verification.** *Current tree* (`godot/` tree `b1c3595c49666587c04d2ad3d652d28d774a2bc5`, correction report 8: the
-`b8535ab` tree with the dummy Story host scene and the corrected ARCH-001a and COLL-005a cases, test
-files only): a fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0,
+**Host verification.** *Current tree* (`godot/` tree `6a3c53bb9bf2c0cfc14e9c569ec03015543b914c`, correction report 9: the
+`b1c3595` tree with the dummy Story host's environment resources and the corrected ARCH-001a case,
+test files only): a fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0,
 pinned Chromium, WASAPI audio) passed the asset check (206 + 55 outputs identical), the clean import,
 the suite **137 passed, 0 failed**, the 600-frame Main run, the PCK smoke, the live audio probe,
 the PixiJS baseline (248 tests, build OK), `git diff --check` and the source-tree guard
-(`windows_evidence/correction-8-godot-tree-b1c3595/`). *Previous Windows trees*: `b8535ab`
-(correction report 7 addendum, **137 passed**, `windows_evidence/correction-7-godot-tree-b8535ab/`)
-and `81906cd` / `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, **134 passed**,
+(`windows_evidence/correction-9-godot-tree-6a3c53b/`). *Previous Windows trees*: `b1c3595`
+(correction report 8, **137 passed**, `windows_evidence/correction-8-godot-tree-b1c3595/`),
+`b8535ab` (correction report 7 addendum, **137 passed**,
+`windows_evidence/correction-7-godot-tree-b8535ab/`) and `81906cd` /
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, **134 passed**,
 `windows_evidence/correction-6-godot-tree-fd20ac1/`). **Correction 6 was not rerun on Linux, and
-neither were correction 7's addendum and correction 8.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
+neither were correction 7's addendum and corrections 8 and 9.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
 asset check, clean import, suite **128 passed, 0 failed**, 600-frame run and empty `git status`
 (`linux_evidence/d12bedd/`), and Windows additionally ran the rendered probe at 30/60/90/120 FPS
 with VSync off (`windows_evidence/d12bedd/`). Earlier Windows evidence for `a0e3b8d` is kept in
@@ -117,7 +120,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Partial | CORE-001 command evidence (Windows 11 clean clone of `81906cd`; Ubuntu 26.04 clean clone of the prior tree `d12bedd`); source-tree guard | command evidence only, architect to judge |
+| Godot project isolated under `/godot` | Partial | CORE-001 command evidence: Windows 11 clean clone of the current tree (correction report 9, `godot/` `6a3c53b`; before it correction report 8, `b1c3595`); Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | command evidence only, architect to judge |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
 | Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004; underlay/letterbox SLICE case; 4 viewport captures; rendered probe on llvmpipe and a real RTX 3090 | VIEW-004 incomplete: rendered clauses only by the probe outside the suite (gate decision not taken); device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | not run on a device or the emulator yet |
@@ -127,7 +130,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 | Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
 | Walk/run/terrain speed | Slice | MOVE-003, MOVE-004, MOVE-005 | — |
 | Collision and sliding | Slice | COLL-001–004, COLL-005a (one continuous drive to every treat's exact position within its pickup radius and on to the exit; every reachable story-map marker), COLL-006; SLICE solver decision | GridKinematicSolver (native slide rejected); COLL-005b literal-coordinate story objectives (M5–M7) |
-| Shared Green Zone/story world | Slice | ARCH-001a (dummy Story host scene: shared world child, lifecycle, movement, camera, sorting, cleanup; static no-fork gate) | ARCH-001b production story scene (M5) |
+| Shared Green Zone/story world | Slice | ARCH-001a (dummy Story host scene: same classes and public interfaces, its own environment resources, lifecycle, movement, camera, sorting, cleanup; static gate: no duplicate playable/input controller, actor controllers on the shared solver allowed) | ARCH-001b production story scene (M5) |
 | Camera lag/look-ahead/sway/shake/clamp | Partial | CAM-001–003; P: CAM-004 (whole-pixel origin in the suite) | CAM-004 incomplete: static shimmer only by the rendered probe (gate decision not taken); shake noise seeded (D-04) |
 | Stable depth sorting | Slice | DEPTH-001–003 | — |
 | Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |

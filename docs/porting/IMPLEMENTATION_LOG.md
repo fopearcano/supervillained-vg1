@@ -6,11 +6,146 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 8 is current.
+in progress report 5. Correction report 9 is current.
 
 ---
 
-## Correction report 8: M1/M2 acceptance evidence (M1 Partial, M2 Partial) — current
+## Correction report 9: ARCH-001a contract and COLL-005 ownership (M1 Partial, M2 Partial) — current
+
+Scope: the architect's three items on `5435c32`, in one commit. Code changes are test files only
+(the dummy Story host scene and the ARCH-001a case); no gameplay module, the continuous COLL-005a
+driver and the PixiJS source are untouched.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted); open M1 blocker: the migration-plugin spike |
+| Base | `5435c32` (correction report 8) |
+| Current `godot/` tree | `6a3c53bb9bf2c0cfc14e9c569ec03015543b914c`, verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2 (RTX 3090, WASAPI audio); Linux not rerun |
+| Android on this host | available: Android SDK (platform-tools/adb 37.0.3, build-tools 36.1.0, platform 36), Godot's 4.7.2 Android export templates, JDK 21, emulator device `sv_m1_api36` (adb serial `emulator-5554`, Android 16 / API 36, Google WebView 133.0.6943.137). Remaining blocker: the migration plugin and a controlled signed old→new APK lineage |
+
+### Changes per review item
+
+1. **ARCH-001a contract corrected** (TEST_PLAN.md ARCH-001 and ARCH-001a, the case, FEATURE_MATRIX,
+   this report). Required now: the same `IsoWorld`, `PlayableDog` and `CameraRig` classes **and
+   public interfaces** (public methods with argument counts and public variables, compared), with
+   `IsoGrid` placing and `IsoDepthSorter` ranking both worlds; **not** the same tile set or sprite
+   catalogue. The dummy Story host gained `environment_tileset`, `environment_catalog` and
+   `environment_id`, applied through the world's public properties before `setup()`; the case gives
+   it its own resource instances and checks that the story world uses them (ground layers, catalogue,
+   bank id) while the Green Zone keeps `ch01_greenzone`. The static no-fork rule is scoped to
+   **duplicate playable/input movement controllers**: a runtime script other than `PlayableDog` that
+   defines the playable controller API (`update_movement`, `set_intent`) or reads player movement
+   input and moves a body. Actor controllers (ActorBody, cats, Bagnaskiz, companions) may move with
+   approved behaviour controllers on the shared `WorldMapModel` solver; the case first checks the
+   rule's scope on four synthetic scripts (two actor controllers using `move_circle` pass, a second
+   playable controller and an input-reading mover are flagged), then scans every runtime script.
+   ARCH-001a stays claimed on `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`, which
+   passes in its corrected form.
+2. **COLL-005 ownership** (TEST_PLAN.md): COLL-005 is redefined as static and scripted-position
+   reachability (spawn/start/exit and every statically placed or scripted-position objective);
+   dynamic goals (moving or runtime-placed targets and action zones) are explicitly not COLL-005 and
+   are owned by WALK, NPC, MINI and each scene's STY real-input completion. COLL-005a and COLL-005b
+   are unchanged: `test_P_COLL_005b_…` evidence in M5/M6, the full `test_COLL_005b_…` aggregate in
+   M7. The continuous COLL-005a driver is unchanged.
+3. **Project-isolation row** (FEATURE_MATRIX): CORE-001 now cites the current Windows tree
+   (this report) and, before it, correction report 8's `b1c3595`; the old `81906cd` reference is
+   gone; Linux stays the prior tree `d12bedd`.
+
+### Legacy-save plan (unchanged; MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike, open M1 blocker:** a throwaway native migration plugin under
+   `/godot/platform/android/` on a controlled same-package/same-signature old→new APK lineage; the
+   five legacy keys read without mutation, or a documented reproducible failure, plus the written
+   native-bridge versus staged-Capacitor decision. Not started; the tools are available (above).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005.
+3. **M9 — production proof:** the installed lineage and signing certificate, two WebView/device
+   versions, end-to-end MIG-001–010.
+
+### M2 automated gates
+
+| ID | Status | Evidence / milestone |
+|---|---|---|
+| ARCH-001a | **satisfied** | `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world` (corrected contract, this report) |
+| COLL-005a | **satisfied** | `test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver` (correction report 8) |
+| DOG-005a | satisfied | `test_DOG_005a_…` (correction report 7 addendum) |
+| VIEW-004, CAM-004 | **not satisfied** | rendered clauses only by `tools/interpolation_probe.gd` outside the suite; gate decision not taken |
+| DOG-008a | **not satisfied** | rendered presentation clause (same decision); restart reset not asserted separately |
+| ARCH-001b, DOG-008b / COLL-005b / DOG-005b | later | M5 / M5–M7 (aggregate M7) / M3 |
+
+### Commands executed and results (Windows 11)
+
+| Command | Result |
+|---|---|
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all --case ARCH_001a` (working tree, while writing it) | `1 passed, 0 failed` |
+| Fresh `git clone` of this commit's code (`core.autocrlf=true`; tested `godot/` tree `6a3c53bb9bf2c0cfc14e9c569ec03015543b914c` = `git rev-parse HEAD:godot` of this commit; only the docs and the log folder were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (asset reproducibility) | exit 0: `asset check OK: 206 outputs identical (72 copies) …`; `build_resources check (all): OK, 55 outputs identical` |
+| `<console exe> --headless --path godot --import` (clean import) | exit 0, no ERROR/WARNING lines |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | exit 0: **137 passed, 0 failed, 137 total**, including `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`, `test_COLL_005a_…`, `test_DOG_005a_…` |
+| `<console exe> --headless --path godot --quit-after 600` | exit 0, engine banner only |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite integration --file test_export_pack` (PCK smoke) | exit 0: PCK 32,905,976 bytes, 254 runtime resources, 512 packed files, packed 600-frame startup clean |
+| `<console exe> --path godot --script res://tools/audio_suspend_probe.gd` (real WASAPI device; run by the same script) | exit 0, `"ok":true` |
+| `npm test`; `npm run build` | exit 0: 248 tests passed; build OK |
+| `git status --porcelain`; `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --stat 5435c32 -- godot` (working tree) | only `godot/tests/integration/test_world.gd` and `godot/tests/support/dummy_story_scene.gd` |
+| Python comparison of `test_world.gd` from `## Drives a PlayableDog…` to the end against `git show 5435c32:godot/tests/integration/test_world.gd` | identical: the COLL-005a driver and case are unchanged |
+| `git diff --stat 5435c32 -- docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/captures` (working tree, before the new log folder was added) | empty: historical evidence unchanged |
+| `git diff --check` (working tree) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 42 checks` |
+
+Logs of the fresh-clone run: `docs/porting/windows_evidence/correction-9-godot-tree-6a3c53b/`. Not
+run: Linux, the rendered interpolation probe (nothing rendered changed).
+
+Host evidence: current tree above. Previous Windows trees: `b1c3595` (correction report 8, 137
+passed), `b8535ab` (correction report 7 addendum, 137 passed), `81906cd` /
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed). Linux: the prior tree
+`d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on Linux, and neither were
+correction 7's addendum and corrections 8 and 9.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017). Remaining, per the approved plan: the M1 migration-plugin spike (open M1 blocker), the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005, the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | Not done from M1: the Android migration-plugin spike (open M1 blocker). The Android tools and the emulator are available; missing are the plugin and a controlled signed old→new APK lineage |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **M1 migration-plugin spike (open M1 blocker):** a controlled test keystore, the old Capacitor
+  APK built and signed with it, a few representative saves, the spike plugin and APK with the same
+  package and signature installed over it without uninstalling (`adb install -r`) on
+  `sv_m1_api36`; result: the five keys read unmutated, or a documented reproducible failure, plus
+  the written native-bridge / staged-Capacitor decision.
+- **Unsatisfied automated M2 gates:** **VIEW-004** and **CAM-004** (gate decision not taken: accept
+  the probe evidence, or add an in-suite rendered case); **DOG-008a** (the same rendered clause and
+  a restart-reset assertion).
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 8: M1/M2 acceptance evidence (`5435c32`; M1 Partial, M2 Partial)
+
+> Historical record of `5435c32`, superseded by correction report 9. **Erratum** (text below kept
+> as submitted): its ARCH-001a contract required the dummy Story host to share GreenZoneScene's tile
+> set and sprite catalogue instances and flagged every runtime `move_circle` caller other than
+> `PlayableDog`; correctly, the classes and public interfaces must be identical, a story stage may
+> supply its own environment resources, and the static rule covers duplicate playable/input
+> movement controllers only (actor behaviour controllers may use the shared solver). The COLL-005
+> parent still read "every current story objective"; it now covers static and scripted-position
+> reachability, with dynamic goals owned by WALK/NPC/MINI/STY.
 
 Scope: the architect's five items on `965d0b0`, in one commit. No M3 content. Code changes are test
 files only (a dummy Story host scene under `godot/tests/support/` and two rewritten acceptance
