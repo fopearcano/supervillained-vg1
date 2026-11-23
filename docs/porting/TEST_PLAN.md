@@ -54,6 +54,8 @@ The integration suite also exports the Android preset as a PCK with the running 
 
 Case naming: `test_<ID>_…` only when every clause of that acceptance ID is exercised; `test_P_<ID>_…` is partial evidence toward the ID and never satisfies it; `test_SLICE_…` checks port behaviour that has no plan ID. The matrix and log claim only `test_<ID>` cases.
 
+Split IDs: an ID whose clauses belong to two milestones is split into `<ID>a` (the earlier milestone's clauses) and `<ID>b` (the later clauses, which keep their own milestone). Each part is claimed only by its own `test_<ID>a_…` / `test_<ID>b_…` case; the parent ID is satisfied only when both parts are. Splitting never removes a clause: every clause of the parent belongs to exactly one part.
+
 The runner must:
 
 - discover an explicit registry of test scripts/cases;
@@ -91,7 +93,9 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 |---|---|
 | CORE-001 | Clean clone imports and headless-launches in Godot 4.7.2 with no missing Resource/script error. |
 | CORE-002 | Project physics rate is 60 Hz; time is derived from integer ticks or a 600-tick accumulator is within `1e-9` of 10 game seconds independent of render rate. |
-| ARCH-001 | Green Zone and Story scenes both instantiate the same `IsoWorld`, `PlayableDog`, `IsoGrid`, sorter and camera classes; no forked movement implementation. |
+| ARCH-001 | Green Zone and Story scenes both instantiate the same `IsoWorld`, `PlayableDog`, `IsoGrid`, sorter and camera classes; no forked movement implementation. Split: |
+| ARCH-001a | **M2.** A dummy story scene (a story-style map: no exit, markers, water, props) and the Green Zone scene are built by the same `IsoWorld` scene and setup, spawn the same `PlayableDog`, project with `IsoGrid`, depth-sort with `IsoDepthSorter` and follow with the same `CameraRig`; the dog moves through the shared controller and grid solver; no runtime script forks movement. |
+| ARCH-001b | **M5.** The production story scene (story runner, real chapter maps) satisfies the same contract. |
 | RNG-001 | Deterministic RNG first-N outputs match source fixture for multiple seeds including 0 and max 32-bit. |
 | RNG-002 | Same seed reproduces treat/decor/spawn choices byte-for-byte. |
 | RNG-003 | Different seeds produce different sequences without global RNG leakage. |
@@ -135,7 +139,9 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | COLL-002 | Sliding along horizontal/vertical/diagonal obstacle boundaries reaches source checkpoints within 0.10 tile. |
 | COLL-003 | Circular props push out without tunneling at walk/run maximum speed and worst fixed delta. |
 | COLL-004 | Bush is walkable; void, forest, wall and deep water are not; water/tall grass remain walkable. |
-| COLL-005 | Spawn/start/exit and every current story objective remain reachable under selected solver. |
+| COLL-005 | Spawn/start/exit and every current story objective remain reachable under selected solver. Split: |
+| COLL-005a | **M2.** The Green Zone spawn/start, exit and every treat placement, and the start, exit and every map marker of each current story map that the source can reach, are reached by the selected solver; markers the source cannot reach are listed as actor-only spawn points. |
+| COLL-005b | **M5–M7** (each level's objectives with its scripts; complete at M7). Every current story objective at a literal coordinate in the chapter scripts (reach goals, pickups, spots, marvels) is reachable under the selected solver. |
 | COLL-006 | Repeated collision test is deterministic and stable without jitter/energy gain. |
 
 ### Depth, world, camera
@@ -202,10 +208,14 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | DOG-002 | Standing→sit→sniff rest sequence and reset after action match source timing. |
 | DOG-003 | Pee state locks/permits movement and animation for exact rule duration. |
 | DOG-004 | Poop state/warning handoff and busy-action delay match source. |
-| DOG-005 | Bark, eat/drink, fetch, hurt and exit state transitions cannot overlap illegally. |
+| DOG-005 | Bark, eat/drink, fetch, hurt and exit state transitions cannot overlap illegally. Split: |
+| DOG-005a | **M2.** Bark, eat/drink, hurt and exit transitions (action lock and state machine) cannot overlap illegally: per-tick state, durations, counters and event order equal the source in its overlap scenarios. |
+| DOG-005b | **M3** (with the magnet balls, GZ-034–036). The forced fetch cannot overlap illegally with bark, eat/drink, hurt or exit. |
 | DOG-006 | Invulnerability blink/squash presentation never changes rule state. |
 | DOG-007 | Energy exhaustion selects tired and blocks run until recovery threshold. |
-| DOG-008 | Spawn/teleport/restart/stage change/camera snap reset physics interpolation; 30/60/90/120 FPS presentation leaves no streak and test hooks do not leak into release input. |
+| DOG-008 | Spawn/teleport/restart/stage change/camera snap reset physics interpolation; 30/60/90/120 FPS presentation leaves no streak and test hooks do not leak into release input. Split: |
+| DOG-008a | **M2.** Spawn, teleport, restart and camera snap reset physics interpolation; 30/60/90/120 FPS presentation leaves no streak; test hooks do not leak into release input. |
+| DOG-008b | **M5.** A story stage change resets physics interpolation. |
 | DOG-009 | Armour appearance and sword/shield capability are independently gated at 2.1/2.3. |
 
 ### Green Zone

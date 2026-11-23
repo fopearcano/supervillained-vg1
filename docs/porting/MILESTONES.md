@@ -167,7 +167,8 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 **Automated tests**
 
-- `VIEW-001–004`, `ISO-001–004`, `MOVE-001–005`, `COLL-001–006`, `DEPTH-001–004`, `CAM-001–004`, `MAP-001–007`, `DOG-001–008`.
+- `VIEW-001–004`, `ISO-001–004`, `MOVE-001–005`, `COLL-001–004`, `COLL-005a`, `COLL-006`, `DEPTH-001–004`, `CAM-001–004`, `MAP-001–007`, `DOG-001–004`, `DOG-005a`, `DOG-006`, `DOG-007`, `DOG-008a`, `ARCH-001a` (dummy story scene).
+- Later parts of these split IDs keep their milestones (TEST_PLAN.md split IDs): `DOG-005b` (M3), `ARCH-001b` and `DOG-008b` (M5), `COLL-005b` (M5–M7).
 - Golden movement traces at 8 directions, two analog magnitudes, walk/run, and three terrain types.
 - Source-vs-Godot collision fixture comparison and map reachability.
 - Integration test drives the slice through InputService injection.
@@ -221,7 +222,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 **Automated tests**
 
-- `GZ-001–045`, `UI-001–006`, `FLOW-001–005`, `AUTO-001`.
+- `GZ-001–045`, `UI-001–006`, `FLOW-001–005`, `AUTO-001`, `DOG-005b` (forced fetch never overlaps illegally).
 - Port every applicable source needs/rules/scoring/threat/balance invariant.
 - Seeded full-level automation reaches exit, eats, poops, pees, handles attack, and produces deterministic summary.
 - Scene restart clears transient state; pause freezes simulation.
@@ -328,6 +329,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 **Automated tests**
 
 - `CAMP-001–014`, `DLG-001–009`, `WALK-001–009`, `NPC-001–007`, `CONTENT-001–005` for Level 1.
+- `ARCH-001b` (production story scene shares the world), `DOG-008b` (stage change resets interpolation), `COLL-005b` for the Level 1 objectives.
 - `STY-101–105` scripted smoke and real-input completion.
 - Map marker validation and “missing marker fails” test.
 - Restart/replay/persistence and sleep-boundary tests.
@@ -383,6 +385,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 - `STY-201–203`, `STY-301–304`, `STY-401–403`.
 - `COM-001–014`, `WALK-010–017`, `MINI-001–005`.
+- `COLL-005b` for the objectives of Levels 2–4.
 - Full scripted smoke 1.1–4.3 plus real-input autopilot from 2.1–4.3.
 - Costume/capability and music-routing tests.
 
@@ -435,6 +438,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 - `STY-501–505`, `STY-601–603`, `STY-701–707`, `STY-708A`, `STY-708B`, `STY-709`, `STY-801–804`.
 - `WALK-018–021`, `MINI-006–012`, remaining `COM`/`NPC` cases, `END-001–004`.
+- `COLL-005b` complete: the objectives of Levels 5–8.
 - Complete scripted smoke with no page/resource/marker error.
 - At least three full real-input autopilot policies: Knight/first, Witness/last, mixed/random lower skill.
 - Campaign count/order/source metadata and every awarded marvel→home-object mapping.

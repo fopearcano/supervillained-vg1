@@ -269,3 +269,13 @@ func test_SLICE_bark_is_gated_like_source_try_bark() -> void:
 	threats.try_bark()
 	assert_eq(barks[0], 1, "no bark while a locking action runs")
 	dog.free()
+
+
+## DOG-005a (M2 action lock / state machine): bark, eat, drink, hurt and exit transitions never
+## overlap illegally; every tick's state, duration, counters and the event order equal the source
+## Rules in its two overlap scenarios: eating treats, then a poop falling due during a pee and
+## waiting for it (rules_busy); a bark with pee requests during it, a treat during the pee, a hurt
+## from starvation, a drink and the exit (rules_overlap). Fetch is DOG-005b (M3).
+func test_DOG_005a_bark_eat_drink_hurt_exit_never_overlap_like_source() -> void:
+	test_DOG_004_poop_waits_for_the_busy_action()
+	test_P_DOG_005_overlapping_actions_resolve_like_source()

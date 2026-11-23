@@ -20,9 +20,9 @@ accepted AudioService and PlayableDog corrections and the PixiJS source are unto
 |---|---|
 | Milestone status | **M1 Partial, M2 Partial** (nothing accepted); **open M1 blocker: the migration-plugin spike** |
 | Base | `81906cd` (correction report 6) |
-| Code under test | unchanged from `81906cd`; its Windows evidence (correction report 6) is the current-tree evidence |
+| Code under test | at `cc1ebb3`: unchanged from `81906cd`. **Addendum** (below): test files only, three acceptance cases added; new `godot/` tree `b8535ab2b041ed91caa74eee1f8e3b5a65130860`, verified on Windows |
 | Host | Windows 11 Pro N for Workstations 25H2 (same PC); Ubuntu 26.04 in WSL 2 (checked for Android tools only) |
-| Android on this host | no Android SDK, adb, emulator or device; no controlled old→new APK lineage. Present: JDK 21 (Eclipse Adoptium) and Godot's 4.7.2 Android export templates (`android_debug.apk`, `android_release.apk`, `android_source.zip`) |
+| Android on this host | at `cc1ebb3`: no Android SDK, adb, emulator or device; no controlled old→new APK lineage; present: JDK 21 (Eclipse Adoptium) and Godot's 4.7.2 Android export templates. Since then, with the owner's OK: an Android SDK (platform-tools 37.0.3, build-tools 36.1.0, platform 36) and the emulator 37.3.10 with the virtual device `sv_m1_api36` (Android 16 / API 36, Google WebView 133.0.6943.137) in `%USERPROFILE%\Desktop\android-sdk`. The spike itself is not started |
 
 ### The approved three-stage legacy-save plan (MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
 
@@ -77,6 +77,56 @@ stated). No build, import, suite or launch was re-run: no code changed.
 | `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
 | `python docs_consistency_check.py` (session tool, not committed) | `OK: 16 checks` — one "— current" report; the plan's three stages, the M1 blocker and the host-evidence facts present in FEATURE_MATRIX and this report; the collapsed "M9 only" wording absent from both |
 
+### Addendum on top of `cc1ebb3`: the automated M2 gates reconciled
+
+The architect's follow-up: list the unsatisfied automated M2 gates (ARCH-001, VIEW-004, CAM-004,
+COLL-005, DOG-005, DOG-008) and reconcile MILESTONES.md, TEST_PLAN.md and FEATURE_MATRIX.md without
+moving requirements to declare M2 complete. Only test files changed; no game or PixiJS code.
+
+- **Split IDs** (TEST_PLAN.md rule: `<ID>a` = the earlier milestone's clauses, `<ID>b` = the later
+  clauses with their own milestone; the parent is satisfied only when both are; no clause is
+  dropped). MILESTONES.md lists each part under its milestone (M2, M3, M5–M7) and FEATURE_MATRIX's
+  planning rows name the parts.
+
+| Parent | M2 part | Evidence for the M2 part | Later part (milestone) |
+|---|---|---|---|
+| ARCH-001 | ARCH-001a: a dummy story scene and the Green Zone scene share the `IsoWorld` scene and setup, `PlayableDog`, `IsoGrid`, `IsoDepthSorter`, `CameraRig`; shared controller and grid solver; no forked movement | **satisfied**: new `test_ARCH_001a_dummy_story_scene_shares_the_green_zone_world` (both scenes' world/dog/camera scenes and classes, IsoGrid foot point, story map without exit and with markers, the dog stopped by a wall through the grid solver, depth-sorted, and a static scan finding a single movement implementation) | ARCH-001b: production story scene (M5) |
+| COLL-005 | COLL-005a: Green Zone spawn/start, exit and every treat; every story map's start, exit and every marker the source can reach | **satisfied**: new `test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver` (runs the earlier partial case, then drives the grid solver start → each of the 30 treats in placement order → exit) | COLL-005b: story objectives at literal coordinates (M5–M7) |
+| DOG-005 | DOG-005a: bark, eat/drink, hurt, exit cannot overlap illegally | **satisfied**: new `test_DOG_005a_bark_eat_drink_hurt_exit_never_overlap_like_source` (the source `rules_busy` and `rules_overlap` scenarios tick by tick: states bark, eat, pee, poop, hurt, drink, exit) | DOG-005b: forced fetch (M3, with GZ-034–036) |
+| DOG-008 | DOG-008a: spawn/teleport/restart/camera-snap resets; 30/60/90/120 FPS presentation without streak; no test-hook leak | **not satisfied**: spawn, teleport and camera-snap resets and hook isolation are in `test_CORE_002_logic_independent_of_render_rate`; the presentation clause is only the rendered probe (decision below); a restart reset is not asserted separately | DOG-008b: stage change (M5) |
+
+- **VIEW-004 and CAM-004: kept incomplete.** The suite covers nearest filtering and whole-pixel
+  world, camera and UI transforms (`test_P_VIEW_004_…`, the CAM-004 assertion in
+  `test_CAM_002_…`); the rendered 30/60/90/120 FPS, streak, double-interpolation and static-shimmer
+  clauses are measured only by `tools/interpolation_probe.gd` outside the suite (llvmpipe,
+  correction report 1; a real RTX 3090 for `d12bedd`, `windows_evidence/d12bedd/` steps f/g).
+  **Gate decision: not taken** — accepting that probe evidence for these clauses, or requiring an
+  in-suite rendered case, is the architect's call. The same decision covers DOG-008a's
+  presentation clause.
+
+Commands executed for the addendum and results (Windows 11):
+
+| Command | Result |
+|---|---|
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all --case <c>` for `ARCH_001a`, `COLL_005a`, `DOG_005a` (working tree, while writing them) | each `1 passed, 0 failed` |
+| Fresh `git clone` of this commit's code (`core.autocrlf=true`; tested `godot/` tree `b8535ab2b041ed91caa74eee1f8e3b5a65130860` = `git rev-parse HEAD:godot` of this commit; only the docs and the log folder were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | exit 0: `asset check OK: 206 outputs identical (72 copies) …`; `build_resources check (all): OK, 55 outputs identical` |
+| `<console exe> --headless --path godot --import` | exit 0, no ERROR/WARNING lines |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | exit 0: **137 passed, 0 failed, 137 total** (134 + `test_ARCH_001a_…`, `test_COLL_005a_…`, `test_DOG_005a_…`) |
+| `<console exe> --headless --path godot --quit-after 600` | exit 0, engine banner only |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite integration --file test_export_pack` | exit 0: PCK 32,905,976 bytes, 254 runtime resources, 512 packed files, packed 600-frame startup clean |
+| `<console exe> --path godot --script res://tools/audio_suspend_probe.gd` (real WASAPI device) | exit 0, `"ok":true`, `late_effect_dropped` true, nothing replayed |
+| `npm test`; `npm run build` | exit 0: 248 tests passed; build OK |
+| `git status --porcelain`; `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --stat cc1ebb3 -- godot` (working tree) | only `godot/tests/integration/test_world.gd` (+77) and `godot/tests/unit/test_needs_rules.gd` (+10) |
+| `git diff --stat cc1ebb3 -- docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/captures` (working tree, before the new log folder was added) | empty: historical evidence unchanged |
+| `git diff --check` (working tree) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 36 checks` (current report, the M1/M4/M9 plan, host evidence, the split IDs in TEST_PLAN, MILESTONES and FEATURE_MATRIX, claimed IDs backed by `test_<ID>` cases) |
+
+Logs of the fresh-clone run: `docs/porting/windows_evidence/correction-7-godot-tree-b8535ab/`. Not run:
+Linux, the rendered interpolation probe (nothing rendered changed).
+
 ### Deviations
 
 | ID | Status |
@@ -88,12 +138,19 @@ stated). No build, import, suite or launch was re-run: no code changed.
 
 ### Still required before requesting M1/M2 completion review
 
-- **M1 migration-plugin spike (open M1 blocker).** Needs an Android SDK (platform-tools,
-  build-tools, a platform), a device or emulator, a controlled test keystore, the old Capacitor
-  APK built and signed with it, a few representative saves, and a spike APK with the same package
-  and signature installed over it without uninstalling (`adb install -r`). Result: the five keys
-  read unmutated, or a documented reproducible failure, plus the written native-bridge /
-  staged-Capacitor decision. JDK 21 and the Godot Android export templates are already on this PC.
+- **M1 migration-plugin spike (open M1 blocker).** Still to do: a controlled test keystore, the
+  old Capacitor APK built and signed with it, a few representative saves, and a spike APK with the
+  same package and signature installed over it without uninstalling (`adb install -r`). Result: the
+  five keys read unmutated, or a documented reproducible failure, plus the written native-bridge /
+  staged-Capacitor decision. Now available on this PC: the Android SDK, the emulator device
+  `sv_m1_api36`, JDK 21 and the Godot Android export templates.
+- **Unsatisfied automated M2 gates:**
+  - **VIEW-004** and **CAM-004**: rendered clauses only by the probe outside the suite; gate
+    decision not taken (accept the probe evidence, or add an in-suite rendered case).
+  - **DOG-008a**: the rendered presentation clause (same decision) and a restart-reset assertion.
+  - ARCH-001, COLL-005 and DOG-005: their M2 parts ARCH-001a, COLL-005a and DOG-005a are satisfied
+    by this addendum's cases; ARCH-001b (M5), COLL-005b (M5–M7) and DOG-005b (M3) stay with their
+    milestones, as does DOG-008b (M5).
 - **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
   angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
 - **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,

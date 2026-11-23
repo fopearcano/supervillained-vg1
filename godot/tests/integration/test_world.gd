@@ -757,3 +757,80 @@ func test_SLICE_playable_profile_injected_before_add_child() -> void:
 	tree.root.add_child(bare)
 	assert_eq([bare.profile.id, bare.used_fallback_profile], [&"zampano", true], "unconfigured dog falls back to Zampanò lazily")
 	bare.free()
+
+## ARCH-001a (M2 dummy-story-scene contract, TEST_PLAN §5): the Green Zone scene and a dummy story
+## scene (a story-style map: no exit, markers, water, props) are built by the same IsoWorld scene
+## and setup, spawn the same PlayableDog, project with IsoGrid, depth-sort with IsoDepthSorter (via
+## IsoWorld.render) and follow with the same CameraRig; the dog moves through the shared
+## PlayableDog controller and grid solver, and no runtime script forks movement. The production
+## story scene is ARCH-001b (M5).
+func test_ARCH_001a_dummy_story_scene_shares_the_green_zone_world() -> void:
+	var gz: GreenZoneScene = load("res://scenes/green_zone/green_zone_scene.tscn").instantiate()
+	gz.show_briefing = false
+	gz.manual_ticks = true
+	tree.root.add_child(gz)
+	var story := _make(PackedStringArray([
+		"#########",
+		"#..T..1.#",
+		"#.,,,...#",
+		"#..WW.B.#",
+		"#S.WW..2#",
+		"#########",
+	]))
+	for pair: Array in [[gz.world, "Green Zone"], [story, "dummy story"]]:
+		var w: IsoWorld = pair[0]
+		assert_eq(w.scene_file_path, "res://world/world_2d.tscn", pair[1] + ": the IsoWorld scene")
+		assert_true(w is IsoWorld and w.player is PlayableDog and w.camera_rig is CameraRig, pair[1] + ": IsoWorld, PlayableDog, CameraRig")
+		assert_eq(w.player.scene_file_path, "res://entities/playable_dog/playable_dog.tscn", pair[1] + ": the PlayableDog scene")
+		var at := IsoGrid.grid_to_screen(w.player.gx, w.player.gy).round()
+		assert_eq(w.player.position, at, pair[1] + ": IsoGrid projection of the foot point")
+	assert_eq([gz.world.get_script(), gz.world.player.get_script(), gz.world.camera_rig.get_script()],
+		[story.get_script(), story.player.get_script(), story.camera_rig.get_script()], "same classes in both scenes")
+	assert_eq(story.map.exit_tile, story.map.start_tile, "story map without exit uses the start")
+	assert_eq([story.map.markers["1"], story.map.markers["2"]], [Vector2i(6, 1), Vector2i(7, 4)], "markers")
+	# Shared controller and solver: walk east into the wall; the grid solver stops the dog at the wall.
+	story.player.set_intent(0.8, 0.0, false)
+	var x0 := story.player.gx
+	for k in 240:
+		story.player.update_movement(DT, story.map)
+		story.end_step(DT)
+	story.render(DT)
+	assert_true(story.player.gx > x0, "moved with the shared PlayableDog controller")
+	assert_true(story.player.gx <= 8.0 - GameConfig.Player.RADIUS + 1e-9, "stopped by the wall through the grid solver (%.4f)" % story.player.gx)
+	assert_true(story.visible_count >= 3, "depth-sorted by IsoDepthSorter (%d visible)" % story.visible_count)
+	# No forked movement: only PlayableDog moves through WorldMapModel.move_circle and defines update_movement.
+	var movers: PackedStringArray = []
+	var stack: Array[String] = ["res://"]
+	while not stack.is_empty():
+		var dir: String = stack.pop_back()
+		for sub in DirAccess.get_directories_at(dir):
+			if not sub.begins_with(".") and sub not in ["tests", "tools", "test-results"]:
+				stack.append(dir.path_join(sub))
+		for f in DirAccess.get_files_at(dir):
+			if f.ends_with(".gd"):
+				var src := FileAccess.get_file_as_string(dir.path_join(f))
+				if src.contains(".move_circle(") or src.contains("func update_movement("):
+					movers.append(dir.path_join(f))
+	assert_eq(movers, PackedStringArray(["res://entities/playable_dog/playable_dog.gd"]), "one movement implementation")
+	gz.get_parent().remove_child(gz)
+	gz.free()
+
+
+## COLL-005a (M2): the Green Zone start, exit and all 30 treat placements, and the start, exit and
+## every marker of the twenty story maps that the source can reach, are reached by the selected grid
+## solver. Story objectives at literal coordinates are COLL-005b (M5-M7).
+func test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver() -> void:
+	# Green Zone start -> exit drive, treats on the connected area, every reachable story-map marker.
+	test_P_COLL_005_start_exit_and_treats_reachable_under_the_solver()
+	# Every treat driven to by the grid solver, leg by leg in placement order from the start.
+	var def := GreenZoneLevel.definition()
+	var m := GreenZoneLevel.load_model(def)
+	var at := m.start
+	var reached := 0
+	for tr: Array in TreatPlacement.place_treats(m, def.spawns["treats"], def.seed):
+		var tile := Vector2i(int(floor(tr[0])), int(floor(tr[1])))
+		if assert_true(_solver_reaches(m, at, tile), "solver reaches treat at %s" % tile):
+			reached += 1
+		at = Vector2(tile.x + 0.5, tile.y + 0.5)
+	assert_eq(reached, 30, "all 30 treats reached")
+	assert_true(_solver_reaches(m, at, m.exit_tile), "and the exit from the last treat")

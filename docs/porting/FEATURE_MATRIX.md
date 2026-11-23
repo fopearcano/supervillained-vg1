@@ -28,40 +28,52 @@ Acceptance IDs are claimed only through a `test_<ID>_…` suite case that exerci
 ID (TEST_PLAN.md case naming). `test_P_<ID>_…` cases are partial evidence and satisfy nothing;
 `test_SLICE_…` cases check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (90), Godot 4.7.2; current tree verified on the Windows console build (`81906cd`, 134 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
-CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-006;
+**Acceptance IDs satisfied by a full suite case (93, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `b8535ab`, 137 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
+CORE-002; RNG-001–003; ARCH-001a; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
-DOG-001–004, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
+DOG-001–004, DOG-005a, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
 FLOW-001, FLOW-002; SAV-001–004, SAV-013–020, SAV-022 (main, temp and backup).
 MAP-007 is one aggregator case (rows/topology, canonical route length, treat placements).
 Every automated M1 ID (ISO-001–003, RNG-001–003, AST-001–020, AUD-001–008, SAV-013–017) is
 satisfied, AST-019 by command evidence; AST-007's "arms attachment" is read as in-frame arms on the
 shared anchor (finding F-15, architect to accept).
 
-**Partial evidence only (not satisfied):** ARCH-001 (no real story scene yet), VIEW-004 and CAM-004 (headless whole-pixel checks; the rendered
-30/60/90/120 FPS and static-shimmer checks pass in `tools/interpolation_probe.gd`, outside the
-suite: llvmpipe on Linux and a real RTX 3090 on Windows), DOG-005 (fetch needs M3 balls), DOG-008
-(spawn/teleport/camera-snap resets in the suite and the rendered probe; stage change does not exist
-before M5), COLL-005 (Green Zone start/exit/treats and every story-map marker the source can reach;
-story pickups, spots and marvels at literal coordinates are placed by the M5 scripts), GZ-001,
-GZ-002, GZ-021, GZ-025, SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
+**Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
+ARCH-001a (M2, satisfied) + ARCH-001b (M5, production story scene); COLL-005 = COLL-005a (M2,
+satisfied) + COLL-005b (M5–M7, story objectives at literal coordinates); DOG-005 = DOG-005a (M2,
+satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, **not satisfied**) + DOG-008b (M5,
+stage change).
+
+**Unsatisfied automated M2 gates:** VIEW-004 and CAM-004 (the suite checks nearest filtering and
+whole-pixel world, camera and UI transforms; the rendered 30/60/90/120 FPS, streak, double
+interpolation and static-shimmer clauses are measured only by `tools/interpolation_probe.gd`
+outside the suite: llvmpipe in correction report 1, a real RTX 3090 for `d12bedd`). **Gate
+decision: not taken.** The architect either accepts that probe evidence for these clauses or
+requires an in-suite rendered case; until then both stay incomplete. DOG-008a (spawn, teleport and
+camera-snap resets and the test-hook isolation are in the suite; the rendered presentation clause
+is the same probe and waits for the same decision; a restart reset is not asserted separately).
+
+**Partial evidence only (not satisfied, later milestones):** GZ-001, GZ-002, GZ-021, GZ-025,
+SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
 
 **Command-level evidence (no suite case, architect to judge):** CORE-001 (clean-cache import and
-600-frame Main run on a clean Windows 11 clone of the current tree `81906cd`, and on a clean
+600-frame Main run on a clean Windows 11 clone of the current tree (`godot/` `b8535ab`), and on a clean
 Ubuntu 26.04 clone of the prior tree `d12bedd`); AST-019 (all 206 generated outputs byte-identical
 under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
-`pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true` for `81906cd`,
+`pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true` for the current tree,
 and `build_assets.sh --check` on Ubuntu 26.04 for `d12bedd`, the same bytes; the generated outputs
 did not change between the two trees).
 
-**Host verification.** *Current tree* (`81906cd`, `godot/` tree
-`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876`, correction report 6; the documentation commits after it
-do not change `godot/`): a fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe,
-Node 24.15.0, pinned Chromium, WASAPI audio) passed the asset check (206 + 55 outputs identical),
-the clean import, the suite **134 passed, 0 failed**, the 600-frame Main run, the PCK smoke, the
-live audio probe, the PixiJS baseline (248 tests, build OK), `git diff --check` and the source-tree
-guard (`windows_evidence/correction-6-godot-tree-fd20ac1/`). **Correction 6 was not rerun on
-Linux.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
+**Host verification.** *Current tree* (`godot/` tree `b8535ab2b041ed91caa74eee1f8e3b5a65130860`: the tree of `81906cd` plus
+the three acceptance cases of correction report 7's addendum, test files only): a fresh Windows 11
+25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0, pinned Chromium, WASAPI audio)
+passed the asset check (206 + 55 outputs identical), the clean import, the suite **137 passed, 0
+failed**, the 600-frame Main run, the PCK smoke, the live audio probe, the PixiJS baseline (248
+tests, build OK), `git diff --check` and the source-tree guard
+(`windows_evidence/correction-7-godot-tree-b8535ab/`). *Previous Windows tree* (`81906cd`, `godot/`
+tree `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876`, correction report 6): the same checks with
+**134 passed** (`windows_evidence/correction-6-godot-tree-fd20ac1/`). **Correction 6 was not rerun
+on Linux, and neither was correction 7's addendum.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
 asset check, clean import, suite **128 passed, 0 failed**, 600-frame run and empty `git status`
 (`linux_evidence/d12bedd/`), and Windows additionally ran the rendered probe at 30/60/90/120 FPS
 with VSync off (`windows_evidence/d12bedd/`). Earlier Windows evidence for `a0e3b8d` is kept in
@@ -99,23 +111,23 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 |---|---|---|---|
 | Godot project isolated under `/godot` | Partial | CORE-001 command evidence (Windows 11 clean clone of `81906cd`; Ubuntu 26.04 clean clone of the prior tree `d12bedd`); source-tree guard | command evidence only, architect to judge |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
-| Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004; underlay/letterbox SLICE case; 4 viewport captures; rendered probe on llvmpipe and a real RTX 3090 | VIEW-004 rendered checks outside the suite; device safe area unverified |
+| Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004; underlay/letterbox SLICE case; 4 viewport captures; rendered probe on llvmpipe and a real RTX 3090 | VIEW-004 incomplete: rendered clauses only by the probe outside the suite (gate decision not taken); device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | no device (B-04) |
 | Native Android build | — | SLICE: Android-preset PCK export + packed-runtime startup | no APK: no templates/SDK/device here (B-04) |
 | 2:1 projection | Slice | ISO-001–004 | 64-bit math (F-03) |
 | Screen-space movement semantics | Slice | ISO-004, MOVE-001 | — |
 | Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
 | Walk/run/terrain speed | Slice | MOVE-003, MOVE-004, MOVE-005 | — |
-| Collision and sliding | Slice | COLL-001–004, COLL-006; P: COLL-005 (Green Zone + every reachable story-map marker); SLICE solver decision | GridKinematicSolver (native slide rejected); literal-coordinate story objectives M5 |
-| Shared Green Zone/story world | Partial | P: ARCH-001 (dummy story map) | real story scene M5 |
-| Camera lag/look-ahead/sway/shake/clamp | Slice | CAM-001–003; CAM-004 partial (see above) | shake noise seeded (D-04) |
+| Collision and sliding | Slice | COLL-001–004, COLL-005a (Green Zone start/exit/all 30 treats driven, every reachable story-map marker), COLL-006; SLICE solver decision | GridKinematicSolver (native slide rejected); COLL-005b literal-coordinate story objectives (M5–M7) |
+| Shared Green Zone/story world | Slice | ARCH-001a (dummy story scene shares the Green Zone world, no forked movement) | ARCH-001b production story scene (M5) |
+| Camera lag/look-ahead/sway/shake/clamp | Partial | CAM-001–003; P: CAM-004 (whole-pixel origin in the suite) | CAM-004 incomplete: static shimmer only by the rendered probe (gate decision not taken); shake noise seeded (D-04) |
 | Stable depth sorting | Slice | DEPTH-001–003 | — |
 | Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |
 | Animated terrain and pollution presentation | Slice | WORLD-004, WORLD-005 (engine TileData), captures 10/11/20 | three layers, approved in ARCHITECTURE §7 |
 | ASCII maps and markers | Slice | MAP-001–007 (all twenty story maps parse like the source) | story scenes M5 |
 | Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
 | Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap; SLICE: probe reaches prop centres at rule distance + prop radius (tree/pole/fountain ±1e-9 boundaries, 16 directions, exact edge-distance decision authoritative) | consumers arrive with M3 |
-| Zampanò state controller | Partial | DOG-001–004, DOG-006, DOG-007; P: DOG-005, DOG-008 | fetch (M3), stage change (M5) |
+| Zampanò state controller | Partial | DOG-001–004, DOG-005a, DOG-006, DOG-007; P: DOG-008a (spawn/teleport/camera-snap resets, test hooks) | DOG-008a incomplete (rendered presentation clause: gate decision not taken; restart reset not asserted separately); DOG-005b forced fetch (M3); DOG-008b stage change (M5) |
 | Zampanò normal art | Slice | AST-002–005 (every playable skin) | — |
 | Playable profiles (cross, armour, Sbrimbrulòn, Bagnaskiz) | Slice | AST-006–009; SLICE: the dog scene references no profile, the world injects the `--as` choice before `add_child()` (all three), lazy Zampanò fallback only for an unconfigured dog | arms capability DOG-009 (M6); ALT-001–003 (M8) |
 | Story cast art | Slice | AST-011 (23 delivered, 17 frozen procedural roles + cat) | actors M5 |
@@ -170,8 +182,8 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 | [ ] | Screen-space movement semantics | Implemented: input is inverse-projected to grid | Up on stick is up on screen; analog magnitude walks only | M2 / ISO-004, MOVE-001 |
 | [ ] | Eight-direction facing | Implemented and asset-tested | N/NE/E/SE/S/SW/W/NW after 2:1 compensation | M2 / MOVE-002, AST-004 |
 | [ ] | Walk/run/terrain speed | Implemented: 4.4/7.5 tiles/s and surface multipliers | Copy current values; RUN is explicit, never joystick threshold | M2 / MOVE-003–005 |
-| [ ] | Collision and sliding | Implemented: grid circle vs blocked squares/circular props | Projected CharacterBody2D collision or approved compatibility solver within tolerance | M2 / COLL-001–006 |
-| [ ] | Shared Green Zone/story world | Implemented: `world/world.ts` | One `IsoWorld` scene used by both modes | M2, M5 / ARCH-001 |
+| [ ] | Collision and sliding | Implemented: grid circle vs blocked squares/circular props | Projected CharacterBody2D collision or approved compatibility solver within tolerance | M2 / COLL-001–004, COLL-005a, COLL-006; M5–M7 / COLL-005b |
+| [ ] | Shared Green Zone/story world | Implemented: `world/world.ts` | One `IsoWorld` scene used by both modes | M2 / ARCH-001a, M5 / ARCH-001b |
 | [ ] | Camera lag/look-ahead/sway/shake/clamp | Implemented: `iso/camera.ts` | Manual CameraRig parity and whole-pixel snapping | M2 / CAM-001–004 |
 | [ ] | Stable depth sorting | Implemented: depth, bias, grid-x, stable ID | Explicit visible-object sort and sequential z-index | M2 / DEPTH-001–003 |
 | [ ] | Tall-object occlusion | Implemented; player-only AABB fade to 0.42 | Preserve exact player-only behavior | M2 / DEPTH-004 |
@@ -183,7 +195,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 
 | Target | Feature | Source status and evidence | Godot parity requirement | Milestone / tests |
 |---|---|---|---|---|
-| [ ] | Zampanò state controller | Implemented: free/pee/poop/bark/eat/fetch/hurt/drink/exit, idle/tired | Generic `PlayableDog` state machine with source timing | M2–M3 / DOG-001–008 |
+| [ ] | Zampanò state controller | Implemented: free/pee/poop/bark/eat/fetch/hurt/drink/exit, idle/tired | Generic `PlayableDog` state machine with source timing | M2 / DOG-001–004, DOG-005a, DOG-006, DOG-007, DOG-008a; M3 / DOG-005b; M5 / DOG-008b |
 | [ ] | Zampanò normal art | Implemented; current delivered 8-way sheet plus tired | Complete SpriteFrames with timing/anchor validation | M2 / AST-001–005 |
 | [ ] | Zampanò cross appearance | Implemented alias to knight art; rag carried only in reality | Alias same Godot resource; do not restore retired rag-cross sprite | M5 / AST-006 |
 | [ ] | Zampanò armoured art/actions | Implemented, 12 actions × 8 directions | Full SpriteFrames; arms capability starts at 2.3 | M6 / DOG-009, AST-007 |
