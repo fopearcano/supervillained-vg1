@@ -758,47 +758,79 @@ func test_SLICE_playable_profile_injected_before_add_child() -> void:
 	assert_eq([bare.profile.id, bare.used_fallback_profile], [&"zampano", true], "unconfigured dog falls back to Zampanò lazily")
 	bare.free()
 
-## ARCH-001a (M2 dummy-story-scene contract, TEST_PLAN §5): the Green Zone scene and a dummy story
-## scene (a story-style map: no exit, markers, water, props) are built by the same IsoWorld scene
-## and setup, spawn the same PlayableDog, project with IsoGrid, depth-sort with IsoDepthSorter (via
-## IsoWorld.render) and follow with the same CameraRig; the dog moves through the shared
-## PlayableDog controller and grid solver, and no runtime script forks movement. The production
-## story scene is ARCH-001b (M5).
-func test_ARCH_001a_dummy_story_scene_shares_the_green_zone_world() -> void:
+## ARCH-001a (M2 dummy-story-scene contract, TEST_PLAN §5): a real dummy Story host scene
+## (tests/support/dummy_story_scene.tscn) instantiates the shared IsoWorld as its child, configures a
+## story-style map through IsoWorld.setup(), and runs its lifecycle (ready, ticks driven by the
+## shared InputService, rendered frames, cleanup); its world, dog, camera, sorter and resources are
+## the GreenZoneScene's; its movement is the shared controller and grid solver tick for tick; and
+## the static review gate finds a single movement implementation. The production story scene is
+## ARCH-001b (M5).
+func test_ARCH_001a_dummy_story_host_shares_the_green_zone_world() -> void:
 	var gz: GreenZoneScene = load("res://scenes/green_zone/green_zone_scene.tscn").instantiate()
 	gz.show_briefing = false
 	gz.manual_ticks = true
 	tree.root.add_child(gz)
-	var story := _make(PackedStringArray([
-		"#########",
-		"#..T..1.#",
-		"#.,,,...#",
-		"#..WW.B.#",
-		"#S.WW..2#",
-		"#########",
-	]))
-	for pair: Array in [[gz.world, "Green Zone"], [story, "dummy story"]]:
-		var w: IsoWorld = pair[0]
-		assert_eq(w.scene_file_path, "res://world/world_2d.tscn", pair[1] + ": the IsoWorld scene")
-		assert_true(w is IsoWorld and w.player is PlayableDog and w.camera_rig is CameraRig, pair[1] + ": IsoWorld, PlayableDog, CameraRig")
-		assert_eq(w.player.scene_file_path, "res://entities/playable_dog/playable_dog.tscn", pair[1] + ": the PlayableDog scene")
-		var at := IsoGrid.grid_to_screen(w.player.gx, w.player.gy).round()
-		assert_eq(w.player.position, at, pair[1] + ": IsoGrid projection of the foot point")
-	assert_eq([gz.world.get_script(), gz.world.player.get_script(), gz.world.camera_rig.get_script()],
-		[story.get_script(), story.player.get_script(), story.camera_rig.get_script()], "same classes in both scenes")
-	assert_eq(story.map.exit_tile, story.map.start_tile, "story map without exit uses the start")
-	assert_eq([story.map.markers["1"], story.map.markers["2"]], [Vector2i(6, 1), Vector2i(7, 4)], "markers")
-	# Shared controller and solver: walk east into the wall; the grid solver stops the dog at the wall.
-	story.player.set_intent(0.8, 0.0, false)
-	var x0 := story.player.gx
-	for k in 240:
-		story.player.update_movement(DT, story.map)
-		story.end_step(DT)
-	story.render(DT)
-	assert_true(story.player.gx > x0, "moved with the shared PlayableDog controller")
-	assert_true(story.player.gx <= 8.0 - GameConfig.Player.RADIUS + 1e-9, "stopped by the wall through the grid solver (%.4f)" % story.player.gx)
-	assert_true(story.visible_count >= 3, "depth-sorted by IsoDepthSorter (%d visible)" % story.visible_count)
-	# No forked movement: only PlayableDog moves through WorldMapModel.move_circle and defines update_movement.
+	var host: Node2D = load("res://tests/support/dummy_story_scene.tscn").instantiate()
+	host.manual_ticks = true
+	tree.root.add_child(host)
+	var sw: IsoWorld = host.world
+	var gw: IsoWorld = gz.world
+	# Lifecycle: the world is the host's child, built through the public setup() on the story map.
+	assert_eq([sw.get_parent(), gw.get_parent()], [host, gz], "each host owns its world as a child")
+	assert_eq(sw.map.exit_tile, sw.map.start_tile, "story map without exit uses the start")
+	assert_eq(sw.map.markers.keys().size(), 2, "named markers")
+	assert_true(sw.map.ground.has(TileCatalog.Ground.WATER), "water on the story map")
+	# Shared classes and resources.
+	for pair: Array in [["world scene", sw.scene_file_path, gw.scene_file_path], ["world class", sw.get_script(), gw.get_script()],
+			["dog scene", sw.player.scene_file_path, gw.player.scene_file_path], ["dog class", sw.player.get_script(), gw.player.get_script()],
+			["dog profile", sw.player.profile, gw.player.profile], ["camera class", sw.camera_rig.get_script(), gw.camera_rig.get_script()],
+			["tile set", sw.tileset, gw.tileset], ["sprite catalogue", sw.catalog, gw.catalog]]:
+		assert_eq(pair[1], pair[2], "same %s as GreenZoneScene" % pair[0])
+	assert_eq(sw.scene_file_path, "res://world/world_2d.tscn", "the IsoWorld scene")
+	assert_eq(sw.player.scene_file_path, "res://entities/playable_dog/playable_dog.tscn", "the PlayableDog scene")
+	assert_false(sw.player.used_fallback_profile, "the profile was injected by the world")
+	# Movement through the host's tick: InputService -> shared controller -> grid solver; camera follows.
+	var start_view := sw.camera_rig.view_rect().position
+	var intents: Array = []
+	var trace: Array = []
+	for k in 200:
+		InputService.inject_move(1.0, 0.0, k >= 120)
+		InputService.update(DT)
+		intents.append([InputService.move_x, InputService.move_y, InputService.run_held])
+		host.tick(DT)
+		trace.append([sw.player.gx, sw.player.gy])
+		if k % 4 == 3:
+			host._process(DT)
+	InputService.clear_injection()
+	assert_eq(host.ticks, 200, "host ticked")
+	var right_wall := float(sw.map.width - 1)
+	assert_true(sw.player.gx > host.marker("S").x + 3.0, "moved east (%.3f)" % sw.player.gx)
+	assert_true(sw.player.gx <= right_wall - GameConfig.Player.RADIUS + 1e-9, "stopped by the wall through the grid solver (%.4f)" % sw.player.gx)
+	assert_true(sw.camera_rig.view_rect().position != start_view, "camera followed")
+	assert_eq(sw.camera_rig.view_rect().position, sw.camera_rig.view_rect().position.round(), "whole-pixel camera origin")
+	assert_eq(sw.player.position, IsoGrid.grid_to_screen(sw.player.gx, sw.player.gy).round(), "IsoGrid foot point")
+	# Depth sorting by the shared IsoDepthSorter: visible objects ranked 0..n-1.
+	var ranks: Array = []
+	for n in sw.object_layer.get_children():
+		if n.visible:
+			ranks.append(n.z_index)
+	ranks.sort()
+	assert_true(sw.visible_count >= 3 and ranks == range(ranks.size()), "depth-sorted visible set (%d)" % sw.visible_count)
+	# The same intents through a bare PlayableDog on the same map: identical, tick for tick (no host-specific movement).
+	var parsed := AsciiMapLoader.parse(host.rows, host.base, false)
+	var m := WorldMapModel.new(parsed["level"])
+	var bare: PlayableDog = load("res://entities/playable_dog/playable_dog.tscn").instantiate()
+	bare.set_grid_position(m.start.x, m.start.y)
+	bare.face("N")
+	var diverged := -1
+	for k in intents.size():
+		bare.set_intent(intents[k][0], intents[k][1], intents[k][2])
+		bare.update_movement(DT, m)
+		if diverged < 0 and (bare.gx != trace[k][0] or bare.gy != trace[k][1]):
+			diverged = k
+	bare.free()
+	assert_eq(diverged, -1, "host movement equals the shared controller and solver tick for tick")
+	# Static review gate: no runtime script but PlayableDog moves a body (grid solver or physics bodies).
 	var movers: PackedStringArray = []
 	var stack: Array[String] = ["res://"]
 	while not stack.is_empty():
@@ -807,30 +839,71 @@ func test_ARCH_001a_dummy_story_scene_shares_the_green_zone_world() -> void:
 			if not sub.begins_with(".") and sub not in ["tests", "tools", "test-results"]:
 				stack.append(dir.path_join(sub))
 		for f in DirAccess.get_files_at(dir):
-			if f.ends_with(".gd"):
-				var src := FileAccess.get_file_as_string(dir.path_join(f))
-				if src.contains(".move_circle(") or src.contains("func update_movement("):
-					movers.append(dir.path_join(f))
-	assert_eq(movers, PackedStringArray(["res://entities/playable_dog/playable_dog.gd"]), "one movement implementation")
-	gz.get_parent().remove_child(gz)
+			if not f.ends_with(".gd") or dir.path_join(f) == "res://world/world_map_model.gd":
+				continue
+			var src := FileAccess.get_file_as_string(dir.path_join(f))
+			for pattern in [".move_circle(", ".circle_blocked(", "func update_movement(", "move_and_slide(", "move_and_collide("]:
+				if src.contains(pattern):
+					movers.append("%s: %s" % [dir.path_join(f), pattern])
+	assert_eq(movers, PackedStringArray(["res://entities/playable_dog/playable_dog.gd: .move_circle(", "res://entities/playable_dog/playable_dog.gd: func update_movement("]), "one movement implementation")
+	# Cleanup: freeing the host frees its world, dog and props.
+	var dog := sw.player
+	tree.root.remove_child(host)
+	host.free()
+	assert_false(is_instance_valid(sw) or is_instance_valid(dog), "world and dog freed with the host")
+	tree.root.remove_child(gz)
 	gz.free()
 
 
-## COLL-005a (M2): the Green Zone start, exit and all 30 treat placements, and the start, exit and
-## every marker of the twenty story maps that the source can reach, are reached by the selected grid
-## solver. Story objectives at literal coordinates are COLL-005b (M5-M7).
+## Drives a PlayableDog through its own controller (walking intent, screen space) and the map's grid
+## solver from its current position until it is within `radius` of the exact point (tx, ty)
+## (`strict`: distance < radius, else <= radius): it steers to the next tile of the BFS field toward
+## the target tile and straight at the point once in or next to that tile. Returns true on arrival;
+## the dog's real position is where the next leg starts.
+static func _drive_to(dog: PlayableDog, m: WorldMapModel, tx: float, ty: float, radius: float, strict: bool, max_ticks: int = 60 * 120) -> bool:
+	var target := Vector2i(int(floor(tx)), int(floor(ty)))
+	var dist := m.bfs(target.x, target.y)
+	for t in max_ticks:
+		var d := JsMath.hypot(dog.gx - tx, dog.gy - ty)
+		if d < radius or (not strict and d <= radius):
+			dog.set_intent(0.0, 0.0, false)
+			return true
+		var i := int(floor(dog.gx))
+		var j := int(floor(dog.gy))
+		var aim := Vector2(tx, ty)
+		if absi(i - target.x) + absi(j - target.y) > 1:
+			var here := dist[m.index(i, j)]
+			for nb: Vector2i in [Vector2i(i + 1, j), Vector2i(i - 1, j), Vector2i(i, j + 1), Vector2i(i, j - 1)]:
+				if m.is_walkable(nb.x, nb.y) and dist[m.index(nb.x, nb.y)] == here - 1:
+					aim = Vector2(nb.x + 0.5, nb.y + 0.5)
+					break
+		var s := IsoGrid.grid_vec_to_screen(aim.x - dog.gx, aim.y - dog.gy)
+		var length := JsMath.hypot(s.x, s.y)
+		if length > 1e-9:
+			dog.set_intent(s.x / length * 0.8, s.y / length * 0.8, false)
+		dog.update_movement(1.0 / 60.0, m)
+	return false
+
+
+## COLL-005a (M2): one dog driven continuously through its own controller and the grid solver from
+## the Green Zone start to each of the 30 treats' exact coordinates, within the rule's pickup radius
+## (TREAT.PICKUP_RADIUS 0.55, eaten at distance <= 0.55), each leg starting where the previous one
+## really ended, then from the last treat to the exit (level complete at distance < 0.8); plus the
+## start, exit and every reachable marker of the twenty story maps (the earlier partial case).
+## Story objectives are COLL-005b (M5-M7).
 func test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver() -> void:
-	# Green Zone start -> exit drive, treats on the connected area, every reachable story-map marker.
 	test_P_COLL_005_start_exit_and_treats_reachable_under_the_solver()
-	# Every treat driven to by the grid solver, leg by leg in placement order from the start.
 	var def := GreenZoneLevel.definition()
 	var m := GreenZoneLevel.load_model(def)
-	var at := m.start
+	var dog: PlayableDog = load("res://entities/playable_dog/playable_dog.tscn").instantiate()
+	dog.set_grid_position(m.start.x, m.start.y)
+	dog.face("N")
 	var reached := 0
 	for tr: Array in TreatPlacement.place_treats(m, def.spawns["treats"], def.seed):
-		var tile := Vector2i(int(floor(tr[0])), int(floor(tr[1])))
-		if assert_true(_solver_reaches(m, at, tile), "solver reaches treat at %s" % tile):
+		if assert_true(_drive_to(dog, m, tr[0], tr[1], GameConfig.Treat.PICKUP_RADIUS, false), "treat %d at (%.3f, %.3f) reached from (%.3f, %.3f)" % [reached, tr[0], tr[1], dog.gx, dog.gy]):
 			reached += 1
-		at = Vector2(tile.x + 0.5, tile.y + 0.5)
-	assert_eq(reached, 30, "all 30 treats reached")
-	assert_true(_solver_reaches(m, at, m.exit_tile), "and the exit from the last treat")
+		else:
+			break
+	assert_eq(reached, 30, "all 30 treats within their pickup radius")
+	assert_true(_drive_to(dog, m, m.exit.x, m.exit.y, 0.8, true), "the exit (rule distance < 0.8) from the last treat's real endpoint")
+	dog.free()

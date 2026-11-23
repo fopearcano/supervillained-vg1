@@ -276,6 +276,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 **Automated tests**
 
 - `SAV-001–022`, fixture/converter and simulated-failure-UI portions of `MIG-006–010`, `UI-007–022`, `FLOW-006–012` shell tests. Actual WebView acquisition and missing-store proof remain M9 work.
+- `MIG-005` fixture/simulated portion: the raw five-key payload is written exactly with its timestamp and SHA-256 before any parsing and read back; backup, write and read-back failure tests (no parse, no success claimed). M9 proves it through real WebView acquisition.
 - Crash-window tests at each atomic-write stage using injected file operations.
 - Deep-copy/replay diff test.
 - Deterministic Couch summary fixture.
@@ -329,7 +330,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 **Automated tests**
 
 - `CAMP-001–014`, `DLG-001–009`, `WALK-001–009`, `NPC-001–007`, `CONTENT-001–005` for Level 1.
-- `ARCH-001b` (production story scene shares the world), `DOG-008b` (stage change resets interpolation), `COLL-005b` for the Level 1 objectives.
+- `ARCH-001b` (production story scene shares the world), `DOG-008b` (stage change resets interpolation); `test_P_COLL_005b_…` partial evidence for Level 1's scripted spatial objectives.
 - `STY-101–105` scripted smoke and real-input completion.
 - Map marker validation and “missing marker fails” test.
 - Restart/replay/persistence and sleep-boundary tests.
@@ -385,7 +386,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 - `STY-201–203`, `STY-301–304`, `STY-401–403`.
 - `COM-001–014`, `WALK-010–017`, `MINI-001–005`.
-- `COLL-005b` for the objectives of Levels 2–4.
+- `test_P_COLL_005b_…` partial evidence for the scripted spatial objectives of Levels 2–4.
 - Full scripted smoke 1.1–4.3 plus real-input autopilot from 2.1–4.3.
 - Costume/capability and music-routing tests.
 
@@ -438,7 +439,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 - `STY-501–505`, `STY-601–603`, `STY-701–707`, `STY-708A`, `STY-708B`, `STY-709`, `STY-801–804`.
 - `WALK-018–021`, `MINI-006–012`, remaining `COM`/`NPC` cases, `END-001–004`.
-- `COLL-005b` complete: the objectives of Levels 5–8.
+- `COLL-005b` claimed by the full `test_COLL_005b_…` aggregate over the scripted spatial objectives of every chapter (Levels 1–8).
 - Complete scripted smoke with no page/resource/marker error.
 - At least three full real-input autopilot policies: Knight/first, Witness/last, mixed/random lower skill.
 - Campaign count/order/source metadata and every awarded marvel→home-object mapping.

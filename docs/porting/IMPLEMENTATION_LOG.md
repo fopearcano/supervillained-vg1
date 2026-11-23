@@ -6,11 +6,152 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 7 is current.
+in progress report 5. Correction report 8 is current.
 
 ---
 
-## Correction report 7: legacy-save plan and host-evidence wording (M1 Partial, M2 Partial) — current
+## Correction report 8: M1/M2 acceptance evidence (M1 Partial, M2 Partial) — current
+
+Scope: the architect's five items on `965d0b0`, in one commit. No M3 content. Code changes are test
+files only (a dummy Story host scene under `godot/tests/support/` and two rewritten acceptance
+cases); no gameplay, audio, animation or isometric module and no PixiJS file changed.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted); open M1 blocker: the migration-plugin spike |
+| Base | `965d0b0` (correction report 7 and its addendum) |
+| Current `godot/` tree | `b1c3595c49666587c04d2ad3d652d28d774a2bc5`, verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2 (RTX 3090, WASAPI audio); Linux not rerun |
+| Android on this host | available: Android SDK in `%USERPROFILE%\Desktop\android-sdk` (platform-tools/adb 37.0.3, build-tools 36.1.0, platform 36), Godot's 4.7.2 Android export templates, JDK 21, emulator 37.3.10 with the device `sv_m1_api36` (adb serial `emulator-5554`, Android 16 / API 36, Google WebView 133.0.6943.137). Not yet: the migration plugin and a controlled signed old→new APK lineage |
+
+### Changes per review item
+
+1. **ARCH-001a now rests on a real dummy Story host.** `godot/tests/support/dummy_story_scene.tscn`
+   (tests/ is excluded from export; the M5 story scene replaces it) instantiates the shared
+   `IsoWorld` scene as its child like `GreenZoneScene`, configures a story-style map (no exit,
+   markers, water, props) through `IsoWorld.setup()`, ticks in a story walk's order (InputService
+   intent → `PlayableDog.update_movement` on the grid solver → `IsoWorld.end_step`) and renders
+   through `IsoWorld.render`. `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`
+   replaces the direct-IsoWorld case: the world is the host's child; world scene/class, dog
+   scene/class/profile, camera class, tile set and sprite catalogue equal `GreenZoneScene`'s; 200
+   ticks driven through `InputService` move the dog east until the grid solver stops it at the
+   wall, the camera follows on whole pixels, the visible set is ranked 0..n-1 by `IsoDepthSorter`;
+   replaying the same intents on a bare `PlayableDog` and the same map gives the identical position
+   every tick (no host-specific movement); freeing the host frees its world and dog. The no-fork
+   check is kept as a **static review gate** and strengthened: no runtime script except
+   `PlayableDog` calls `move_circle`/`circle_blocked`, defines `update_movement` or uses
+   `move_and_slide`/`move_and_collide` (it cannot see future code paths: reviewers re-check new
+   movers). ARCH-001a is claimed on this case.
+2. **COLL-005a drives continuously to exact targets.** One `PlayableDog` is driven through its own
+   controller (walking intent, screen space) and the grid solver from the Green Zone start to each
+   treat's exact coordinate, finishing within the rule's pickup radius (`TREAT.PICKUP_RADIUS` 0.55,
+   eaten at distance ≤ 0.55); each leg starts at the dog's real end position (no idealized tile
+   centres), and from the last treat it continues to the exit (level complete at distance < 0.8).
+   The case also keeps the story-map marker drives. COLL-005a is claimed on this case.
+3. **COLL-005b planning** (TEST_PLAN.md, MILESTONES.md): every remaining scripted spatial objective
+   with a scripted position (marker or literal reach goals, pickups, spots, marvels, action zones
+   placed when their walk starts); runtime-placed and moving targets are assigned explicitly to
+   WALK-007–009, WALK-014–017, WALK-019–021, NPC-001–006, NPC-008–011, MINI-001–012 and each
+   scene's STY real-input completion. `test_P_COLL_005b_…` evidence in M5 (Level 1) and M6
+   (Levels 2–4); the full `test_COLL_005b_…` aggregate is reserved for M7.
+4. **Android status** updated in FEATURE_MATRIX (legacy-save plan, "Not verified", the Android rows)
+   and here; the remaining blocker is the plugin plus a controlled signed old→new lineage.
+5. **MIG-005 fixture/simulated portion added to M4** (TEST_PLAN.md MIG-005, MILESTONES.md M4, the
+   plan below): the raw five-key payload written exactly with timestamp and SHA-256 before any
+   parsing, read back and verified; backup, write and read-back failure tests; M9 still proves it
+   through real WebView acquisition.
+
+### The approved three-stage legacy-save plan (MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike, open M1 blocker.** A throwaway native migration plugin under
+   `/godot/platform/android/`, tested on a controlled same-package/same-signature old→new APK
+   lineage: it either reads the five legacy `supervillained:` keys without mutating them, or a
+   reproducible failure is documented; either way the native-bridge versus staged-Capacitor
+   decision is written. Not started; the tools are available (above).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005. Today only the pure v1→v2 rules are ported (SAV-013–017).
+3. **M9 — production proof:** the actual installed lineage and signing certificate, two
+   WebView/device versions, and end-to-end MIG-001–010.
+
+### M2 automated gates
+
+| ID | Status | Evidence / milestone |
+|---|---|---|
+| ARCH-001a | **satisfied** | `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world` (this report) |
+| COLL-005a | **satisfied** | `test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver` (this report) |
+| DOG-005a | satisfied | `test_DOG_005a_…` (correction report 7 addendum) |
+| VIEW-004, CAM-004 | **not satisfied** | rendered clauses only by `tools/interpolation_probe.gd` outside the suite; gate decision not taken |
+| DOG-008a | **not satisfied** | rendered presentation clause (same decision); restart reset not asserted separately |
+| ARCH-001b, DOG-008b / COLL-005b / DOG-005b | later | M5 / M5–M7 (aggregate M7) / M3 |
+
+### Commands executed and results (Windows 11)
+
+| Command | Result |
+|---|---|
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all --case <c>` for `ARCH_001a` and `COLL_005a` (working tree, while writing them) | each `1 passed, 0 failed` |
+| Fresh `git clone` of this commit's code (`core.autocrlf=true`; tested `godot/` tree `b1c3595c49666587c04d2ad3d652d28d774a2bc5` = `git rev-parse HEAD:godot` of this commit; only the docs and the log folder were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | exit 0: `asset check OK: 206 outputs identical (72 copies) …`; `build_resources check (all): OK, 55 outputs identical` |
+| `<console exe> --headless --path godot --import` | exit 0, no ERROR/WARNING lines |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | exit 0: **137 passed, 0 failed, 137 total**, including `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`, `test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver`, `test_DOG_005a_…` |
+| `<console exe> --headless --path godot --quit-after 600` | exit 0, engine banner only |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite integration --file test_export_pack` | exit 0: PCK 32,905,976 bytes (unchanged: the dummy host under `tests/` is not exported), 254 runtime resources, 512 packed files, packed 600-frame startup clean |
+| `<console exe> --path godot --script res://tools/audio_suspend_probe.gd` (real WASAPI device) | exit 0, `"ok":true` |
+| `npm test`; `npm run build` | exit 0: 248 tests passed; build OK |
+| `git status --porcelain`; `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --stat 965d0b0 -- godot` (working tree) | only `godot/tests/integration/test_world.gd` and the new `godot/tests/support/dummy_story_scene.{gd,gd.uid,tscn}` |
+| `git diff --stat 965d0b0 -- docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/captures` (working tree, before the new log folder was added) | empty: historical evidence unchanged |
+| `git diff --check` (working tree) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 37 checks` |
+
+Logs of the fresh-clone run: `docs/porting/windows_evidence/correction-8-godot-tree-b1c3595/`. Not
+run: Linux, the rendered interpolation probe (nothing rendered changed).
+
+Host evidence: current tree above. Previous Windows trees: `b8535ab` (correction report 7 addendum,
+137 passed) and `81906cd` / `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6,
+134 passed). Linux: the prior tree `d12bedd`, 128 passed (progress report 5). Correction 6 was not
+rerun on Linux, and neither were correction 7's addendum and this report.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017). Remaining, per the approved plan: the M1 migration-plugin spike (open M1 blocker), the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005, the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | Not done from M1: the Android migration-plugin spike (open M1 blocker). The Android tools and the emulator are available; missing are the plugin and a controlled signed old→new APK lineage |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **M1 migration-plugin spike (open M1 blocker):** a controlled test keystore, the old Capacitor
+  APK built and signed with it, a few representative saves, the spike plugin and APK with the same
+  package and signature installed over it without uninstalling (`adb install -r`) on
+  `sv_m1_api36`; result: the five keys read unmutated, or a documented reproducible failure, plus
+  the written native-bridge / staged-Capacitor decision.
+- **Unsatisfied automated M2 gates:** **VIEW-004** and **CAM-004** (gate decision not taken: accept
+  the probe evidence, or add an in-suite rendered case); **DOG-008a** (the same rendered clause and
+  a restart-reset assertion).
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 7: legacy-save plan, host evidence, M2 gates (`cc1ebb3`, addendum `965d0b0`; M1 Partial, M2 Partial)
+
+> Historical record of `cc1ebb3` and its addendum `965d0b0`, superseded by correction report 8.
+> **Erratum** (text below kept as submitted): the addendum claimed ARCH-001a on a case that built
+> `IsoWorld` directly, without a Story host scene, and COLL-005a on drives to floored treat tiles
+> that restarted each leg from an idealized tile centre; both claims rest on the stronger cases of
+> correction report 8 instead. Its Android statements ("no Android SDK, adb, emulator or device",
+> the spike's needs) are superseded by the current status in correction report 8.
 
 Scope: the architect's three documentation items on `81906cd`, in one documentation commit. No code
 changes: `godot/` is identical to `81906cd` (tree `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876`); the

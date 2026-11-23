@@ -94,7 +94,7 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | CORE-001 | Clean clone imports and headless-launches in Godot 4.7.2 with no missing Resource/script error. |
 | CORE-002 | Project physics rate is 60 Hz; time is derived from integer ticks or a 600-tick accumulator is within `1e-9` of 10 game seconds independent of render rate. |
 | ARCH-001 | Green Zone and Story scenes both instantiate the same `IsoWorld`, `PlayableDog`, `IsoGrid`, sorter and camera classes; no forked movement implementation. Split: |
-| ARCH-001a | **M2.** A dummy story scene (a story-style map: no exit, markers, water, props) and the Green Zone scene are built by the same `IsoWorld` scene and setup, spawn the same `PlayableDog`, project with `IsoGrid`, depth-sort with `IsoDepthSorter` and follow with the same `CameraRig`; the dog moves through the shared controller and grid solver; no runtime script forks movement. |
+| ARCH-001a | **M2.** A dummy Story host scene (not shipped; the M5 story scene replaces it) instantiates the shared `IsoWorld` scene as its child like `GreenZoneScene`, configures a story-style map (no exit, markers, water, props) through `IsoWorld.setup()`, and runs its lifecycle: ready, logic ticks driven by `InputService`, rendered frames, cleanup that frees the world and dog. Its world, `PlayableDog`, profile, `CameraRig`, tile set and sprite catalogue are `GreenZoneScene`'s; its movement equals the shared controller and grid solver tick for tick; the camera follows on whole pixels and `IsoDepthSorter` ranks the visible set. Static review gate: no runtime script except `PlayableDog` moves a body (grid solver or physics-body motion). |
 | ARCH-001b | **M5.** The production story scene (story runner, real chapter maps) satisfies the same contract. |
 | RNG-001 | Deterministic RNG first-N outputs match source fixture for multiple seeds including 0 and max 32-bit. |
 | RNG-002 | Same seed reproduces treat/decor/spawn choices byte-for-byte. |
@@ -140,8 +140,8 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | COLL-003 | Circular props push out without tunneling at walk/run maximum speed and worst fixed delta. |
 | COLL-004 | Bush is walkable; void, forest, wall and deep water are not; water/tall grass remain walkable. |
 | COLL-005 | Spawn/start/exit and every current story objective remain reachable under selected solver. Split: |
-| COLL-005a | **M2.** The Green Zone spawn/start, exit and every treat placement, and the start, exit and every map marker of each current story map that the source can reach, are reached by the selected solver; markers the source cannot reach are listed as actor-only spawn points. |
-| COLL-005b | **M5–M7** (each level's objectives with its scripts; complete at M7). Every current story objective at a literal coordinate in the chapter scripts (reach goals, pickups, spots, marvels) is reachable under the selected solver. |
+| COLL-005a | **M2.** One dog, driven continuously through its own controller and the selected solver from the Green Zone start, reaches each treat's exact coordinate within the rule's pickup radius (each leg starting where the previous really ended), then the exit within its rule distance; and the start, exit and every map marker of each current story map that the source can reach are reached by the selected solver; markers the source cannot reach are listed as actor-only spawn points. |
+| COLL-005b | **M5–M7.** Every remaining scripted spatial objective of the current chapters that has a scripted position (reach goals by marker or literal coordinate, pickups, spots, marvels, and action zones placed at a fixed point when their walk starts) is reachable under the selected solver from where the scene places Zampanò. Runtime-placed and moving targets are assigned elsewhere, not to COLL-005b: follow leaders and companions (WALK-014–017, NPC-008–011), actor goto/chase/flee/follow targets (NPC-001–006), pickups and spot rings that appear, move or attach during a walk (WALK-007–009), fire and checkpoints (WALK-019–021), minigame targets (MINI-001–012); each scene's real-input completion (STY-101–804) proves them reachable in play. Evidence: `test_P_COLL_005b_…` per level in M5 (Level 1) and M6 (Levels 2–4); the full `test_COLL_005b_…` aggregate over every chapter is reserved for M7. |
 | COLL-006 | Repeated collision test is deterministic and stable without jitter/energy gain. |
 
 ### Depth, world, camera
@@ -407,7 +407,7 @@ Full-campaign policies:
 | MIG-002 | Upgrade uses same package ID, a versionCode greater than the actually installed artifact, and its exact signing certificate. |
 | MIG-003 | Installation is `adb install -r`/store update; no uninstall or clear-data step. |
 | MIG-004 | Native bridge reads only the verified old origin/default WebView store and does not mutate it. |
-| MIG-005 | Raw payload is written with timestamp/hash before conversion. |
+| MIG-005 | Raw payload is written with timestamp/hash before conversion. **M4 (fixture/simulated):** the raw five-key payload is written exactly, byte for byte, with its timestamp and SHA-256 before any parsing, and is read back and verified; backup, write and read-back failures are tested (nothing is parsed and no success is claimed after any of them). **M9:** proven through real WebView acquisition on the installed lineage. |
 | MIG-006 | Settings/records and passive legacy standalone-coin present/value data convert exactly. |
 | MIG-007 | v2 campaign converts exactly to format 3. |
 | MIG-008 | v1 campaign performs v1→v2 semantics before format-3 conversion. |
