@@ -25,71 +25,82 @@ evidence, TEST_PLAN.md) for the current slice; **Partial** = implemented with a 
 not executed; **—** = not started.
 
 Acceptance IDs are claimed through a `test_<ID>_…` suite case that exercises every clause of the
-ID (TEST_PLAN.md case naming) or, for an ID with rendered clauses, on combined evidence (TEST_PLAN.md):
-named suite cases for every other clause plus the architect-accepted rendered probe for the rendered
-clauses. `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
+ID (TEST_PLAN.md case naming), on combined evidence (TEST_PLAN.md: named suite cases plus a named
+architect static review for a static code-review requirement, or an architect-accepted
+renderer-backed probe for rendered clauses, of which none is accepted yet), or on command evidence
+(AST-019, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (93, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `a06b1df`, 138 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
-CORE-002; RNG-001–003; ARCH-001a; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
+**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `9bbe179`, 138 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
+CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-005a, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
 FLOW-001, FLOW-002; SAV-001–004, SAV-013–020, SAV-022 (main, temp and backup).
 MAP-007 is one aggregator case (rows/topology, canonical route length, treat placements).
 Every automated M1 ID (ISO-001–003, RNG-001–003, AST-001–020, AUD-001–008, SAV-013–017) is
-satisfied, AST-019 by command evidence. **AST-007 / finding F-15 accepted by the architect**
+satisfied, AST-019 by command evidence (counted once, below). **AST-007 / finding F-15 accepted by the architect**
 (review of `6b91fd3`): the sword and shield are baked into the armoured frames, so shared frame and
 foot-anchor alignment is the applicable "arms attachment" contract.
 
-**Satisfied on combined evidence (3; TEST_PLAN.md; rendered clauses accepted by the architect on the
-review of `6b91fd3`):** VIEW-004 (suite: `test_P_VIEW_004_whole_pixel_world_and_nearest_filtering`,
-nearest filtering and whole-pixel sprite, camera and UI transforms; rendered: the probe's 30/60/90/120
-FPS runs with no streak or double interpolation and its static-shimmer pass); CAM-004 (suite:
-whole-pixel camera origin in `test_CAM_002_camera_clamps_small_and_large_maps` and
-`test_P_VIEW_004_…`; rendered: the probe's static-shimmer pass under the moving `CameraRig`);
-DOG-008a (suite: `test_CORE_002_logic_independent_of_render_rate` for the spawn, teleport and
-camera-snap resets and the shipped test-hook defaults, `test_P_DOG_008a_main_restart_resets_interpolation_and_run_state`
-for the restart through the real Main flow; rendered: the probe's presentation and teleport-reset
-clauses). The rendered clauses did not run in the headless suite: they are the probe's command-level
-evidence (below). Total satisfied: 96 (93 + 3).
+**Satisfied on combined evidence (1; TEST_PLAN.md):** ARCH-001a (suite:
+`test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`; static: the architect's static review
+of `f580fa4`, which confirms no duplicate playable/input movement controller). **Satisfied on
+command evidence (1):** AST-019 (below). **Total satisfied: 94 (92 full suite + 1 combined + 1
+command).**
+
+**Partial, rendered clauses open (M2; not counted):** on review of `f580fa4` the architect withdrew
+the acceptance of the rendered probe for these IDs; `tools/interpolation_probe.gd` is supplemental
+command evidence (below) until a strengthened renderer-backed probe passes (TEST_PLAN.md combined
+evidence lists what it must check). VIEW-004 (suite part:
+`test_P_VIEW_004_whole_pixel_world_and_nearest_filtering`, nearest filtering and whole-pixel sprite,
+camera and UI transforms; open: no streak, double interpolation or static shimmer at 30/60/90/120
+FPS); CAM-004 (suite part: whole-pixel camera origin in `test_CAM_002_camera_clamps_small_and_large_maps`
+and `test_P_VIEW_004_…`; open: no static shimmer); DOG-008a (suite parts:
+`test_CORE_002_logic_independent_of_render_rate` for the spawn, teleport and camera-snap resets and
+the shipped test-hook defaults; the **restart-reset subclause is satisfied** by
+`test_P_DOG_008a_main_restart_resets_interpolation_and_run_state` through the real Main flow; open:
+the 30/60/90/120 FPS presentation without streaks, including the first rendered frame after spawn,
+camera snap and restart where required).
 
 **Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
-ARCH-001a (M2, satisfied) + ARCH-001b (M5, production story scene); COLL-005 = COLL-005a (M2,
+ARCH-001a (M2, satisfied on combined evidence) + ARCH-001b (M5, production story scene); COLL-005 = COLL-005a (M2,
 satisfied) + COLL-005b (M5–M7: scripted-position objectives; `test_P_COLL_005b` evidence in
 M5/M6, the full aggregate in M7). COLL-005 covers static and scripted-position reachability only;
 dynamic goals (moving or runtime-placed targets) are owned by WALK/NPC/MINI and each scene's STY
 real-input completion. DOG-005 = DOG-005a (M2,
-satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, satisfied on combined evidence) + DOG-008b (M5,
+satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, Partial: rendered clause open, restart reset satisfied) + DOG-008b (M5,
 stage change).
 
-**Automated M2 acceptance IDs (MILESTONES.md M2):** all satisfied, by full suite cases or, for
-VIEW-004, CAM-004 and DOG-008a, on combined evidence (above). M2 stays **Partial**: its manual
-desktop and touch play checks are not done (below).
+**Automated M2 acceptance IDs (MILESTONES.md M2):** open: VIEW-004, CAM-004 and DOG-008a
+(rendered clauses, above); every other automated M2 ID is satisfied, ARCH-001a on combined
+evidence. M2 stays **Partial**: those three IDs and its manual desktop and touch play checks are
+not done (below).
 
 **Partial evidence only (not satisfied, later milestones):** GZ-001, GZ-002, GZ-021, GZ-025,
 SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
 
-**Command-level evidence (no suite case, architect to judge):** CORE-001 (clean-cache import and
-600-frame Main run on a clean Windows 11 clone of the current tree (`godot/` `1532143`), and on a clean
-Ubuntu 26.04 clone of the prior tree `d12bedd`); **rendered interpolation probe** (accepted by the
-architect as command-level rendered evidence for VIEW-004, CAM-004 and DOG-008a's rendered
-presentation and teleport-reset clauses): `tools/interpolation_probe.gd` with
-`--rendering-driver opengl3 --disable-vsync` on the RTX 3090 for the current tree `a06b1df`:
-30.0 / 60.0 / 90.2 / 120.0 FPS achieved, 0 repeated frames, no streak or double interpolation, the teleport shown at once; the interpolation-off control showed 21 repeated frames at 120 FPS; static markers stayed 40 px apart under the moving camera at 90 and 120 FPS (`windows_evidence/correction-11-godot-tree-a06b1df/`); the architect's
-independent run on `1532143` passed at 30/60/90/120 FPS; AST-019 (all 206 generated outputs byte-identical
-under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
+**Command-level evidence (no suite case):** AST-019, **counted as satisfied** (all 206 generated
+outputs byte-identical under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
 `pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true` for the current tree,
 and `build_assets.sh --check` on Ubuntu 26.04 for `d12bedd`, the same bytes; the generated outputs
-did not change between the two trees).
+did not change between the two trees). CORE-001, architect to judge and not counted (clean-cache
+import and 600-frame Main run on a clean Windows 11 clone of the current tree (`godot/` `9bbe179`), and
+on a clean Ubuntu 26.04 clone of the prior tree `d12bedd`). **Rendered interpolation probe,
+supplemental only** (it satisfies no rendered clause; the architect's review of `f580fa4` requires
+the checks listed in TEST_PLAN.md before a probe can): `tools/interpolation_probe.gd` with
+`--rendering-driver opengl3 --disable-vsync` on the RTX 3090 for the current tree `9bbe179`:
+30.0 / 60.0 / 90.0 / 119.4 FPS achieved, 0 repeated frames, no step beyond two frames' worth, the teleport shown at once; the interpolation-off control showed 21 repeated frames at 120 FPS; the two static markers stayed 40 px apart under the moving camera at 90 and 120 FPS (`windows_evidence/correction-12-godot-tree-9bbe179/`); the architect's independent run
+on `1532143` passed at 30/60/90/120 FPS.
 
-**Host verification.** *Current tree* (`godot/` tree `a06b1df5e3db91f0fc7690785d94932fdf6bca24`, correction report 11: the
-`1532143` tree without the ARCH-001a source-parser gate and with the real restart case, test files
-only): a fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0,
+**Host verification.** *Current tree* (`godot/` tree `9bbe179546b3b600340eebe26fc364d64abd933c`, correction report 12: the
+`a06b1df` tree with reworded comments in two test files, no assertion changed): a fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0,
 pinned Chromium, WASAPI audio) passed the asset check (206 + 55 outputs identical), the clean import,
-the suite **138 passed, 0 failed**, the 600-frame Main run, the PCK smoke, the rendered
-interpolation probe with VSync off, the live audio probe,
+the suite **138 passed, 0 failed**, the focused ARCH-001a and DOG-008a restart cases, the 600-frame
+Main run, the PCK smoke, the supplemental rendered interpolation probe with VSync off, the live audio
+probe,
 the PixiJS baseline (248 tests, build OK), `git diff --check` and the source-tree guard
-(`windows_evidence/correction-11-godot-tree-a06b1df/`). *Previous Windows trees*: `1532143`
+(`windows_evidence/correction-12-godot-tree-9bbe179/`). *Previous Windows trees*: `a06b1df`
+(correction report 11, **138 passed**, `windows_evidence/correction-11-godot-tree-a06b1df/`), `1532143`
 (correction report 10, **137 passed**, `windows_evidence/correction-10-godot-tree-1532143/`), `6a3c53b`
 (correction report 9, **137 passed**, `windows_evidence/correction-9-godot-tree-6a3c53b/`), `b1c3595`
 (correction report 8, **137 passed**, `windows_evidence/correction-8-godot-tree-b1c3595/`),
@@ -97,7 +108,7 @@ the PixiJS baseline (248 tests, build OK), `git diff --check` and the source-tre
 `windows_evidence/correction-7-godot-tree-b8535ab/`) and `81906cd` /
 `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, **134 passed**,
 `windows_evidence/correction-6-godot-tree-fd20ac1/`). **Correction 6 was not rerun on Linux, and
-neither were correction 7's addendum and corrections 8, 9, 10 and 11.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
+neither were correction 7's addendum and corrections 8, 9, 10, 11 and 12.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
 asset check, clean import, suite **128 passed, 0 failed**, 600-frame run and empty `git status`
 (`linux_evidence/d12bedd/`), and Windows additionally ran the rendered probe at 30/60/90/120 FPS
 with VSync off (`windows_evidence/d12bedd/`). Earlier Windows evidence for `a0e3b8d` is kept in
@@ -138,9 +149,9 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Partial | CORE-001 command evidence: Windows 11 clean clone of the current tree (correction report 11, `godot/` `a06b1df`; before it correction report 10, `1532143`); Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | command evidence only, architect to judge |
+| Godot project isolated under `/godot` | Partial | CORE-001 command evidence: Windows 11 clean clone of the current tree (correction report 12, `godot/` `9bbe179`; before it correction report 11, `a06b1df`); Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | command evidence only, architect to judge |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
-| Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; VIEW-004 on combined evidence (`test_P_VIEW_004` + the architect-accepted rendered probe); underlay/letterbox SLICE case; 4 viewport captures; rendered probe on llvmpipe and a real RTX 3090 | device safe area unverified |
+| Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004 (`test_P_VIEW_004`); underlay/letterbox SLICE case; 4 viewport captures; supplemental rendered probe on llvmpipe and a real RTX 3090 | VIEW-004 rendered clauses open (no accepted renderer-backed probe); device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | not run on a device or the emulator yet |
 | Native Android build | — | SLICE: Android-preset PCK export + packed-runtime startup | no APK built yet; the Android SDK, export templates and the emulator `sv_m1_api36` are now available |
 | 2:1 projection | Slice | ISO-001–004 | 64-bit math (F-03) |
@@ -148,15 +159,15 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 | Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
 | Walk/run/terrain speed | Slice | MOVE-003, MOVE-004, MOVE-005 | — |
 | Collision and sliding | Slice | COLL-001–004, COLL-005a (one continuous drive to every treat's exact position within its pickup radius and on to the exit; every reachable story-map marker), COLL-006; SLICE solver decision | GridKinematicSolver (native slide rejected); COLL-005b scripted-position story objectives (M5–M7) |
-| Shared Green Zone/story world | Slice | ARCH-001a (dummy Story host scene: same classes and public interfaces, its own environment resources, lifecycle, movement, camera, sorting, recursive cleanup); no duplicate playable/input controller: a static code-review requirement (ActorBody controllers on the shared solver allowed) | ARCH-001b production story scene (M5) |
-| Camera lag/look-ahead/sway/shake/clamp | Slice | CAM-001–003; CAM-004 on combined evidence (whole-pixel origin in the suite + the architect-accepted rendered probe's static-shimmer pass) | shake noise seeded (D-04) |
+| Shared Green Zone/story world | Slice | ARCH-001a on combined evidence: the dummy Story host case (same classes and public interfaces, its own environment resources, lifecycle, movement, camera, sorting, recursive cleanup) + the architect's static review of `f580fa4` (no duplicate playable/input controller; ActorBody controllers on the shared solver allowed) | ARCH-001b production story scene (M5) |
+| Camera lag/look-ahead/sway/shake/clamp | Partial | CAM-001–003; P: CAM-004 (whole-pixel origin in the suite; the rendered probe is supplemental) | CAM-004 static-shimmer clause open (no accepted renderer-backed probe); shake noise seeded (D-04) |
 | Stable depth sorting | Slice | DEPTH-001–003 | — |
 | Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |
 | Animated terrain and pollution presentation | Slice | WORLD-004, WORLD-005 (engine TileData), captures 10/11/20 | three layers, approved in ARCHITECTURE §7 |
 | ASCII maps and markers | Slice | MAP-001–007 (all twenty story maps parse like the source) | story scenes M5 |
 | Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
 | Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap; SLICE: probe reaches prop centres at rule distance + prop radius (tree/pole/fountain ±1e-9 boundaries, 16 directions, exact edge-distance decision authoritative) | consumers arrive with M3 |
-| Zampanò state controller | Slice | DOG-001–004, DOG-005a, DOG-006, DOG-007; DOG-008a on combined evidence (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults, `test_P_DOG_008a` restart through the real Main flow, the architect-accepted rendered probe) | DOG-005b forced fetch (M3); DOG-008b stage change (M5) |
+| Zampanò state controller | Partial | DOG-001–004, DOG-005a, DOG-006, DOG-007; P: DOG-008a (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults; restart-reset subclause satisfied by `test_P_DOG_008a` through the real Main flow) | DOG-008a rendered presentation clause open (no accepted renderer-backed probe); DOG-005b forced fetch (M3); DOG-008b stage change (M5) |
 | Zampanò normal art | Slice | AST-002–005 (every playable skin) | — |
 | Playable profiles (cross, armour, Sbrimbrulòn, Bagnaskiz) | Slice | AST-006–009; SLICE: the dog scene references no profile, the world injects the `--as` choice before `add_child()` (all three), lazy Zampanò fallback only for an unconfigured dog | arms capability DOG-009 (M6); ALT-001–003 (M8) |
 | Story cast art | Slice | AST-011 (23 delivered, 17 frozen procedural roles + cat) | actors M5 |

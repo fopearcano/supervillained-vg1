@@ -1,0 +1,12 @@
+
+> supervillained@0.1.0 test
+> vitest run
+
+
+ RUN  v5.1.0 %USERPROFILE%/sv-windows-check-c12
+
+
+ Test Files  30 passed (30)
+      Tests  248 passed (248)
+   Start at  19:51:26
+   Duration  2.04s (import 53%, transform 27%, tests 18%, worker 1%)

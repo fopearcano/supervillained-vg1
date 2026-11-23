@@ -128,10 +128,10 @@ func test_SLICE_viewport_underlay_and_black_letterbox() -> void:
 
 
 ## The same input gives the same logic at 30/60/90/120 rendered FPS (60 Hz physics, interpolation
-## only in presentation); test hooks are off in the shipped scene defaults. CORE-002 in full. The interpolation-reset assertions (spawn, teleport, camera snap) are part
-## of DOG-008a's combined evidence: the restart reset is test_P_DOG_008a_main_restart_…, the
-## rendered 30/60/90/120 FPS presentation is the architect-accepted tools/interpolation_probe.gd
-## run under a real renderer, and stage change is DOG-008b (M5).
+## only in presentation); test hooks are off in the shipped scene defaults. CORE-002 in full. The interpolation-reset assertions (spawn, teleport, camera snap) are
+## partial evidence for DOG-008a: the restart reset is test_P_DOG_008a_main_restart_…; the rendered
+## 30/60/90/120 FPS presentation clause stays open (tools/interpolation_probe.gd runs are
+## supplemental command evidence, not acceptance), and stage change is DOG-008b (M5).
 func test_CORE_002_logic_independent_of_render_rate() -> void:
 	assert_eq([Engine.physics_ticks_per_second, ProjectSettings.get_setting("physics/common/physics_ticks_per_second")], [60, 60], "60 Hz physics")
 	# Reference: 150 manual ticks.
@@ -252,15 +252,16 @@ static func _nodes_of(node: Node, type: Script) -> Array:
 
 ## DOG-008a restart clause, through the real flow only (partial case: the spawn, teleport and
 ## camera-snap resets and the test-hook defaults are test_CORE_002; the rendered 30/60/90/120 FPS
-## presentation and teleport clauses are the architect-accepted tools/interpolation_probe.gd runs).
+## presentation clause stays open, tools/interpolation_probe.gd runs being supplemental evidence).
 ## Main starts the Green Zone; Enter closes the briefing; the dog walks on InputService movement in
 ## real 60 Hz physics ticks (interpolation history for the dog and the camera) and pees (Space);
 ## Esc opens the pause menu; Down and Enter choose RESTART, whose restart_requested reaches
 ## Main.start_green_zone (deferred scene replacement). The old scene, dog, camera and pause menu
 ## are freed; the replacement dog starts at the canonical spawn; the replacement dog and camera
-## reset physics interpolation at the spawn view in the frame they enter the tree, before that frame
-## is drawn, no reset keeps the old run's position, and the dog stays on the spawn pixel; settings
-## persist while the run state starts over.
+## reset physics interpolation at the spawn view in the entry process frame (the process frame in
+## which they enter the tree), before the test's next awaited frame; no rendered frame or pixel is
+## read back here. No reset keeps the old run's position, and the dog stays on the spawn pixel;
+## settings persist while the run state starts over.
 func test_P_DOG_008a_main_restart_resets_interpolation_and_run_state() -> void:
 	AppState.update_settings({"muted": false, "volume": 0.35, "textSpeed": "fast", "lives": 5,
 		"controls": {"swipeUp": "sword", "swipeDown": "shield", "doubleTap": "bark", "run": "toggle", "switcher": false, "hand": "left"}})
@@ -340,7 +341,7 @@ func test_P_DOG_008a_main_restart_resets_interpolation_and_run_state() -> void:
 	# The replacement starts at the canonical spawn, at rest.
 	assert_eq([dog.gx, dog.gy], [canon.start.x, canon.start.y], "replacement at the canonical spawn")
 	assert_eq([dog.position, dog.vx, dog.vy, dog.state], [spawn_px, 0.0, 0.0, "free"], "at rest on the spawn pixel")
-	# Interpolation reset at the spawn view, in the entry frame (before its draw), never at the old position.
+	# Interpolation reset at the spawn view in the entry process frame (before the test's next awaited frame), never at the old position.
 	assert_true(dog.is_physics_interpolated_and_enabled() and rig.camera.is_physics_interpolated_and_enabled(), "replacement dog and camera physics-interpolated")
 	assert_true(dog.interpolation_resets >= 2 and rig.interpolation_resets >= 1, "runtime reset counters (dog %d, camera %d)" % [dog.interpolation_resets, rig.interpolation_resets])
 	var bounds := fresh.world.walkable_bounds(4)

@@ -779,9 +779,9 @@ static func _public_interface(script: Script) -> Array:
 ## lifecycle (ready, ticks driven by the shared InputService, rendered frames, cleanup). Its
 ## IsoWorld, PlayableDog, CameraRig classes and public interfaces are GreenZoneScene's, IsoGrid and
 ## IsoDepthSorter place and rank both worlds, and its movement is the shared controller and grid
-## solver tick for tick. "No duplicate playable/input movement controller" is a static code-review
-## requirement (TEST_PLAN.md ARCH-001a), not a source-text test. The production story scene is
-## ARCH-001b (M5).
+## solver tick for tick. "No duplicate playable/input movement controller" is the other half of
+## ARCH-001a's combined evidence: a named architect static review (TEST_PLAN.md), not a source-text
+## test. The production story scene is ARCH-001b (M5).
 func test_ARCH_001a_dummy_story_host_shares_the_green_zone_world() -> void:
 	var gz: GreenZoneScene = load("res://scenes/green_zone/green_zone_scene.tscn").instantiate()
 	gz.show_briefing = false
