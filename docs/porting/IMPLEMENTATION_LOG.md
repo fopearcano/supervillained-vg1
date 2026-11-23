@@ -6,11 +6,115 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 6 is current.
+in progress report 5. Correction report 7 is current.
 
 ---
 
-## Correction report 6: fifth M1/M2 review (M1 Partial, M2 Partial) — current
+## Correction report 7: legacy-save plan and host-evidence wording (M1 Partial, M2 Partial) — current
+
+Scope: the architect's three documentation items on `81906cd`, in one documentation commit. No code
+changes: `godot/` is identical to `81906cd` (tree `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876`); the
+accepted AudioService and PlayableDog corrections and the PixiJS source are untouched.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted); **open M1 blocker: the migration-plugin spike** |
+| Base | `81906cd` (correction report 6) |
+| Code under test | unchanged from `81906cd`; its Windows evidence (correction report 6) is the current-tree evidence |
+| Host | Windows 11 Pro N for Workstations 25H2 (same PC); Ubuntu 26.04 in WSL 2 (checked for Android tools only) |
+| Android on this host | no Android SDK, adb, emulator or device; no controlled old→new APK lineage. Present: JDK 21 (Eclipse Adoptium) and Godot's 4.7.2 Android export templates (`android_debug.apk`, `android_release.apk`, `android_source.zip`) |
+
+### The approved three-stage legacy-save plan (MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike.** A throwaway native migration plugin under `/godot/platform/android/`,
+   tested on a controlled same-package/same-signature old→new APK lineage. It either reads the five
+   legacy `supervillained:` keys without mutating them, or a reproducible failure is documented;
+   either way the native-bridge versus staged-Capacitor decision is written. Missing access to the
+   owner's production signing identity is an M9 blocker, not an M1 one.
+   **Status: not started, open M1 blocker.** No controlled Android environment exists on the hosts
+   used (above), so the spike cannot run here. It is not unnecessary and it is not deferred to M9.
+2. **M4 — deterministic format-3 converter and SaveService integration.** Today only the pure
+   v1→v2 rules are ported (`CampaignMigration`, SAV-013–017).
+3. **M9 — production proof:** the actual installed lineage and signing certificate, two
+   WebView/device versions, and end-to-end MIG-001–010.
+
+### Changes per review item
+
+1. **Plan restored everywhere it was misstated.** Correction report 6 (item 3, D-11, D-13) and the
+   erratum it added to progress report 5 had collapsed the plan to "M4 converter, M9 Android",
+   dropping the M1 spike. Corrected in: FEATURE_MATRIX (status headline, "Not verified", the new
+   "Legacy-save plan" paragraph, the campaign row, and the planning row "Legacy Capacitor import",
+   whose milestone column now reads "M1 spike, M4 converter, M9 proof" as in MILESTONES.md); this
+   report (D-11, D-13, "Still required"); the progress report 5 erratum; an erratum on correction
+   report 6, now historical. MILESTONES.md, ARCHITECTURE.md and TEST_PLAN.md already state the
+   three stages and are unchanged.
+2. **D-11 / D-13 and "Still required"** below. The spike is listed as an open M1 blocker with what
+   it needs.
+3. **Host evidence in FEATURE_MATRIX.** Current tree: `81906cd` / `godot/` tree
+   `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876`, Windows, 134 passed (correction report 6). Linux
+   `d12bedd` / 128 passed is prior-tree evidence. Correction 6 was not rerun on Linux, and neither
+   was this documentation commit. CORE-001 / AST-019 command evidence and the project-isolation row
+   name the tree each host ran.
+
+Historical evidence files (`windows_evidence/`, `linux_evidence/`, `captures/`) are unchanged.
+
+### Commands executed and results
+
+Only these commands were run for this commit (Windows 11, PowerShell 5.1 / Git Bash; WSL where
+stated). No build, import, suite or launch was re-run: no code changed.
+
+| Command | Result |
+|---|---|
+| `Get-Command adb`, `Get-Command emulator`, `Get-Command java` | adb: not found; emulator: not found; java: `C:\Program Files\Eclipse Adoptium\jdk-21.0.13.9-hotspot\bin\java.exe` |
+| `$env:ANDROID_HOME`, `$env:ANDROID_SDK_ROOT`; `Test-Path $env:LOCALAPPDATA\Android\Sdk` | both empty; `False` |
+| `Test-Path $env:APPDATA\Godot\export_templates\4.7.2.stable`; its listing filtered on `android` | `True`; `android_debug.apk`, `android_release.apk`, `android_source.zip` |
+| `Test-Path godot\platform` | `False` (no spike code exists) |
+| WSL Ubuntu 26.04: `command -v adb`, `command -v sdkmanager` | both not found |
+| `git diff --stat d12bedd 81906cd -- godot/assets godot/data godot/tests/fixtures godot/tools/source_extract godot/tools/build_resources.gd` | empty: the generated outputs are the same on both trees |
+| `git diff --stat 81906cd -- godot` (working tree) | empty: no code change |
+| `git diff --stat 81906cd -- docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/captures docs/porting/MILESTONES.md docs/porting/ARCHITECTURE.md docs/porting/TEST_PLAN.md` | empty: historical evidence and planning documents unchanged |
+| `git diff --check` and `git diff --check 95b69c0` (working tree) | clean |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 16 checks` — one "— current" report; the plan's three stages, the M1 blocker and the host-evidence facts present in FEATURE_MATRIX and this report; the collapsed "M9 only" wording absent from both |
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017). Remaining, per the approved plan: the M1 migration-plugin spike (open M1 blocker), the M4 format-3 converter and SaveService integration, the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | Not done from M1: the Android migration-plugin spike (open M1 blocker: no Android SDK, adb, emulator, device or controlled APK lineage on the hosts used). Done since report 1: title, synthesized audio, Sbrimbrulòn/Bagnaskiz profiles, cast |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **M1 migration-plugin spike (open M1 blocker).** Needs an Android SDK (platform-tools,
+  build-tools, a platform), a device or emulator, a controlled test keystore, the old Capacitor
+  APK built and signed with it, a few representative saves, and a spike APK with the same package
+  and signature installed over it without uninstalling (`adb install -r`). Result: the five keys
+  read unmutated, or a documented reproducible failure, plus the written native-bridge /
+  staged-Capacitor decision. JDK 21 and the Godot Android export templates are already on this PC.
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 6: fifth M1/M2 review (`81906cd`; M1 Partial, M2 Partial)
+
+> Historical record of `81906cd`, superseded by correction report 7. Its Windows results remain the
+> current-tree evidence (`godot/` is unchanged since). **Erratum** (text below kept as submitted):
+> item 3, D-11 and D-13 dropped the approved M1 stage of the legacy-save plan. Correctly: M1 — a
+> migration-plugin feasibility spike on a controlled old→new APK lineage (open M1 blocker, not
+> started); M4 — the format-3 converter and SaveService integration; M9 — the production
+> lineage/certificate, two WebView/device versions and end-to-end MIG-001–010 proof.
 
 Scope: the architect's three items on `5a4a486`, in one correction-only commit. No M3 content and
 no PixiJS source change. Beyond the two places the review names (AudioService effect requests and
@@ -119,13 +223,14 @@ Pending.
 
 ## Historical — progress report 5: remaining M1/M2 work (`5a4a486`; M1 Partial, M2 Partial)
 
-> Historical record of `5a4a486`, superseded by correction report 6. **Errata** (corrected there,
-> text below kept as submitted): "legacy import into the container stays M9" and the D-13 /
-> "Android (M1 spike, device evidence)" items should read: the format-3 converter and SaveService
-> integration are M4, the Android legacy-store acquisition and signed-upgrade/MIG proof are M9
-> (not M1/M2 completion evidence). The audio behaviour then recorded, a new effect requested in
-> the background "starts paused" (also in `windows_evidence/d12bedd/`), was not source parity: the
-> source drops it (F-18).
+> Historical record of `5a4a486`, superseded by correction reports 6 and 7. **Errata** (text below
+> kept as submitted): "legacy import into the container stays M9" should read as the approved
+> three-stage plan (correction report 7): M1 — the migration-plugin feasibility spike on a
+> controlled old→new APK lineage, still open as an M1 blocker (the "Android (M1 spike)" item below
+> was right to list it); M4 — the format-3 converter and SaveService integration; M9 — the
+> production lineage/certificate, two WebView/device versions and end-to-end MIG-001–010 proof.
+> The audio behaviour then recorded, a new effect requested in the background "starts paused"
+> (also in `windows_evidence/d12bedd/`), was not source parity: the source drops it (F-18).
 
 Scope: the architect's instruction after the fourth review ("continue only the remaining documented
 M1/M2 work"). No M3 content. The accepted foundations are not rewritten: IsoGrid,

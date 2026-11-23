@@ -15,7 +15,8 @@ Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCE
 ## Godot implementation status — M1 Partial, M2 Partial, awaiting architect review
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
-**M1 is Partial and M2 is Partial**: neither milestone is complete or accepted.
+**M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. Open M1 blocker:
+the Android migration-plugin feasibility spike (see "Legacy-save plan" below).
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title frames for approval), `docs/porting/windows_evidence/` and
 `docs/porting/linux_evidence/` (real host runs).
@@ -27,7 +28,7 @@ Acceptance IDs are claimed only through a `test_<ID>_…` suite case that exerci
 ID (TEST_PLAN.md case naming). `test_P_<ID>_…` cases are partial evidence and satisfy nothing;
 `test_SLICE_…` cases check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (90), Windows console build and Linux (Ubuntu 26.04, WSL 2), Godot 4.7.2:**
+**Acceptance IDs satisfied by a full suite case (90), Godot 4.7.2; current tree verified on the Windows console build (`81906cd`, 134 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
 CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
@@ -46,20 +47,26 @@ story pickups, spots and marvels at literal coordinates are placed by the M5 scr
 GZ-002, GZ-021, GZ-025, SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
 
 **Command-level evidence (no suite case, architect to judge):** CORE-001 (clean-cache import and
-600-frame Main run on clean clones of Windows 11 and Ubuntu 26.04); AST-019 (all 206 generated
-outputs byte-identical under the Chromium build pinned by the locked playwright-core,
-153.0.8010.12: `pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true`
-and `build_assets.sh --check` on Ubuntu 26.04, the same bytes on both).
+600-frame Main run on a clean Windows 11 clone of the current tree `81906cd`, and on a clean
+Ubuntu 26.04 clone of the prior tree `d12bedd`); AST-019 (all 206 generated outputs byte-identical
+under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
+`pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true` for `81906cd`,
+and `build_assets.sh --check` on Ubuntu 26.04 for `d12bedd`, the same bytes; the generated outputs
+did not change between the two trees).
 
-**Host verification of the current code (`d12bedd`, progress report 5):** fresh clones on
-Windows 11 25H2 (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0, pinned Chromium,
-RTX 3090, WASAPI audio) and Ubuntu 26.04 in WSL 2 (official Linux Godot and Node, SHA-checked):
-asset check (206 + 55 outputs identical), clean import, suite **128 passed, 0 failed**, clean
-600-frame Main run and empty `git status` on both; on Windows also the rendered probe at
-30/60/90/120 FPS with VSync off, the live audio probe, the PixiJS baseline (248 tests, build OK),
-the source-tree guard and `git diff --check` (`windows_evidence/d12bedd/`, `linux_evidence/d12bedd/`).
-Earlier Windows evidence for `a0e3b8d` is kept in `windows_evidence/a0e3b8d/`. Windows is a
-development host only; the D-15 Windows CI workflow stays a proposal.
+**Host verification.** *Current tree* (`81906cd`, `godot/` tree
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876`, correction report 6; the documentation commits after it
+do not change `godot/`): a fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe,
+Node 24.15.0, pinned Chromium, WASAPI audio) passed the asset check (206 + 55 outputs identical),
+the clean import, the suite **134 passed, 0 failed**, the 600-frame Main run, the PCK smoke, the
+live audio probe, the PixiJS baseline (248 tests, build OK), `git diff --check` and the source-tree
+guard (`windows_evidence/correction-6-godot-tree-fd20ac1/`). **Correction 6 was not rerun on
+Linux.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
+asset check, clean import, suite **128 passed, 0 failed**, 600-frame run and empty `git status`
+(`linux_evidence/d12bedd/`), and Windows additionally ran the rendered probe at 30/60/90/120 FPS
+with VSync off (`windows_evidence/d12bedd/`). Earlier Windows evidence for `a0e3b8d` is kept in
+`windows_evidence/a0e3b8d/`. Windows is a development host only; the D-15 Windows CI workflow stays
+a proposal.
 
 **Export evidence (SLICE, no plan ID):** the Android preset exports as a PCK with the test binary and
 runs as a packed runtime: every runtime resource loads from the pack, no JSON/tests/tools/
@@ -72,17 +79,25 @@ every other ID not listed above.
 
 **Not verified (no device or tester here):** everything on Android hardware (export, install,
 Back, immersive, keep-awake, display cutout safe area, touch hardware, audio focus, performance);
-the manual M1/M2 checks (desktop and touch play sessions, occlusion and camera-edge inspection,
-crisp rendering at two sizes and one non-integer aspect, animation preview, listening to the audio,
-approval of the title images).
+the M1 migration-plugin spike (open M1 blocker, below); the manual M1/M2 checks (desktop and touch
+play sessions, occlusion and camera-edge inspection, crisp rendering at two sizes and one
+non-integer aspect, animation preview, listening to the audio, approval of the title images).
 
-**Later milestones, not M1/M2 evidence:** the format-3 campaign converter and its SaveService
-integration are **M4**; the Android legacy-store acquisition (Capacitor WebView localStorage) and
-the signed same-package upgrade / MIG-001–010 proof are **M9**.
+**Legacy-save plan (approved: MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3):**
+1. **M1 — feasibility spike, open M1 blocker.** A throwaway native migration plugin under
+   `/godot/platform/android/`, tested on a controlled same-package/same-signature old→new APK
+   lineage: it either reads the five legacy `supervillained:` keys without mutating them, or a
+   reproducible failure is documented, and the native-bridge versus staged-Capacitor decision is
+   written. Not started: the hosts used so far have no Android SDK, adb, emulator or device and no
+   controlled old→new APK lineage (correction report 7). M1 cannot be complete without it.
+2. **M4 — deterministic format-3 converter and SaveService integration** (the pure v1→v2 rules,
+   SAV-013–017, are ported now).
+3. **M9 — production proof:** the actual installed lineage and signing certificate, two WebView/device
+   versions, and end-to-end MIG-001–010.
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Partial | CORE-001 command evidence (Windows 11 and Ubuntu 26.04 clean clones); source-tree guard | command evidence only, architect to judge |
+| Godot project isolated under `/godot` | Partial | CORE-001 command evidence (Windows 11 clean clone of `81906cd`; Ubuntu 26.04 clean clone of the prior tree `d12bedd`); source-tree guard | command evidence only, architect to judge |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
 | Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004; underlay/letterbox SLICE case; 4 viewport captures; rendered probe on llvmpipe and a real RTX 3090 | VIEW-004 rendered checks outside the suite; device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | no device (B-04) |
@@ -127,7 +142,7 @@ the signed same-package upgrade / MIG-001–010 proof are **M9**.
 | Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
 | Synthesized audio | Slice | AUD-005–008 (14 cues + medieval loop as source-rendered PCM WAV) | chapter routing (M5–M8) |
 | Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022 (future main/temp/backup); P: SAV-021; SLICE: a valid older main becomes the backup on temp recovery; SLICE: failed future copies reported as `future_copy_failed:<file>` with writes still blocked | user-visible notice, campaign schema (D-11) |
-| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | format-3 converter and SaveService integration M4; Android legacy-store acquisition and signed-upgrade/MIG proof M9 |
+| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 migration-plugin spike open (M1 blocker); format-3 converter and SaveService integration M4; production lineage, two WebView/device versions and MIG-001–010 proof M9 |
 | Everything else in this matrix | — | — | later milestones |
 
 ## 1. Platform and runtime
@@ -316,7 +331,7 @@ All source entries below are implemented. “Ported” means script, map, actors
 | [ ] | Campaign v2 save | Implemented | Preserve all fields and exact replay/save triggers | M4–M7 / SAV-006–012 |
 | [ ] | Campaign v1→v2 migration | Implemented/tested | Pure port, raw backup, one-time notice | M4 / SAV-013–017 |
 | [ ] | Atomic Godot save/backup | Source localStorage is guarded but not atomic | temp-validate-rotate-rename; recover from corruption | M4 / SAV-018–022 |
-| [ ] | Legacy Capacitor import | Not implemented; architectural limitation | Native bridge spike; raw payload backup; deterministic conversion | M1, M9 / MIG-001–010 |
+| [ ] | Legacy Capacitor import | Not implemented; architectural limitation | Native bridge spike; raw payload backup; deterministic conversion | M1 spike, M4 converter, M9 proof / MIG-001–010 |
 | [ ] | Same-package Android upgrade | Source package is `com.zampano.supervillained`, repository versionCode 1, release uses debug key | Same ID, code higher than installed artifact, exact certificate, no uninstall | M9 / AND-009–013 |
 | [ ] | Browser-save import | Not available automatically | Explicitly unsupported unless a future manual export is authorized | Document limitation |
 
