@@ -1,0 +1,20 @@
+clone exit: 0
+HEAD: 292d5ab WIP correction report 15
+godot tree: cd8717124f23ef03e16ebb0e71a1d73ba628e39d
+core.autocrlf: true
+npm ci exit: 0  (7s)
+playwright install exit: 0  (1s)
+a asset check exit: 0  (26s)
+b clean import exit: 0  (3s)
+c suite exit: 0  (73s)
+d 600 frames exit: 0  (11s)
+e PCK smoke exit: 0  (17s)
+g npm test exit: 0  (3s)
+h npm run build exit: 0  (1s)
+i git status exit: 0  (0s)
+j diff check (port vs audit) exit: 0  (0s)
+k diff check (this commit) exit: 0  (0s)
+l source-tree guard exit: 0  (0s)
+m spike harness self-test exit: 0  (23s)
+p git status (after all steps) exit: 0  (0s)
+done

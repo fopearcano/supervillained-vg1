@@ -1,0 +1,46 @@
+--------- beginning of main
+--------- beginning of system
+11-24 01:30:35.798  6990  6990 D Capacitor: Starting BridgeActivity
+11-24 01:30:35.808  6990  6990 D Capacitor: Registering plugin instance: CapacitorCookies
+11-24 01:30:35.809  6990  6990 D Capacitor: Registering plugin instance: WebView
+11-24 01:30:35.810  6990  6990 D Capacitor: Registering plugin instance: CapacitorHttp
+11-24 01:30:35.810  6990  6990 D Capacitor: Registering plugin instance: SystemBars
+11-24 01:30:35.812  6990  6990 D Capacitor: Registering plugin instance: AppQuit
+11-24 01:30:35.820  6990  6990 W Capacitor: Unable to read file at path public/plugins
+11-24 01:30:35.822  6990  6990 D Capacitor: Loading app at https://localhost
+11-24 01:30:35.868  6990  7019 D Capacitor: Handling local request: https://localhost/
+11-24 01:30:35.876  6990  6990 D Capacitor: App started
+11-24 01:30:35.877  6990  6990 D Capacitor: App resumed
+11-24 01:30:36.382  6990  7019 D Capacitor: Handling local request: https://localhost/assets/CanvasPool-DQfdQT7C.js
+11-24 01:30:36.384  6990  7023 D Capacitor: Handling local request: https://localhost/assets/Filter-DfhFkXDT.js
+11-24 01:30:36.388  6990  7015 D Capacitor: Handling local request: https://localhost/assets/canvasUtils-UtWJHL0z.js
+11-24 01:30:36.388  6990  7023 D Capacitor: Handling local request: https://localhost/assets/Cache-U0M91mJh.js
+11-24 01:30:36.388  6990  7019 D Capacitor: Handling local request: https://localhost/assets/GCManagedHash-BLEz-DYK.js
+11-24 01:30:36.389  6990  7019 D Capacitor: Handling local request: https://localhost/assets/RenderTargetSystem-dopv-y6R.js
+11-24 01:30:36.390  6990  7015 D Capacitor: Handling local request: https://localhost/assets/getTextureBatchBindGroup-CYJYEYS-.js
+11-24 01:30:36.390  6990  7015 D Capacitor: Handling local request: https://localhost/assets/getTexelRangeRects-DAX_3Ohr.js
+11-24 01:30:36.390  6990  7023 D Capacitor: Handling local request: https://localhost/assets/GraphicsContext-4CRmqwZd.js
+11-24 01:30:36.392  6990  7019 D Capacitor: Handling local request: https://localhost/assets/index-Cr99JP5P.js
+11-24 01:30:36.464  6990  7043 E Capacitor: JavaScript Error: {"type":"js.error","error":{"message":"Uncaught SyntaxError: Unexpected token .","url":"https://localhost/assets/index-Cr99JP5P.js","line":2,"col":2260,"errorObject":"{}"}}
+11-24 01:30:36.488  6990  6990 E Capacitor/Console: File: https://localhost/ - Line 813 - Msg: SyntaxError: Unexpected token .
+11-24 01:30:36.488  6990  6990 E Capacitor/Console: File: https://localhost/assets/index-Cr99JP5P.js - Line 2 - Msg: Uncaught SyntaxError: Unexpected token .
+11-24 01:30:36.490  6990  7023 D Capacitor: Handling local request: https://localhost/icon-192.png
+11-24 01:30:36.490  6990  7023 D Capacitor: Handling local request: https://localhost/favicon-64.png
+11-24 01:30:36.491  6990  7019 D Capacitor: Handling local request: https://localhost/favicon-32.png
+11-24 01:30:38.004  6990  7015 D Capacitor: Handling local request: https://localhost/
+11-24 01:30:38.013  6990  7015 D Capacitor: Handling local request: https://localhost/assets/CanvasPool-DQfdQT7C.js
+11-24 01:30:38.013  6990  7015 D Capacitor: Handling local request: https://localhost/assets/Filter-DfhFkXDT.js
+11-24 01:30:38.014  6990  7019 D Capacitor: Handling local request: https://localhost/assets/canvasUtils-UtWJHL0z.js
+11-24 01:30:38.015  6990  7023 D Capacitor: Handling local request: https://localhost/assets/Cache-U0M91mJh.js
+11-24 01:30:38.015  6990  7019 D Capacitor: Handling local request: https://localhost/assets/GCManagedHash-BLEz-DYK.js
+11-24 01:30:38.015  6990  7019 D Capacitor: Handling local request: https://localhost/assets/RenderTargetSystem-dopv-y6R.js
+11-24 01:30:38.015  6990  7023 D Capacitor: Handling local request: https://localhost/assets/getTextureBatchBindGroup-CYJYEYS-.js
+11-24 01:30:38.016  6990  7023 D Capacitor: Handling local request: https://localhost/assets/GraphicsContext-4CRmqwZd.js
+11-24 01:30:38.016  6990  7023 D Capacitor: Handling local request: https://localhost/assets/getTexelRangeRects-DAX_3Ohr.js
+11-24 01:30:38.017  6990  7015 D Capacitor: Handling local request: https://localhost/assets/index-Cr99JP5P.js
+11-24 01:30:38.043  6990  6990 E Capacitor/Console: File: https://localhost/ - Line 813 - Msg: SyntaxError: Unexpected token .
+11-24 01:30:38.043  6990  7043 E Capacitor: JavaScript Error: {"type":"js.error","error":{"message":"Uncaught SyntaxError: Unexpected token .","url":"https://localhost/assets/index-Cr99JP5P.js","line":2,"col":2260,"errorObject":"{}"}}
+11-24 01:30:38.044  6990  6990 E Capacitor/Console: File: https://localhost/assets/index-Cr99JP5P.js - Line 2 - Msg: Uncaught SyntaxError: Unexpected token .
+11-24 01:30:38.048  6990  7023 D Capacitor: Handling local request: https://localhost/icon-192.png
+11-24 01:30:38.048  6990  7015 D Capacitor: Handling local request: https://localhost/favicon-64.png
+11-24 01:30:38.048  6990  7019 D Capacitor: Handling local request: https://localhost/favicon-32.png

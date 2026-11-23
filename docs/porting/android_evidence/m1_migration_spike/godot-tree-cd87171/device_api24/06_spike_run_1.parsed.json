@@ -1,0 +1,220 @@
+{
+  "attempts": {
+    "1": {
+      "spike": "sv_m1_migration_spike",
+      "attempt": 1,
+      "timestamp_utc": "2026-11-24T00:31:44.437Z",
+      "expected_origin": "https://localhost",
+      "verified_origin": "https://localhost",
+      "webview_package": null,
+      "android_sdk_int": 24,
+      "diagnostics": {
+        "page_url": "https://localhost/__sv_m1_migration_spike__/read.html",
+        "webview_data_dir_existed_before_read": true,
+        "local_storage_dir_existed_before_read": false,
+        "root_local_storage_dir_existed_before_read": true,
+        "package_name": "com.zampano.supervillained",
+        "app_version_code": 2,
+        "webview_package_unavailable": "WebView.getCurrentWebViewPackage() needs API 26; device API 24 (see user_agent)",
+        "document_href": "https://localhost/__sv_m1_migration_spike__/read.html",
+        "user_agent": "Mozilla/5.0 (Linux; Android 7.0; Android SDK built for x86_64 Build/NYC; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/69.0.3497.100 Mobile Safari/537.36"
+      },
+      "keys": {
+        "settings": {
+          "storage_key": "supervillained:settings",
+          "present": true,
+          "raw": "{\"muted\":true,\"volume\":0.35,\"textSpeed\":\"fast\",\"lives\":5,\"controls\":{\"swipeUp\":\"bark\",\"swipeDown\":\"switch\",\"doubleTap\":\"action\",\"run\":\"toggle\",\"switcher\":false,\"hand\":\"left\"}}",
+          "error": null
+        },
+        "records": {
+          "storage_key": "supervillained:records",
+          "present": true,
+          "raw": "{\"level1\":{\"score\":4321,\"stars\":3,\"time\":187.25}}",
+          "error": null
+        },
+        "coins": {
+          "storage_key": "supervillained:coins",
+          "present": true,
+          "raw": "42",
+          "error": null
+        },
+        "story": {
+          "storage_key": "supervillained:story",
+          "present": true,
+          "raw": "{\"version\":2,\"completed\":[\"1.0\",\"1.2\",\"1.3\"],\"meters\":{\"commozione\":20,\"supervillain\":7,\"grace\":70,\"standing\":50},\"flags\":{\"pawOffered\":true,\"longWay\":false,\"santinaBall\":true},\"book\":{\"marvels\":[],\"items\":[],\"values\":[],\"remembered\":[\"AND A DOG DREAMS LECTURES.\",\"THERE WAS A GATE, AND IT WAS A CHIHUAHUA.\"],\"shards\":[\"A FLEET BOUGHT ON CREDIT\",\"A CITY SEEN FROM ITS WALLS\"]},\"abilities\":[],\"coins\":17,\"playTime\":1834.5,\"savedAt\":1767225600000,\"notice\":\"dream-rewritten\"}",
+          "error": null
+        },
+        "story-v1-backup": {
+          "storage_key": "supervillained:story-v1-backup",
+          "present": true,
+          "raw": "{\"version\":1,\"completed\":[\"1.0\",\"1.1\",\"1.2\",\"1.3\",\"1.5\"],\"meters\":{\"commozione\":35,\"supervillain\":22,\"grace\":61,\"standing\":48},\"flags\":{\"pawOffered\":true,\"longWay\":false,\"santinaBall\":true,\"bucketKicked\":true},\"book\":{\"marvels\":[\"THE FOUNTAIN\"],\"items\":[\"THE FRESCO\"],\"values\":[\"Comradeship\"],\"remembered\":[\"AND A DOG DREAMS LECTURES.\",\"THERE WAS A GATE, AND IT WAS A CHIHUAHUA.\",\"AN OLD DREAM LINE\"],\"shards\":[\"A FLEET BOUGHT ON CREDIT\",\"A CITY SEEN FROM ITS WALLS\"]},\"abilities\":[\"bark\"],\"coins\":17,\"playTime\":1834.5,\"savedAt\":1767225600000}",
+          "error": null
+        }
+      },
+      "present_count": 5,
+      "status": "success"
+    },
+    "2": {
+      "spike": "sv_m1_migration_spike",
+      "attempt": 2,
+      "timestamp_utc": "2026-11-24T00:31:44.527Z",
+      "expected_origin": "https://localhost",
+      "verified_origin": "https://localhost",
+      "webview_package": null,
+      "android_sdk_int": 24,
+      "diagnostics": {
+        "page_url": "https://localhost/__sv_m1_migration_spike__/read.html",
+        "webview_data_dir_existed_before_read": true,
+        "local_storage_dir_existed_before_read": false,
+        "root_local_storage_dir_existed_before_read": true,
+        "package_name": "com.zampano.supervillained",
+        "app_version_code": 2,
+        "webview_package_unavailable": "WebView.getCurrentWebViewPackage() needs API 26; device API 24 (see user_agent)",
+        "document_href": "https://localhost/__sv_m1_migration_spike__/read.html",
+        "user_agent": "Mozilla/5.0 (Linux; Android 7.0; Android SDK built for x86_64 Build/NYC; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/69.0.3497.100 Mobile Safari/537.36"
+      },
+      "keys": {
+        "settings": {
+          "storage_key": "supervillained:settings",
+          "present": true,
+          "raw": "{\"muted\":true,\"volume\":0.35,\"textSpeed\":\"fast\",\"lives\":5,\"controls\":{\"swipeUp\":\"bark\",\"swipeDown\":\"switch\",\"doubleTap\":\"action\",\"run\":\"toggle\",\"switcher\":false,\"hand\":\"left\"}}",
+          "error": null
+        },
+        "records": {
+          "storage_key": "supervillained:records",
+          "present": true,
+          "raw": "{\"level1\":{\"score\":4321,\"stars\":3,\"time\":187.25}}",
+          "error": null
+        },
+        "coins": {
+          "storage_key": "supervillained:coins",
+          "present": true,
+          "raw": "42",
+          "error": null
+        },
+        "story": {
+          "storage_key": "supervillained:story",
+          "present": true,
+          "raw": "{\"version\":2,\"completed\":[\"1.0\",\"1.2\",\"1.3\"],\"meters\":{\"commozione\":20,\"supervillain\":7,\"grace\":70,\"standing\":50},\"flags\":{\"pawOffered\":true,\"longWay\":false,\"santinaBall\":true},\"book\":{\"marvels\":[],\"items\":[],\"values\":[],\"remembered\":[\"AND A DOG DREAMS LECTURES.\",\"THERE WAS A GATE, AND IT WAS A CHIHUAHUA.\"],\"shards\":[\"A FLEET BOUGHT ON CREDIT\",\"A CITY SEEN FROM ITS WALLS\"]},\"abilities\":[],\"coins\":17,\"playTime\":1834.5,\"savedAt\":1767225600000,\"notice\":\"dream-rewritten\"}",
+          "error": null
+        },
+        "story-v1-backup": {
+          "storage_key": "supervillained:story-v1-backup",
+          "present": true,
+          "raw": "{\"version\":1,\"completed\":[\"1.0\",\"1.1\",\"1.2\",\"1.3\",\"1.5\"],\"meters\":{\"commozione\":35,\"supervillain\":22,\"grace\":61,\"standing\":48},\"flags\":{\"pawOffered\":true,\"longWay\":false,\"santinaBall\":true,\"bucketKicked\":true},\"book\":{\"marvels\":[\"THE FOUNTAIN\"],\"items\":[\"THE FRESCO\"],\"values\":[\"Comradeship\"],\"remembered\":[\"AND A DOG DREAMS LECTURES.\",\"THERE WAS A GATE, AND IT WAS A CHIHUAHUA.\",\"AN OLD DREAM LINE\"],\"shards\":[\"A FLEET BOUGHT ON CREDIT\",\"A CITY SEEN FROM ITS WALLS\"]},\"abilities\":[\"bark\"],\"coins\":17,\"playTime\":1834.5,\"savedAt\":1767225600000}",
+          "error": null
+        }
+      },
+      "present_count": 5,
+      "status": "success"
+    }
+  },
+  "summaries": {
+    "1": {
+      "keys": {
+        "settings": {
+          "error": null,
+          "length": 175,
+          "present": true,
+          "sha256": "bcdce14982bb6f0bc3a35cf348252689a9f3e66a1523e185c1b4822d0c895427"
+        },
+        "records": {
+          "error": null,
+          "length": 49,
+          "present": true,
+          "sha256": "00b8ac69b590194adaeaac22c9652ee2a00bf38248525f6e5ce160758c0aa308"
+        },
+        "coins": {
+          "error": null,
+          "length": 2,
+          "present": true,
+          "sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+        },
+        "story": {
+          "error": null,
+          "length": 472,
+          "present": true,
+          "sha256": "6e7b6d6e1106308ca653b25b656b67bec6c3b33df8d35c3d41cca60e84f75f5d"
+        },
+        "story-v1-backup": {
+          "error": null,
+          "length": 543,
+          "present": true,
+          "sha256": "54677975bfe04a490900b5cb8d8c6b54fb815a8b19be074b4ea784093851b084"
+        }
+      },
+      "attempt": 1,
+      "error": null,
+      "expected_origin": "https://localhost",
+      "status": "success",
+      "timestamp_utc": "2026-11-24T00:31:44.437Z",
+      "verified_origin": "https://localhost",
+      "webview_package": null
+    },
+    "2": {
+      "keys": {
+        "settings": {
+          "error": null,
+          "length": 175,
+          "present": true,
+          "sha256": "bcdce14982bb6f0bc3a35cf348252689a9f3e66a1523e185c1b4822d0c895427"
+        },
+        "records": {
+          "error": null,
+          "length": 49,
+          "present": true,
+          "sha256": "00b8ac69b590194adaeaac22c9652ee2a00bf38248525f6e5ce160758c0aa308"
+        },
+        "coins": {
+          "error": null,
+          "length": 2,
+          "present": true,
+          "sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+        },
+        "story": {
+          "error": null,
+          "length": 472,
+          "present": true,
+          "sha256": "6e7b6d6e1106308ca653b25b656b67bec6c3b33df8d35c3d41cca60e84f75f5d"
+        },
+        "story-v1-backup": {
+          "error": null,
+          "length": 543,
+          "present": true,
+          "sha256": "54677975bfe04a490900b5cb8d8c6b54fb815a8b19be074b4ea784093851b084"
+        }
+      },
+      "attempt": 2,
+      "error": null,
+      "expected_origin": "https://localhost",
+      "status": "success",
+      "timestamp_utc": "2026-11-24T00:31:44.527Z",
+      "verified_origin": "https://localhost",
+      "webview_package": null
+    }
+  },
+  "idempotent": {
+    "identical": true,
+    "statuses": [
+      "success",
+      "success"
+    ]
+  },
+  "done": {
+    "error": null,
+    "identical_reads": true,
+    "status": "success"
+  },
+  "start": {
+    "godot": "4.7.2-stable (official)",
+    "keys": [
+      "settings",
+      "records",
+      "coins",
+      "story",
+      "story-v1-backup"
+    ],
+    "os": "Android"
+  },
+  "max_line_length": 621
+}

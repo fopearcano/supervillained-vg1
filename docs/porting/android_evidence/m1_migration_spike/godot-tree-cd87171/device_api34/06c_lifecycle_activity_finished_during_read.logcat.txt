@@ -1,0 +1,17 @@
+--------- beginning of main
+11-24 01:29:43.281 12970 12997 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+11-24 01:29:43.411 12970 12997 E godot   : WARNING: Failed to load cached shader, recompiling.
+11-24 01:29:43.412 12970 12997 E godot   :    at: _load_from_cache (drivers/gles3/shader_gles3.cpp:615)
+11-24 01:29:44.738 12970 12997 I godot   : OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 610.47) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 3090/PCIe/SSE2)
+11-24 01:29:44.748 12970 12997 I godot   :
+11-24 01:29:45.347 12970 12997 I godot   : M1_SPIKE_START {"godot":"4.7.2-stable (official)","keys":["settings","records","coins","story","story-v1-backup"],"os":"Android"}
+11-24 01:29:45.349 12970 12997 I godot   : M1_SPIKE_LIFECYCLE {"method":"readLegacyStoreHeldForLifecycleTest","mode":"activity_finished_during_read"}
+11-24 01:29:45.361 12970 12970 I SvMigrationSpike: attempt 1 (generation 1): loading https://localhost/__sv_m1_migration_spike__/read.html diag={"page_url":"https:\/\/localhost\/__sv_m1_migration_spike__\/read.html","lifecycle_test_hold_ms":20000,"webview_data_dir_existed_before_read":true,"local_storage_dir_existed_before_read":true,"root_local_storage_dir_existed_before_read":false,"package_name":"com.zampano.supervillained","app_version_code":2}
+11-24 01:29:45.523 12970 13022 I SvMigrationSpike: holding the page of generation 1 for up to 20000 ms (lifecycle test)
+11-24 01:29:47.227 12970 12997 I godot   : M1_SPIKE_LIFECYCLE_ACTIVE {"mode":"activity_finished_during_read","result_received":false}
+11-24 01:29:47.227 12970 12997 I godot   : M1_SPIKE_LIFECYCLE_FINISH_ACTIVITY {}
+11-24 01:29:47.227 12970 12997 I SvMigrationSpike: lifecycle test: finishing the Activity
+11-24 01:29:48.464 12970 13022 I SvMigrationSpike: ignored late page request of generation 1
+11-24 01:29:48.465 12970 12970 I SvMigrationSpike: teardown of generation 1 (lifecycle activity_destroy): timeout cancelled, WebView destroyed on thread main
+11-24 01:29:48.465 12970 12970 I SvMigrationSpike: activity_destroy: cancelled active read attempt 1 (generation 1); no result emitted
+11-24 01:29:48.483 12970 12970 I SvMigrationSpike: godot_terminating: no active read

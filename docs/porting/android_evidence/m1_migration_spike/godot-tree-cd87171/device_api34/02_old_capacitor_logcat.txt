@@ -1,0 +1,416 @@
+--------- beginning of main
+11-24 01:28:04.647 11926 11926 D Capacitor: Starting BridgeActivity
+11-24 01:28:04.678 11926 11926 D Capacitor: Registering plugin instance: CapacitorCookies
+11-24 01:28:04.684 11926 11926 D Capacitor: Registering plugin instance: WebView
+11-24 01:28:04.686 11926 11926 D Capacitor: Registering plugin instance: CapacitorHttp
+11-24 01:28:04.688 11926 11926 D Capacitor: Registering plugin instance: SystemBars
+11-24 01:28:04.693 11926 11926 D Capacitor: Registering plugin instance: AppQuit
+11-24 01:28:04.711 11926 11926 W Capacitor: Unable to read file at path public/plugins
+11-24 01:28:04.715 11926 11926 D Capacitor: Loading app at https://localhost
+11-24 01:28:04.847 11926 11926 D Capacitor: App started
+11-24 01:28:04.850 11926 11926 D Capacitor: App resumed
+11-24 01:28:04.864 11926 11958 D Capacitor: Handling local request: https://localhost/
+11-24 01:28:04.901 11926 11961 D Capacitor: Handling local request: https://localhost/assets/index-Cr99JP5P.js
+11-24 01:28:04.909 11926 11958 D Capacitor: Handling local request: https://localhost/assets/CanvasPool-DQfdQT7C.js
+11-24 01:28:04.910 11926 11979 D Capacitor: Handling local request: https://localhost/assets/Filter-DfhFkXDT.js
+11-24 01:28:04.912 11926 11986 D Capacitor: Handling local request: https://localhost/assets/canvasUtils-UtWJHL0z.js
+11-24 01:28:04.914 11926 11959 D Capacitor: Handling local request: https://localhost/assets/Cache-U0M91mJh.js
+11-24 01:28:04.916 11926 11960 D Capacitor: Handling local request: https://localhost/assets/GCManagedHash-BLEz-DYK.js
+11-24 01:28:05.002 11926 11979 D Capacitor: Handling local request: https://localhost/assets/RenderTargetSystem-dopv-y6R.js
+11-24 01:28:05.003 11926 11979 D Capacitor: Handling local request: https://localhost/assets/getTextureBatchBindGroup-CYJYEYS-.js
+11-24 01:28:05.004 11926 11979 D Capacitor: Handling local request: https://localhost/assets/GraphicsContext-4CRmqwZd.js
+11-24 01:28:05.005 11926 11979 D Capacitor: Handling local request: https://localhost/assets/getTexelRangeRects-DAX_3Ohr.js
+11-24 01:28:05.816 11926 11958 D Capacitor: Handling local request: https://localhost/assets/browserAll-CIfB5wQY.js
+11-24 01:28:05.819 11926 11958 D Capacitor: Handling local request: https://localhost/assets/init-BBXz_-JK.js
+11-24 01:28:05.863 11926 11958 D Capacitor: Handling local request: https://localhost/icon-192.png
+11-24 01:28:05.867 11926 11959 D Capacitor: Handling local request: https://localhost/favicon-64.png
+11-24 01:28:05.868 11926 11958 D Capacitor: Handling local request: https://localhost/favicon-32.png
+11-24 01:28:06.008 11926 11958 D Capacitor: Handling local request: https://localhost/assets/PressStart2P-_wFEWmAB.woff2
+11-24 01:28:06.051 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/manifest.json
+11-24 01:28:06.091 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch01_study.png
+11-24 01:28:06.092 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch01_greenzone.png
+11-24 01:28:06.093 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch02_jerusalem.png
+11-24 01:28:06.099 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch02_road.png
+11-24 01:28:06.100 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch03_venice.png
+11-24 01:28:06.101 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch04_sea.png
+11-24 01:28:06.102 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch05_zara.png
+11-24 01:28:06.102 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch02_darkwood.png
+11-24 01:28:06.102 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch06_winter.png
+11-24 01:28:06.108 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch06_island.png
+11-24 01:28:06.109 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch07_constantinople.png
+11-24 01:28:06.109 11926 11960 D Capacitor: Handling local request: https://localhost/environment-ink/ch07_palace.png
+11-24 01:28:06.114 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch08_shattered.png
+11-24 01:28:06.116 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch08_study.png
+11-24 01:28:06.116 11926 11960 D Capacitor: Handling local request: https://localhost/environment-ink/ch08_greenzone.png
+11-24 01:28:06.222 11926 11926 I Capacitor/Console: File: https://localhost/assets/index-Cr99JP5P.js - Line 630 - Msg: [environment-ink] loaded 15/15 delivered zones
+11-24 01:28:06.274 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/zampano.png
+11-24 01:28:06.308 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/zampano-tired.png
+11-24 01:28:06.329 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/bagnaskiz.png
+11-24 01:28:06.379 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/bagnaskiz-tired.png
+11-24 01:28:06.413 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/zampanoKnight.png
+11-24 01:28:06.445 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/zampanoKnight-tired.png
+11-24 01:28:06.458 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/sbrimbrulon.png
+11-24 01:28:06.488 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/sbrimbrulon-tired.png
+11-24 01:28:06.507 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/sbrimbrulonKnight.png
+11-24 01:28:06.572 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/sbrimbrulonKnight-tired.png
+11-24 01:28:06.583 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/jack.png
+11-24 01:28:06.638 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/watson.png
+11-24 01:28:06.706 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/santina.png
+11-24 01:28:06.774 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/confusione.png
+11-24 01:28:06.829 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/doge.png
+11-24 01:28:06.846 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/greek.png
+11-24 01:28:06.858 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/knight.png
+11-24 01:28:06.870 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/varangian.png
+11-24 01:28:06.885 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/marquis.png
+11-24 01:28:06.898 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/prince.png
+11-24 01:28:06.916 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/bagnaskizMarshal.png
+11-24 01:28:06.934 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/bagnaskizArmoured.png
+11-24 01:28:06.967 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/bagnaskizArmoured-tired.png
+11-24 01:28:06.975 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/professor.png
+11-24 01:28:06.986 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/niketas.png
+11-24 01:28:06.998 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/fulk.png
+11-24 01:28:07.009 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/clerk.png
+11-24 01:28:07.023 11926 11958 D Capacitor: Handling local request: https://localhost/
+11-24 01:28:07.024 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/abbot.png
+11-24 01:28:07.065 11926 11958 D Capacitor: Handling local request: https://localhost/assets/index-Cr99JP5P.js
+11-24 01:28:07.066 11926 11958 D Capacitor: Handling local request: https://localhost/assets/CanvasPool-DQfdQT7C.js
+11-24 01:28:07.067 11926 11960 D Capacitor: Handling local request: https://localhost/assets/Filter-DfhFkXDT.js
+11-24 01:28:07.067 11926 11959 D Capacitor: Handling local request: https://localhost/assets/canvasUtils-UtWJHL0z.js
+11-24 01:28:07.067 11926 11961 D Capacitor: Handling local request: https://localhost/assets/Cache-U0M91mJh.js
+11-24 01:28:07.069 11926 11958 D Capacitor: Handling local request: https://localhost/assets/GCManagedHash-BLEz-DYK.js
+11-24 01:28:07.069 11926 11959 D Capacitor: Handling local request: https://localhost/assets/RenderTargetSystem-dopv-y6R.js
+11-24 01:28:07.071 11926 11958 D Capacitor: Handling local request: https://localhost/assets/getTextureBatchBindGroup-CYJYEYS-.js
+11-24 01:28:07.071 11926 11959 D Capacitor: Handling local request: https://localhost/assets/GraphicsContext-4CRmqwZd.js
+11-24 01:28:07.072 11926 11958 D Capacitor: Handling local request: https://localhost/assets/getTexelRangeRects-DAX_3Ohr.js
+11-24 01:28:07.185 11926 11959 D Capacitor: Handling local request: https://localhost/assets/browserAll-CIfB5wQY.js
+11-24 01:28:07.186 11926 11960 D Capacitor: Handling local request: https://localhost/assets/init-BBXz_-JK.js
+11-24 01:28:07.193 11926 11958 D Capacitor: Handling local request: https://localhost/icon-192.png
+11-24 01:28:07.193 11926 11958 D Capacitor: Handling local request: https://localhost/favicon-64.png
+11-24 01:28:07.193 11926 11959 D Capacitor: Handling local request: https://localhost/favicon-32.png
+11-24 01:28:07.267 11926 11958 D Capacitor: Handling local request: https://localhost/assets/PressStart2P-_wFEWmAB.woff2
+11-24 01:28:07.285 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/manifest.json
+11-24 01:28:07.331 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch01_greenzone.png
+11-24 01:28:07.332 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch01_study.png
+11-24 01:28:07.334 11926 11960 D Capacitor: Handling local request: https://localhost/environment-ink/ch02_jerusalem.png
+11-24 01:28:07.334 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch02_darkwood.png
+11-24 01:28:07.338 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch02_road.png
+11-24 01:28:07.341 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch03_venice.png
+11-24 01:28:07.341 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch04_sea.png
+11-24 01:28:07.346 11926 11960 D Capacitor: Handling local request: https://localhost/environment-ink/ch05_zara.png
+11-24 01:28:07.346 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch06_winter.png
+11-24 01:28:07.348 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch06_island.png
+11-24 01:28:07.349 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch07_constantinople.png
+11-24 01:28:07.350 11926 11960 D Capacitor: Handling local request: https://localhost/environment-ink/ch08_shattered.png
+11-24 01:28:07.350 11926 11959 D Capacitor: Handling local request: https://localhost/environment-ink/ch07_palace.png
+11-24 01:28:07.351 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch08_study.png
+11-24 01:28:07.353 11926 11958 D Capacitor: Handling local request: https://localhost/environment-ink/ch08_greenzone.png
+11-24 01:28:07.484 11926 11926 I Capacitor/Console: File: https://localhost/assets/index-Cr99JP5P.js - Line 630 - Msg: [environment-ink] loaded 15/15 delivered zones
+11-24 01:28:07.509 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/zampano.png
+11-24 01:28:07.533 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/zampano-tired.png
+11-24 01:28:07.540 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/bagnaskiz.png
+11-24 01:28:07.568 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/bagnaskiz-tired.png
+11-24 01:28:07.583 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/zampanoKnight.png
+11-24 01:28:07.609 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/zampanoKnight-tired.png
+11-24 01:28:07.619 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/sbrimbrulon.png
+11-24 01:28:07.643 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/sbrimbrulon-tired.png
+11-24 01:28:07.652 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/sbrimbrulonKnight.png
+11-24 01:28:07.675 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/sbrimbrulonKnight-tired.png
+11-24 01:28:07.684 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/jack.png
+11-24 01:28:07.695 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/watson.png
+11-24 01:28:07.706 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/santina.png
+11-24 01:28:07.717 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/confusione.png
+11-24 01:28:07.729 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/doge.png
+11-24 01:28:07.740 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/greek.png
+11-24 01:28:07.752 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/knight.png
+11-24 01:28:07.764 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/varangian.png
+11-24 01:28:07.777 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/marquis.png
+11-24 01:28:07.798 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/prince.png
+11-24 01:28:07.807 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/bagnaskizMarshal.png
+11-24 01:28:07.820 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/bagnaskizArmoured.png
+11-24 01:28:07.848 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/bagnaskizArmoured-tired.png
+11-24 01:28:07.857 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/professor.png
+11-24 01:28:07.869 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/niketas.png
+11-24 01:28:07.880 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/fulk.png
+11-24 01:28:07.890 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/clerk.png
+11-24 01:28:07.901 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/abbot.png
+11-24 01:28:07.913 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/envoy.png
+11-24 01:28:07.923 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/bishop.png
+11-24 01:28:07.934 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/cook.png
+11-24 01:28:07.946 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/sailmaker.png
+11-24 01:28:07.957 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/householdWoman.png
+11-24 01:28:07.968 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/pilgrim.png
+11-24 01:28:07.979 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/venetian.png
+11-24 01:28:07.989 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/runIcon.png
+11-24 01:28:08.004 11926 11958 D Capacitor: Handling local request: https://localhost/sprites/pixel-cast/professorFace.png
+11-24 01:28:08.046 11926 11958 D Capacitor: Handling local request: https://localhost/assets/Youve_Been_Supervillained_Logo-DRg0q4zl.png
+11-24 01:28:08.066 11926 11958 D Capacitor: Handling local request: https://localhost/assets/dog-bark-ChJiIwZE.mp3
+11-24 01:28:08.066 11926 11960 D Capacitor: Handling local request: https://localhost/assets/poos-W8wSketA.mp3
+11-24 01:28:08.067 11926 11961 D Capacitor: Handling local request: https://localhost/assets/pees-drop-CPgIq-Jw.mp3
+11-24 01:28:08.067 11926 11959 D Capacitor: Handling local request: https://localhost/assets/food-collect-BHm2Oo25.mp3
+11-24 01:28:08.068 11926 11958 D Capacitor: Handling local request: https://localhost/assets/pees-collect-D29IyNuj.wav
+11-24 01:28:08.069 11926 11958 D Capacitor: Handling local request: https://localhost/assets/water-CsvH90Nt.mp3
+11-24 01:28:08.070 11926 11961 D Capacitor: Handling local request: https://localhost/assets/cat-meow-ClkHQyU2.mp3
+11-24 01:28:08.072 11926 11958 D Capacitor: Handling local request: https://localhost/assets/cash-after-cat-D9XYSQ__.mp3
+11-24 01:28:08.075 11926 11958 D Capacitor: Handling local request: https://localhost/assets/ball-CYO6PmLl.mp3
+11-24 01:28:08.076 11926 11958 D Capacitor: Handling local request: https://localhost/assets/alarm-greenzone-under-attack-BprRsYvO.mp3
+11-24 01:28:08.076 11926 11960 D Capacitor: Handling local request: https://localhost/assets/siren-BG8wLZrr.mp3
+11-24 01:28:08.077 11926 11958 D Capacitor: Handling local request: https://localhost/assets/laser-eyes-Cfz7RAxN.mp3
+11-24 01:28:08.088 11926 11958 D Capacitor: Handling local request: https://localhost/assets/Zampano-Samemala-3-C21SGbek.webp
+11-24 01:28:08.546 11926 11958 D Capacitor: Handling local request: https://localhost/assets/intro-music-LaeCA0yo.mp3
+11-24 01:28:08.548 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.549 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.549 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.549 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.550 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.550 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.550 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.551 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.551 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.552 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.553 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.553 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.553 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.553 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.554 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.554 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.555 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.555 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.555 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.556 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.556 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.556 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.569 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.569 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.570 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.570 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.570 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.570 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.571 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.571 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.571 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.571 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.572 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.572 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.573 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.573 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.573 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.573 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.574 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.574 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.574 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.575 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.575 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.576 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.576 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.576 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.577 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.577 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.577 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.578 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.581 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.581 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.581 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.581 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.582 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.582 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.583 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.583 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.583 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.584 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.585 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.585 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.585 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.586 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.586 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.586 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.587 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.587 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.588 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.588 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.588 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.588 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.589 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.589 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.590 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.590 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.591 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.591 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.591 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.592 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.593 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.593 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.593 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.594 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.594 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.594 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.595 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.595 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.595 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.596 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.596 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.597 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.597 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.597 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.598 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.598 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.608 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.608 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.609 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.609 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.610 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.610 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.611 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.612 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.612 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.613 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.613 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.613 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.614 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.614 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.615 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.615 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.615 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.616 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.617 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.617 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.617 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.618 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.618 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.618 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.619 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.619 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.620 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.620 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.620 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.621 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.622 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.622 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.622 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.624 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.624 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.625 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.625 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.626 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.626 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.626 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.627 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.627 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.627 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.627 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.628 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.628 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.629 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.629 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.629 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.630 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.630 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.630 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.630 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.631 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.632 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.632 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.632 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.632 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.633 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.633 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.634 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.634 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.680 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.681 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.681 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.681 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.682 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.683 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.684 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.684 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.685 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.685 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.686 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.686 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.686 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.687 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.687 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.687 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.688 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.688 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.689 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.689 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.689 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.689 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.690 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.690 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.691 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.691 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.692 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.692 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.692 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.693 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.693 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.694 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.694 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.694 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.695 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.698 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.698 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.698 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.699 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.699 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.699 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.700 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.700 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.700 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.701 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.701 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.701 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.702 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.702 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.702 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.703 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.703 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.703 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.704 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.704 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.704 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.705 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.705 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.705 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.705 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.706 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.707 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.707 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.707 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.707 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.708 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.708 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.708 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.709 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.709 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.710 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.711 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.711 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.711 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.711 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.712 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.712 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.713 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.713 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.713 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.714 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.714 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.714 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 16
+11-24 01:28:08.715 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 17
+11-24 01:28:08.715 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 18
+11-24 01:28:08.715 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 19
+11-24 01:28:08.716 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 20
+11-24 01:28:08.716 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 21
+11-24 01:28:08.716 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 22
+11-24 01:28:08.717 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 23
+11-24 01:28:08.717 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 24
+11-24 01:28:08.717 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 25
+11-24 01:28:08.718 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 26
+11-24 01:28:08.718 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 27
+11-24 01:28:08.718 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 28
+11-24 01:28:08.718 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 29
+11-24 01:28:08.719 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 30
+11-24 01:28:08.719 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: [.WebGL-0x2d9c00b63100]RENDER WARNING: there is no texture bound to the unit 31
+11-24 01:28:08.719 11926 11926 W Capacitor/Console: File: https://localhost/ - Line 0 - Msg: WebGL: too many errors, no more errors will be reported to the console for this context.

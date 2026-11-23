@@ -1,0 +1,18 @@
+== aapt2 dump badging spike_upgrade_testkey.apk
+package: name='com.zampano.supervillained' versionCode='2' versionName='0.2.0-godot' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+minSdkVersion:'24'
+targetSdkVersion:'36'
+application-debuggable
+native-code: 'arm64-v8a' 'armeabi-v7a' 'x86_64'
+== aapt2 dump badging spike_wrong_key.apk
+package: name='com.zampano.supervillained' versionCode='2' versionName='0.2.0-godot' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+minSdkVersion:'24'
+targetSdkVersion:'36'
+application-debuggable
+native-code: 'arm64-v8a' 'armeabi-v7a' 'x86_64'
+== aapt2 dump badging spike_wrong_package.apk
+package: name='com.zampano.supervillained.m1negative' versionCode='2' versionName='0.2.0-godot' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+minSdkVersion:'24'
+targetSdkVersion:'36'
+application-debuggable
+native-code: 'arm64-v8a' 'armeabi-v7a' 'x86_64'

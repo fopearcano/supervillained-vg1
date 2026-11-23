@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * THROWAWAY M1 feasibility spike (docs/porting MILESTONES.md M1): reads the five legacy
@@ -43,6 +45,13 @@ import java.util.TimeZone;
  * It never calls setItem/removeItem/clear or any WebStorage/CookieManager deletion API, never
  * parses or normalizes the values, never reads LevelDB/SQLite files, and writes no save.
  * The result is one JSON string emitted with the "legacy_read_completed" signal.
+ *
+ * Safe from minSdk 24: WebView.getCurrentWebViewPackage() (API 26) is only called on API 26+,
+ * and every diagnostic is gathered behind a Throwable guard so it can never stop the raw read
+ * result from being emitted. One read is active at a time; its WebView, timeout and generation
+ * are fields, so Activity destruction or Godot termination cancels the timeout and destroys the
+ * WebView on the UI thread, and every late page, interception or evaluateJavascript callback of
+ * a finished or cancelled generation is ignored (nothing is emitted for a cancelled read).
  */
 public class MigrationSpikePlugin extends GodotPlugin {
 	private static final String TAG = "SvMigrationSpike";
@@ -53,12 +62,14 @@ public class MigrationSpikePlugin extends GodotPlugin {
 	static final String PREFIX = "supervillained:";
 	static final String[] KEYS = { "settings", "records", "coins", "story", "story-v1-backup" };
 	static final long TIMEOUT_MS = 20000;
+	/** Development-only lifecycle test: the page response is held this long, so the read stays active. */
+	static final long LIFECYCLE_HOLD_MS = 20000;
 
 	private static final String PAGE = "<!doctype html><html><head><meta charset=\"utf-8\"><title>m1</title></head><body></body></html>";
-	/** Read-only: getItem on the five prefixed keys, nothing else. */
+	/** Read-only: getItem on the five prefixed keys, nothing else (plus navigator.userAgent). */
 	private static final String READ_JS =
 			"(function(){var keys=['settings','records','coins','story','story-v1-backup'];"
-			+ "var out={origin:location.origin,href:location.href,keys:{},storage_error:null};var ls=null;"
+			+ "var out={origin:location.origin,href:location.href,user_agent:navigator.userAgent,keys:{},storage_error:null};var ls=null;"
 			+ "try{ls=window.localStorage;}catch(e){out.storage_error='localStorage access: '+String(e);return JSON.stringify(out);}"
 			+ "if(!ls){out.storage_error='localStorage unavailable';return JSON.stringify(out);}"
 			+ "for(var i=0;i<keys.length;i++){var r={present:false,value:null,error:null};"
@@ -66,8 +77,14 @@ public class MigrationSpikePlugin extends GodotPlugin {
 			+ "out.keys[keys[i]]=r;}return JSON.stringify(out);})()";
 
 	private final Handler handler = new Handler(Looper.getMainLooper());
-	private boolean busy = false;
-	private int attempts = 0;
+	private final AtomicInteger attempts = new AtomicInteger(0);
+	/** Generation of the active read, 0 when none; read by the WebView's interception thread. */
+	private final AtomicInteger liveGeneration = new AtomicInteger(0);
+	// Active-read state: UI thread only.
+	private int generationCounter = 0;
+	private WebView activeWebView = null;
+	private Runnable activeTimeout = null;
+	private int activeAttempt = 0;
 
 	public MigrationSpikePlugin(Godot godot) {
 		super(godot);
@@ -88,44 +105,67 @@ public class MigrationSpikePlugin extends GodotPlugin {
 	/** Starts one read; the result arrives as legacy_read_completed(json). */
 	@UsedByGodot
 	public void readLegacyStore() {
-		final Activity activity = getActivity();
-		final int attempt = ++attempts;
-		if (activity == null) {
-			emitSignal("legacy_read_completed", failure(attempt, "no_activity", null, null).toString());
-			return;
-		}
-		activity.runOnUiThread(() -> start(activity, attempt));
+		request(0);
 	}
 
-	private void start(Activity activity, int attempt) {
-		if (busy) {
-			emitSignal("legacy_read_completed", failure(attempt, "busy", null, null).toString());
+	/**
+	 * Development-only (lifecycle test): the same read, but the intercepted page is held for
+	 * LIFECYCLE_HOLD_MS, so Activity destruction or Godot termination happens while it is active.
+	 */
+	@UsedByGodot
+	public void readLegacyStoreHeldForLifecycleTest() {
+		request(LIFECYCLE_HOLD_MS);
+	}
+
+	/**
+	 * Development-only (lifecycle test): finishes the host Activity, so its real onDestroy (and
+	 * this plugin's onMainDestroy) runs while a held read is active.
+	 */
+	@UsedByGodot
+	public void finishActivityForLifecycleTest() {
+		final Activity activity = getActivity();
+		if (activity == null) return;
+		safeLog("lifecycle test: finishing the Activity");
+		activity.runOnUiThread(activity::finish);
+	}
+
+	@Override
+	public void onMainDestroy() {
+		cancelForLifecycle("activity_destroy");
+		super.onMainDestroy();
+	}
+
+	@Override
+	public void onGodotTerminating() {
+		cancelForLifecycle("godot_terminating");
+		super.onGodotTerminating();
+	}
+
+	private void request(final long holdMs) {
+		final int attempt = attempts.incrementAndGet();
+		final Activity activity = getActivity();
+		if (activity == null) {
+			emit(attempt, failure(attempt, "no_activity", null, null));
 			return;
 		}
-		busy = true;
-		final File dataDir = new File(activity.getApplicationInfo().dataDir);
-		final File webviewDir = new File(dataDir, "app_webview");
-		final File localStorageDir = new File(webviewDir, "Default" + File.separator + "Local Storage");
-		final JSONObject diag = new JSONObject();
-		put(diag, "page_url", PAGE_URL);
-		put(diag, "webview_data_dir_existed_before_read", webviewDir.isDirectory());
-		put(diag, "local_storage_dir_existed_before_read", localStorageDir.isDirectory());
-		put(diag, "package_name", activity.getPackageName());
-		put(diag, "app_version_code", versionCode(activity));
-		Log.i(TAG, "attempt " + attempt + ": loading " + PAGE_URL + " diag=" + diag);
+		activity.runOnUiThread(() -> start(activity, attempt, holdMs));
+	}
 
-		final WebView[] holder = new WebView[1];
-		final boolean[] done = { false };
-		final Runnable[] finish = new Runnable[1];
-		final Runnable timeout = () -> {
-			if (done[0]) return;
-			done[0] = true;
-			cleanup(holder[0]);
-			emitSignal("legacy_read_completed", failure(attempt, "timeout", diag, null).toString());
-		};
+	/** UI thread. */
+	private void start(final Activity activity, final int attempt, final long holdMs) {
+		if (liveGeneration.get() != 0) {
+			emit(attempt, failure(attempt, "busy", null, null));
+			return;
+		}
+		final int gen = ++generationCounter;
+		liveGeneration.set(gen);
+		activeAttempt = attempt;
+		final JSONObject diag = diagnostics(activity, holdMs);
+		safeLog("attempt " + attempt + " (generation " + gen + "): loading " + PAGE_URL + " diag=" + diag);
+		activeTimeout = () -> finish(gen, attempt, failure(attempt, "timeout", diag, null));
 		try {
-			WebView wv = new WebView(activity);
-			holder[0] = wv;
+			final WebView wv = new WebView(activity);
+			activeWebView = wv;
 			WebSettings s = wv.getSettings();
 			s.setJavaScriptEnabled(true);
 			s.setDomStorageEnabled(true);
@@ -137,35 +177,97 @@ public class MigrationSpikePlugin extends GodotPlugin {
 				public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
 					String url = request.getUrl().toString();
 					if (PAGE_URL.equals(url)) {
+						if (holdMs > 0) hold(gen, holdMs);
+						if (liveGeneration.get() != gen) {
+							safeLog("ignored late page request of generation " + gen);
+							return empty(410, "Gone");
+						}
 						return new WebResourceResponse("text/html", "utf-8", 200, "OK", Collections.emptyMap(),
 								new ByteArrayInputStream(PAGE.getBytes(StandardCharsets.UTF_8)));
 					}
-					Log.i(TAG, "blocked request " + url);
-					return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", Collections.emptyMap(),
-							new ByteArrayInputStream(new byte[0]));
+					safeLog("blocked request " + url);
+					return empty(404, "Not Found");
 				}
 
 				@Override
 				public void onPageFinished(WebView view, String url) {
-					if (done[0] || !PAGE_URL.equals(url)) return;
+					if (liveGeneration.get() != gen || activeWebView != view) {
+						safeLog("ignored late onPageFinished of generation " + gen);
+						return;
+					}
+					if (!PAGE_URL.equals(url)) return;
 					view.evaluateJavascript(READ_JS, value -> {
-						if (done[0]) return;
-						done[0] = true;
-						handler.removeCallbacks(timeout);
-						cleanup(view);
-						emitSignal("legacy_read_completed", result(attempt, value, diag).toString());
+						if (liveGeneration.get() != gen) {
+							safeLog("ignored late evaluateJavascript result of generation " + gen);
+							return;
+						}
+						finish(gen, attempt, result(attempt, value, diag));
 					});
 				}
 			});
 			ViewGroup root = activity.findViewById(android.R.id.content);
 			root.addView(wv, new FrameLayout.LayoutParams(1, 1));
-			handler.postDelayed(timeout, TIMEOUT_MS);
+			handler.postDelayed(activeTimeout, TIMEOUT_MS + holdMs);
 			wv.loadUrl(PAGE_URL);
 		} catch (Throwable t) {
-			done[0] = true;
-			handler.removeCallbacks(timeout);
-			cleanup(holder[0]);
-			emitSignal("legacy_read_completed", failure(attempt, "webview_unavailable", diag, t.toString()).toString());
+			finish(gen, attempt, failure(attempt, "webview_unavailable", diag, t.toString()));
+		}
+	}
+
+	/** UI thread: ends generation `gen` once (later calls are ignored) and emits its result. */
+	private void finish(int gen, int attempt, JSONObject result) {
+		if (liveGeneration.get() != gen) {
+			safeLog("ignored late completion of generation " + gen);
+			return;
+		}
+		teardown("completed");
+		emit(attempt, result);
+	}
+
+	/** UI thread: cancels the timeout and destroys the WebView of the active read, if any. */
+	private void teardown(String reason) {
+		int gen = liveGeneration.getAndSet(0);
+		if (activeTimeout != null) handler.removeCallbacks(activeTimeout);
+		activeTimeout = null;
+		WebView wv = activeWebView;
+		activeWebView = null;
+		if (wv != null) {
+			try {
+				ViewGroup parent = (ViewGroup) wv.getParent();
+				if (parent != null) parent.removeView(wv);
+				wv.stopLoading();
+				wv.destroy();
+			} catch (Throwable t) {
+				safeLog("teardown: " + t);
+			}
+		}
+		safeLog("teardown of generation " + gen + " (" + reason + "): timeout cancelled, WebView destroyed on thread " + Thread.currentThread().getName());
+	}
+
+	/** Activity or Godot termination: cancel on the UI thread, emit nothing. */
+	private void cancelForLifecycle(final String reason) {
+		Runnable r = () -> {
+			int gen = liveGeneration.get();
+			if (gen == 0) {
+				safeLog(reason + ": no active read");
+				return;
+			}
+			teardown("lifecycle " + reason);
+			safeLog(reason + ": cancelled active read attempt " + activeAttempt + " (generation " + gen + "); no result emitted");
+		};
+		if (Looper.myLooper() == Looper.getMainLooper()) {
+			r.run();
+		} else {
+			handler.post(r);
+		}
+	}
+
+	/** Interception thread: waits up to holdMs, returning early once the generation is no longer live. */
+	private void hold(int gen, long holdMs) {
+		safeLog("holding the page of generation " + gen + " for up to " + holdMs + " ms (lifecycle test)");
+		long end = SystemClock.uptimeMillis() + holdMs;
+		while (SystemClock.uptimeMillis() < end && liveGeneration.get() == gen) {
+			SystemClock.sleep(50);
 		}
 	}
 
@@ -178,6 +280,7 @@ public class MigrationSpikePlugin extends GodotPlugin {
 			String origin = page.optString("origin", "");
 			put(out, "verified_origin", origin);
 			put(diag, "document_href", page.optString("href", ""));
+			put(diag, "user_agent", page.optString("user_agent", ""));
 			if (!ORIGIN.equals(origin)) return failure(attempt, "origin_mismatch", diag, origin);
 			if (!page.isNull("storage_error")) return failure(attempt, "storage_unavailable", diag, page.optString("storage_error"));
 			JSONObject keys = page.getJSONObject("keys");
@@ -199,8 +302,8 @@ public class MigrationSpikePlugin extends GodotPlugin {
 			out.put("present_count", present);
 			out.put("status", errors > 0 ? "error" : (present == 0 ? "not_found" : "success"));
 			if (errors > 0) out.put("error", "key_read_error");
-			Log.i(TAG, "attempt " + attempt + ": status=" + out.getString("status") + " origin=" + origin + " present=" + present);
-		} catch (Exception e) {
+			safeLog("attempt " + attempt + ": status=" + out.getString("status") + " origin=" + origin + " present=" + present);
+		} catch (Throwable e) {
 			return failure(attempt, "result_decode_failed", diag, e.toString());
 		}
 		return out;
@@ -225,58 +328,101 @@ public class MigrationSpikePlugin extends GodotPlugin {
 		put(o, "error", error);
 		put(o, "error_detail", detail == null ? JSONObject.NULL : detail);
 		put(o, "keys", JSONObject.NULL);
-		Log.w(TAG, "attempt " + attempt + ": error " + error + (detail == null ? "" : " (" + detail + ")"));
+		safeLog("attempt " + attempt + ": error " + error + (detail == null ? "" : " (" + detail + ")"));
 		return o;
 	}
 
-	private void cleanup(WebView wv) {
-		busy = false;
-		if (wv == null) return;
+	/** Never throws: each diagnostic is guarded, a failing one is reported in place. */
+	private static JSONObject diagnostics(Activity activity, long holdMs) {
+		JSONObject diag = new JSONObject();
+		put(diag, "page_url", PAGE_URL);
+		if (holdMs > 0) put(diag, "lifecycle_test_hold_ms", holdMs);
 		try {
-			ViewGroup parent = (ViewGroup) wv.getParent();
-			if (parent != null) parent.removeView(wv);
-			wv.stopLoading();
-			wv.destroy();
+			File webviewDir = new File(new File(activity.getApplicationInfo().dataDir), "app_webview");
+			put(diag, "webview_data_dir_existed_before_read", webviewDir.isDirectory());
+			put(diag, "local_storage_dir_existed_before_read", new File(webviewDir, "Default" + File.separator + "Local Storage").isDirectory());
+			// Older WebViews (for example 53 on Android 7) keep Local Storage directly under app_webview.
+			put(diag, "root_local_storage_dir_existed_before_read", new File(webviewDir, "Local Storage").isDirectory());
 		} catch (Throwable t) {
-			Log.w(TAG, "cleanup: " + t);
+			put(diag, "data_dir_diagnostic_error", t.toString());
 		}
+		try {
+			put(diag, "package_name", activity.getPackageName());
+			put(diag, "app_version_code", versionCode(activity));
+		} catch (Throwable t) {
+			put(diag, "package_diagnostic_error", t.toString());
+		}
+		if (Build.VERSION.SDK_INT < 26) {
+			put(diag, "webview_package_unavailable", "WebView.getCurrentWebViewPackage() needs API 26; device API " + Build.VERSION.SDK_INT + " (see user_agent)");
+		}
+		return diag;
 	}
 
+	/** The WebView provider package, or JSON null below API 26 or on any failure. */
 	@SuppressWarnings("deprecation")
 	private static Object webViewPackage() {
-		JSONObject o = new JSONObject();
+		if (Build.VERSION.SDK_INT < 26) return JSONObject.NULL;
 		try {
 			PackageInfo p = WebView.getCurrentWebViewPackage();
 			if (p == null) return JSONObject.NULL;
+			JSONObject o = new JSONObject();
 			o.put("package", p.packageName);
 			o.put("version_name", p.versionName);
 			o.put("version_code", Build.VERSION.SDK_INT >= 28 ? p.getLongVersionCode() : p.versionCode);
-		} catch (Exception e) {
+			return o;
+		} catch (Throwable t) {
 			return JSONObject.NULL;
 		}
-		return o;
 	}
 
 	@SuppressWarnings("deprecation")
-	private static long versionCode(Activity a) {
+	private static long versionCode(Activity a) throws Exception {
+		PackageInfo p = a.getPackageManager().getPackageInfo(a.getPackageName(), 0);
+		return Build.VERSION.SDK_INT >= 28 ? p.getLongVersionCode() : p.versionCode;
+	}
+
+	/** Emits once; serialization or signal failures are logged, never thrown. */
+	private void emit(int attempt, JSONObject o) {
+		String s;
 		try {
-			PackageInfo p = a.getPackageManager().getPackageInfo(a.getPackageName(), 0);
-			return Build.VERSION.SDK_INT >= 28 ? p.getLongVersionCode() : p.versionCode;
-		} catch (Exception e) {
-			return -1;
+			s = o.toString();
+		} catch (Throwable t) {
+			s = "{\"spike\":\"sv_m1_migration_spike\",\"attempt\":" + attempt + ",\"status\":\"error\",\"error\":\"result_serialization_failed\",\"keys\":null}";
+		}
+		safeLog("emit attempt " + attempt + " status=" + o.optString("status", "?"));
+		try {
+			emitSignal("legacy_read_completed", s);
+		} catch (Throwable t) {
+			safeLog("emitSignal failed: " + t);
 		}
 	}
 
+	private static WebResourceResponse empty(int code, String reason) {
+		return new WebResourceResponse("text/plain", "utf-8", code, reason, Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
+	}
+
 	private static String now() {
-		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-		f.setTimeZone(TimeZone.getTimeZone("UTC"));
-		return f.format(new Date());
+		try {
+			SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+			f.setTimeZone(TimeZone.getTimeZone("UTC"));
+			return f.format(new Date());
+		} catch (Throwable t) {
+			return "";
+		}
+	}
+
+	private static void safeLog(String m) {
+		try {
+			Log.i(TAG, m);
+		} catch (Throwable ignored) {
+			// Logging never blocks a result.
+		}
 	}
 
 	private static void put(JSONObject o, String k, Object v) {
 		try {
 			o.put(k, v);
-		} catch (Exception ignored) {
+		} catch (Throwable ignored) {
 			// org.json only throws for non-finite numbers.
 		}
 	}

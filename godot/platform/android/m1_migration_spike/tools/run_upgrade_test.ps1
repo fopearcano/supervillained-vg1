@@ -1,11 +1,16 @@
 # M1 migration spike: the controlled upgrade test on one emulator/device (adb), in this order:
 #   1. install the old Capacitor APK (normal install) and record package, version, certificate;
 #   2. seed the five keys through the old app's own WebView runtime (DevTools), let its boot
-#      migrate the v1 campaign, restart it cold and read the expected raw values back;
+#      migrate the v1 campaign, restart it cold and read the expected raw values back
+#      (-SeedMode direct, for a WebView the old game cannot boot on: the five strings of
+#      -DirectSeedValues are written with setItem in the old app's page instead);
 #   3. negative: a spike APK signed with a different key must fail to update the old app;
 #   4. negative: a spike APK with a different package id must not see the old store;
 #   5. genuine upgrade with `adb install -r` (no uninstall, no data clearing, same package);
-#   6. two spike runs (two reads each): every key's raw value must equal the old app's;
+#   6. two spike runs (two reads each): every key's raw value must equal the old app's; then
+#      termination during an active (held) read, by Godot quitting and by the Activity finishing
+#      (its real onDestroy): the read is cancelled, its WebView destroyed on the UI thread, nothing emitted,
+#      no crash; a third run still reads the identical values;
 #   7. run-as listing: no production save written, the WebView profile still present;
 #   8. negative: after uninstall, a fresh install of the spike must report not_found.
 # Writes every command's output under -OutDir and checks.json; exit 1 if any check fails.
@@ -19,7 +24,9 @@ param(
   [Parameter(Mandatory = $true)][string]$WrongPackageApk,
   [Parameter(Mandatory = $true)][string]$WrongPackage,
   [Parameter(Mandatory = $true)][string]$OutDir,
-  [int]$DevToolsPort = 9333
+  [int]$DevToolsPort = 9333,
+  [ValidateSet('game-migration', 'direct')][string]$SeedMode = 'game-migration',
+  [string]$DirectSeedValues = ''
 )
 $ErrorActionPreference = 'Stop'
 $pkg = 'com.zampano.supervillained'
@@ -65,12 +72,20 @@ function Get-PackageState([string]$p, [string]$name) {
 function Get-InstalledCert([string]$p, [string]$name) {
   $path = ((Invoke-Adb @('shell', 'pm', 'path', $p)) | Select-String '^package:' | Select-Object -First 1).Line.Substring(8).Trim()
   $local = Join-Path $OutDir "$name.base.apk"
-  # Large APKs (the spike is ~277 MB) can fail to pull on a busy emulator transport: retry.
+  # Large APKs (the spike is ~277 MB) can fail to pull on a busy emulator transport: retry. Android 7
+  # does not let adb pull read /data/app directly: from attempt 2 the APK is copied through
+  # /data/local/tmp first (and removed again).
   $pullLog = @()
   for ($i = 1; $i -le 4; $i++) {
     if (Test-Path $local) { Remove-Item -Force $local }
     $pullLog += "pull attempt $i"
-    $pullLog += Invoke-Adb @('pull', $path, $local)
+    if ($i -eq 1) {
+      $pullLog += Invoke-Adb @('pull', $path, $local)
+    } else {
+      $pullLog += Invoke-Adb @('shell', 'cp', $path, '/data/local/tmp/m1_spike_base.apk')
+      $pullLog += Invoke-Adb @('pull', '/data/local/tmp/m1_spike_base.apk', $local)
+      $pullLog += Invoke-Adb @('shell', 'rm', '-f', '/data/local/tmp/m1_spike_base.apk')
+    }
     if ((Test-Path $local) -and ((Get-Item $local).Length -gt 0)) {
       & $apksigner verify $local 2>&1 | Out-Null
       if ($LASTEXITCODE -eq 0) { break }
@@ -98,8 +113,9 @@ function Start-OldApp([string]$label) {
   return $appPid
 }
 function Invoke-Cdp([string]$script, [string]$out) {
+  $path = if ([System.IO.Path]::IsPathRooted($script)) { $script } else { Join-Path $tools $script }
   for ($i = 0; $i -lt 30; $i++) {
-    $r = Invoke-Node @('cdp', "$DevToolsPort", (Join-Path $tools $script), $out)
+    $r = Invoke-Node @('cdp', "$DevToolsPort", $path, $out)
     if ($r.code -eq 0) { return $r }
     Start-Sleep 1
   }
@@ -110,10 +126,15 @@ function Stop-Gracefully([string]$p) {
   Start-Sleep 5
   Invoke-Adb @('shell', 'am', 'force-stop', $p) | Out-Null
 }
+function Get-LaunchComponent([string]$p) {
+  $c = ((Invoke-Adb @('shell', 'cmd', 'package', 'resolve-activity', '--brief', '-c', 'android.intent.category.LAUNCHER', $p)) | Select-Object -Last 1).Trim()
+  if ($c -notmatch '^[\w.]+/[\w.$]+$') { $c = "$p/com.godot.game.GodotAppLauncher" }  # older `cmd package` without resolve-activity
+  return $c
+}
 function Invoke-SpikeRun([string]$p, [string]$label, [string]$expectStatus) {
   Invoke-Adb @('shell', 'am', 'force-stop', $p) | Out-Null
   Invoke-Adb @('logcat', '-c') | Out-Null
-  $comp = ((Invoke-Adb @('shell', 'cmd', 'package', 'resolve-activity', '--brief', '-c', 'android.intent.category.LAUNCHER', $p)) | Select-Object -Last 1).Trim()
+  $comp = Get-LaunchComponent $p
   Out-Step "$label.am_start" (Invoke-Adb @('shell', 'am', 'start', '-W', '-n', $comp)) | Out-Null
   $done = $false
   for ($i = 0; $i -lt 120 -and -not $done; $i++) {
@@ -133,10 +154,41 @@ function Invoke-SpikeRun([string]$p, [string]$label, [string]$expectStatus) {
   return $parsed
 }
 
+function Invoke-LifecycleTest([string]$label, [string]$flag, [string]$how) {
+  Invoke-Adb @('shell', 'am', 'force-stop', $pkg) | Out-Null
+  Out-Step "$label.flag_create" (Invoke-Adb @('shell', 'run-as', $pkg, 'touch', "files/$flag")) | Out-Null
+  Invoke-Adb @('logcat', '-c') | Out-Null
+  Out-Step "$label.am_start" (Invoke-Adb @('shell', 'am', 'start', '-W', '-n', (Get-LaunchComponent $pkg))) | Out-Null
+  $active = $false
+  for ($i = 0; $i -lt 60 -and -not $active; $i++) { Start-Sleep 1; $active = [bool]((Invoke-Adb @('logcat', '-d', '-v', 'raw', '-s', 'godot')) -match 'M1_SPIKE_LIFECYCLE_ACTIVE') }
+  $cancelled = $false
+  for ($i = 0; $i -lt 30 -and -not $cancelled; $i++) { Start-Sleep 1; $cancelled = [bool]((Invoke-Adb @('logcat', '-d', '-v', 'raw', '-s', 'SvMigrationSpike')) -match 'cancelled active read') }
+  Start-Sleep 23  # past the 20 s hold: a late page or script callback would show now
+  $godot = Out-Step "$label.godot_raw" (Invoke-Adb @('logcat', '-d', '-v', 'raw', '-s', 'godot'))
+  $plugin = Out-Step "$label.plugin_raw" (Invoke-Adb @('logcat', '-d', '-v', 'raw', '-s', 'SvMigrationSpike'))
+  Out-Step "$label.logcat" (Invoke-Adb @('logcat', '-d', '-v', 'threadtime', '-s', 'godot', 'SvMigrationSpike', 'AndroidRuntime')) | Out-Null
+  $crash = Out-Step "$label.crash_buffer" (Invoke-Adb @('logcat', '-d', '-b', 'crash'))
+  Out-Step "$label.flag_remove" (Invoke-Adb @('shell', 'run-as', $pkg, 'rm', '-f', "files/$flag")) | Out-Null
+  $reason = ([regex]::Match($plugin, '(godot_terminating|activity_destroy): cancelled active read')).Groups[1].Value
+  Add-Check "$label`: the harness started a held read that was still active" ($active -and ($godot -match '"result_received":false'))
+  Add-Check "$label`: the plugin cancelled the active read on termination ($how)" $cancelled $reason
+  Add-Check "$label`: timeout cancelled and WebView destroyed on the UI (main) thread" ($plugin -match 'teardown of generation \d+ \(lifecycle (godot_terminating|activity_destroy)\): timeout cancelled, WebView destroyed on thread main')
+  Add-Check "$label`: nothing emitted for the cancelled read, no result reached GDScript" (-not ($plugin -match 'emit attempt') -and -not ($godot -match 'M1_SPIKE_LIFECYCLE_RESULT_RECEIVED|M1_SPIKE_DONE'))
+  Add-Check "$label`: no crash (crash buffer has no $pkg entry)" (-not ($crash -match [regex]::Escape($pkg)))
+  Out-Step "$label.late_callbacks" ($plugin -split "`n" | Select-String 'ignored late|no active read' | ForEach-Object { $_.Line }) | Out-Null
+}
+
 # 0. Environment.
 $props = foreach ($p in 'ro.product.model', 'ro.build.version.release', 'ro.build.version.sdk', 'ro.build.fingerprint', 'ro.kernel.qemu', 'ro.product.cpu.abilist') { "$p=" + ((Invoke-Adb @('shell', 'getprop', $p)) -join '') }
 Out-Step '00_device' $props | Out-Null
-Out-Step '00_webview' ((Invoke-Adb @('shell', 'dumpsys', 'webviewupdate')) | Select-String 'Current WebView package|Minimum targetSdkVersion|WebView package dirty' | ForEach-Object { $_.Line.Trim() }) | Out-Null
+$wvLines = @((Invoke-Adb @('shell', 'dumpsys', 'webviewupdate')) | Select-String 'Current WebView package|Minimum targetSdkVersion|WebView package dirty' | ForEach-Object { $_.Line.Trim() })
+# The active provider (Android 7 can use Chrome) and its version, then the WebView package itself.
+$provider = ((Invoke-Adb @('shell', 'settings', 'get', 'global', 'webview_provider')) -join '').Trim()
+$wvLines += "settings global webview_provider: $provider"
+foreach ($wp in @($provider, 'com.google.android.webview') | Where-Object { $_ -match '^[\w.]+$' } | Select-Object -Unique) {
+  $wvLines += "$wp " + (((Invoke-Adb @('shell', 'dumpsys', 'package', $wp)) | Select-String 'versionName=' | Select-Object -First 1).Line.Trim())
+}
+Out-Step '00_webview' $wvLines | Out-Null
 $present = (Invoke-Adb @('shell', 'pm', 'list', 'packages')) | Select-String -Pattern "package:$([regex]::Escape($pkg))(\.|$)"
 Add-Check 'precondition: no com.zampano.supervillained* package installed' (-not $present) ($present -join ', ')
 if ($present) { throw 'remove the test packages from the device first' }
@@ -155,13 +207,34 @@ Invoke-Cdp 'legacy_read.js' (Join-Path $OutDir '02_old_read_before_seed.json') |
 $r0 = (Get-Content -Raw (Join-Path $OutDir '02_old_read_before_seed.json') | ConvertFrom-Json).value
 Add-Check 'old app origin is https://localhost' ($r0.origin -eq 'https://localhost') $r0.origin
 Add-Check 'fresh old app: no supervillained key before seeding' ($r0.prefixed_keys.Count -eq 0)
-Invoke-Cdp 'legacy_seed.js' (Join-Path $OutDir '02_old_seed.json') | Out-Null
+if ($SeedMode -eq 'direct') {
+  # The old game cannot boot on this WebView (see 02_old_capacitor_logcat.txt): write the five
+  # strings it produced elsewhere with setItem in the old app's own page (origin checked above).
+  $vals = (Get-Content -Raw $DirectSeedValues | ConvertFrom-Json).keys
+  $map = [ordered]@{}
+  foreach ($k in 'settings', 'records', 'coins', 'story', 'story-v1-backup') { $map[$k] = $vals.$k.raw }
+  $js = "(() => { const values = " + (ConvertTo-Json $map -Compress) + "; const keys = Object.keys(values); " +
+    "if (keys.some((k) => localStorage.getItem('supervillained:' + k) !== null)) throw new Error('seed refused: a supervillained key already exists'); " +
+    "for (const k of keys) localStorage.setItem('supervillained:' + k, values[k]); return { written: keys, origin: location.origin }; })()"
+  $seedJs = Join-Path $OutDir '02_seed_direct.js'
+  [System.IO.File]::WriteAllText($seedJs, $js, [System.Text.UTF8Encoding]::new($false))
+  Invoke-Cdp $seedJs (Join-Path $OutDir '02_old_seed.json') | Out-Null
+} else {
+  Invoke-Cdp 'legacy_seed.js' (Join-Path $OutDir '02_old_seed.json') | Out-Null
+}
 Invoke-Cdp 'legacy_reload.js' (Join-Path $OutDir '02_old_reload.json') | Out-Null
 Start-Sleep 12
 Invoke-Cdp 'legacy_read.js' (Join-Path $OutDir '02_old_read_after_boot.json') | Out-Null
 $r1 = (Get-Content -Raw (Join-Path $OutDir '02_old_read_after_boot.json') | ConvertFrom-Json).value
-Add-Check 'old boot migrated the campaign: story is version 2' (($r1.keys.story | ConvertFrom-Json).version -eq 2)
-Add-Check 'old boot kept the v1 campaign under story-v1-backup' (($r1.keys.'story-v1-backup' | ConvertFrom-Json).version -eq 1)
+Out-Step '02_old_capacitor_logcat' (Invoke-Adb @('logcat', '-d', '-v', 'threadtime', '-s', 'Capacitor', 'Capacitor/Console')) | Out-Null
+if ($SeedMode -eq 'direct') {
+  $same = $true
+  foreach ($k in $map.Keys) { if ($r1.keys.$k -cne $map[$k]) { $same = $false } }
+  Add-Check 'direct seed: the five strings read back unchanged after the old app reloaded' $same
+} else {
+  Add-Check 'old boot migrated the campaign: story is version 2' (($r1.keys.story | ConvertFrom-Json).version -eq 2)
+  Add-Check 'old boot kept the v1 campaign under story-v1-backup' (($r1.keys.'story-v1-backup' | ConvertFrom-Json).version -eq 1)
+}
 Add-Check 'exactly the five supervillained keys exist' (($r1.prefixed_keys -join ',') -eq 'supervillained:coins,supervillained:records,supervillained:settings,supervillained:story,supervillained:story-v1-backup') ($r1.prefixed_keys -join ',')
 Start-Sleep 15
 Stop-Gracefully $pkg
@@ -201,10 +274,16 @@ $run2 = Invoke-SpikeRun $pkg '06_spike_run_2' 'success'
 $keysOf = { param($f) $j = Get-Content -Raw $f | ConvertFrom-Json; ConvertTo-Json -Compress -Depth 5 @($j.attempts.'1'.keys, $j.attempts.'2'.keys) }
 Add-Check 'repeated reads identical across two processes (run 1 and run 2, four reads)' ((& $keysOf $run1) -eq (& $keysOf $run2))
 
+# 6b. Termination during an active read, then the store is still intact.
+Invoke-LifecycleTest '06b_lifecycle_quit_during_read' 'm1_lifecycle_quit.flag' 'godot_quit'
+Invoke-LifecycleTest '06c_lifecycle_activity_finished_during_read' 'm1_lifecycle_finish.flag' 'activity_finish'
+$run3 = Invoke-SpikeRun $pkg '06d_spike_run_3_after_lifecycle' 'success'
+Add-Check 'reads after the lifecycle tests identical to run 1' ((& $keysOf $run1) -eq (& $keysOf $run3))
+
 # 7. No production save; the WebView profile is still there.
 $files = Out-Step '07_run_as_files' (Invoke-Adb @('shell', 'run-as', $pkg, 'ls', '-la', 'files'))
 Add-Check 'no production save written (no save_v3 file in user://)' (-not ($files -match 'save_v3'))
-$wv = Out-Step '07_run_as_webview' (Invoke-Adb @('shell', 'run-as', $pkg, 'ls', '-la', 'app_webview/Default'))
+$wv = Out-Step '07_run_as_webview' (Invoke-Adb @('shell', 'run-as', $pkg, 'ls', '-la', 'app_webview', 'app_webview/Default'))
 Add-Check 'WebView profile with Local Storage still present after the reads' ($wv -match 'Local Storage')
 
 # 8. Negative: fresh install (no old store) reports not_found.

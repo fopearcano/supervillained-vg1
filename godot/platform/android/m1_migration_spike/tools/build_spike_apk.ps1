@@ -18,7 +18,8 @@ param(
   [Parameter(Mandatory = $true)][string]$KeyAlias,
   [Parameter(Mandatory = $true)][string]$PassEnv,
   [Parameter(Mandatory = $true)][string]$OutApk,
-  [string]$Package = 'com.zampano.supervillained'
+  [string]$Package = 'com.zampano.supervillained',
+  [string]$Python = 'python'
 )
 $ErrorActionPreference = 'Stop'
 $pass = [Environment]::GetEnvironmentVariable($PassEnv)
@@ -57,6 +58,11 @@ try {
 $androidJar = Join-Path $AndroidSdk 'platforms\android-36\android.jar'
 $sources = Get-ChildItem -Recurse (Join-Path $spikeSrc 'native\src') -Filter *.java | ForEach-Object FullName
 Invoke-Step 'javac' { & "$JavaHome\bin\javac.exe" --release 17 -Xlint:all -encoding UTF-8 -cp "$androidJar;$jarWork\godot-classes.jar" -d "$jarWork\classes" $sources }
+# minSdk 24: every Android API the bytecode references must exist at API 24, except the two calls
+# the source makes only behind a Build.VERSION.SDK_INT check.
+Invoke-Step 'api level check (min SDK 24)' { & $Python (Join-Path $PSScriptRoot 'api_level_check.py') --javap "$JavaHome\bin\javap.exe" --classes "$jarWork\classes" `
+    --api-versions (Join-Path $AndroidSdk 'platforms\android-36\data\api-versions.xml') --min-sdk 24 `
+    --guarded android/webkit/WebView.getCurrentWebViewPackage android/content/pm/PackageInfo.getLongVersionCode }
 $jar = Join-Path $jarWork 'sv_m1_migration_spike.jar'
 Invoke-Step 'jar' { & "$JavaHome\bin\jar.exe" --create --file $jar -C "$jarWork\classes" . }
 Invoke-Step 'jar list' { & "$JavaHome\bin\jar.exe" --list --file $jar }

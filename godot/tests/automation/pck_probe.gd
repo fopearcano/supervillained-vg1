@@ -1,12 +1,14 @@
 extends SceneTree
 ## Runs INSIDE an exported pack (never exported itself: tests/ is excluded):
-##   godot --headless --main-pack <file.pck> --script <absolute path of this file> -- --expect <list.json>
-## res:// is then the pack only. Checks every expected runtime path loads from the pack, that no
+##   godot --headless --path <empty dir> --main-pack <file.pck> --script <absolute path of this file> -- --expect <list.json> [--absent-only]
+## With an empty --path, res:// is the pack only (files missing from the pack would otherwise resolve
+## from the --path / working directory). Checks that no "absent" (source-only) path resolves, every
+## expected runtime path loads from the pack, that no
 ## excluded content was packed, that the exported leading-silence Resource reaches AudioService,
 ## and that the real main scene starts. Prints one line: PCK_PROBE {json}.
 ## No class_name and no static references to project classes: they live in the pack.
 
-var _report := {"missing": [], "unloadable": [], "forbidden": [], "files": 0}
+var _report := {"missing": [], "unloadable": [], "forbidden": [], "resolved_absent": [], "files": 0}
 
 
 func _initialize() -> void:
@@ -31,6 +33,13 @@ func _run() -> void:
 		if args[k] == "--expect" and k + 1 < args.size():
 			expect_path = args[k + 1]
 	var expected: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(expect_path))
+	for p: String in expected.get("absent", []):
+		if FileAccess.file_exists(p) or ResourceLoader.exists(p):
+			_report["resolved_absent"].append(p)
+	if args.has("--absent-only"):
+		print("PCK_PROBE ", JSON.stringify(_report))
+		quit(0)
+		return
 	for p: String in expected["resources"]:
 		if not ResourceLoader.exists(p):
 			_report["missing"].append(p)
@@ -44,7 +53,7 @@ func _run() -> void:
 	_report["files"] = all.size()
 	for p: String in all:
 		var rel := p.trim_prefix("res://")
-		var bad := rel.begins_with("tests/") or rel.begins_with("tools/") or rel.begins_with("test-results/")
+		var bad := rel.begins_with("tests/") or rel.begins_with("tools/") or rel.begins_with("test-results/") or rel.begins_with("platform/")
 		bad = bad or rel.ends_with(".json") or rel.ends_with(".md") or rel.ends_with(".mjs") or rel.ends_with(".ps1") or rel.ends_with(".sh")
 		if bad:
 			_report["forbidden"].append(rel)
@@ -63,6 +72,6 @@ func _run() -> void:
 	root.remove_child(main)
 	main.free()
 	audio.stop_all()
-	_report["ok"] = _report["missing"].is_empty() and _report["unloadable"].is_empty() and _report["forbidden"].is_empty()
+	_report["ok"] = _report["missing"].is_empty() and _report["unloadable"].is_empty() and _report["forbidden"].is_empty() and _report["resolved_absent"].is_empty()
 	print("PCK_PROBE ", JSON.stringify(_report))
 	quit(0)

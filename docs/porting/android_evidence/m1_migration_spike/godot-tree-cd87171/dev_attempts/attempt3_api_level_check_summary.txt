@@ -1,0 +1,5 @@
+47 Android references; min SDK 24; guarded: android/webkit/WebView.getCurrentWebViewPackage, android/content/pm/PackageInfo.getLongVersionCode
+OK: every Android reference is available at the min SDK or explicitly guarded
+api36 RESULT: PASS (43/43 checks passed)
+api34 RESULT: PASS (43/43 checks passed)
+api24 RESULT: PASS (42/42 checks passed)

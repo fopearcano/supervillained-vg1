@@ -1,0 +1,14 @@
+--------- beginning of main
+11-24 01:29:13.426 12818 12850 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+11-24 01:29:13.579 12818 12850 E godot   : WARNING: Failed to load cached shader, recompiling.
+11-24 01:29:13.579 12818 12850 E godot   :    at: _load_from_cache (drivers/gles3/shader_gles3.cpp:615)
+11-24 01:29:14.854 12818 12850 I godot   : OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 610.47) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 3090/PCIe/SSE2)
+11-24 01:29:14.865 12818 12850 I godot   :
+11-24 01:29:15.481 12818 12850 I godot   : M1_SPIKE_START {"godot":"4.7.2-stable (official)","keys":["settings","records","coins","story","story-v1-backup"],"os":"Android"}
+11-24 01:29:15.484 12818 12850 I godot   : M1_SPIKE_LIFECYCLE {"method":"readLegacyStoreHeldForLifecycleTest","mode":"quit_during_read"}
+11-24 01:29:15.495 12818 12818 I SvMigrationSpike: attempt 1 (generation 1): loading https://localhost/__sv_m1_migration_spike__/read.html diag={"page_url":"https:\/\/localhost\/__sv_m1_migration_spike__\/read.html","lifecycle_test_hold_ms":20000,"webview_data_dir_existed_before_read":true,"local_storage_dir_existed_before_read":true,"root_local_storage_dir_existed_before_read":false,"package_name":"com.zampano.supervillained","app_version_code":2}
+11-24 01:29:15.669 12818 12875 I SvMigrationSpike: holding the page of generation 1 for up to 20000 ms (lifecycle test)
+11-24 01:29:17.362 12818 12850 I godot   : M1_SPIKE_LIFECYCLE_ACTIVE {"mode":"quit_during_read","result_received":false}
+11-24 01:29:17.362 12818 12850 I godot   : M1_SPIKE_LIFECYCLE_QUIT {}
+11-24 01:29:17.396 12818 12818 I SvMigrationSpike: teardown of generation 1 (lifecycle godot_terminating): timeout cancelled, WebView destroyed on thread main
+11-24 01:29:17.397 12818 12818 I SvMigrationSpike: godot_terminating: cancelled active read attempt 1 (generation 1); no result emitted

@@ -1,0 +1,8 @@
+pull attempt 1
+adb: error: remote object '/data/app/com.zampano.supervillained-1/base.apk' does not exist
+pull attempt 2
+adb: error: remote object '/data/app/com.zampano.supervillained-1/base.apk' does not exist
+pull attempt 3
+adb: error: remote object '/data/app/com.zampano.supervillained-1/base.apk' does not exist
+pull attempt 4
+adb: error: remote object '/data/app/com.zampano.supervillained-1/base.apk' does not exist
