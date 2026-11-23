@@ -20,15 +20,15 @@ the Android migration-plugin feasibility spike (see "Legacy-save plan" below).
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title frames for approval), `docs/porting/windows_evidence/` and
 `docs/porting/linux_evidence/` (real host runs).
-Row status: **Slice** = the row's listed IDs are satisfied by full suite cases (or on combined
-evidence, TEST_PLAN.md) for the current slice; **Partial** = implemented with a listed gap or only partial cases; **Config** = configured,
+Row status: **Slice** = the row's listed IDs are satisfied for the current slice by full suite
+cases, architect-accepted combined evidence or architect-accepted command evidence (TEST_PLAN.md); **Partial** = implemented with a listed gap or only partial cases; **Config** = configured,
 not executed; **—** = not started.
 
 Acceptance IDs are claimed through a `test_<ID>_…` suite case that exercises every clause of the
 ID (TEST_PLAN.md case naming), on combined evidence (TEST_PLAN.md: named suite cases plus a named
 architect static review for a static code-review requirement, or an architect-accepted
-renderer-backed probe for rendered clauses, of which none is accepted yet), or on command evidence
-(AST-019, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
+renderer-backed probe for rendered clauses, of which none is accepted yet), or on
+architect-accepted command evidence (AST-019 and CORE-001, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
 **Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `9bbe179`, 138 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
@@ -43,9 +43,10 @@ satisfied, AST-019 by command evidence (counted once, below). **AST-007 / findin
 foot-anchor alignment is the applicable "arms attachment" contract.
 
 **Satisfied on combined evidence (1; TEST_PLAN.md):** ARCH-001a (suite:
-`test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`; static: the architect's static review
-of `f580fa4`, which confirms no duplicate playable/input movement controller). **Satisfied on
-command evidence (1):** AST-019 (below). **Total satisfied: 94 (92 full suite + 1 combined + 1
+`test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`; static: the named static review is
+the architect's review of `f580fa4`, **confirmed** by the architect on review of `46d7ad9`: no
+duplicate playable/input movement controller). **Satisfied on architect-accepted command evidence
+(2):** AST-019 and CORE-001 (below). **Total satisfied: 95 (92 full suite + 1 combined + 2
 command).**
 
 **Partial, rendered clauses open (M2; not counted):** on review of `f580fa4` the architect withdrew
@@ -79,13 +80,16 @@ not done (below).
 **Partial evidence only (not satisfied, later milestones):** GZ-001, GZ-002, GZ-021, GZ-025,
 SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
 
-**Command-level evidence (no suite case):** AST-019, **counted as satisfied** (all 206 generated
+**Command-level evidence (no suite case):** AST-019, **counted as satisfied** (accepted; all 206 generated
 outputs byte-identical under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
 `pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true` for the current tree,
 and `build_assets.sh --check` on Ubuntu 26.04 for `d12bedd`, the same bytes; the generated outputs
-did not change between the two trees). CORE-001, architect to judge and not counted (clean-cache
-import and 600-frame Main run on a clean Windows 11 clone of the current tree (`godot/` `9bbe179`), and
-on a clean Ubuntu 26.04 clone of the prior tree `d12bedd`). **Rendered interpolation probe,
+did not change between the two trees). CORE-001, **counted as satisfied** (accepted by the
+architect on review of `46d7ad9`): the clean import (exit 0, no ERROR/WARNING line) and the 600-frame
+headless Main launch (exit 0, engine banner only) on a fresh Windows 11 clone of the current tree
+(`godot/` `9bbe179`, correction report 12, `windows_evidence/correction-12-godot-tree-9bbe179/`
+`step_b_import.txt` and `step_d_main_600_frames.txt`); the clean Ubuntu 26.04 clone of the prior tree
+`d12bedd` (`linux_evidence/d12bedd/`) is supplemental support. **Rendered interpolation probe,
 supplemental only** (it satisfies no rendered clause; the architect's review of `f580fa4` requires
 the checks listed in TEST_PLAN.md before a probe can): `tools/interpolation_probe.gd` with
 `--rendering-driver opengl3 --disable-vsync` on the RTX 3090 for the current tree `9bbe179`:
@@ -149,7 +153,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Partial | CORE-001 command evidence: Windows 11 clean clone of the current tree (correction report 12, `godot/` `9bbe179`; before it correction report 11, `a06b1df`); Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | command evidence only, architect to judge |
+| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the current tree (correction report 12, `godot/` `9bbe179`; before it correction report 11, `a06b1df`); supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
 | Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004 (`test_P_VIEW_004`); underlay/letterbox SLICE case; 4 viewport captures; supplemental rendered probe on llvmpipe and a real RTX 3090 | VIEW-004 rendered clauses open (no accepted renderer-backed probe); device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | not run on a device or the emulator yet |
@@ -159,7 +163,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 | Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
 | Walk/run/terrain speed | Slice | MOVE-003, MOVE-004, MOVE-005 | — |
 | Collision and sliding | Slice | COLL-001–004, COLL-005a (one continuous drive to every treat's exact position within its pickup radius and on to the exit; every reachable story-map marker), COLL-006; SLICE solver decision | GridKinematicSolver (native slide rejected); COLL-005b scripted-position story objectives (M5–M7) |
-| Shared Green Zone/story world | Slice | ARCH-001a on combined evidence: the dummy Story host case (same classes and public interfaces, its own environment resources, lifecycle, movement, camera, sorting, recursive cleanup) + the architect's static review of `f580fa4` (no duplicate playable/input controller; ActorBody controllers on the shared solver allowed) | ARCH-001b production story scene (M5) |
+| Shared Green Zone/story world | Slice | ARCH-001a on combined evidence: the dummy Story host case (same classes and public interfaces, its own environment resources, lifecycle, movement, camera, sorting, recursive cleanup) + the architect's static review of `f580fa4`, confirmed (no duplicate playable/input controller; ActorBody controllers on the shared solver allowed) | ARCH-001b production story scene (M5) |
 | Camera lag/look-ahead/sway/shake/clamp | Partial | CAM-001–003; P: CAM-004 (whole-pixel origin in the suite; the rendered probe is supplemental) | CAM-004 static-shimmer clause open (no accepted renderer-backed probe); shake noise seeded (D-04) |
 | Stable depth sorting | Slice | DEPTH-001–003 | — |
 | Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |

@@ -6,14 +6,145 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 12 is current. Erratum for the historical reports: their
+in progress report 5. Correction report 13 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 12: rendered IDs back to Partial, ARCH-001a combined evidence, totals (M1 Partial, M2 Partial) — current
+## Correction report 13: accepted command evidence, ARCH-001a review confirmed, totals (M1 Partial, M2 Partial) — current
+
+Scope: the architect's review of `46d7ad9`, in one documentation-only commit
+(`docs/porting/FEATURE_MATRIX.md`, `TEST_PLAN.md` and this log). No gameplay, test, tool, asset,
+PixiJS or evidence file changed, and the rendered-ID status is unchanged. The `godot/` tree is still
+`9bbe179546b3b600340eebe26fc364d64abd933c`, verified on a fresh Windows clone in correction report 12;
+no engine command was rerun for this documentation commit.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither milestone completion accepted); open M1 blocker: the migration-plugin spike; open M2 items: the rendered clauses of VIEW-004, CAM-004 and DOG-008a, and the manual desktop and touch play checks |
+| Base | `46d7ad9` (correction report 12) |
+| Current `godot/` tree | `9bbe179546b3b600340eebe26fc364d64abd933c`, unchanged; verified on a fresh Windows clone in correction report 12 |
+| Host | Windows 11 Pro N for Workstations 25H2; documentation checks only |
+| Android on this host | available: Android SDK (platform-tools/adb 37.0.3, build-tools 36.1.0, platform 36), Godot's 4.7.2 Android export templates, JDK 21, emulator device `sv_m1_api36` (adb serial `emulator-5554`, Android 16 / API 36, Google WebView 133.0.6943.137). Remaining blocker: the migration plugin and a controlled signed old→new APK lineage |
+
+### Architect decisions recorded (review of `46d7ad9`)
+
+- **Slice legend:** a row is Slice when its listed IDs are supported by full-suite cases,
+  architect-accepted combined evidence or architect-accepted command evidence.
+- **CORE-001 accepted as command-level evidence:** the clean import and the 600-frame headless
+  launch on the current Windows fresh clone (correction report 12, `godot/` `9bbe179`); the prior
+  Linux evidence (`d12bedd`) is supplemental support. The project-isolation row is Slice.
+- **Accepted totals:** 92 full-suite + 1 combined + 2 command = **95**.
+- **ARCH-001a's named static review** is the architect's review of `f580fa4`, and it is confirmed.
+- VIEW-004, CAM-004 and DOG-008a stay Partial (rendered clauses open; the probe is supplemental).
+
+### Changes
+
+1. **FEATURE_MATRIX.md:**
+   - the Slice legend and the claiming rule name full-suite cases, architect-accepted combined
+     evidence and architect-accepted command evidence (AST-019 and CORE-001);
+   - ARCH-001a's static part names the architect's review of `f580fa4` as confirmed (status
+     section and shared-world row);
+   - command evidence: CORE-001 counted as satisfied, citing the correction-12 Windows clean
+     import and 600-frame launch logs, with the Linux `d12bedd` clone as supplemental support;
+     AST-019 marked accepted;
+   - totals: **95 (92 full suite + 1 combined + 2 command)**, superseding 94;
+   - project-isolation row: Partial → **Slice**, no gap.
+2. **TEST_PLAN.md:** the case-naming rule also admits architect-accepted command evidence
+   (currently CORE-001 and AST-019); the combined-evidence rule records the ARCH-001a static review
+   as the architect's review of `f580fa4`, confirmed on review of `46d7ad9`.
+3. **This log:** this report; correction report 12 marked historical with a supersession note.
+
+### Legacy-save plan (unchanged; MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike, open M1 blocker:** a throwaway native migration plugin under
+   `/godot/platform/android/` on a controlled same-package/same-signature old→new APK lineage; the
+   five legacy keys read without mutation, or a documented reproducible failure, plus the written
+   native-bridge versus staged-Capacitor decision. Not started; the tools are available (above).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005.
+3. **M9 — production proof:** the installed lineage and signing certificate, two WebView/device
+   versions, end-to-end MIG-001–010.
+
+### M2 automated acceptance IDs
+
+| ID | Status | Evidence |
+|---|---|---|
+| ARCH-001a | **satisfied (combined)** | `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world` + the named static review: the architect's review of `f580fa4`, confirmed on review of `46d7ad9` (no duplicate playable/input movement controller) |
+| COLL-005a | **satisfied** | `test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver` |
+| DOG-005a | **satisfied** | `test_DOG_005a_…` |
+| VIEW-004 | Partial | `test_P_VIEW_004_whole_pixel_world_and_nearest_filtering`; open: the rendered streak, double-interpolation and shimmer clauses (the probe is supplemental) |
+| CAM-004 | Partial | whole-pixel origin in `test_CAM_002_…` and `test_P_VIEW_004_…`; open: the rendered static-shimmer clause (the probe is supplemental) |
+| DOG-008a | Partial | `test_CORE_002_…` (spawn, teleport, camera snap, hook defaults); restart-reset subclause **satisfied** by `test_P_DOG_008a_main_restart_resets_interpolation_and_run_state`; open: the rendered 30/60/90/120 FPS presentation (the probe is supplemental) |
+| ARCH-001b, DOG-008b / COLL-005b / DOG-005b | later | M5 / M5–M7 (aggregate M7) / M3 |
+
+### Commands executed and results (Windows 11)
+
+Documentation checks only; no engine, Node or asset command was run for this commit (the `godot/`
+tree is unchanged).
+
+| Command | Result |
+|---|---|
+| Fresh `git clone` of this commit's documentation (`core.autocrlf=true`; only this results table and the check count were written after it) | exit 0; `git rev-parse HEAD:godot` = `9bbe179546b3b600340eebe26fc364d64abd933c` (unchanged) |
+| `git status --porcelain` (fresh clone, before and after the checks) | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, empty |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --name-only 46d7ad9 HEAD` | `docs/porting/FEATURE_MATRIX.md`, `docs/porting/IMPLEMENTATION_LOG.md`, `docs/porting/TEST_PLAN.md` |
+| `git diff --stat 46d7ad9 HEAD -- godot src docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/captures docs/porting/MILESTONES.md` | empty: gameplay, tests, tools, assets, the PixiJS source and the evidence files unchanged |
+| `git diff --check` (working tree, final text) | clean |
+| `python docs_consistency_check.py` (session tool, not committed; final text) | `OK: 58 checks` |
+
+Host evidence: current `godot/` tree `9bbe179` (correction report 12, 138 passed), unchanged by this
+documentation commit. Previous Windows trees: `a06b1df` (correction report 11, 138 passed),
+`1532143` (correction report 10, 137 passed), `6a3c53b` (correction report 9, 137 passed),
+`b1c3595` (correction report 8, 137 passed), `b8535ab` (correction report 7 addendum, 137 passed),
+`81906cd` / `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed). Linux: the
+prior tree `d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on Linux, and
+neither were correction 7's addendum and corrections 8, 9, 10, 11 and 12.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017). Remaining, per the approved plan: the M1 migration-plugin spike (open M1 blocker), the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005, the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | Not done from M1: the Android migration-plugin spike (open M1 blocker). The Android tools and the emulator are available; missing are the plugin and a controlled signed old→new APK lineage |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **M1 migration-plugin spike (open M1 blocker):** a controlled test keystore, the old Capacitor
+  APK built and signed with it, a few representative saves, the spike plugin and APK with the same
+  package and signature installed over it without uninstalling (`adb install -r`) on
+  `sv_m1_api36`; result: the five keys read unmutated, or a documented reproducible failure, plus
+  the written native-bridge / staged-Capacitor decision.
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+- **Rendered clauses of VIEW-004, CAM-004 and DOG-008a (M2):** a strengthened renderer-backed probe
+  with the checks listed in TEST_PLAN.md (combined evidence), run at 30/60/90/120 FPS and accepted
+  by the architect. Until then the three IDs stay Partial and are not counted.
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 12: rendered IDs back to Partial, ARCH-001a combined evidence, totals (`46d7ad9`; M1 Partial, M2 Partial)
+
+> Historical record of `46d7ad9`, superseded by correction report 13 (text below kept as
+> submitted). **Supersession:** on review of `46d7ad9` the architect accepted CORE-001 as
+> command-level evidence (the project-isolation row is Slice; the Linux `d12bedd` clone is
+> supplemental support), confirmed that ARCH-001a's named static review is the architect's review
+> of `f580fa4`, and set the accepted total to 95 (92 full suite + 1 combined + 2 command),
+> superseding 94. Its Windows evidence for the `godot/` tree `9bbe179` stands, and VIEW-004, CAM-004
+> and DOG-008a remain Partial.
 
 Scope: the architect's review of `f580fa4`, in one evidence-correction commit. The code changes are
 comments in two test files (`godot/tests/integration/test_main_and_rates.gd`, `test_world.gd`); no
