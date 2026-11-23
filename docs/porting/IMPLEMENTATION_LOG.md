@@ -6,11 +6,139 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 9 is current.
+in progress report 5. Correction report 10 is current.
 
 ---
 
-## Correction report 9: ARCH-001a contract and COLL-005 ownership (M1 Partial, M2 Partial) — current
+## Correction report 10: ARCH-001a static gate and collision-row wording (M1 Partial, M2 Partial) — current
+
+Scope: the architect's two items on `d7933a7`, in one commit. Code changes are in one test file
+(`godot/tests/integration/test_world.gd`: the ARCH-001a gate and its synthetic cases); no gameplay
+module, no PixiJS file, and neither the dummy Story host scene nor its lifecycle changed.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (nothing accepted); open M1 blocker: the migration-plugin spike |
+| Base | `d7933a7` (correction report 9) |
+| Current `godot/` tree | `15321434e94325b632bc38bb2a40246e0577ad08`, verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2 (RTX 3090, WASAPI audio); Linux not rerun |
+| Android on this host | available: Android SDK (platform-tools/adb 37.0.3, build-tools 36.1.0, platform 36), Godot's 4.7.2 Android export templates, JDK 21, emulator device `sv_m1_api36` (adb serial `emulator-5554`, Android 16 / API 36, Google WebView 133.0.6943.137). Remaining blocker: the migration plugin and a controlled signed old→new APK lineage |
+
+### Changes per review item
+
+1. **`_duplicate_player_controllers()` refined.** Defining `update_movement` or `set_intent` is no
+   longer evidence by itself. A runtime script other than `PlayableDog` is flagged only on
+   player-specific evidence: both playable-controller methods outside an `ActorBody` controller; a
+   `PlayableDog` subclass overriding either method; direct `InputService`-to-body movement (player
+   input fed to the solver or a physics body, actors included); or moving the player's body itself
+   (writing a `PlayableDog`/player position or velocity). `ActorBody` controllers (ARCHITECTURE §9:
+   NPCs, cats, Bagnaskiz, combat foes, companions; a script that is, extends or owns an `ActorBody`)
+   may define both methods and use the shared `WorldMapModel` solver. Comments and string literals
+   are blanked before matching (`_code_only`). Synthetic cases in the ARCH-001a case: allowed —
+   `ActorBody` itself with both methods, a cat with `update_movement`, a Bagnaskiz behaviour
+   controller owning an `ActorBody` with both methods, a companion with both, a script naming the
+   methods only in comments and strings, and a rules-like script routing input to the
+   `PlayableDog`; flagged — a non-actor body with both methods, a `PlayableDog` subclass overriding
+   `update_movement`, an input-fed `move_circle` mover, a script writing `player.gx`, and an
+   `ActorBody` driven straight by `InputService`. The scan of every runtime script finds nothing,
+   and a positive control on real code (the real `PlayableDog` source under another path) is
+   flagged. TEST_PLAN.md (ARCH-001, ARCH-001a) and FEATURE_MATRIX state the same rule.
+2. **FEATURE_MATRIX collision row:** "COLL-005b literal-coordinate story objectives" now reads
+   "COLL-005b scripted-position story objectives", as in TEST_PLAN.md.
+
+### Legacy-save plan (unchanged; MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike, open M1 blocker:** a throwaway native migration plugin under
+   `/godot/platform/android/` on a controlled same-package/same-signature old→new APK lineage; the
+   five legacy keys read without mutation, or a documented reproducible failure, plus the written
+   native-bridge versus staged-Capacitor decision. Not started; the tools are available (above).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005.
+3. **M9 — production proof:** the installed lineage and signing certificate, two WebView/device
+   versions, end-to-end MIG-001–010.
+
+### M2 automated gates
+
+| ID | Status | Evidence / milestone |
+|---|---|---|
+| ARCH-001a | **satisfied** | `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world` (refined gate, this report) |
+| COLL-005a | **satisfied** | `test_COLL_005a_maps_start_exit_treats_and_markers_reachable_under_the_solver` (correction report 8) |
+| DOG-005a | satisfied | `test_DOG_005a_…` (correction report 7 addendum) |
+| VIEW-004, CAM-004 | **not satisfied** | rendered clauses only by `tools/interpolation_probe.gd` outside the suite; gate decision not taken |
+| DOG-008a | **not satisfied** | rendered presentation clause (same decision); restart reset not asserted separately |
+| ARCH-001b, DOG-008b / COLL-005b / DOG-005b | later | M5 / M5–M7 (aggregate M7) / M3 |
+
+### Commands executed and results (Windows 11)
+
+| Command | Result |
+|---|---|
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all --case ARCH_001a` (working tree, twice while writing it) | `1 passed, 0 failed` each |
+| Fresh `git clone` of this commit's code (`core.autocrlf=true`; tested `godot/` tree `15321434e94325b632bc38bb2a40246e0577ad08` = `git rev-parse HEAD:godot` of this commit; only the docs and the log folder were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (asset check) | exit 0: `asset check OK: 206 outputs identical (72 copies) …`; `build_resources check (all): OK, 55 outputs identical` |
+| `<console exe> --headless --path godot --import` | exit 0, no ERROR/WARNING lines |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all` | exit 0: **137 passed, 0 failed, 137 total** |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite all --case ARCH_001a` (focused, in the fresh clone) | exit 0: `PASS test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`, `1 passed, 0 failed` |
+| `<console exe> --headless --path godot --quit-after 600` | exit 0, engine banner only |
+| `<console exe> --headless --path godot --script res://tests/test_runner.gd -- --suite integration --file test_export_pack` (PCK smoke) | exit 0: PCK 32,905,976 bytes, 254 runtime resources, 512 packed files, packed 600-frame startup clean |
+| `<console exe> --path godot --script res://tools/audio_suspend_probe.gd` (real WASAPI device; run by the same script) | exit 0, `"ok":true` |
+| `npm test`; `npm run build` | exit 0: 248 tests passed; build OK |
+| `git status --porcelain`; `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --stat d7933a7 -- godot` (working tree) | only `godot/tests/integration/test_world.gd` |
+| `git diff --stat d7933a7 -- godot/tests/support` | empty: the dummy Story host scene and its lifecycle are unchanged |
+| `git diff --stat d7933a7 -- docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/captures` (before the new log folder was added) | empty: historical evidence unchanged |
+| `git diff --check` (working tree) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 46 checks` |
+
+Logs of the fresh-clone run: `docs/porting/windows_evidence/correction-10-godot-tree-1532143/`. Not
+run: Linux, the rendered interpolation probe (nothing rendered changed).
+
+Host evidence: current tree above. Previous Windows trees: `6a3c53b` (correction report 9, 137
+passed), `b1c3595` (correction report 8, 137 passed), `b8535ab` (correction report 7 addendum, 137
+passed), `81906cd` / `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed).
+Linux: the prior tree `d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on
+Linux, and neither were correction 7's addendum and corrections 8, 9 and 10.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017). Remaining, per the approved plan: the M1 migration-plugin spike (open M1 blocker), the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005, the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | Not done from M1: the Android migration-plugin spike (open M1 blocker). The Android tools and the emulator are available; missing are the plugin and a controlled signed old→new APK lineage |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **M1 migration-plugin spike (open M1 blocker):** a controlled test keystore, the old Capacitor
+  APK built and signed with it, a few representative saves, the spike plugin and APK with the same
+  package and signature installed over it without uninstalling (`adb install -r`) on
+  `sv_m1_api36`; result: the five keys read unmutated, or a documented reproducible failure, plus
+  the written native-bridge / staged-Capacitor decision.
+- **Unsatisfied automated M2 gates:** **VIEW-004** and **CAM-004** (gate decision not taken: accept
+  the probe evidence, or add an in-suite rendered case); **DOG-008a** (the same rendered clause and
+  a restart-reset assertion).
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 9: ARCH-001a contract and COLL-005 ownership (`d7933a7`; M1 Partial, M2 Partial)
+
+> Historical record of `d7933a7`, superseded by correction report 10. **Erratum** (text below kept
+> as submitted): its static gate flagged any script other than `PlayableDog` that merely defined
+> `update_movement` or `set_intent`, which would also flag approved `ActorBody` controllers, and it
+> matched names inside comments and strings; correction report 10 requires player-specific
+> evidence and ignores comments and strings. Its FEATURE_MATRIX collision row still said
+> "literal-coordinate story objectives" (now "scripted-position", as in TEST_PLAN.md).
 
 Scope: the architect's three items on `5435c32`, in one commit. Code changes are test files only
 (the dummy Story host scene and the ARCH-001a case); no gameplay module, the continuous COLL-005a

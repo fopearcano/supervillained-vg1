@@ -772,22 +772,76 @@ static func _public_interface(script: Script) -> Array:
 	return out
 
 
-## ARCH-001a static review gate, scoped to duplicate playable/input movement controllers: flags a
-## script other than PlayableDog that defines the playable controller API (update_movement,
-## set_intent), or that reads player movement input (move_x / move_y / run_held) and moves a body
-## itself. Actor controllers (ActorBody, cats, Bagnaskiz, companions) may move through the shared
-## WorldMapModel solver with their approved behaviour controllers and are not flagged.
+## GDScript source with comments and string literals blanked (newlines kept), so that names that
+## only appear in comments or strings never count as code.
+static func _code_only(src: String) -> String:
+	var out := PackedStringArray()
+	var i := 0
+	var n := src.length()
+	while i < n:
+		var c := src[i]
+		if c == "#":
+			while i < n and src[i] != "\n":
+				i += 1
+			continue
+		if c == "\"" or c == "'":
+			var triple := i + 2 < n and src[i + 1] == c and src[i + 2] == c
+			var quote := c.repeat(3) if triple else c
+			i += quote.length()
+			while i < n and not src.substr(i, quote.length()) == quote:
+				if src[i] == "\\":
+					i += 1
+				elif src[i] == "\n":
+					out.append("\n")
+				i += 1
+			i += quote.length()
+			out.append(" ")
+			continue
+		out.append(c)
+		i += 1
+	return "".join(out)
+
+
+static func _matches(pattern: String, text: String) -> bool:
+	var re := RegEx.new()
+	re.compile(pattern)
+	return re.search(text) != null
+
+
+## ARCH-001a static review gate: duplicate playable/input movement controllers. Defining
+## update_movement or set_intent is not enough; a script other than PlayableDog is flagged only on
+## player-specific evidence:
+## - both playable-controller methods (update_movement and set_intent) outside an ActorBody controller;
+## - a PlayableDog subclass overriding either method;
+## - direct InputService-to-body movement (player input fed to the solver or a physics body), actors
+##   included;
+## - moving the player's body itself (writing a PlayableDog/player position or velocity).
+## ActorBody controllers (ARCHITECTURE §9: NPCs, cats, Bagnaskiz, combat foes, companions: a script
+## that is, extends or owns an ActorBody) may define both methods and use the shared WorldMapModel
+## solver. Comments and strings are ignored. Returns "path: reason" entries.
 static func _duplicate_player_controllers(sources: Dictionary) -> PackedStringArray:
 	var out := PackedStringArray()
 	for path: String in sources:
 		if path == "res://entities/playable_dog/playable_dog.gd":
 			continue
-		var src: String = sources[path]
-		var defines_controller := src.contains("func update_movement(") or src.contains("func set_intent(")
-		var reads_input := src.contains("move_x") or src.contains("move_y") or src.contains("run_held")
-		var moves_body := src.contains(".move_circle(") or src.contains(".circle_blocked(") or src.contains("move_and_slide(") or src.contains("move_and_collide(")
-		if defines_controller or (reads_input and moves_body):
-			out.append(path)
+		var raw: String = sources[path]
+		var code := _code_only(raw)
+		var defines_update := _matches("(?m)^\\s*(static\\s+)?func\\s+update_movement\\s*\\(", code)
+		var defines_intent := _matches("(?m)^\\s*(static\\s+)?func\\s+set_intent\\s*\\(", code)
+		var actor := _matches("(?m)^\\s*(class_name|extends)\\s+ActorBody\\b", code) or _matches(":\\s*ActorBody\\b", code)
+		var playable_subclass := _matches("(?m)^\\s*extends\\s+(PlayableDog\\b|\"res://entities/playable_dog/playable_dog\\.gd\")", raw)
+		var reads_input := _matches("\\bInputService\\s*\\.\\s*(move_x|move_y|run_held)\\b", code)
+		var moves_body := _matches("\\.\\s*(move_circle|circle_blocked)\\s*\\(|\\bmove_and_slide\\s*\\(|\\bmove_and_collide\\s*\\(", code)
+		var owns_player := _matches("\\bPlayableDog\\b|\\bplayer\\b", code)
+		var writes_player_body := _matches("\\b(player|dog)\\s*\\.\\s*(gx|gy|vx|vy|position|global_position|velocity)\\s*[-+*/]?=(?!=)", code)
+		if defines_update and defines_intent and not actor:
+			out.append(path + ": both playable-controller methods outside an ActorBody controller")
+		if playable_subclass and (defines_update or defines_intent):
+			out.append(path + ": PlayableDog subclass overrides the playable controller")
+		if reads_input and (moves_body or writes_player_body):
+			out.append(path + ": InputService movement drives a body directly")
+		if owns_player and writes_player_body:
+			out.append(path + ": moves the player's body outside PlayableDog")
 	return out
 
 
@@ -879,15 +933,32 @@ func test_ARCH_001a_dummy_story_host_shares_the_green_zone_world() -> void:
 			diverged = k
 	bare.free()
 	assert_eq(diverged, -1, "host movement equals the shared controller and solver tick for tick")
-	# Static review gate (scope checked first): duplicate playable/input controllers are flagged,
-	# actor behaviour controllers on the shared solver are not.
+	# Static review gate (scope checked first on synthetic scripts): ActorBody controllers may define
+	# update_movement/set_intent and use the shared solver; comments, strings and routing input to
+	# the PlayableDog are not evidence; player-specific evidence is flagged.
 	var samples := {
-		"res://entities/actor/actor_body.gd": "func behave(dt):\n\tvar r := map.move_circle(gx, gy, dx, dy, radius)\n",
-		"res://entities/critters/cat.gd": "func flee(dt):\n\tvar r = map.move_circle(gx, gy, -dx, -dy, 0.2)\n",
-		"res://entities/actor/second_dog.gd": "func set_intent(x, y, run):\n\tpass\n",
+		# Allowed: ActorBody and its behaviour controllers (NPCs, cats, Bagnaskiz, companions).
+		"res://entities/actor/actor_body.gd": "class_name ActorBody\nextends CharacterBody2D\nfunc set_intent(x, y, run):\n\t_ix = x\nfunc update_movement(dt, map):\n\tvar r = map.move_circle(gx, gy, _ix * dt, _iy * dt, radius)\n",
+		"res://entities/critters/cat.gd": "extends ActorBody\nfunc update_movement(dt, map):\n\tvar r = map.move_circle(gx, gy, -dx, -dy, 0.2)\n",
+		"res://entities/actor/bagnaskiz_behaviour.gd": "extends RefCounted\nvar body: ActorBody\nfunc set_intent(x, y, run):\n\tbody.set_intent(x, y, run)\nfunc update_movement(dt, map):\n\tbody.update_movement(dt, map)\n",
+		"res://entities/actor/companion.gd": "extends ActorBody\nfunc set_intent(x, y, run):\n\tpass\nfunc update_movement(dt, map):\n\tvar r = map.move_circle(gx, gy, dx, dy, radius)\n",
+		# Allowed: names only in comments or strings, and input routed to the shared PlayableDog.
+		"res://systems/doc_only.gd": "# Never write func update_movement( or func set_intent( here.\nvar note := \"InputService.move_x -> map.move_circle( and player.gx = 0 are forbidden\"\n",
+		"res://systems/rules_like.gd": "var player: PlayableDog\nfunc update(dt, input):\n\tplayer.set_intent(input.move_x, input.move_y, input.run_held)\n\tplayer.update_movement(dt, map)\n",
+		# Flagged: player-specific evidence.
+		"res://entities/second_dog.gd": "extends CharacterBody2D\nfunc set_intent(x, y, run):\n\tpass\nfunc update_movement(dt, map):\n\tpass\n",
+		"res://entities/dog_variant.gd": "extends PlayableDog\nfunc update_movement(dt, map):\n\tpass\n",
 		"res://scenes/story/walk_hack.gd": "func tick(dt):\n\tvar r = map.move_circle(gx, gy, InputService.move_x, InputService.move_y, 0.26)\n",
+		"res://scenes/story/pusher.gd": "var player: PlayableDog\nfunc tick(dt):\n\tplayer.gx += 0.1\n",
+		"res://entities/actor/possessed.gd": "extends ActorBody\nfunc update_movement(dt, map):\n\tvar r = map.move_circle(gx, gy, InputService.move_x, InputService.move_y, 0.26)\n",
 	}
-	assert_eq(_duplicate_player_controllers(samples), PackedStringArray(["res://entities/actor/second_dog.gd", "res://scenes/story/walk_hack.gd"]), "gate scope: duplicates flagged, actor controllers allowed")
+	assert_eq(_duplicate_player_controllers(samples), PackedStringArray([
+		"res://entities/second_dog.gd: both playable-controller methods outside an ActorBody controller",
+		"res://entities/dog_variant.gd: PlayableDog subclass overrides the playable controller",
+		"res://scenes/story/walk_hack.gd: InputService movement drives a body directly",
+		"res://scenes/story/pusher.gd: moves the player's body outside PlayableDog",
+		"res://entities/actor/possessed.gd: InputService movement drives a body directly",
+	]), "gate scope: player-specific evidence flagged; ActorBody controllers, comments/strings and input routing allowed")
 	var sources := {}
 	var stack: Array[String] = ["res://"]
 	while not stack.is_empty():
@@ -900,6 +971,9 @@ func test_ARCH_001a_dummy_story_host_shares_the_green_zone_world() -> void:
 				sources[dir.path_join(f)] = FileAccess.get_file_as_string(dir.path_join(f))
 	assert_true(sources.has("res://entities/playable_dog/playable_dog.gd") and sources.size() > 20, "runtime scripts scanned (%d)" % sources.size())
 	assert_eq(_duplicate_player_controllers(sources), PackedStringArray(), "no duplicate playable/input movement controller")
+	# Positive control on real code: PlayableDog's own source under another path is caught.
+	var copy := {"res://entities/copy_of_playable_dog.gd": sources["res://entities/playable_dog/playable_dog.gd"]}
+	assert_eq(_duplicate_player_controllers(copy), PackedStringArray(["res://entities/copy_of_playable_dog.gd: both playable-controller methods outside an ActorBody controller"]), "a copy of PlayableDog's controller is flagged")
 	# Cleanup: freeing the host frees its world and dog.
 	var dog := sw.player
 	tree.root.remove_child(host)

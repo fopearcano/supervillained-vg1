@@ -1,0 +1,45 @@
+
+> supervillained@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.8 building client environment for production...
+transforming...
+✓ 883 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                     2.27 kB │ gzip:   0.93 kB
+dist/assets/pees-drop-CPgIq-Jw.mp3                                  5.07 kB
+dist/assets/laser-eyes-Cfz7RAxN.mp3                                 5.77 kB
+dist/assets/Youve_Been_Supervillained_Logo-DRg0q4zl.png             6.83 kB
+dist/assets/cat-meow-ClkHQyU2.mp3                                  11.37 kB
+dist/assets/PressStart2P-_wFEWmAB.woff2                            12.51 kB
+dist/assets/food-collect-BHm2Oo25.mp3                              16.19 kB
+dist/assets/poos-W8wSketA.mp3                                      22.96 kB
+dist/assets/ball-CYO6PmLl.mp3                                      25.67 kB
+dist/assets/dog-bark-ChJiIwZE.mp3                                  31.81 kB
+dist/assets/water-CsvH90Nt.mp3                                     40.43 kB
+dist/assets/siren-BG8wLZrr.mp3                                     48.33 kB
+dist/assets/cash-after-cat-D9XYSQ__.mp3                            74.74 kB
+dist/assets/alarm-greenzone-under-attack-BprRsYvO.mp3              86.20 kB
+dist/assets/pees-collect-D29IyNuj.wav                             359.26 kB
+dist/assets/intro-music-LaeCA0yo.mp3                            1,005.70 kB
+dist/assets/Zampano-Samemala-3-C21SGbek.webp                    2,332.18 kB
+dist/assets/greenzone-music-BsowRbgE.mp3                        2,711.27 kB
+dist/assets/Level-3_HM-Plenty-Good-Lovin-cjJ3aUFa.mp3           5,786.04 kB
+dist/assets/Level-4_CRI-Brother-Sister-(RM-Remix)-DPMnSQar.mp3  6,371.18 kB
+dist/assets/Level-2_SLY-Disco-Weapon-dotc9LTb.mp3               6,614.89 kB
+dist/assets/webworkerAll-qZNBTQQj.js                                0.05 kB │ gzip:   0.06 kB
+dist/assets/getTextureBatchBindGroup-CYJYEYS-.js                    0.34 kB │ gzip:   0.26 kB
+dist/assets/Cache-U0M91mJh.js                                       1.10 kB │ gzip:   0.55 kB
+dist/assets/canvasUtils-UtWJHL0z.js                                 6.27 kB │ gzip:   2.10 kB
+dist/assets/getTexelRangeRects-DAX_3Ohr.js                         11.52 kB │ gzip:   3.03 kB
+dist/assets/init-BBXz_-JK.js                                       15.21 kB │ gzip:   4.78 kB
+dist/assets/GCManagedHash-BLEz-DYK.js                              19.43 kB │ gzip:   6.30 kB
+dist/assets/Filter-DfhFkXDT.js                                     42.57 kB │ gzip:  12.15 kB
+dist/assets/browserAll-CIfB5wQY.js                                 43.68 kB │ gzip:  11.30 kB
+dist/assets/RenderTargetSystem-dopv-y6R.js                         60.00 kB │ gzip:  16.84 kB
+dist/assets/GraphicsContext-4CRmqwZd.js                            62.31 kB │ gzip:  20.81 kB
+dist/assets/CanvasPool-DQfdQT7C.js                                 75.18 kB │ gzip:  24.46 kB
+dist/assets/index-Cr99JP5P.js                                     740.98 kB │ gzip: 239.31 kB
+
+✓ built in 317ms
