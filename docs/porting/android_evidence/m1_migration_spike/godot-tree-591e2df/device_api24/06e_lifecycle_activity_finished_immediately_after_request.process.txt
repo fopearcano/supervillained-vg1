@@ -1,0 +1,5 @@
+11-24 09:56:28.204  1639  1650 I ActivityManager: START u0 {flg=0x10000000 cmp=com.zampano.supervillained/com.godot.game.GodotAppLauncher} from uid 2000 on display 0
+11-24 09:56:28.218  1639  3633 I ActivityManager: Start proc 11615:com.zampano.supervillained/u0a93 for activity com.zampano.supervillained/com.godot.game.GodotAppLauncher
+11-24 09:56:28.872  1639  1660 I ActivityManager: Displayed com.zampano.supervillained/com.godot.game.GodotAppLauncher: +665ms
+11-24 09:56:31.290  1639  3636 I ActivityManager: Process com.zampano.supervillained (pid 11615) has died
+pidof after the wait: ''

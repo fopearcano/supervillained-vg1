@@ -1,0 +1,3 @@
+11-24 09:53:00.100   538   568 I ActivityManager: Start proc 18550:com.zampano.supervillained/u0a207 for next-top-activity {com.zampano.supervillained/com.godot.game.GodotAppLauncher}
+11-24 09:53:04.139   538  2726 I ActivityManager: Process com.zampano.supervillained (pid 18550) has died: fg  TOP
+pidof after the wait: ''

@@ -1,0 +1,262 @@
+{
+  "expect_status": "success",
+  "ok": true,
+  "checks": [
+    {
+      "name": "two attempts reassembled",
+      "ok": true,
+      "detail": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "name": "attempt 1: status success",
+      "ok": true,
+      "detail": {
+        "status": "success",
+        "error": null
+      }
+    },
+    {
+      "name": "attempt 1: verified origin https://localhost",
+      "ok": true,
+      "detail": "https://localhost"
+    },
+    {
+      "name": "attempt 1: settings present",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: settings raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "bcdce14982bb6f0bc3a35cf348252689a9f3e66a1523e185c1b4822d0c895427",
+        "got_sha256": "bcdce14982bb6f0bc3a35cf348252689a9f3e66a1523e185c1b4822d0c895427"
+      }
+    },
+    {
+      "name": "attempt 1: settings no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: records present",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: records raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "00b8ac69b590194adaeaac22c9652ee2a00bf38248525f6e5ce160758c0aa308",
+        "got_sha256": "00b8ac69b590194adaeaac22c9652ee2a00bf38248525f6e5ce160758c0aa308"
+      }
+    },
+    {
+      "name": "attempt 1: records no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: coins present",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: coins raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049",
+        "got_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+      }
+    },
+    {
+      "name": "attempt 1: coins no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: story present",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: story raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "6e7b6d6e1106308ca653b25b656b67bec6c3b33df8d35c3d41cca60e84f75f5d",
+        "got_sha256": "6e7b6d6e1106308ca653b25b656b67bec6c3b33df8d35c3d41cca60e84f75f5d"
+      }
+    },
+    {
+      "name": "attempt 1: story no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: story-v1-backup present",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: story-v1-backup raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "54677975bfe04a490900b5cb8d8c6b54fb815a8b19be074b4ea784093851b084",
+        "got_sha256": "54677975bfe04a490900b5cb8d8c6b54fb815a8b19be074b4ea784093851b084"
+      }
+    },
+    {
+      "name": "attempt 1: story-v1-backup no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: settings harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: records harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: coins harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: story harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: story-v1-backup harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: status success",
+      "ok": true,
+      "detail": {
+        "status": "success",
+        "error": null
+      }
+    },
+    {
+      "name": "attempt 2: verified origin https://localhost",
+      "ok": true,
+      "detail": "https://localhost"
+    },
+    {
+      "name": "attempt 2: settings present",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: settings raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "bcdce14982bb6f0bc3a35cf348252689a9f3e66a1523e185c1b4822d0c895427",
+        "got_sha256": "bcdce14982bb6f0bc3a35cf348252689a9f3e66a1523e185c1b4822d0c895427"
+      }
+    },
+    {
+      "name": "attempt 2: settings no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: records present",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: records raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "00b8ac69b590194adaeaac22c9652ee2a00bf38248525f6e5ce160758c0aa308",
+        "got_sha256": "00b8ac69b590194adaeaac22c9652ee2a00bf38248525f6e5ce160758c0aa308"
+      }
+    },
+    {
+      "name": "attempt 2: records no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: coins present",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: coins raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049",
+        "got_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+      }
+    },
+    {
+      "name": "attempt 2: coins no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: story present",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: story raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "6e7b6d6e1106308ca653b25b656b67bec6c3b33df8d35c3d41cca60e84f75f5d",
+        "got_sha256": "6e7b6d6e1106308ca653b25b656b67bec6c3b33df8d35c3d41cca60e84f75f5d"
+      }
+    },
+    {
+      "name": "attempt 2: story no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: story-v1-backup present",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: story-v1-backup raw value identical",
+      "ok": true,
+      "detail": {
+        "expected_sha256": "54677975bfe04a490900b5cb8d8c6b54fb815a8b19be074b4ea784093851b084",
+        "got_sha256": "54677975bfe04a490900b5cb8d8c6b54fb815a8b19be074b4ea784093851b084"
+      }
+    },
+    {
+      "name": "attempt 2: story-v1-backup no error",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: settings harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: records harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: coins harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: story harness sha256",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: story-v1-backup harness sha256",
+      "ok": true
+    },
+    {
+      "name": "in-process repeated read identical",
+      "ok": true
+    },
+    {
+      "name": "no harness log line truncated (all under 1023 characters)",
+      "ok": true,
+      "detail": 621
+    },
+    {
+      "name": "harness idempotence line",
+      "ok": true
+    },
+    {
+      "name": "harness done status",
+      "ok": true,
+      "detail": {
+        "error": null,
+        "identical_reads": true,
+        "status": "success"
+      }
+    }
+  ]
+}

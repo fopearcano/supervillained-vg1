@@ -48,10 +48,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * Safe from minSdk 24: WebView.getCurrentWebViewPackage() (API 26) is only called on API 26+,
  * and every diagnostic is gathered behind a Throwable guard so it can never stop the raw read
- * result from being emitted. One read is active at a time; its WebView, timeout and generation
- * are fields, so Activity destruction or Godot termination cancels the timeout and destroys the
- * WebView on the UI thread, and every late page, interception or evaluateJavascript callback of
- * a finished or cancelled generation is ignored (nothing is emitted for a cancelled read).
+ * result from being emitted.
+ *
+ * Lifecycle: one read at a time. Its generation is reserved on the caller's thread before start()
+ * is posted to the UI thread (pending), and stays reserved while its WebView runs (active).
+ * Activity destruction or Godot termination marks the plugin terminated, bumps the lifecycle
+ * epoch and clears the reservation, which invalidates a pending start and an active read alike;
+ * the timeout and WebView of an active read are then destroyed on the UI thread. start() creates
+ * no WebView for a stale epoch, an invalidated generation, a terminated plugin or a finishing or
+ * destroyed Activity, and every late page, interception or evaluateJavascript callback of a
+ * finished or cancelled generation is ignored: nothing is emitted for a cancelled read. The spike
+ * treats termination as final for the plugin instance (its single Activity does not come back).
  */
 public class MigrationSpikePlugin extends GodotPlugin {
 	private static final String TAG = "SvMigrationSpike";
@@ -64,6 +71,8 @@ public class MigrationSpikePlugin extends GodotPlugin {
 	static final long TIMEOUT_MS = 20000;
 	/** Development-only lifecycle test: the page response is held this long, so the read stays active. */
 	static final long LIFECYCLE_HOLD_MS = 20000;
+	/** Development-only lifecycle test: start() is posted this much later, so termination lands while it is still queued. */
+	static final long LIFECYCLE_QUEUE_DELAY_MS = 5000;
 
 	private static final String PAGE = "<!doctype html><html><head><meta charset=\"utf-8\"><title>m1</title></head><body></body></html>";
 	/** Read-only: getItem on the five prefixed keys, nothing else (plus navigator.userAgent). */
@@ -78,13 +87,24 @@ public class MigrationSpikePlugin extends GodotPlugin {
 
 	private final Handler handler = new Handler(Looper.getMainLooper());
 	private final AtomicInteger attempts = new AtomicInteger(0);
-	/** Generation of the active read, 0 when none; read by the WebView's interception thread. */
+	private final AtomicInteger generationCounter = new AtomicInteger(0);
+	/**
+	 * The reserved read's generation, 0 when idle: set on the caller's thread before start() is
+	 * posted (pending), kept while its WebView runs (active), cleared by completion or by lifecycle
+	 * termination. Read by the UI, interception and caller threads.
+	 */
 	private final AtomicInteger liveGeneration = new AtomicInteger(0);
+	/** Bumped by every lifecycle termination: a start() queued in an older epoch is stale. */
+	private final AtomicInteger lifecycleEpoch = new AtomicInteger(0);
+	/** Set (before the epoch is bumped) by Activity destruction or Godot termination: no read starts afterwards. */
+	private volatile boolean terminated = false;
 	// Active-read state: UI thread only.
-	private int generationCounter = 0;
 	private WebView activeWebView = null;
 	private Runnable activeTimeout = null;
 	private int activeAttempt = 0;
+	private int activeGeneration = 0;
+	/** The last generation whose start() passed its guard (a WebView was created for it); UI thread only. */
+	private int startedGeneration = 0;
 
 	public MigrationSpikePlugin(Godot godot) {
 		super(godot);
@@ -105,7 +125,7 @@ public class MigrationSpikePlugin extends GodotPlugin {
 	/** Starts one read; the result arrives as legacy_read_completed(json). */
 	@UsedByGodot
 	public void readLegacyStore() {
-		request(0);
+		request(0, 0);
 	}
 
 	/**
@@ -114,12 +134,22 @@ public class MigrationSpikePlugin extends GodotPlugin {
 	 */
 	@UsedByGodot
 	public void readLegacyStoreHeldForLifecycleTest() {
-		request(LIFECYCLE_HOLD_MS);
+		request(LIFECYCLE_HOLD_MS, 0);
+	}
+
+	/**
+	 * Development-only (lifecycle test): the same read (the generation is reserved exactly as by
+	 * readLegacyStore), but start() is posted LIFECYCLE_QUEUE_DELAY_MS later, so a termination
+	 * requested right after it lands while the start is still queued.
+	 */
+	@UsedByGodot
+	public void readLegacyStoreQueuedForLifecycleTest() {
+		request(0, LIFECYCLE_QUEUE_DELAY_MS);
 	}
 
 	/**
 	 * Development-only (lifecycle test): finishes the host Activity, so its real onDestroy (and
-	 * this plugin's onMainDestroy) runs while a held read is active.
+	 * this plugin's onMainDestroy) runs while a read is pending or active.
 	 */
 	@UsedByGodot
 	public void finishActivityForLifecycleTest() {
@@ -141,27 +171,49 @@ public class MigrationSpikePlugin extends GodotPlugin {
 		super.onGodotTerminating();
 	}
 
-	private void request(final long holdMs) {
+	/** Caller's thread: reserves a generation (or reports busy), then posts start() to the UI thread. */
+	private void request(final long holdMs, final long queueDelayMs) {
 		final int attempt = attempts.incrementAndGet();
+		// The epoch is read before `terminated`: a termination after this read changes the epoch,
+		// one before it is seen as `terminated` (it is set before the epoch is bumped).
+		final int epoch = lifecycleEpoch.get();
+		if (terminated) {
+			safeLog("attempt " + attempt + ": refused after termination (epoch " + epoch + "); no WebView created, nothing emitted");
+			return;
+		}
 		final Activity activity = getActivity();
 		if (activity == null) {
 			emit(attempt, failure(attempt, "no_activity", null, null));
 			return;
 		}
-		activity.runOnUiThread(() -> start(activity, attempt, holdMs));
-	}
-
-	/** UI thread. */
-	private void start(final Activity activity, final int attempt, final long holdMs) {
-		if (liveGeneration.get() != 0) {
+		final int gen = generationCounter.incrementAndGet();
+		if (!liveGeneration.compareAndSet(0, gen)) {
 			emit(attempt, failure(attempt, "busy", null, null));
 			return;
 		}
-		final int gen = ++generationCounter;
-		liveGeneration.set(gen);
+		safeLog("attempt " + attempt + ": reserved generation " + gen + " (epoch " + epoch + ") on thread " + threadName()
+				+ "; start queued on the UI thread" + (queueDelayMs > 0 ? " in " + queueDelayMs + " ms (lifecycle test)" : ""));
+		final Runnable start = () -> start(activity, attempt, gen, epoch, holdMs);
+		if (queueDelayMs > 0) {
+			handler.postDelayed(start, queueDelayMs);
+		} else {
+			handler.post(start);
+		}
+	}
+
+	/** UI thread. Creates no WebView (and emits nothing) for a stale or invalidated request. */
+	private void start(final Activity activity, final int attempt, final int gen, final int epoch, final long holdMs) {
+		final String stale = staleReason(activity, gen, epoch);
+		if (stale != null) {
+			liveGeneration.compareAndSet(gen, 0);
+			safeLog("discarded queued start of attempt " + attempt + " (generation " + gen + "): " + stale + "; no WebView created, nothing emitted");
+			return;
+		}
+		startedGeneration = gen;
+		activeGeneration = gen;
 		activeAttempt = attempt;
 		final JSONObject diag = diagnostics(activity, holdMs);
-		safeLog("attempt " + attempt + " (generation " + gen + "): loading " + PAGE_URL + " diag=" + diag);
+		safeLog("attempt " + attempt + " (generation " + gen + "): creating the WebView, loading " + PAGE_URL + " diag=" + diag);
 		activeTimeout = () -> finish(gen, attempt, failure(attempt, "timeout", diag, null));
 		try {
 			final WebView wv = new WebView(activity);
@@ -214,9 +266,26 @@ public class MigrationSpikePlugin extends GodotPlugin {
 		}
 	}
 
+	/** UI thread: why a queued start must not create a WebView, or null when it may. */
+	private String staleReason(Activity activity, int gen, int epoch) {
+		StringBuilder b = new StringBuilder();
+		if (terminated) b.append("plugin terminated");
+		int now = lifecycleEpoch.get();
+		if (now != epoch) b.append(b.length() == 0 ? "" : ", ").append("stale epoch ").append(epoch).append(" (now ").append(now).append(')');
+		int live = liveGeneration.get();
+		if (live != gen) b.append(b.length() == 0 ? "" : ", ").append("generation invalidated (reserved: ").append(live).append(')');
+		try {
+			if (activity.isFinishing()) b.append(b.length() == 0 ? "" : ", ").append("Activity finishing");
+			if (activity.isDestroyed()) b.append(b.length() == 0 ? "" : ", ").append("Activity destroyed");
+		} catch (Throwable t) {
+			b.append(b.length() == 0 ? "" : ", ").append("Activity state unavailable: ").append(t);
+		}
+		return b.length() == 0 ? null : b.toString();
+	}
+
 	/** UI thread: ends generation `gen` once (later calls are ignored) and emits its result. */
 	private void finish(int gen, int attempt, JSONObject result) {
-		if (liveGeneration.get() != gen) {
+		if (!liveGeneration.compareAndSet(gen, 0)) {
 			safeLog("ignored late completion of generation " + gen);
 			return;
 		}
@@ -226,7 +295,8 @@ public class MigrationSpikePlugin extends GodotPlugin {
 
 	/** UI thread: cancels the timeout and destroys the WebView of the active read, if any. */
 	private void teardown(String reason) {
-		int gen = liveGeneration.getAndSet(0);
+		int gen = activeGeneration;
+		activeGeneration = 0;
 		if (activeTimeout != null) handler.removeCallbacks(activeTimeout);
 		activeTimeout = null;
 		WebView wv = activeWebView;
@@ -241,24 +311,37 @@ public class MigrationSpikePlugin extends GodotPlugin {
 				safeLog("teardown: " + t);
 			}
 		}
-		safeLog("teardown of generation " + gen + " (" + reason + "): timeout cancelled, WebView destroyed on thread " + Thread.currentThread().getName());
+		safeLog("teardown of generation " + gen + " (" + reason + "): timeout cancelled, WebView destroyed on thread " + threadName());
 	}
 
-	/** Activity or Godot termination: cancel on the UI thread, emit nothing. */
+	/**
+	 * Activity or Godot termination, on whichever thread delivers it: marks the plugin terminated,
+	 * bumps the epoch and clears the reserved generation at once (a queued start is now stale), then
+	 * destroys an active read's timeout and WebView on the UI thread. Emits nothing.
+	 */
 	private void cancelForLifecycle(final String reason) {
-		Runnable r = () -> {
-			int gen = liveGeneration.get();
-			if (gen == 0) {
-				safeLog(reason + ": no active read");
-				return;
+		terminated = true;
+		final int epoch = lifecycleEpoch.incrementAndGet();
+		final int gen = liveGeneration.getAndSet(0);
+		safeLog(reason + " on thread " + threadName() + ": epoch " + epoch
+				+ (gen == 0 ? ", no reserved generation" : ", invalidated reserved generation " + gen));
+		// UI thread: whatever is still active is torn down here, whichever termination invalidated it.
+		Runnable ui = () -> {
+			if (activeWebView != null || activeTimeout != null) {
+				int g = activeGeneration;
+				int a = activeAttempt;
+				teardown("lifecycle " + reason);
+				safeLog(reason + ": cancelled active read attempt " + a + " (generation " + g + "); no result emitted");
+			} else if (gen != 0 && gen > startedGeneration) {
+				safeLog(reason + ": generation " + gen + " was still queued (no WebView); its start is discarded, nothing emitted");
+			} else if (gen != 0) {
+				safeLog(reason + ": generation " + gen + " was already torn down; nothing emitted");
 			}
-			teardown("lifecycle " + reason);
-			safeLog(reason + ": cancelled active read attempt " + activeAttempt + " (generation " + gen + "); no result emitted");
 		};
 		if (Looper.myLooper() == Looper.getMainLooper()) {
-			r.run();
+			ui.run();
 		} else {
-			handler.post(r);
+			handler.post(ui);
 		}
 	}
 
@@ -300,6 +383,7 @@ public class MigrationSpikePlugin extends GodotPlugin {
 			}
 			out.put("keys", outKeys);
 			out.put("present_count", present);
+			// A per-key error makes the whole read an error: success and not_found carry only null key errors.
 			out.put("status", errors > 0 ? "error" : (present == 0 ? "not_found" : "success"));
 			if (errors > 0) out.put("error", "key_read_error");
 			safeLog("attempt " + attempt + ": status=" + out.getString("status") + " origin=" + origin + " present=" + present);
@@ -408,6 +492,14 @@ public class MigrationSpikePlugin extends GodotPlugin {
 			return f.format(new Date());
 		} catch (Throwable t) {
 			return "";
+		}
+	}
+
+	private static String threadName() {
+		try {
+			return Thread.currentThread().getName();
+		} catch (Throwable t) {
+			return "?";
 		}
 	}
 

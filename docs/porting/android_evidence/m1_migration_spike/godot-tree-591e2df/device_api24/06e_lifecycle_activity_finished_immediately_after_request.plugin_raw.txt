@@ -1,0 +1,7 @@
+--------- beginning of main
+--------- beginning of system
+attempt 1: reserved generation 1 (epoch 0) on thread GLThread 401; start queued on the UI thread in 5000 ms (lifecycle test)
+lifecycle test: finishing the Activity
+godot_terminating on thread GLThread 401: epoch 1, invalidated reserved generation 1
+activity_destroy on thread main: epoch 2, no reserved generation
+godot_terminating: generation 1 was still queued (no WebView); its start is discarded, nothing emitted

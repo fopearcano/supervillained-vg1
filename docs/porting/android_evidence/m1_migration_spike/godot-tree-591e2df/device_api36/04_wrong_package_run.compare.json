@@ -1,0 +1,152 @@
+{
+  "expect_status": "not_found",
+  "ok": true,
+  "checks": [
+    {
+      "name": "two attempts reassembled",
+      "ok": true,
+      "detail": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "name": "attempt 1: status not_found",
+      "ok": true,
+      "detail": {
+        "status": "not_found",
+        "error": null
+      }
+    },
+    {
+      "name": "attempt 1: verified origin https://localhost",
+      "ok": true,
+      "detail": "https://localhost"
+    },
+    {
+      "name": "attempt 1: settings absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: settings no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 1: records absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: records no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 1: coins absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: coins no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 1: story absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: story no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 1: story-v1-backup absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 1: story-v1-backup no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 2: status not_found",
+      "ok": true,
+      "detail": {
+        "status": "not_found",
+        "error": null
+      }
+    },
+    {
+      "name": "attempt 2: verified origin https://localhost",
+      "ok": true,
+      "detail": "https://localhost"
+    },
+    {
+      "name": "attempt 2: settings absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: settings no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 2: records absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: records no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 2: coins absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: coins no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 2: story absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: story no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attempt 2: story-v1-backup absent",
+      "ok": true
+    },
+    {
+      "name": "attempt 2: story-v1-backup no error",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "in-process repeated read identical",
+      "ok": true
+    },
+    {
+      "name": "no harness log line truncated (all under 1023 characters)",
+      "ok": true,
+      "detail": 621
+    },
+    {
+      "name": "harness idempotence line",
+      "ok": true
+    },
+    {
+      "name": "harness done status",
+      "ok": true,
+      "detail": {
+        "error": null,
+        "identical_reads": true,
+        "status": "not_found"
+      }
+    }
+  ]
+}

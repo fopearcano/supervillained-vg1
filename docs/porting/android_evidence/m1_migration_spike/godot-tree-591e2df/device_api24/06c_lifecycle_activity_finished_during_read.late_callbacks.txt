@@ -1,0 +1,3 @@
+ignored late page request of generation 1
+activity_destroy on thread main: epoch 2, no reserved generation
+godot_terminating: generation 1 was already torn down; nothing emitted

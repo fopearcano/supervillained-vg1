@@ -17,7 +17,7 @@ Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCE
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. The M1 Android
 migration-plugin feasibility spike has been executed on emulators (progress report 14, hardened and
-rerun on three Android versions in correction report 15; decision
+rerun on three Android versions in correction reports 15 and 16; decision
 `native_bridge_viable_for_controlled_lineage`, pending architect review; see "Legacy-save plan"
 below); M1 stays Partial for its manual checks.
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
@@ -35,7 +35,7 @@ renderer-backed probe for rendered clauses, of which none is accepted yet), or o
 architect-accepted command evidence (AST-019 and CORE-001, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `cd87171`, 138 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
+**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `591e2df`, 138 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
 CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-005a, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
@@ -92,8 +92,8 @@ did not change between the two trees). CORE-001, **counted as satisfied** (accep
 architect on review of `46d7ad9`): the clean import (exit 0, no ERROR/WARNING line) and the 600-frame
 headless Main launch (exit 0, engine banner only) on a fresh Windows 11 clone of the current tree
 (`godot/` `9bbe179`, correction report 12, `windows_evidence/correction-12-godot-tree-9bbe179/`
-`step_b_import.txt` and `step_d_main_600_frames.txt`; the current tree `cd87171` passed the same
-two steps in correction report 15, `android_evidence/m1_migration_spike/godot-tree-cd87171/host_checks/`); the clean Ubuntu 26.04 clone of the prior tree
+`step_b_import.txt` and `step_d_main_600_frames.txt`; the current tree `591e2df` passed the same
+two steps in correction report 16, `android_evidence/m1_migration_spike/godot-tree-591e2df/host_checks/`); the clean Ubuntu 26.04 clone of the prior tree
 `d12bedd` (`linux_evidence/d12bedd/`) is supplemental support. **Rendered interpolation probe,
 supplemental only** (it satisfies no rendered clause; the architect's review of `f580fa4` requires
 the checks listed in TEST_PLAN.md before a probe can): `tools/interpolation_probe.gd` with
@@ -101,14 +101,15 @@ the checks listed in TEST_PLAN.md before a probe can): `tools/interpolation_prob
 30.0 / 60.0 / 90.0 / 119.4 FPS achieved, 0 repeated frames, no step beyond two frames' worth, the teleport shown at once; the interpolation-off control showed 21 repeated frames at 120 FPS; the two static markers stayed 40 px apart under the moving camera at 90 and 120 FPS (`windows_evidence/correction-12-godot-tree-9bbe179/`); the architect's independent run
 on `1532143` passed at 30/60/90/120 FPS.
 
-**Host verification.** *Current tree* (`godot/` tree `cd8717124f23ef03e16ebb0e71a1d73ba628e39d`, correction report 15: the
-`ef6c318` tree with the hermetic PCK smoke (`tests/`) and the hardened M1 spike under
+**Host verification.** *Current tree* (`godot/` tree `591e2df2f1826de798024d9b0f237afe07eea6da`, correction report 16: the
+`cd87171` tree with the M1 spike's pre-start lifecycle fix and stricter result validation under
 `platform/android/`, which the project ignores through `.gdignore`): a fresh Windows 11 25H2 clone
 (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0, pinned Chromium) passed the asset check
 (206 + 55 outputs identical), the clean import, the suite **138 passed, 0 failed**, the 600-frame
 Main run, the hermetic PCK smoke (254 runtime resources, 512 packed files, 32,905,976 bytes), the
-spike harness self-test, the PixiJS baseline (248 tests, build OK), `git diff --check` and the
-source-tree guard (`android_evidence/m1_migration_spike/godot-tree-cd87171/host_checks/`). *Previous Windows trees*: `ef6c318` (progress report 14,
+spike harness and tool self-tests, the PixiJS baseline (248 tests, build OK), `git diff --check` and the
+source-tree guard (`android_evidence/m1_migration_spike/godot-tree-591e2df/host_checks/`). *Previous Windows trees*: `cd87171` (correction report 15,
+**138 passed**, `android_evidence/m1_migration_spike/godot-tree-cd87171/host_checks/`), `ef6c318` (progress report 14,
 **138 passed**, `android_evidence/m1_migration_spike/godot-tree-ef6c318/host_checks/`), `9bbe179` (correction report 12,
 **138 passed**, with the focused ARCH-001a and DOG-008a restart cases, the supplemental rendered
 probe and the live audio probe, `windows_evidence/correction-12-godot-tree-9bbe179/`), `a06b1df`
@@ -120,16 +121,16 @@ probe and the live audio probe, `windows_evidence/correction-12-godot-tree-9bbe1
 `windows_evidence/correction-7-godot-tree-b8535ab/`) and `81906cd` /
 `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, **134 passed**,
 `windows_evidence/correction-6-godot-tree-fd20ac1/`). **Correction 6 was not rerun on Linux, and
-neither were correction 7's addendum, corrections 8, 9, 10, 11 and 12, progress report 14 and correction report 15.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
+neither were correction 7's addendum, corrections 8, 9, 10, 11 and 12, progress report 14 and correction reports 15 and 16.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
 asset check, clean import, suite **128 passed, 0 failed**, 600-frame run and empty `git status`
 (`linux_evidence/d12bedd/`), and Windows additionally ran the rendered probe at 30/60/90/120 FPS
 with VSync off (`windows_evidence/d12bedd/`). Earlier Windows evidence for `a0e3b8d` is kept in
 `windows_evidence/a0e3b8d/`. Windows is a development host only; the D-15 Windows CI workflow stays
 a proposal. *Android (M1 spike only)*: three emulators ran the spike's controlled upgrade test in
-correction report 15 (`android_evidence/m1_migration_spike/godot-tree-cd87171/`): `sv_m1_api36` (Android 16 / API 36, WebView 133.0.6943.137) and
-`sv_m1_api34` (Android 14 / API 34, WebView 113.0.5672.136), 43/43 checks each, and `sv_m1_api24`
-(Android 7.0 / API 24, WebView provider Chrome 69.0.3497.100), 42/42 (progress report 14: the
-first two, 30/30 each); the game itself has not run on them.
+correction report 16 (`android_evidence/m1_migration_spike/godot-tree-591e2df/`): `sv_m1_api36` (Android 16 / API 36, WebView 133.0.6943.137) and
+`sv_m1_api34` (Android 14 / API 34, WebView 113.0.5672.136), 55/55 and 55/55 checks, and `sv_m1_api24`
+(Android 7.0 / API 24, WebView provider Chrome 69.0.3497.100), 54/54 (correction report 15: 43/43,
+43/43 and 42/42; progress report 14: the first two, 30/30 each); the game itself has not run on them.
 
 **Export evidence (SLICE, no plan ID):** the Android preset exports as a PCK with the test binary and
 runs as a packed runtime with an empty isolated `--path`, so no checkout file can answer a `res://`
@@ -152,8 +153,8 @@ play sessions, occlusion and camera-edge inspection, crisp rendering at two size
 non-integer aspect, animation preview, listening to the audio, approval of the title images).
 
 **Legacy-save plan (approved: MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3):**
-1. **M1 — feasibility spike: executed (progress report 14; hardened and rerun in correction report
-   15), pending architect review.** A throwaway
+1. **M1 — feasibility spike: executed (progress report 14; hardened and rerun in correction reports
+   15 and 16), pending architect review.** A throwaway
    native migration plugin under `/godot/platform/android/` (`m1_migration_spike/`, ignored by the
    project through `.gdignore`), tested on a controlled same-package/same-signature old→new APK
    lineage with a throwaway test key: the old Capacitor APK (versionCode 1, built from a clean clone)
@@ -163,16 +164,20 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
    Negative cases: a different signing key cannot update the old app
    (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`), a different package id and a fresh install report
    `not_found`. Termination during an active read (Godot quitting, the Activity finishing) cancels the
-   read on the UI thread and emits nothing, and the next run still reads identical values. Run on
+   read on the UI thread and emits nothing; termination in the same frame as a request whose start
+   is still queued invalidates it before any WebView exists, and nothing is emitted; the next run
+   still reads identical values. A success or not_found result with a non-null per-key error is an
+   error. Run on
    emulators `sv_m1_api36` (adb serial `emulator-5554`, Android 16 / API 36, Google WebView
    133.0.6943.137) and `sv_m1_api34` (`emulator-5556`, Android 14 / API 34, WebView 113.0.5672.136),
-   43/43 checks each, and `sv_m1_api24` (`emulator-5558`, Android 7.0 / API 24, WebView provider
+   55/55 and 55/55 checks, and `sv_m1_api24` (`emulator-5558`, Android 7.0 / API 24, WebView provider
    Chrome 69.0.3497.100; the old game's bundle cannot boot there, so its five strings were written in
-   the old app's page), 42/42 (correction report 15; progress report 14 ran the first two). The
+   the old app's page), 54/54 (correction report 16; correction report 15 ran the earlier checks on all
+   three, progress report 14 on the first two). The
    native-bridge versus staged-Capacitor decision is written:
    `native_bridge_viable_for_controlled_lineage` (same package and certificate, Capacitor's default
    WebView profile and origin `https://localhost`; emulators, test key and seeded values only), in
-   `android_evidence/m1_migration_spike/godot-tree-cd87171/DECISION.md`.
+   `android_evidence/m1_migration_spike/godot-tree-591e2df/DECISION.md`; it is not a production approval.
 2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
    MIG-005 (the raw five-key payload written exactly with timestamp and SHA-256 before any parsing;
    backup, write and read-back failure tests). The pure v1→v2 rules, SAV-013–017, are ported now.
@@ -181,11 +186,11 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the current tree (correction report 15, `godot/` `cd87171`; accepted on correction report 12, `9bbe179`); supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
+| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the current tree (correction report 16, `godot/` `591e2df`; accepted on correction report 12, `9bbe179`); supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
 | Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004 (`test_P_VIEW_004`); underlay/letterbox SLICE case; 4 viewport captures; supplemental rendered probe on llvmpipe and a real RTX 3090 | VIEW-004 rendered clauses open (no accepted renderer-backed probe); device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | not run on a device or the emulator yet |
-| Native Android build | — | SLICE: Android-preset PCK export + packed-runtime startup; M1 spike APKs only (gradle build, debug, the spike harness as main scene), built and installed on emulators (progress report 14; API 36, 34 and 24 in correction report 15) | the game's own APK not exported, installed or run yet |
+| Native Android build | — | SLICE: Android-preset PCK export + packed-runtime startup; M1 spike APKs only (gradle build, debug, the spike harness as main scene), built and installed on emulators (progress report 14; API 36, 34 and 24 in correction reports 15 and 16) | the game's own APK not exported, installed or run yet |
 | 2:1 projection | Slice | ISO-001–004 | 64-bit math (F-03) |
 | Screen-space movement semantics | Slice | ISO-004, MOVE-001 | — |
 | Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
@@ -226,7 +231,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 | Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
 | Synthesized audio | Slice | AUD-005–008 (14 cues + medieval loop as source-rendered PCM WAV) | chapter routing (M5–M8) |
 | Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022 (future main/temp/backup); P: SAV-021; SLICE: a valid older main becomes the backup on temp recovery; SLICE: failed future copies reported as `future_copy_failed:<file>` with writes still blocked | user-visible notice, campaign schema (D-11) |
-| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction report 15; pending review); format-3 converter, SaveService integration and fixture/simulated MIG-005 M4; production lineage, two WebView/device versions and MIG-001–010 proof M9 |
+| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15 and 16; pending review); format-3 converter, SaveService integration and fixture/simulated MIG-005 M4; production lineage, two WebView/device versions and MIG-001–010 proof M9 |
 | Everything else in this matrix | — | — | later milestones |
 
 ## 1. Platform and runtime

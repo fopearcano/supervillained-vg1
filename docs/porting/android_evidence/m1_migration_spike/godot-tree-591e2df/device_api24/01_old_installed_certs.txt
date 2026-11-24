@@ -1,0 +1,4 @@
+Signer #1 certificate DN: CN=SV M1 spike controlled lineage (test only), O=test
+Signer #1 certificate SHA-256 digest: 034b187e0b72e1567af589678c888f03dd48e58d4a920a13e9a08ace512d2191
+Signer #1 certificate SHA-1 digest: 6a11c9094a3ecdda9f9090918ce59704e854518d
+Signer #1 certificate MD5 digest: 7ff7af64895db89e7815dd219a0cf9a1

@@ -13,33 +13,44 @@ extends Node
 ##   M1_SPIKE_IDEMPOTENT {"identical": bool, ...}
 ##   M1_SPIKE_DONE {"status": "success" | "not_found" | "error", ...}   (exactly once)
 ## Every line stays well under 1000 characters: Godot's Android logger truncates a print at 1023.
-## A malformed, empty, non-string or wrong-shape plugin result is an error result, and a watchdog
-## guarantees one M1_SPIKE_DONE line even if a read never returns or the coroutine stops.
+## A malformed, empty, non-string or wrong-shape plugin result is an error result (a success or
+## not_found result must carry a null error for every key), and a watchdog guarantees one
+## M1_SPIKE_DONE line even if a read never returns or the coroutine stops.
 ##
-## Lifecycle test (tools/run_upgrade_test.ps1 creates and removes the marker through run-as): with
-## user://m1_lifecycle_quit.flag the harness starts a held read and quits Godot while it is active;
-## with user://m1_lifecycle_finish.flag it starts a held read and has the plugin finish the Activity
-## (its real onDestroy) while it is active. Neither prints M1_SPIKE_DONE; a result reaching
-## GDScript would print M1_SPIKE_LIFECYCLE_RESULT_RECEIVED.
+## Lifecycle tests (tools/run_upgrade_test.ps1 creates and removes the marker through run-as):
+##   user://m1_lifecycle_quit.flag      a held read, then Godot quits while it is active (after 2 s);
+##   user://m1_lifecycle_finish.flag    a held read, then the plugin finishes the Activity (its real
+##                                      onDestroy) while it is active (after 2 s);
+##   user://m1_lifecycle_immediate_quit.flag / _immediate_finish.flag
+##                                      a queued read (its start is posted 5 s later), then Godot
+##                                      quits / the Activity is finished in the same frame, without
+##                                      waiting: the termination lands while the start is pending.
+## None prints M1_SPIKE_DONE; a result reaching GDScript would print M1_SPIKE_LIFECYCLE_RESULT_RECEIVED.
 
 const PLUGIN_NAME := "SvMigrationSpike"
 const SIGNAL_NAME := "legacy_read_completed"
 const METHOD_NAME := "readLegacyStore"
 const HELD_METHOD_NAME := "readLegacyStoreHeldForLifecycleTest"
+const QUEUED_METHOD_NAME := "readLegacyStoreQueuedForLifecycleTest"
 const KEYS := ["settings", "records", "coins", "story", "story-v1-backup"]
 const STATUSES := ["success", "not_found", "error"]
 const CHUNK := 600
 const QUIT_FLAG := "user://m1_lifecycle_quit.flag"
 const FINISH_FLAG := "user://m1_lifecycle_finish.flag"
+const IMMEDIATE_QUIT_FLAG := "user://m1_lifecycle_immediate_quit.flag"
+const IMMEDIATE_FINISH_FLAG := "user://m1_lifecycle_immediate_finish.flag"
 const FINISH_METHOD_NAME := "finishActivityForLifecycleTest"
 
 ## Test hooks (harness/m1_spike_harness_selftest.gd): a fake plugin, no singleton lookup, no quit,
-## shorter waits; every printed line is also kept in `emitted`.
+## shorter waits, a lifecycle mode without a marker file and a stand-in for the lifecycle quit;
+## every printed line is also kept in `emitted`.
 var plugin_override: Object = null
 var use_singleton := true
 var quit_on_done := true
 var timeout_s := 30.0
 var watchdog_s := 150.0
+var lifecycle_mode_override := ""
+var lifecycle_quit_hook := Callable()
 var emitted: Array[String] = []
 
 var _plugin: Object = null
@@ -159,6 +170,9 @@ func _summarize(attempt: int, raw: Variant) -> Dictionary:
 		var err: Variant = (r as Dictionary).get("error", null)
 		if not present is bool or not (value == null or value is String) or not (err == null or err is String) or present != (value is String):
 			return _wrong_shape(out, "keys." + k + " fields")
+		# A per-key read error makes the read an error: success and not_found need a null error on every key.
+		if err != null:
+			return _wrong_shape(out, "keys.%s.error is not null under status %s" % [k, status])
 		if present:
 			present_count += 1
 		values[k] = value
@@ -202,25 +216,39 @@ func _print_attempt(attempt: int, raw: Variant, summary: Dictionary) -> void:
 
 
 func _lifecycle_mode() -> String:
+	if lifecycle_mode_override != "":
+		return lifecycle_mode_override
 	if FileAccess.file_exists(QUIT_FLAG):
 		return "quit_during_read"
 	if FileAccess.file_exists(FINISH_FLAG):
 		return "activity_finished_during_read"
+	if FileAccess.file_exists(IMMEDIATE_QUIT_FLAG):
+		return "quit_immediately_after_request"
+	if FileAccess.file_exists(IMMEDIATE_FINISH_FLAG):
+		return "activity_finished_immediately_after_request"
 	return ""
 
 
 func _lifecycle(mode: String) -> void:
 	_lifecycle_active = true
-	_emit("M1_SPIKE_LIFECYCLE " + JSON.stringify({"mode": mode, "method": HELD_METHOD_NAME}))
-	_plugin.call(HELD_METHOD_NAME)
-	await get_tree().create_timer(2.0).timeout
-	_emit("M1_SPIKE_LIFECYCLE_ACTIVE " + JSON.stringify({"mode": mode, "result_received": _received}))
+	var immediate := mode.ends_with("_immediately_after_request")
+	var method := QUEUED_METHOD_NAME if immediate else HELD_METHOD_NAME
+	_emit("M1_SPIKE_LIFECYCLE " + JSON.stringify({"mode": mode, "method": method}))
+	var frame := Engine.get_process_frames()
+	_plugin.call(method)
+	if not immediate:
+		await get_tree().create_timer(2.0).timeout
+		_emit("M1_SPIKE_LIFECYCLE_ACTIVE " + JSON.stringify({"mode": mode, "result_received": _received}))
 	_finished = true
-	if mode == "quit_during_read":
-		_emit("M1_SPIKE_LIFECYCLE_QUIT {}")
-		get_tree().quit()
+	var info := JSON.stringify({"frames_since_request": Engine.get_process_frames() - frame, "result_received": _received})
+	if mode.begins_with("quit_"):
+		_emit("M1_SPIKE_LIFECYCLE_QUIT " + info)
+		if lifecycle_quit_hook.is_valid():
+			lifecycle_quit_hook.call()
+		else:
+			get_tree().quit()
 	else:
-		_emit("M1_SPIKE_LIFECYCLE_FINISH_ACTIVITY {}")
+		_emit("M1_SPIKE_LIFECYCLE_FINISH_ACTIVITY " + info)
 		_plugin.call(FINISH_METHOD_NAME)
 
 

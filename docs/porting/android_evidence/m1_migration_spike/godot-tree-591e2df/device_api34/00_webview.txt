@@ -1,0 +1,6 @@
+Current WebView package (name, version): (com.google.android.webview, 113.0.5672.136)
+Minimum targetSdkVersion: 33
+WebView package dirty: false
+settings global webview_provider: null
+null versionName=14-10541443
+com.google.android.webview versionName=113.0.5672.136

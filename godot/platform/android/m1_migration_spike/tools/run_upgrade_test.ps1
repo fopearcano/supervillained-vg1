@@ -10,7 +10,10 @@
 #   6. two spike runs (two reads each): every key's raw value must equal the old app's; then
 #      termination during an active (held) read, by Godot quitting and by the Activity finishing
 #      (its real onDestroy): the read is cancelled, its WebView destroyed on the UI thread, nothing emitted,
-#      no crash; a third run still reads the identical values;
+#      no crash; then termination in the same frame as the request (Godot quit, Activity finish;
+#      no wait for M1_SPIKE_LIFECYCLE_ACTIVE) while its start is still queued: the reserved
+#      generation is invalidated, no WebView is created, nothing emitted, no crash; a third run
+#      still reads the identical values;
 #   7. run-as listing: no production save written, the WebView profile still present;
 #   8. negative: after uninstall, a fresh install of the spike must report not_found.
 # Writes every command's output under -OutDir and checks.json; exit 1 if any check fails.
@@ -174,8 +177,40 @@ function Invoke-LifecycleTest([string]$label, [string]$flag, [string]$how) {
   Add-Check "$label`: the plugin cancelled the active read on termination ($how)" $cancelled $reason
   Add-Check "$label`: timeout cancelled and WebView destroyed on the UI (main) thread" ($plugin -match 'teardown of generation \d+ \(lifecycle (godot_terminating|activity_destroy)\): timeout cancelled, WebView destroyed on thread main')
   Add-Check "$label`: nothing emitted for the cancelled read, no result reached GDScript" (-not ($plugin -match 'emit attempt') -and -not ($godot -match 'M1_SPIKE_LIFECYCLE_RESULT_RECEIVED|M1_SPIKE_DONE'))
+  Add-Check "$label`: the plugin's lifecycle log is consistent (the read cancelled as active exactly once, never reported as still queued)" ((([regex]::Matches($plugin, 'cancelled active read')).Count -eq 1) -and -not ($plugin -match 'was still queued'))
   Add-Check "$label`: no crash (crash buffer has no $pkg entry)" (-not ($crash -match [regex]::Escape($pkg)))
-  Out-Step "$label.late_callbacks" ($plugin -split "`n" | Select-String 'ignored late|no active read' | ForEach-Object { $_.Line }) | Out-Null
+  Out-Step "$label.late_callbacks" ($plugin -split "`n" | Select-String 'ignored late|no reserved generation|already torn down|discarded queued start|was still queued|refused after termination' | ForEach-Object { $_.Line }) | Out-Null
+}
+
+function Invoke-ImmediateLifecycleTest([string]$label, [string]$flag, [string]$how) {
+  Invoke-Adb @('shell', 'am', 'force-stop', $pkg) | Out-Null
+  Out-Step "$label.flag_create" (Invoke-Adb @('shell', 'run-as', $pkg, 'touch', "files/$flag")) | Out-Null
+  Invoke-Adb @('logcat', '-c') | Out-Null
+  Out-Step "$label.am_start" (Invoke-Adb @('shell', 'am', 'start', '-W', '-n', (Get-LaunchComponent $pkg))) | Out-Null
+  # No wait for M1_SPIKE_LIFECYCLE_ACTIVE (the harness never prints it in this mode): wait for the
+  # plugin's lifecycle line, then past the 5 s queue delay, when a start that was not discarded would run.
+  $invalidated = $false
+  for ($i = 0; $i -lt 60 -and -not $invalidated; $i++) { Start-Sleep 1; $invalidated = [bool]((Invoke-Adb @('logcat', '-d', '-v', 'raw', '-s', 'SvMigrationSpike')) -match 'invalidated reserved generation') }
+  Start-Sleep 10
+  $godot = Out-Step "$label.godot_raw" (Invoke-Adb @('logcat', '-d', '-v', 'raw', '-s', 'godot'))
+  $plugin = Out-Step "$label.plugin_raw" (Invoke-Adb @('logcat', '-d', '-v', 'raw', '-s', 'SvMigrationSpike'))
+  Out-Step "$label.logcat" (Invoke-Adb @('logcat', '-d', '-v', 'threadtime', '-s', 'godot', 'SvMigrationSpike', 'AndroidRuntime')) | Out-Null
+  # Recorded, not checked: when the process ended (the queued start runs only in a process that
+  # outlives the 5 s delay; it is then logged as "discarded queued start").
+  $proc = @((Invoke-Adb @('logcat', '-d', '-v', 'threadtime', '-s', 'ActivityManager')) | Select-String -SimpleMatch $pkg | ForEach-Object { $_.Line })
+  $proc += "pidof after the wait: '" + (((Invoke-Adb @('shell', 'pidof', $pkg)) -join '').Trim()) + "'"
+  Out-Step "$label.process" $proc | Out-Null
+  $crash = Out-Step "$label.crash_buffer" (Invoke-Adb @('logcat', '-d', '-b', 'crash'))
+  Out-Step "$label.flag_remove" (Invoke-Adb @('shell', 'run-as', $pkg, 'rm', '-f', "files/$flag")) | Out-Null
+  $res = [regex]::Match($plugin, 'reserved generation (\d+) \(epoch \d+\) on thread [^;]+; start queued on the UI thread in \d+ ms')
+  $inv = [regex]::Match($plugin, '(godot_terminating|activity_destroy) on thread ([^:\r\n]+): epoch \d+, invalidated reserved generation (\d+)')
+  $same = ($godot -match 'M1_SPIKE_LIFECYCLE \{[^}]*"mode":"(quit|activity_finished)_immediately_after_request"') -and ($godot -match 'M1_SPIKE_LIFECYCLE_(QUIT|FINISH_ACTIVITY) \{"frames_since_request":0,') -and -not ($godot -match 'M1_SPIKE_LIFECYCLE_ACTIVE')
+  Add-Check "$label`: the harness requested and terminated in the same frame (no wait for M1_SPIKE_LIFECYCLE_ACTIVE)" $same
+  Add-Check "$label`: the generation was reserved before its start was queued and invalidated while still pending by the first lifecycle callback after $how" ($res.Success -and $inv.Success -and ($inv.Groups[3].Value -eq $res.Groups[1].Value) -and ($res.Index -lt $inv.Index)) "$($inv.Groups[1].Value) on thread $($inv.Groups[2].Value), generation $($res.Groups[1].Value)"
+  Add-Check "$label`: no WebView created for the cancelled start" (-not ($plugin -match 'creating the WebView|teardown of generation'))
+  Add-Check "$label`: nothing emitted, no result reached GDScript" (-not ($plugin -match 'emit attempt') -and -not ($godot -match 'M1_SPIKE_LIFECYCLE_RESULT_RECEIVED|M1_SPIKE_DONE'))
+  Add-Check "$label`: no crash (crash buffer has no $pkg entry)" (-not ($crash -match [regex]::Escape($pkg)))
+  Out-Step "$label.late_callbacks" ($plugin -split "`n" | Select-String 'ignored late|no reserved generation|already torn down|discarded queued start|was still queued|refused after termination' | ForEach-Object { $_.Line }) | Out-Null
 }
 
 # 0. Environment.
@@ -274,10 +309,13 @@ $run2 = Invoke-SpikeRun $pkg '06_spike_run_2' 'success'
 $keysOf = { param($f) $j = Get-Content -Raw $f | ConvertFrom-Json; ConvertTo-Json -Compress -Depth 5 @($j.attempts.'1'.keys, $j.attempts.'2'.keys) }
 Add-Check 'repeated reads identical across two processes (run 1 and run 2, four reads)' ((& $keysOf $run1) -eq (& $keysOf $run2))
 
-# 6b. Termination during an active read, then the store is still intact.
+# 6b/6c. Termination during an active read; 6d/6e. termination in the same frame as the request,
+# while its start is still queued; 6f. the store is still intact.
 Invoke-LifecycleTest '06b_lifecycle_quit_during_read' 'm1_lifecycle_quit.flag' 'godot_quit'
 Invoke-LifecycleTest '06c_lifecycle_activity_finished_during_read' 'm1_lifecycle_finish.flag' 'activity_finish'
-$run3 = Invoke-SpikeRun $pkg '06d_spike_run_3_after_lifecycle' 'success'
+Invoke-ImmediateLifecycleTest '06d_lifecycle_quit_immediately_after_request' 'm1_lifecycle_immediate_quit.flag' 'godot_quit'
+Invoke-ImmediateLifecycleTest '06e_lifecycle_activity_finished_immediately_after_request' 'm1_lifecycle_immediate_finish.flag' 'activity_finish'
+$run3 = Invoke-SpikeRun $pkg '06f_spike_run_3_after_lifecycle' 'success'
 Add-Check 'reads after the lifecycle tests identical to run 1' ((& $keysOf $run1) -eq (& $keysOf $run3))
 
 # 7. No production save; the WebView profile is still there.

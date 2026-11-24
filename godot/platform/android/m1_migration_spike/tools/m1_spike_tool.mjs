@@ -9,8 +9,13 @@
 //   node m1_spike_tool.mjs expected <old-read.json> <out.json>
 //       Expected raw values and SHA-256 (UTF-8) of the five keys from a read of the old app.
 //   node m1_spike_tool.mjs compare <expected.json> <parsed.json> <expect-status> <out.json>
-//       Checks every attempt of a spike run: status, origin, and (for success) every key's raw
-//       value equals the expected one. Exit 1 on any mismatch.
+//       Checks every attempt of a spike run: status, origin, a null error on every key (success
+//       and not_found), and (for success) every key's raw value equals the expected one; (for
+//       not_found) every key absent. Exit 1 on any mismatch.
+//   node m1_spike_tool.mjs selftest
+//       Runs the comparison on built-in runs: success and not_found pass; the same runs with a
+//       per-key error (in both attempts), a wrong value or a present key under not_found fail.
+//       Exit 1 otherwise.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
@@ -77,9 +82,7 @@ function expected(oldReadPath, outPath) {
   console.log(JSON.stringify(Object.fromEntries(KEYS.map((k) => [k, keys[k].sha256]))));
 }
 
-function compare(expectedPath, parsedPath, expectStatus, outPath) {
-  const exp = JSON.parse(readFileSync(expectedPath, 'utf8'));
-  const run = JSON.parse(readFileSync(parsedPath, 'utf8'));
+function compareRun(exp, run, expectStatus) {
   const checks = [];
   const check = (name, ok, detail) => checks.push({ name, ok: !!ok, ...(detail === undefined ? {} : { detail }) });
   const attempts = Object.keys(run.attempts);
@@ -97,7 +100,10 @@ function compare(expectedPath, parsedPath, expectStatus, outPath) {
         check(`attempt ${a}: ${k} no error`, got?.error === null);
       }
     } else if (expectStatus === 'not_found') {
-      for (const k of KEYS) check(`attempt ${a}: ${k} absent`, r.keys?.[k]?.present === false && r.keys?.[k]?.raw === null);
+      for (const k of KEYS) {
+        check(`attempt ${a}: ${k} absent`, r.keys?.[k]?.present === false && r.keys?.[k]?.raw === null);
+        check(`attempt ${a}: ${k} no error`, r.keys?.[k]?.error === null, r.keys?.[k]?.error);
+      }
     }
     const s = run.summaries[a];
     if (expectStatus === 'success') for (const k of KEYS) check(`attempt ${a}: ${k} harness sha256`, s?.keys?.[k]?.sha256 === exp.keys[k].sha256);
@@ -109,6 +115,11 @@ function compare(expectedPath, parsedPath, expectStatus, outPath) {
   check('no harness log line truncated (all under 1023 characters)', run.max_line_length > 0 && run.max_line_length < 1023, run.max_line_length);
   check('harness idempotence line', run.idempotent?.identical === true);
   check('harness done status', run.done?.status === expectStatus, run.done);
+  return checks;
+}
+
+function compare(expectedPath, parsedPath, expectStatus, outPath) {
+  const checks = compareRun(JSON.parse(readFileSync(expectedPath, 'utf8')), JSON.parse(readFileSync(parsedPath, 'utf8')), expectStatus);
   const ok = checks.every((c) => c.ok);
   write(outPath, { expect_status: expectStatus, ok, checks });
   console.log(`${ok ? 'PASS' : 'FAIL'}: ${checks.filter((c) => c.ok).length}/${checks.length} checks`);
@@ -116,12 +127,46 @@ function compare(expectedPath, parsedPath, expectStatus, outPath) {
   if (!ok) process.exitCode = 1;
 }
 
+function selftest() {
+  const values = { settings: '{"muted":true}', records: '{}', coins: '42', story: '{"version":2}', 'story-v1-backup': '{"version":1}' };
+  const exp = { keys: Object.fromEntries(KEYS.map((k) => [k, { present: true, raw: values[k], sha256: sha256(values[k]) }])) };
+  const makeRun = (status, present, edit = () => {}) => {
+    const attempt = () => ({ status, verified_origin: ORIGIN,
+      keys: Object.fromEntries(KEYS.map((k) => [k, { present, raw: present ? values[k] : null, error: null }])) });
+    const summary = () => ({ keys: Object.fromEntries(KEYS.map((k) => [k, { sha256: present ? sha256(values[k]) : null }])) });
+    const run = { attempts: { 1: attempt(), 2: attempt() }, summaries: { 1: summary(), 2: summary() },
+      idempotent: { identical: true }, done: { status }, max_line_length: 500 };
+    edit(run);
+    return run;
+  };
+  const cases = [
+    ['success', makeRun('success', true), 'success', true],
+    ['not_found', makeRun('not_found', false), 'not_found', true],
+    ['success with a per-key error', makeRun('success', true, (r) => { for (const a of [1, 2]) r.attempts[a].keys.story.error = 'SecurityError'; }), 'success', false],
+    ['not_found with a per-key error', makeRun('not_found', false, (r) => { for (const a of [1, 2]) r.attempts[a].keys.coins.error = 'SecurityError'; }), 'not_found', false],
+    ['success with a changed value', makeRun('success', true, (r) => { r.attempts[1].keys.coins.raw = '43'; }), 'success', false],
+    ['not_found with a present key', makeRun('not_found', false, (r) => { Object.assign(r.attempts[1].keys.coins, { present: true, raw: '42' }); }), 'not_found', false],
+  ];
+  let failed = 0;
+  for (const [name, run, status, expectOk] of cases) {
+    const checks = compareRun(exp, run, status);
+    const ok = checks.every((c) => c.ok);
+    const pass = ok === expectOk;
+    if (!pass) failed++;
+    console.log(`M1_TOOL_SELFTEST ${pass ? 'PASS' : 'FAIL'} ${name}: compare ${ok ? 'accepts' : 'rejects'}` +
+      (ok ? '' : ` (${checks.filter((c) => !c.ok).map((c) => c.name).join('; ')})`));
+  }
+  console.log(`M1_TOOL_SELFTEST_RESULT ${cases.length - failed} passed, ${failed} failed`);
+  if (failed) process.exitCode = 1;
+}
+
 try {
   if (cmd === 'cdp') await cdp(args[0], args[1], args[2]);
   else if (cmd === 'parse-log') parseLog(args[0], args[1]);
   else if (cmd === 'expected') expected(args[0], args[1]);
   else if (cmd === 'compare') compare(args[0], args[1], args[2], args[3]);
-  else throw new Error('usage: cdp | parse-log | expected | compare');
+  else if (cmd === 'selftest') selftest();
+  else throw new Error('usage: cdp | parse-log | expected | compare | selftest');
 } catch (e) {
   console.error(String(e?.stack || e));
   process.exitCode = 2;

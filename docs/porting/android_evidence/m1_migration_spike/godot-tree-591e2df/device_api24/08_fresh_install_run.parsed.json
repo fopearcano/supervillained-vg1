@@ -1,0 +1,220 @@
+{
+  "attempts": {
+    "1": {
+      "spike": "sv_m1_migration_spike",
+      "attempt": 1,
+      "timestamp_utc": "2026-11-24T08:56:54.078Z",
+      "expected_origin": "https://localhost",
+      "verified_origin": "https://localhost",
+      "webview_package": null,
+      "android_sdk_int": 24,
+      "diagnostics": {
+        "page_url": "https://localhost/__sv_m1_migration_spike__/read.html",
+        "webview_data_dir_existed_before_read": false,
+        "local_storage_dir_existed_before_read": false,
+        "root_local_storage_dir_existed_before_read": false,
+        "package_name": "com.zampano.supervillained",
+        "app_version_code": 2,
+        "webview_package_unavailable": "WebView.getCurrentWebViewPackage() needs API 26; device API 24 (see user_agent)",
+        "document_href": "https://localhost/__sv_m1_migration_spike__/read.html",
+        "user_agent": "Mozilla/5.0 (Linux; Android 7.0; Android SDK built for x86_64 Build/NYC; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/69.0.3497.100 Mobile Safari/537.36"
+      },
+      "keys": {
+        "settings": {
+          "storage_key": "supervillained:settings",
+          "present": false,
+          "raw": null,
+          "error": null
+        },
+        "records": {
+          "storage_key": "supervillained:records",
+          "present": false,
+          "raw": null,
+          "error": null
+        },
+        "coins": {
+          "storage_key": "supervillained:coins",
+          "present": false,
+          "raw": null,
+          "error": null
+        },
+        "story": {
+          "storage_key": "supervillained:story",
+          "present": false,
+          "raw": null,
+          "error": null
+        },
+        "story-v1-backup": {
+          "storage_key": "supervillained:story-v1-backup",
+          "present": false,
+          "raw": null,
+          "error": null
+        }
+      },
+      "present_count": 0,
+      "status": "not_found"
+    },
+    "2": {
+      "spike": "sv_m1_migration_spike",
+      "attempt": 2,
+      "timestamp_utc": "2026-11-24T08:56:54.246Z",
+      "expected_origin": "https://localhost",
+      "verified_origin": "https://localhost",
+      "webview_package": null,
+      "android_sdk_int": 24,
+      "diagnostics": {
+        "page_url": "https://localhost/__sv_m1_migration_spike__/read.html",
+        "webview_data_dir_existed_before_read": true,
+        "local_storage_dir_existed_before_read": false,
+        "root_local_storage_dir_existed_before_read": true,
+        "package_name": "com.zampano.supervillained",
+        "app_version_code": 2,
+        "webview_package_unavailable": "WebView.getCurrentWebViewPackage() needs API 26; device API 24 (see user_agent)",
+        "document_href": "https://localhost/__sv_m1_migration_spike__/read.html",
+        "user_agent": "Mozilla/5.0 (Linux; Android 7.0; Android SDK built for x86_64 Build/NYC; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/69.0.3497.100 Mobile Safari/537.36"
+      },
+      "keys": {
+        "settings": {
+          "storage_key": "supervillained:settings",
+          "present": false,
+          "raw": null,
+          "error": null
+        },
+        "records": {
+          "storage_key": "supervillained:records",
+          "present": false,
+          "raw": null,
+          "error": null
+        },
+        "coins": {
+          "storage_key": "supervillained:coins",
+          "present": false,
+          "raw": null,
+          "error": null
+        },
+        "story": {
+          "storage_key": "supervillained:story",
+          "present": false,
+          "raw": null,
+          "error": null
+        },
+        "story-v1-backup": {
+          "storage_key": "supervillained:story-v1-backup",
+          "present": false,
+          "raw": null,
+          "error": null
+        }
+      },
+      "present_count": 0,
+      "status": "not_found"
+    }
+  },
+  "summaries": {
+    "1": {
+      "keys": {
+        "settings": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        },
+        "records": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        },
+        "coins": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        },
+        "story": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        },
+        "story-v1-backup": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        }
+      },
+      "attempt": 1,
+      "error": null,
+      "expected_origin": "https://localhost",
+      "status": "not_found",
+      "timestamp_utc": "2026-11-24T08:56:54.078Z",
+      "verified_origin": "https://localhost",
+      "webview_package": null
+    },
+    "2": {
+      "keys": {
+        "settings": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        },
+        "records": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        },
+        "coins": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        },
+        "story": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        },
+        "story-v1-backup": {
+          "error": null,
+          "length": null,
+          "present": false,
+          "sha256": null
+        }
+      },
+      "attempt": 2,
+      "error": null,
+      "expected_origin": "https://localhost",
+      "status": "not_found",
+      "timestamp_utc": "2026-11-24T08:56:54.246Z",
+      "verified_origin": "https://localhost",
+      "webview_package": null
+    }
+  },
+  "idempotent": {
+    "identical": true,
+    "statuses": [
+      "not_found",
+      "not_found"
+    ]
+  },
+  "done": {
+    "error": null,
+    "identical_reads": true,
+    "status": "not_found"
+  },
+  "start": {
+    "godot": "4.7.2-stable (official)",
+    "keys": [
+      "settings",
+      "records",
+      "coins",
+      "story",
+      "story-v1-backup"
+    ],
+    "os": "Android"
+  },
+  "max_line_length": 621
+}

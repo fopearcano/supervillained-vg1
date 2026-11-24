@@ -1,0 +1,8 @@
+versionCode=1 minSdk=24 targetSdk=36
+versionName=1.0
+dataDir=/data/user/0/com.zampano.supervillained
+lastUpdateTime=2026-11-24 09:50:36
+signatures=PackageSignatures{e130e5d version:3, signatures:[f4e4e733], past signatures:[]}
+pkgFlags=[ DEBUGGABLE HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+privatePkgFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+firstInstallTime=2026-11-24 09:50:36
