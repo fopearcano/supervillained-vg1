@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS test_P_DOG_008a_restart_canvas_snapped_before_first_draw    1504 ms
+       dog: entered frame 689, resets [{ "frame": 689, "position": (0.0, 0.0) }, { "frame": 689, "position": (0.0, 1448.0) }, { "frame": 689, "position": (0.0, 1448.0) }]
+       camera: entered frame 689, resets [{ "frame": 689, "position": (0.0, 1328.0), "view": (216.0, 432.0) }]
+PASS test_P_DOG_008a_main_restart_resets_interpolation_and_run_state  4476 ms
+
+2 passed, 0 failed, 2 total (6.8 s), Godot 4.7.2-stable (official)

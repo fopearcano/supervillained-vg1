@@ -1,0 +1,2 @@
+pre-fix camera_rig.gd written
+f13dac1ca985b270485f9642168cb4213c45dc45

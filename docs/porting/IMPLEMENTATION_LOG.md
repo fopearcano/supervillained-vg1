@@ -6,14 +6,319 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 18 is current. Erratum for the historical reports: their
+in progress report 5. Correction report 19 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 18: renderer-backed presentation probe; VIEW-004, CAM-004 and DOG-008a on combined evidence (M1 Partial, M2 Partial) — current
+## Correction report 19: isolated camera-snap interpolation-reset control; DOG-008a pending architect acceptance (M1 Partial, M2 Partial) — current
+
+Scope: the architect's review of `9c4cd52`, in one focused commit. Changed: the probe's
+camera-snap no-reset control (`godot/tools/rendered_presentation_probe_impl.gd`,
+`_snap_no_reset()`), TEST_PLAN.md (evidence wording), FEATURE_MATRIX.md, this log and new evidence.
+No gameplay, camera tuning, sprite, filtering or movement change; the `CameraRig.snap()` runtime
+fix of correction report 18 is unchanged; no PixiJS, Capacitor or root `android/` file changed.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither milestone completion accepted); every automated M1 acceptance ID is satisfied; every automated M2 ID is satisfied except DOG-008a, pending architect acceptance; open: the manual M1 checks and the manual M2 desktop and touch play checks |
+| Base | `9c4cd52` (correction report 18) |
+| Current `godot/` tree | `2ffca5ffaf62ff0c55773fd07fd2630c23a6fe3b`, verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090 (driver 610.47), OpenGL 3.3 Compatibility renderer, 60 Hz display; Linux not rerun |
+| Android | not rerun (no rendered or device claim here); the accepted M1 spike evidence is correction report 17's, on emulators `sv_m1_api36` (`emulator-5554`, Android 16 / API 36), `sv_m1_api34` (`emulator-5556`, Android 14 / API 34) and `sv_m1_api24` (`emulator-5558`, Android 7.0 / API 24); no physical device |
+
+### Architect decisions recorded (review of `9c4cd52`)
+
+- **VIEW-004 and CAM-004 are accepted** on correction report 18's combined suite + renderer
+  evidence (`godot/` tree `366eb3b`).
+- **DOG-008a stays pending architect acceptance:** correction report 18's camera-snap no-reset
+  control (`_snap_no_reset()`) updated the model and the rig position but left out
+  `force_update_scroll()` as well as the two interpolation resets, so it did not isolate the missing
+  reset from the missing viewport push that the RESTART fix added. DOG-008a is not counted until the
+  architect accepts it.
+- The `CameraRig.snap()` runtime fix stays; its pre-fix mutation remains the distinct evidence that a
+  missing `force_update_scroll()` breaks the real Main RESTART frame.
+
+### Changes per review item
+
+1. **Control corrected.** `_snap_no_reset()` now reproduces `CameraRig.snap()` except for the
+   interpolation resets: `model.snap_to()`, `CameraRig._apply()` (the rig position), then
+   `camera.force_update_scroll()`; only `rig.reset_physics_interpolation()` and
+   `camera.reset_physics_interpolation()` are omitted. The probe's history still marks the action
+   tick as a reset point (the expected presentation is the snapped view at once).
+2. **Two faults, two pieces of evidence.** The missing-reset control runs on the fixed tree
+   (`camera_snap_without_reset_<fps>`); the missing `force_update_scroll()` is the separate pre-fix
+   mutation of `CameraRig.snap()` (the clone's `camera_rig.gd` reverted to `8f8dcb6`'s blob), which
+   fails the four real Main RESTART records (in its rerun, only those; see below).
+3. **Focused resets probe first** (`--only=resets`, VSync off): 12 of 12 positive first frames passed (spawn, teleport and camera snap at 30/60/90/120 FPS, each drawn right after its action tick), and `camera_snap_without_reset` was detected at every rate (fractions 0.8852 / 0.8526 / 0.3453 / 0.1752): at 30, 60 and 120 FPS none of the 27 expected markers lay within 4 px of the snapped view and 27, 24 and 27 marker components stood elsewhere (the interpolated old view); at 90 FPS all 27 lay near but off their snapped positions (27 position failures); the dog was 16 / 21 / 93 / 118 px from its expected place; 12 of 12 controls of this section detected.
+4. **Complete probe** (VSync off, 30/60/90/120 FPS): The stage check and all 24 measured records passed and 24 of 24 negative controls were detected, with no engine error (motion achieved 29.99 / 60.01 / 90.0 / 120.01 FPS, velocity ratio 1.0–1.0001; camera 30.13 / 60.09 / 90.23 / 119.26 FPS, every marker exact; the real Main RESTART first frame exact at every rate).
+5. **Docs.** TEST_PLAN.md: VIEW-004 and CAM-004 accepted, DOG-008a pending with the corrected
+   control (acceptance wording unchanged). FEATURE_MATRIX.md: total 97 (DOG-008a not counted), the
+   current tree. This log: this report; correction report 18 historical with a supersession note.
+
+### Focused resets probe (`step_o_rendered_probe_resets_vsync_off.txt`)
+
+Environment: NVIDIA GeForce RTX 3090 (NVIDIA), 3.3.0 NVIDIA 610.47, rendering method `gl_compatibility`, driver `opengl3`, VSync mode 0, display 60.0 Hz, Godot 4.7.2.stable (ed1daf0bf), Windows 10.0.26200; physics 60 Hz, interpolation True, snap transforms/vertices True/True, default texture filter 0; Main GameViewport {'canvas_item_default_texture_filter': 0, 'snap_2d_transforms_to_pixel': True, 'snap_2d_vertices_to_pixel': True}.
+Stage: 432×240, 60 markers, matches Main's GameViewport: True; dog sheet: 544 frames, 290,464 opaque texels, 0 in the background/marker colours.
+
+| First frame after (stage) | FPS | frame tick − action tick | fraction | dog components / pattern mismatches / position residual | old position: dog pixels | markers (visible / position failures / pattern failures / extra) | result |
+|---|---|---|---|---|---|---|---|
+| spawn | 30 | 0 | 0.8642 | 1 / 0 / 0,0 | 0 | 27 / 0 / 0 / 0 | pass |
+| teleport | 30 | 0 | 0.8637 | 1 / 0 / 0,0 | 0 | — | pass |
+| camera snap | 30 | 0 | 0.8629 | 1 / 0 / 0,0 | — | 27 / 0 / 0 / 0 | pass |
+| spawn | 60 | 0 | 0.86 | 1 / 0 / 0,0 | 0 | 27 / 0 / 0 / 0 | pass |
+| teleport | 60 | 0 | 0.8575 | 1 / 0 / 0,0 | 0 | — | pass |
+| camera snap | 60 | 0 | 0.8541 | 1 / 0 / 0,0 | — | 27 / 0 / 0 / 0 | pass |
+| spawn | 90 | 0 | 0.1852 | 1 / 0 / 0,0 | 0 | 27 / 0 / 0 / 0 | pass |
+| teleport | 90 | 0 | 0.1846 | 1 / 0 / 0,0 | 0 | — | pass |
+| camera snap | 90 | 0 | 0.3457 | 1 / 0 / 0,0 | — | 27 / 0 / 0 / 0 | pass |
+| spawn | 120 | 0 | 0.2368 | 1 / 0 / 0,0 | 0 | 27 / 0 / 0 / 0 | pass |
+| teleport | 120 | 0 | 0.2874 | 1 / 0 / 0,0 | 0 | — | pass |
+| camera snap | 120 | 0 | 0.1407 | 1 / 0 / 0,0 | — | 27 / 0 / 0 / 0 | pass |
+
+| Negative control | Detected | Failed checks (what saw it) |
+|---|---|---|
+| `stale_copy_after_teleport_30` | yes | dog_shape_exact, dog_single_component, nothing_at_old_position |
+| `teleport_without_reset_30` | yes | dog_at_new_position |
+| `camera_snap_without_reset_30` | yes | dog_at_new_position, markers_at_snapped_view, no_stale_markers |
+| `stale_copy_after_teleport_60` | yes | dog_shape_exact, dog_single_component, nothing_at_old_position |
+| `teleport_without_reset_60` | yes | dog_at_new_position |
+| `camera_snap_without_reset_60` | yes | dog_at_new_position, markers_at_snapped_view, no_stale_markers |
+| `stale_copy_after_teleport_90` | yes | dog_shape_exact, dog_single_component, nothing_at_old_position |
+| `teleport_without_reset_90` | yes | dog_at_new_position |
+| `camera_snap_without_reset_90` | yes | dog_at_new_position, markers_at_snapped_view |
+| `stale_copy_after_teleport_120` | yes | dog_shape_exact, dog_single_component, nothing_at_old_position |
+| `teleport_without_reset_120` | yes | dog_at_new_position, nothing_at_old_position |
+| `camera_snap_without_reset_120` | yes | dog_at_new_position, markers_at_snapped_view, no_stale_markers |
+
+Summary: ok = True; failures: none; engine errors: none; 12 measured records, 12 negative controls, 12 detected.
+
+### Complete probe (`step_q_rendered_probe_vsync_off.txt`)
+
+Environment: NVIDIA GeForce RTX 3090 (NVIDIA), 3.3.0 NVIDIA 610.47, rendering method `gl_compatibility`, driver `opengl3`, VSync mode 0, display 60.0 Hz, Godot 4.7.2.stable (ed1daf0bf), Windows 10.0.26200; physics 60 Hz, interpolation True, snap transforms/vertices True/True, default texture filter 0; Main GameViewport {'canvas_item_default_texture_filter': 0, 'snap_2d_transforms_to_pixel': True, 'snap_2d_vertices_to_pixel': True}.
+Stage: 432×240, 60 markers, matches Main's GameViewport: True; dog sheet: 544 frames, 290,464 opaque texels, 0 in the background/marker colours.
+
+| Motion (static camera, frozen `run_e` frame 0) | 30 FPS | 60 FPS | 90 FPS | 120 FPS |
+|---|---|---|---|---|
+| achieved FPS / frames measured | 29.99 / 43 | 60.01 / 85 | 90.0 / 127 | 120.01 / 169 |
+| dog components per frame (min–max); component failures | 1–1; 0 | 1–1; 0 | 1–1; 0 | 1–1; 0 |
+| area / bbox / pattern mismatches / intensity (reference 489 px, 34×21, 0, 234,147) | 489–489 / 34×21–34×21 / 0–0 / 234,147–234,147 | 489–489 / 34×21–34×21 / 0–0 / 234,147–234,147 | 489–489 / 34×21–34×21 / 0–0 / 234,147–234,147 | 489–489 / 34×21–34×21 / 0–0 / 234,147–234,147 |
+| position vs interpolated physics state (failures; residual px) | 0; 0..0 | 0; 0..0 | 0; 0..0 | 0; 0..0 |
+| displacement rendered / logic (error, limit 2 px) | 238 / 237.586 (0.414) | 237 / 237.578 (-0.578) | 237 / 237.585 (-0.585) | 237 / 237.578 (-0.578) |
+| fitted / expected px/s (ratio, limit ±3 %) | 169.705 / 169.705 (1.0) | 169.724 / 169.705 (1.0001) | 169.697 / 169.705 (1.0) | 169.711 / 169.705 (1.0) |
+| physics ticks/s | 59.99 | 60.0 | 60.0 | 60.0 |
+| step RMS vs elapsed time (limit 1 px); held frames (predicted); max step; max excess (limit 2 px) | 0.476; 0 (0); 6; 0.433 | 0.385; 0 (0); 3; 0.289 | 0.323; 0 (0); 2; 0.198 | 0.514; 0 (0); 2; 0.692 |
+| result | pass | pass | pass | pass |
+
+| Camera (real CameraRig following the running dog) | 30 FPS | 60 FPS | 90 FPS | 120 FPS |
+|---|---|---|---|---|
+| achieved FPS / frames | 30.13 / 43 | 60.09 / 85 | 90.23 / 127 | 119.26 / 169 |
+| marker samples (fully visible markers × frames); missing; extra components | 1,137; 0; 0 | 2,250; 0; 0 | 3,366; 0; 0 | 4,482; 0; 0 |
+| absolute position vs interpolated camera: failures; residual x / y px; tie samples | 0; 0..0 / 0..0; 0 | 0; 0..0 / 0..0; 0 | 0; 0..0 / 0..0; 105 | 0; 0..0 / 0..0; 0 |
+| common-mode jitter frames; max centroid deviation px | 0; 0.0 | 0; 0.0 | 0; 1.0 | 0; 0.0 |
+| pattern / size failures; intensity (reference 24,990) | 0 / 0; 24,990–24,990 | 0 / 0; 24,990–24,990 | 0 / 0; 24,990–24,990 | 0 / 0; 24,990–24,990 |
+| adjacent-marker gaps px (supplemental) | 48 | 48 | 48 | 48 |
+| dog: components failures / shape failures / position failures | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 |
+| result | pass | pass | pass | pass |
+
+| First frame after (stage) | FPS | frame tick − action tick | fraction | dog components / pattern mismatches / position residual | old position: dog pixels | markers (visible / position failures / pattern failures / extra) | result |
+|---|---|---|---|---|---|---|---|
+| spawn | 30 | 0 | 0.4703 | 1 / 0 / 0,0 | 0 | 27 / 0 / 0 / 0 | pass |
+| teleport | 30 | 0 | 0.4698 | 1 / 0 / 0,0 | 0 | — | pass |
+| camera snap | 30 | 0 | 0.4688 | 1 / 0 / 0,0 | — | 27 / 0 / 0 / 0 | pass |
+| spawn | 60 | 0 | 0.466 | 1 / 0 / 0,0 | 0 | 27 / 0 / 0 / 0 | pass |
+| teleport | 60 | 0 | 0.4635 | 1 / 0 / 0,0 | 0 | — | pass |
+| camera snap | 60 | 0 | 0.4603 | 1 / 0 / 0,0 | — | 27 / 0 / 0 / 0 | pass |
+| spawn | 90 | 0 | 0.4581 | 1 / 0 / 0,0 | 0 | 27 / 0 / 0 / 0 | pass |
+| teleport | 90 | 0 | 0.4573 | 1 / 0 / 0,0 | 0 | — | pass |
+| camera snap | 90 | 0 | 0.4998 | 1 / 0 / 0,0 | — | 27 / 0 / 0 / 0 | pass |
+| spawn | 120 | 0 | 0.39 | 1 / 0 / 0,0 | 0 | 27 / 0 / 0 / 0 | pass |
+| teleport | 120 | 0 | 0.4297 | 1 / 0 / 0,0 | 0 | — | pass |
+| camera snap | 120 | 0 | 0.4217 | 1 / 0 / 0,0 | — | 27 / 0 / 0 / 0 | pass |
+
+| Real Main → Green Zone → pause → RESTART | 30 FPS | 60 FPS | 90 FPS | 120 FPS |
+|---|---|---|---|---|
+| start frame: canvas origin (expected) ; dog bbox ; texel mismatches | [108.0, -1112.0] ([108.0, -1112.0]); [96, 305, 24, 31]; 0 | [108.0, -1112.0] ([108.0, -1112.0]); [96, 305, 24, 31]; 0 | [108.0, -1112.0] ([108.0, -1112.0]); [96, 305, 24, 31]; 0 | [108.0, -1112.0] ([108.0, -1112.0]); [96, 305, 24, 31]; 0 |
+| old run: dog / camera before RESTART | [16.0, 1400.0] / [23.0, 1328.0] | [16.0, 1400.0] / [23.0, 1328.0] | [16.0, 1400.0] / [23.0, 1328.0] | [16.0, 1400.0] / [23.0, 1328.0] |
+| replacement added after draw / first frame (seq) | 3434 / 3435 | 3594 / 3595 | 3825 / 3826 | 4128 / 4129 |
+| first frame after RESTART: canvas origin (expected) | [108.0, -1112.0] ([108.0, -1112.0]) | [108.0, -1112.0] ([108.0, -1112.0]) | [108.0, -1112.0] ([108.0, -1112.0]) | [108.0, -1112.0] ([108.0, -1112.0]) |
+| camera / dog at (expected spawn) | [0.0, 1328.0] / [0.0, 1448.0] ([0.0, 1448.0]) | [0.0, 1328.0] / [0.0, 1448.0] ([0.0, 1448.0]) | [0.0, 1328.0] / [0.0, 1448.0] ([0.0, 1448.0]) | [0.0, 1328.0] / [0.0, 1448.0] ([0.0, 1448.0]) |
+| dog components; bbox (expected); area (reference); texel mismatches | 1; [96, 305, 24, 31] ([96, 305, 24, 31]); 505 (505); 0 | 1; [96, 305, 24, 31] ([96, 305, 24, 31]); 505 (505); 0 | 1; [96, 305, 24, 31] ([96, 305, 24, 31]); 505 (505); 0 | 1; [96, 305, 24, 31] ([96, 305, 24, 31]); 505 (505); 0 |
+| dogs / rigs in tree; redraw px differing from the frame | 1 / 1; 0 | 1 / 1; 0 | 1 / 1; 0 | 1 / 1; 0 |
+| old position (rect, visible px): dog pixels; dog pixels elsewhere | [104, 252, 40, 40], 1600: 0; 0 | [104, 252, 40, 40], 1600: 0; 0 | [104, 252, 40, 40], 1600: 0; 0 | [104, 252, 40, 40], 1600: 0; 0 |
+| failing checks | — | — | — | — |
+| result | pass | pass | pass | pass |
+
+| Negative control | Detected | Failed checks (what saw it) |
+|---|---|---|
+| `ghost_trail_3px` | yes | shape_exact |
+| `ghost_trail_1px` | yes | shape_exact |
+| `ghost_separate_60px` | yes | shape_exact, single_component |
+| `stale_copy_60px` | yes | shape_exact, single_component |
+| `interpolation_off_90` | yes | model_position, no_unexpected_holds, step_rms |
+| `interpolation_off_120` | yes | model_position, no_unexpected_holds, step_rms |
+| `doubled_displacement_30` | yes | displacement, max_step, model_position, step_rms, velocity |
+| `doubled_displacement_60` | yes | displacement, max_step, model_position, step_rms, velocity |
+| `doubled_displacement_90` | yes | displacement, max_step, model_position, step_rms, velocity |
+| `doubled_displacement_120` | yes | displacement, max_step, model_position, step_rms, velocity |
+| `fractional_camera_dither_120` | yes | dog_position, marker_pattern_exact, marker_position_exact, no_stale_or_extra_markers |
+| `subpixel_camera_linear_120` | yes | dog_shape_exact, dog_single_component, marker_intensity_exact, marker_pattern_exact, marker_position_exact, no_stale_or_extra_markers |
+| `stale_copy_after_teleport_30` | yes | dog_shape_exact, dog_single_component, nothing_at_old_position |
+| `teleport_without_reset_30` | yes | dog_at_new_position |
+| `camera_snap_without_reset_30` | yes | dog_at_new_position, markers_at_snapped_view, no_stale_markers |
+| `stale_copy_after_teleport_60` | yes | dog_shape_exact, dog_single_component, nothing_at_old_position |
+| `teleport_without_reset_60` | yes | dog_at_new_position |
+| `camera_snap_without_reset_60` | yes | dog_at_new_position, markers_at_snapped_view, no_stale_markers |
+| `stale_copy_after_teleport_90` | yes | dog_shape_exact, dog_single_component, nothing_at_old_position |
+| `teleport_without_reset_90` | yes | dog_at_new_position |
+| `camera_snap_without_reset_90` | yes | dog_at_new_position, markers_at_snapped_view, no_stale_markers |
+| `stale_copy_after_teleport_120` | yes | dog_shape_exact, dog_single_component, nothing_at_old_position |
+| `teleport_without_reset_120` | yes | dog_at_new_position |
+| `camera_snap_without_reset_120` | yes | dog_at_new_position, marker_pattern_exact, markers_at_snapped_view, no_stale_markers |
+
+Summary: ok = True; failures: none; engine errors: none; 24 measured records, 24 negative controls, 24 detected.
+
+### Pre-fix `CameraRig.snap()` mutation (distinct evidence, steps s–v and its rerun w–z)
+
+The clone's `godot/iso/camera_rig.gd` was reverted to `8f8dcb6`'s blob (`f13dac1…`, `step_s`: `CameraRig.snap()` without `force_update_scroll()`), the focused cases and the complete probe were run, and the file was restored (`step_v`: hash = `HEAD:godot/iso/camera_rig.gd`). `test_P_DOG_008a_restart_canvas_snapped_before_first_draw` failed (`expected (108.0, -1112.0), got (0.0, 0.0)`); the probe exited 1: the four `main_restart` records (30/60/90/120 FPS) failed, plus two failures the mutation cannot cause: `motion_30`'s wall-clock step metric and the per-tick fractional-camera dither control (not detected); every other record passed and every other control, including the corrected `camera_snap_without_reset`, was detected (see the probe weaknesses below). A rerun in the same clone (steps w–z: reverted again, the complete probe, restored, `git status` empty) failed exactly the four `main_restart` records and passed every other record and control. This is the RESTART defect of correction report 18, separate from the missing-reset control (frame `prefix_main_60_first_frame_after_restart.png`, from the rerun). The rerun:
+
+| Real Main → Green Zone → pause → RESTART | 30 FPS | 60 FPS | 90 FPS | 120 FPS |
+|---|---|---|---|---|
+| start frame: canvas origin (expected) ; dog bbox ; texel mismatches | [108.0, -1112.0] ([108.0, -1112.0]); [96, 305, 24, 31]; 0 | [108.0, -1112.0] ([108.0, -1112.0]); [96, 305, 24, 31]; 0 | [108.0, -1112.0] ([108.0, -1112.0]); [96, 305, 24, 31]; 0 | [108.0, -1112.0] ([108.0, -1112.0]); [96, 305, 24, 31]; 0 |
+| old run: dog / camera before RESTART | [16.0, 1400.0] / [23.0, 1328.0] | [16.0, 1400.0] / [23.0, 1328.0] | [16.0, 1400.0] / [23.0, 1328.0] | [16.0, 1400.0] / [23.0, 1328.0] |
+| replacement added after draw / first frame (seq) | 3437 / 3438 | 3598 / 3599 | 3828 / 3829 | 4130 / 4131 |
+| first frame after RESTART: canvas origin (expected) | [0.0, 0.0] ([108.0, -1112.0]) | [0.0, 0.0] ([108.0, -1112.0]) | [0.0, 0.0] ([108.0, -1112.0]) | [0.0, 0.0] ([108.0, -1112.0]) |
+| camera / dog at (expected spawn) | [0.0, 1328.0] / [0.0, 1448.0] ([0.0, 1448.0]) | [0.0, 1328.0] / [0.0, 1448.0] ([0.0, 1448.0]) | [0.0, 1328.0] / [0.0, 1448.0] ([0.0, 1448.0]) | [0.0, 1328.0] / [0.0, 1448.0] ([0.0, 1448.0]) |
+| dog components; bbox (expected); area (reference); texel mismatches | 0; [0, 0, 0, 0] ([96, 305, 24, 31]); 0 (505); 505 | 0; [0, 0, 0, 0] ([96, 305, 24, 31]); 0 (505); 505 | 0; [0, 0, 0, 0] ([96, 305, 24, 31]); 0 (505); 505 | 0; [0, 0, 0, 0] ([96, 305, 24, 31]); 0 (505); 505 |
+| dogs / rigs in tree; redraw px differing from the frame | 1 / 1; 0 | 1 / 1; 0 | 1 / 1; 0 | 1 / 1; 0 |
+| old position (rect, visible px): dog pixels; dog pixels elsewhere | [104, 252, 40, 40], 1600: 0; 0 | [104, 252, 40, 40], 1600: 0; 0 | [104, 252, 40, 40], 1600: 0; 0 | [104, 252, 40, 40], 1600: 0; 0 |
+| failing checks | restart_canvas_at_snapped_view, restart_dog_at_canonical_spawn, restart_single_dog_component | restart_canvas_at_snapped_view, restart_dog_at_canonical_spawn, restart_single_dog_component | restart_canvas_at_snapped_view, restart_dog_at_canonical_spawn, restart_single_dog_component | restart_canvas_at_snapped_view, restart_dog_at_canonical_spawn, restart_single_dog_component |
+| result | FAIL | FAIL | FAIL | FAIL |
+
+### Commands executed and results
+
+| Command | Result |
+|---|---|
+| Fresh `git clone` of this commit's code (`core.autocrlf=true`; tested `godot/` tree `2ffca5ffaf62ff0c55773fd07fd2630c23a6fe3b` = `git rev-parse HEAD:godot` of this commit; only the docs and the evidence folders were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | exit 0: 206 + 55 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | exit 0, no ERROR/WARNING line |
+| `… --script res://tests/test_runner.gd -- --suite all` | exit 0: **139 passed, 0 failed, 139 total** |
+| `… --suite all --case DOG_008a` (focused logical restart cases) | exit 0: 2 passed |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame desktop launch) | exit 0, engine banner only |
+| `… --suite integration --file test_export_pack` (hermetic PCK smoke) | exit 0: 32,906,024 bytes, **254** runtime resources, **512** packed files, 18 source-only paths unresolved, control resolved 18 |
+| `<console exe> --path godot --rendering-driver opengl3 --disable-vsync --script res://tools/rendered_presentation_probe.gd -- --only=resets --out=…` | exit 0: 12 reset records pass; 12 of 12 controls detected, `camera_snap_without_reset` at all four rates |
+| the same without `--only` (complete probe) | exit 0: the stage check and 24 measured records pass, 24 of 24 negative controls detected, no engine error |
+| pre-fix: `camera_rig.gd` reverted in the clone (`f13dac1…`); `--case DOG_008a`; the complete probe; file restored | exit 1 (1 of 2 failed); exit 1 (the four `main_restart` records (30/60/90/120 FPS) failed, plus two failures the mutation cannot cause: `motion_30`'s wall-clock step metric and the per-tick fractional-camera dither control (not detected); every other record passed and every other control, including the corrected `camera_snap_without_reset`, was detected); restored, hash = `HEAD:godot/iso/camera_rig.gd` |
+| pre-fix rerun in the same clone: reverted again; the complete probe; restored; `git status --porcelain` | exit 1: exactly the four `main_restart` records failed; restored, hash = `HEAD:godot/iso/camera_rig.gd`; status empty |
+| `… harness/m1_spike_harness_selftest.gd`; `node … m1_spike_tool.mjs selftest` | exit 0: **37 passed, 0 failed**; **6 passed, 0 failed** |
+| `npm test`; `npm run build` | exit 0: 30 files, 248 tests passed; build OK |
+| `git status --porcelain` (after the import, after the probes, after all steps); `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty (HEAD: the code-only commit `b35d795`, folded into this commit with the same `godot/` tree) |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --cached --check 9c4cd52` (this commit's full content, staged) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 82 checks` |
+
+Evidence: `docs/porting/windows_evidence/correction-19-godot-tree-2ffca5f/` (REPORT.md, the logs of every
+step, `exit_codes.txt`) and `docs/porting/captures/m2_rendered/godot-tree-2ffca5f/` (14 PNG
+frames: the camera-snap and no-reset frames at every rate from the focused run, representative
+frames of the complete run, the pre-fix RESTART frame). Correction report 18's evidence folders are
+unchanged. The rendered evidence is not a suite result. Not run: Linux; Android; manual play.
+
+Host evidence: current tree above. Previous Windows trees: `366eb3b` (correction report 18, 139
+passed), `51ad8b3` (correction report 17, 138 passed), `591e2df` (correction report 16, 138 passed),
+`cd87171` (correction report 15, 138 passed), `ef6c318` (progress report 14, 138 passed), `9bbe179`
+(correction report 12, 138 passed), `a06b1df` (correction report 11, 138 passed), `1532143`
+(correction report 10, 137 passed), `6a3c53b` (correction report 9, 137 passed), `b1c3595`
+(correction report 8, 137 passed), `b8535ab` (correction report 7 addendum, 137 passed), `81906cd` /
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed). Linux: the prior tree
+`d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on Linux, and neither were
+correction 7's addendum, corrections 8 to 13, progress report 14, correction reports 15 to 18 and
+this report.
+
+### Acceptance status
+
+| ID | Status | Evidence |
+|---|---|---|
+| VIEW-004 | **accepted** (architect's review of `9c4cd52`), combined evidence | suite: `test_P_VIEW_004_whole_pixel_world_and_nearest_filtering`; renderer: correction report 18 (`366eb3b`), rerun here |
+| CAM-004 | **accepted** (architect's review of `9c4cd52`), combined evidence | suite: whole-pixel camera origin in `test_CAM_002_camera_clamps_small_and_large_maps` and `test_P_VIEW_004_…`; renderer: correction report 18 (`366eb3b`), rerun here |
+| DOG-008a | **pending architect acceptance** (not counted) | suite: `test_CORE_002_logic_independent_of_render_rate`, `test_P_DOG_008a_main_restart_resets_interpolation_and_run_state`, `test_P_DOG_008a_restart_canvas_snapped_before_first_draw`; renderer: this report (corrected camera-snap control detected at every rate, every positive frame exact) |
+
+Totals: 97 satisfied (92 full suite + 3 combined: ARCH-001a, VIEW-004, CAM-004 + 2 command:
+AST-019, CORE-001); DOG-008a pending architect acceptance.
+
+### Probe weaknesses seen in the first pre-fix run (not changed here)
+
+This correction changes only the camera-snap control, as the review asked. The first pre-fix run
+showed two failures that the `CameraRig.snap()` mutation cannot cause; they are weaknesses of the
+probe as committed in correction report 18 and can recur in any run:
+
+- **Step-timing metric at 30 FPS.** `motion_30` failed `step_rms` (1.07 px, limit 1 px) and
+  `max_step` (excess 4.4 px, limit 2 px) although all 43 frames sat exactly at the positions the
+  interpolated physics state predicts and the fitted velocity ratio was 1.0029. These two metrics
+  compare steps with wall-clock frame timestamps taken in `frame_post_draw`, so a delayed callback
+  (host scheduling or readback) shows as a large step.
+- **Fractional-camera dither control.** It was not detected at 120 FPS (0 of 4,476 marker samples
+  shifted, 0 jitter frames). The ±0.45 px dither is applied once per physics tick and is
+  interpolated like the camera, so at some frame/tick phases it never moves a rendered marker across
+  a rounding boundary. It was detected in correction report 18's runs and in this report's complete
+  run.
+
+Both would need a probe change for the architect to decide (for example a per-frame ±0.5 px dither,
+which always moves one of two consecutive frames off the prediction, and engine-time steps).
+
+### Development attempts (kept as found)
+
+- Working tree, focused resets probe: every positive frame passed and `camera_snap_without_reset`
+  was detected at 30/60/90/120 FPS (no marker within 4 px of the snapped view; 24–27 marker
+  components elsewhere). Complete probe on the working tree: 24 records passed, 24 of 24 controls
+  detected.
+
+### Legacy-save plan (MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike: executed and hardened, accepted by the architect on review of
+   `8f8dcb6`.** The throwaway native migration plugin under `/godot/platform/android/` read the five
+   legacy keys of a controlled same-package/same-signature lineage on three emulators. The
+   native-bridge versus staged-Capacitor decision stands: `native_bridge_viable_for_controlled_lineage`
+   (controlled lineage, emulators, test key; not a production approval).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005 (raw five-key payload written exactly with timestamp and SHA-256 before any parsing).
+3. **M9 — production proof:** the installed lineage and signing certificate, representative real
+   user data, two WebView/device versions, end-to-end MIG-001–010.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017) and the accepted M1 spike found the native bridge viable for a controlled lineage. Remaining: the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005; the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | M1 migration spike done on emulators (API 36, 34, 24) with a throwaway key, accepted by the architect on review of `8f8dcb6`; physical devices and the production lineage are M9 |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **Architect acceptance of DOG-008a** (this report's corrected control and reruns).
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 18: renderer-backed presentation probe; VIEW-004, CAM-004 and DOG-008a on combined evidence (`9c4cd52`; M1 Partial, M2 Partial)
+
+> Historical record of `9c4cd52`, superseded by correction report 19 (text below kept as
+> submitted). **Supersession:** on review of `9c4cd52` the architect accepted VIEW-004 and CAM-004 on its combined
+> evidence. DOG-008a was not accepted: its camera-snap no-reset control (`_snap_no_reset()`) also left out
+> `force_update_scroll()`, so it did not isolate the missing interpolation reset. Correction report 19 corrects that
+> control and reruns the probe; DOG-008a is pending architect acceptance, and its total of 98 is superseded by 97.
+> Its `CameraRig.snap()` RESTART fix and its pre-fix evidence stand.
 
 Scope: the architect's review of `8f8dcb6`, in one focused commit. Changed: the renderer-backed probe
 (`godot/tools/rendered_presentation_probe.gd` with `rendered_presentation_probe_impl.gd`, replacing

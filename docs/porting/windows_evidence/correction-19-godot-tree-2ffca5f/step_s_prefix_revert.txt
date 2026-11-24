@@ -1,0 +1,14 @@
+pre-fix camera_rig.gd written
+ godot/iso/camera_rig.gd | 5 -----
+ 1 file changed, 5 deletions(-)
+diff --git a/godot/iso/camera_rig.gd b/godot/iso/camera_rig.gd
+index 1007163..f13dac1 100644
+--- a/godot/iso/camera_rig.gd
++++ b/godot/iso/camera_rig.gd
+@@ -23,5 +22,0 @@ func snap(tx: float, ty: float) -> void:
+-		# A physics-interpolated Camera2D pushes its view to the viewport only in its process
+-		# callbacks. A scene replaced after the process step (RESTART: Main.start_green_zone runs
+-		# deferred from the pause menu's _process) would otherwise draw its first frame with the
+-		# canvas transform the previous camera left (identity). Push the snapped view now.
+-		camera.force_update_scroll()
+f13dac1ca985b270485f9642168cb4213c45dc45

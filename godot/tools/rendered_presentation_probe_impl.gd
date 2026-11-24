@@ -1283,10 +1283,15 @@ func _teleport_no_reset(x: float, y: float) -> void:
 	_flags["dog_reset"] = true
 
 
-## CameraRig.snap() without its interpolation resets (control only).
+## CameraRig.snap() with only its two interpolation resets left out (control only): the model is
+## snapped, the rig position applied (CameraRig._apply()) and the snapped view pushed to the
+## viewport (force_update_scroll()), exactly as snap() does; rig.reset_physics_interpolation() and
+## camera.reset_physics_interpolation() are deliberately omitted. The history still marks the tick
+## as a reset point, because the expected presentation is the snapped view at once.
 func _snap_no_reset(tx: float, ty: float) -> void:
 	_rig.model.snap_to(tx, ty)
-	_rig.position = _rig.model.view_origin() + Vector2(_rig.model.view_w, _rig.model.view_h) / 2.0
+	_rig._apply()
+	_rig.camera.force_update_scroll()
 	_flags["rig_reset"] = true
 
 
