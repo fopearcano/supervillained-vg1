@@ -1,0 +1,14 @@
+# Each image's SHA-256 and the rendered frame index(es) with the same SHA-256
+# (rendered_frame_hashes_2ffca5f.txt; identical images occur because the animation repeats frames).
+09dad67c285e8ca6d45b17bb075839f5edf94e4b02f1c0df2f895bd1b09bd02f  docs/porting/captures/title_m1/title_frame_00 (commit 16b5619)  = rendered frame(s): 3
+95840694f79dca3af16f4d45248da680165c39055aa464863c93620a62156712  docs/porting/captures/title_m1/title_frame_49 (commit 16b5619)  = rendered frame(s): 49
+c0f46e0f0b854074731c5b5ad3161a5f3ec124dac854d3d44341b63f27347aa4  docs/porting/captures/title_m1/title_frame_98 (commit 16b5619)  = rendered frame(s): 98
+f3dda1776af76338e79ee9c338f568443764ee38ac39670dee770096bf83048b  tools/title_capture.gd on 2ffca5f (fresh clone of e0e6052), title_frame_00  = rendered frame(s): 1, 12
+95840694f79dca3af16f4d45248da680165c39055aa464863c93620a62156712  tools/title_capture.gd on 2ffca5f (fresh clone of e0e6052), title_frame_49  = rendered frame(s): 49
+c0f46e0f0b854074731c5b5ad3161a5f3ec124dac854d3d44341b63f27347aa4  tools/title_capture.gd on 2ffca5f (fresh clone of e0e6052), title_frame_98  = rendered frame(s): 98
+f3dda1776af76338e79ee9c338f568443764ee38ac39670dee770096bf83048b  tools/title_capture.gd on 4ac0aed (verification clone, step o), title_frame_00  = rendered frame(s): 1, 12
+95840694f79dca3af16f4d45248da680165c39055aa464863c93620a62156712  tools/title_capture.gd on 4ac0aed (verification clone, step o), title_frame_49  = rendered frame(s): 49
+c0f46e0f0b854074731c5b5ad3161a5f3ec124dac854d3d44341b63f27347aa4  tools/title_capture.gd on 4ac0aed (verification clone, step o), title_frame_98  = rendered frame(s): 98
+728ff2678e32fa81e7cbf2dc52d46e2377fef410c49066c32f5bc6720e15615f  m1_review.tscn --export title_stills/title_frame_00  = rendered frame(s): 0, 11
+95840694f79dca3af16f4d45248da680165c39055aa464863c93620a62156712  m1_review.tscn --export title_stills/title_frame_49  = rendered frame(s): 49
+c0f46e0f0b854074731c5b5ad3161a5f3ec124dac854d3d44341b63f27347aa4  m1_review.tscn --export title_stills/title_frame_98  = rendered frame(s): 98

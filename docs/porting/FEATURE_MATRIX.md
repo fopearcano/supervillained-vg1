@@ -20,8 +20,14 @@ migration-plugin feasibility spike has been executed on emulators (progress repo
 rerun on three Android versions in correction reports 15, 16 and 17; decision
 `native_bridge_viable_for_controlled_lineage`, accepted by the architect on review of `8f8dcb6`; see
 "Legacy-save plan" below); M1 stays Partial for its manual checks.
+**M1 manual checks: prepared, not executed** (progress report 21). The package
+`docs/porting/manual_evidence/m1-godot-tree-2ffca5f/` (development-only review station
+`godot/tools/m1_review.tscn`, blank checklist of 362 fields, inventories, contact sheets, title stills)
+waits for the owner; no manual decision has been received, so every field is NOT EXECUTED.
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
-`docs/porting/captures/title_m1/` (title frames for approval), `docs/porting/windows_evidence/`,
+`docs/porting/captures/title_m1/` (title captures of commit `16b5619`; its `title_frame_00` image is
+rendered frame 3, not frame 0, see progress report 21), `docs/porting/manual_evidence/` (M1 manual
+package), `docs/porting/windows_evidence/`,
 `docs/porting/linux_evidence/` (real host runs) and `docs/porting/android_evidence/` (emulator runs of
 the M1 spike).
 Row status: **Slice** = the row's listed IDs are satisfied for the current slice by full suite
@@ -35,7 +41,7 @@ rendered clauses under the acceptance conditions the architect set, below), or o
 architect-accepted command evidence (AST-019 and CORE-001, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `2ffca5f`, 139 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
+**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `4ac0aed`, 139 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
 CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-005a, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
@@ -100,8 +106,9 @@ did not change between the two trees). CORE-001, **counted as satisfied** (accep
 architect on review of `46d7ad9`): the clean import (exit 0, no ERROR/WARNING line) and the 600-frame
 headless Main launch (exit 0, engine banner only) on a fresh Windows 11 clone of the current tree
 (`godot/` `9bbe179`, correction report 12, `windows_evidence/correction-12-godot-tree-9bbe179/`
-`step_b_import.txt` and `step_d_main_600_frames.txt`; the current tree `2ffca5f` passed the same
-two steps in correction report 19, `windows_evidence/correction-19-godot-tree-2ffca5f/`); the clean Ubuntu 26.04 clone of the prior tree
+`step_b_import.txt` and `step_d_main_600_frames.txt`; the current tree `4ac0aed` passed the same
+two steps in progress report 21, `windows_evidence/m1-review-godot-tree-4ac0aed/`, and `2ffca5f` in
+correction report 19, `windows_evidence/correction-19-godot-tree-2ffca5f/`); the clean Ubuntu 26.04 clone of the prior tree
 `d12bedd` (`linux_evidence/d12bedd/`) is supplemental support. **Renderer-backed probe (combined
 evidence above; not a suite result):** `tools/rendered_presentation_probe.gd` with
 `--rendering-driver opengl3 --disable-vsync` on the RTX 3090. The run on which VIEW-004 and CAM-004
@@ -113,16 +120,22 @@ frames in `captures/m2_rendered/godot-tree-2ffca5f/`): the focused resets sectio
 `tools/interpolation_probe.gd` stays supplemental command evidence for its trees (`9bbe179`,
 correction report 12; the architect's run on `1532143`).
 
-**Host verification.** *Current tree* (`godot/` tree `2ffca5ffaf62ff0c55773fd07fd2630c23a6fe3b`, correction report 19: the
-`366eb3b` tree with the probe's camera-snap no-reset control corrected; unchanged by the
-documentation-only correction report 20): a
+**Host verification.** *Current tree* (`godot/` tree `4ac0aedb41e2c4e07b8e486f886b98142aeea571`, progress report 21: the
+`2ffca5f` tree plus the development-only review station under `tools/` and a README section; every
+runtime, test and asset file identical): a fresh Windows 11 25H2 clone passed the asset check
+(206 + 55 outputs identical), the clean import, the suite **139 passed, 0 failed**, the 600-frame
+Main run, the hermetic PCK smoke (254 runtime resources, 512 packed files, 32,906,024 bytes; no
+`tools/` file packed), the PixiJS baseline (248 tests, build OK), `git diff --check` and the
+source-tree guard, and the review station's export (18 automated self-checks)
+(`windows_evidence/m1-review-godot-tree-4ac0aed/`). *Previous Windows trees*:
+`2ffca5f` (correction report 19, **139 passed**; a
 fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0, pinned
-Chromium) passed the asset check (206 + 55 outputs identical), the clean import, the suite **139
-passed, 0 failed**, the 600-frame Main run, the hermetic PCK smoke (254 runtime resources, 512 packed files, 32,906,024 bytes), the focused DOG-008a
+Chromium) passed the asset check, the clean import, the suite, the 600-frame Main run, the hermetic
+PCK smoke, the focused DOG-008a
 cases, the renderer-backed probe (VSync off at 30/60/90/120 FPS: the resets section, then the
 complete probe; the pre-fix `CameraRig.snap()` mutation), the spike
 harness and tool self-tests, the PixiJS baseline (248 tests, build OK), `git diff --check` and the
-source-tree guard (`windows_evidence/correction-19-godot-tree-2ffca5f/`). *Previous Windows trees*:
+source-tree guard, `windows_evidence/correction-19-godot-tree-2ffca5f/`),
 `366eb3b` (correction report 18, **139 passed**, the probe VSync off and on and the pre-fix
 mutation, `windows_evidence/correction-18-godot-tree-366eb3b/`), `51ad8b3` (correction report 17, **138 passed**,
 `android_evidence/m1_migration_spike/godot-tree-51ad8b3/host_checks/`), `591e2df` (correction report 16,
@@ -139,7 +152,7 @@ probe and the live audio probe, `windows_evidence/correction-12-godot-tree-9bbe1
 `windows_evidence/correction-7-godot-tree-b8535ab/`) and `81906cd` /
 `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, **134 passed**,
 `windows_evidence/correction-6-godot-tree-fd20ac1/`). **Correction 6 was not rerun on Linux, and
-neither were correction 7's addendum, corrections 8, 9, 10, 11 and 12, progress report 14 and correction reports 15, 16, 17, 18 and 19.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
+neither were correction 7's addendum, corrections 8, 9, 10, 11 and 12, progress report 14, correction reports 15, 16, 17, 18 and 19 and progress report 21.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
 asset check, clean import, suite **128 passed, 0 failed**, 600-frame run and empty `git status`
 (`linux_evidence/d12bedd/`), and Windows additionally ran the rendered probe at 30/60/90/120 FPS
 with VSync off (`windows_evidence/d12bedd/`). Earlier Windows evidence for `a0e3b8d` is kept in
@@ -171,7 +184,9 @@ everything on Android hardware; the game on the emulators (its APK export, insta
 keep-awake, display cutout safe area, touch hardware, audio focus, performance); the M1 spike on a
 physical device or with the production signing lineage (M9); the manual M1/M2 checks (desktop and touch
 play sessions, occlusion and camera-edge inspection, crisp rendering at two sizes and one
-non-integer aspect, animation preview, listening to the audio, approval of the title images).
+non-integer aspect, animation preview, listening to the audio, approval of the title images; the
+M1 items are prepared in `docs/porting/manual_evidence/m1-godot-tree-2ffca5f/` and wait for the
+owner's decisions).
 
 **Legacy-save plan (approved: MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3):**
 1. **M1 — feasibility spike: executed (progress report 14; hardened and rerun in correction reports
@@ -209,7 +224,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the current tree (correction report 19, `godot/` `2ffca5f`; accepted on correction report 12, `9bbe179`); supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
+| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the current tree (progress report 21, `godot/` `4ac0aed`; accepted on correction report 12, `9bbe179`); supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
 | Adaptive pixel-perfect viewport | Slice | VIEW-001, VIEW-002, VIEW-003; VIEW-004 on combined evidence, accepted on review of `9c4cd52` (`test_P_VIEW_004` + the renderer-backed probe on a real RTX 3090 at 30/60/90/120 FPS); underlay/letterbox SLICE case; 4 viewport captures | device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | not run on a device or the emulator yet |

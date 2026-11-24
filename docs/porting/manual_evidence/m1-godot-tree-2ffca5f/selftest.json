@@ -1,0 +1,104 @@
+{
+  "checks": [
+    {
+      "check": "res://data/characters/zampano_frames.tres: exactly the 12 required actions x 8 directions",
+      "ok": true,
+      "value": 96
+    },
+    {
+      "check": "res://data/characters/zampanoKnight_frames.tres: exactly the 12 required actions x 8 directions",
+      "ok": true,
+      "value": 96
+    },
+    {
+      "check": "every animation's frame count, loop flag and authored per-frame durations equal the source sheet JSON (src/assets/manifest.ts)",
+      "ok": true,
+      "value": 192
+    },
+    {
+      "check": "every frame is a 40x40 AtlasTexture region",
+      "ok": true,
+      "value": 1088
+    },
+    {
+      "check": "profile costumes: cross and armoured share the knight resource (AST-006 alias), normal is separate",
+      "ok": true,
+      "value": 2
+    },
+    {
+      "check": "the listening list is exactly AudioService's tracks, recorded effects and synth cues",
+      "ok": true,
+      "value": 32
+    },
+    {
+      "check": "5 recorded tracks, 12 recorded effects, 1 generated loop, 14 generated cues",
+      "ok": true,
+      "value": {
+        "generated effect": 14,
+        "generated music": 1,
+        "recorded effect": 12,
+        "recorded music": 5
+      }
+    },
+    {
+      "check": "every file loads with a positive length",
+      "ok": true,
+      "value": 32
+    },
+    {
+      "check": "every file's SHA-256 equals the source asset manifest",
+      "ok": true,
+      "value": 32
+    },
+    {
+      "check": "generated cues and loop are mono 22,050 Hz 16-bit PCM WAV",
+      "ok": true,
+      "value": 15
+    },
+    {
+      "check": "Godot stream length within 0.1 s of the source fixture duration",
+      "ok": true,
+      "value": 32
+    },
+    {
+      "check": "title: 99 frames",
+      "ok": true,
+      "value": 99
+    },
+    {
+      "check": "title: per-frame delays equal title_frames.json",
+      "ok": true,
+      "value": 3.9
+    },
+    {
+      "check": "title: frame 125x168, canonical width 125",
+      "ok": true,
+      "value": [
+        125,
+        168
+      ]
+    },
+    {
+      "check": "title: atlas pages <= 2048x2048",
+      "ok": true,
+      "value": 1
+    },
+    {
+      "check": "title: uncompressed frame memory < 12 MB and equal to title_frames.json",
+      "ok": true,
+      "value": 8316000
+    },
+    {
+      "check": "title: alpha threshold 110 (conversion) and 110/255 (portrait shader)",
+      "ok": true,
+      "value": 0.431372553110123
+    },
+    {
+      "check": "checklist fields: 192 animation cells + A-FILTER, 32 x 5 audio + B-MUTE + B-VOLUME, 7 title",
+      "ok": true,
+      "value": 362
+    }
+  ],
+  "note": "automated facts only; no manual decision",
+  "ok": true
+}

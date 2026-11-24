@@ -6,14 +6,206 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 20 is current. Erratum for the historical reports: their
+in progress report 5. Progress report 21 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 20: DOG-008a accepted on combined evidence; every automated M1 and M2 ID satisfied (M1 Partial, M2 Partial) — current
+## Progress report 21: M1 manual-validation package; owner decisions requested (M1 Partial, M2 Partial) — current
+
+Scope: the architect's instruction after `e0e6052`: prepare and conduct the M1 manual-validation
+handoff, in one commit of development-only review tooling, documentation and lightweight captures.
+Changed: `godot/tools/m1_review.tscn`, `godot/tools/m1_review.gd` (+ `.gd.uid`), a `godot/README.md`
+section, this log, FEATURE_MATRIX.md, the package `docs/porting/manual_evidence/m1-godot-tree-2ffca5f/`
+and the host logs `docs/porting/windows_evidence/m1-review-godot-tree-4ac0aed/`. No gameplay, tuning,
+camera, movement, save, asset, generated resource, PixiJS, Capacitor or Android production file
+changed; `tools/title_capture.gd` and `captures/title_m1/` are unchanged; M2 manual validation and M3
+are not started.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither milestone completion accepted); every automated M1 and M2 acceptance ID is satisfied; the M1 manual checks are prepared for the owner and **not executed**; the M2 desktop and touch play checks are open |
+| Base | `e0e6052` (correction report 20; `godot/` tree `2ffca5f`) |
+| Current `godot/` tree | `4ac0aedb41e2c4e07b8e486f886b98142aeea571` = `2ffca5f` plus the review station (three files under `tools/`) and the README section; every runtime, test and asset file identical; verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090 (driver 610.47), OpenGL 3.3 Compatibility renderer, 60 Hz display; GUI and audio output available; Linux not rerun |
+| Android | not rerun (no device claim); the accepted M1 spike evidence is correction report 17's, on emulators `sv_m1_api36` (`emulator-5554`, Android 16 / API 36), `sv_m1_api34` (`emulator-5556`, Android 14 / API 34) and `sv_m1_api24` (`emulator-5558`, Android 7.0 / API 24); no physical device |
+
+### Manual decisions received
+
+**None.** No owner decision has been returned: all 362 fields of
+`manual_evidence/m1-godot-tree-2ffca5f/M1_MANUAL_CHECKLIST.md` are NOT EXECUTED and the final
+decision is NOT DECIDED. Nothing here is a visual or audio PASS; inventories, hashes, contact sheets,
+stills and screen captures are supporting facts only.
+
+### Review station (development only)
+
+The editor previews one SpriteFrames animation at a time without direction, frame number or
+authored duration on screen, cannot play a cue through `AudioService` (leading silence, gains, buses,
+mute, volume), and the title portrait exists only at run time, so a review scene was added under
+`godot/tools/` (excluded from every export preset; the hermetic PCK smoke fails on any packed
+`tools/` file and passed). `tools/m1_review.tscn` (script `m1_review.gd`):
+
+1. **Animations:** the profile's two SpriteFrames resources (`zampano_frames.tres` normal;
+   `zampanoKnight_frames.tres` armoured, aliased by the cross costume), 12 actions including tired
+   x 8 directions, all eight directions at once in a compass, live at the authored frame timing,
+   nearest filtering, x3; pause, replay, frame step, previous/next, background; per cell the
+   direction, frame number and authored duration, and the resource, animation name, frame list and
+   cycle for the item. One decision field per animation and direction (192) plus A-FILTER.
+2. **Audio:** 32 sounds in listening order (5 recorded tracks, 12 recorded effects, the generated
+   medieval loop, 14 generated cues), each labelled with cue key, resource, provenance, format,
+   channels, sample rate, duration, expected use (source event mapping) and game path (bus, gain,
+   skipped leading silence); play through `AudioService`, raw file from 0 s, a music track's last
+   6 s into its loop; stop, replay, previous/next, mute and master volume from 25 %. Five fields per
+   sound (AUDIBLE, INTENT, START, END, CLEAN) with notes, plus B-MUTE and B-VOLUME.
+3. **Title:** the portrait at 88/99/124 px (views 192/216/270), x2, live at the authored delays;
+   pause, replay, step, first/middle/last. Seven fields (C-CROP, C-ALPHA, C-SCALE, C-FIRST,
+   C-MIDDLE, C-LAST, C-TIMING).
+4. **Sign-off:** owner name, date, equipment, the environment recorded automatically, and the final
+   decision (APPROVED only when all 362 fields are PASS).
+
+Decisions are saved on every change to `<decisions dir>/m1_owner_decisions.json` and `.md` and are
+resumed on the next start; nothing is written to the game's save files. `--export <dir>` writes the
+machine-readable inventories, the blank checklist, contact sheets, title stills and screen captures
+and runs 18 automated self-checks (facts only).
+
+### The package (`docs/porting/manual_evidence/m1-godot-tree-2ffca5f/`)
+
+`README.md` (launch and review commands, environment, contents, automated facts, the title-capture
+finding, status per check), `M1_MANUAL_CHECKLIST.md` (blank, 362 fields), `animation_inventory.json`,
+`audio_inventory.json`, `title_facts.json`, `selftest.json`, 12 contact sheets (one per action,
+normal and armoured side by side), 3 title stills, 3 screen captures of the station and
+`title_capture_check/`. 3.4 MB in all; no video or recording.
+
+Automated facts (export self-checks, 18 of 18 hold): each costume resource has exactly the 12
+required actions x 8 directions (192 animations, 1,088 frames, every frame a 40 x 40 region); frame
+counts, loop flags and authored per-frame durations equal the source sheet JSON; cross and armoured
+share the knight resource (AST-006). The listening list is exactly `AudioService`'s 6 tracks, 12
+recorded effects and 14 synth cues (5 + 12 recorded, 1 + 14 generated); every file loads, matches the
+manifest SHA-256 and the source fixture duration; the 15 generated files are mono 22,050 Hz 16-bit PCM
+WAV. Title: 99 frames, delays equal `title_frames.json` (cycle 3.9 s), frame 125 x 168, canonical
+width 125, alpha cut 110 (shader 110/255), one atlas page 2000 x 1176, frame memory 8,316,000 bytes
+(< 12 MB).
+
+### Title capture rerun on the accepted tree: first image is not frame 0 (recorded, not repaired)
+
+The unchanged `tools/title_capture.gd`, rerun on a fresh clone of `e0e6052` (`2ffca5f`, three runs)
+and again on `4ac0aed` (step o), gives middle and last images byte-identical to
+`captures/title_m1/title_frame_49…` and `…_98…`, but its first image is rendered frame 1. Rendering all
+99 frames in the same layout and matching SHA-256 values (`title_capture_check/identified_captures.txt`)
+also shows that the committed `captures/title_m1/title_frame_00_widths_88_99_124.png` (commit
+`16b5619`) is rendered frame 3, not frame 0. Cause: as a `--script`, the SceneTree adds the portraits
+in `_initialize()` before their `_ready()` runs, so the tool sets frame 0 while the portraits have no
+SpriteFrames; `TitlePortrait._ready()` then starts playback at the first `await process_frame` and
+the animation advances before the first capture (`trace_title_capture_order.log.txt`). Reproduction:
+on `2ffca5f`, `godot --path godot --rendering-driver opengl3 --script res://tools/title_capture.gd --
+--out <dir>` and compare `<dir>/title_frame_00_widths_88_99_124.png` with the renders of
+`title_capture_check/render_all_frames.gd.txt`. Not repaired here (development tool; no title asset,
+extraction setting or runtime file involved): the review station's `title_stills/` hold frames 0, 49
+and 98 in the same layout (49 and 98 byte-identical to the committed ones), and the owner judges the
+live portrait. A one-line fix (one `await process_frame` before the first frame is set) is left for
+the architect.
+
+### Commands executed and results
+
+| Command | Result |
+|---|---|
+| Fresh `git clone` of the commit adding the station (local `3894186`, `core.autocrlf=true`; tested `godot/` tree `4ac0aedb41e2c4e07b8e486f886b98142aeea571` = `git rev-parse HEAD:godot` of this commit; only docs and the evidence folders were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | exit 0: 206 + 55 outputs identical |
+| `<console exe> --headless --path godot --import`; `git status --porcelain` | exit 0, no ERROR/WARNING line; status empty |
+| `… --script res://tests/test_runner.gd -- --suite all` | exit 0: **139 passed, 0 failed, 139 total** |
+| `<console exe> --headless --path godot --quit-after 600` | exit 0, engine banner only |
+| `… --suite integration --file test_export_pack` (hermetic PCK smoke) | exit 0: 32,906,024 bytes, **254** runtime resources, **512** packed files, 18 source-only paths unresolved, control resolved 18; no `tools/` file packed |
+| `npm test`; `npm run build` | exit 0: 30 files, 248 tests passed; build OK |
+| `git status --porcelain`; `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty (HEAD: `3894186`, folded into this commit with the same `godot/` tree) |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --name-status e0e6052 HEAD -- godot` | `M godot/README.md`, `A godot/tools/m1_review.gd`, `A godot/tools/m1_review.gd.uid`, `A godot/tools/m1_review.tscn` |
+| `<console exe> --path godot --rendering-driver opengl3 res://tools/m1_review.tscn -- --export <dir>` | exit 0: `M1REVIEW {"checks":18,"failed":[],"fields":362,"ok":true}`; every file byte-identical to the first fresh-clone run's export (tree `1896a39`, below) except the checklist's removed trailing space and the live title-tab screen capture |
+| `<console exe> --path godot --rendering-driver opengl3 --script res://tools/title_capture.gd -- --out <dir>` (on `4ac0aed`; and three times on a fresh clone of `e0e6052`) | exit 0; first image = rendered frame 1, middle and last byte-identical to `captures/title_m1/` |
+| `<console exe> --path godot --rendering-driver opengl3 --quit-after 600 res://tools/m1_review.tscn -- --decisions <dir>` | exit 0, engine banner only; no decisions file (nothing decided) |
+| `git status --porcelain` after all steps | empty |
+| `git diff --cached --check e0e6052` (this commit, staged) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 89 checks` |
+
+Evidence: `docs/porting/windows_evidence/m1-review-godot-tree-4ac0aed/` (REPORT.md, every step's log,
+`exit_codes.txt`) and the package above. Not run: Linux; Android; the rendered probe (no rendering,
+camera, interpolation or presentation change); any manual check.
+
+Host evidence: current tree `4ac0aed` above (139 passed). Previous Windows trees: `2ffca5f`
+(correction report 19, 139 passed), `366eb3b` (correction report 18, 139 passed), `51ad8b3`
+(correction report 17, 138 passed), `591e2df` (correction report 16, 138 passed), `cd87171`
+(correction report 15, 138 passed), `ef6c318` (progress report 14, 138 passed), `9bbe179`
+(correction report 12, 138 passed), `a06b1df` (correction report 11, 138 passed), `1532143`
+(correction report 10, 137 passed), `6a3c53b` (correction report 9, 137 passed), `b1c3595`
+(correction report 8, 137 passed), `b8535ab` (correction report 7 addendum, 137 passed), `81906cd` /
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed). Linux: the prior tree
+`d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on Linux, and neither were
+correction 7's addendum, corrections 8 to 13, progress report 14, correction reports 15 to 19 and
+this report.
+
+### Development attempts (kept as found)
+
+- The first export in the working clone showed the local decisions path in the status line of the
+  screen captures; export mode now shows "export mode: nothing is saved" instead.
+- A temporary harness (not committed; output muted) checked that decisions are saved, that APPROVED
+  is refused while fields are not PASS, that the next start resumes the saved decisions, and that all
+  32 sounds in the three playback modes, the 24 animation items and the title controls run without an
+  engine error.
+- The title-capture trace (`title_capture_check/trace_title_capture_order.gd.txt`) stopped at its
+  null call, which is the evidence that the portraits had no SpriteFrames yet; its process was ended
+  by hand.
+- The first fresh-clone verification ran on an earlier local commit (`godot/` tree `1896a39`): every
+  step passed with the same results, but the exported blank checklist ended its "Title notes:" line
+  with a space, which `git diff --check` rejects. The checklist writer now strips it; the whole
+  verification was rerun on `4ac0aed` (the logs above) and the earlier tree was not committed.
+
+### Legacy-save plan (unchanged; MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike: executed and hardened, accepted by the architect on review of
+   `8f8dcb6`.** The throwaway native migration plugin under `/godot/platform/android/` read the five
+   legacy keys of a controlled same-package/same-signature lineage on three emulators. The
+   native-bridge versus staged-Capacitor decision stands: `native_bridge_viable_for_controlled_lineage`
+   (controlled lineage, emulators, test key; not a production approval).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005 (raw five-key payload written exactly with timestamp and SHA-256 before any parsing).
+3. **M9 — production proof:** the installed lineage and signing certificate, representative real
+   user data, two WebView/device versions, end-to-end MIG-001–010.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017) and the accepted M1 spike found the native bridge viable for a controlled lineage. Remaining: the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005; the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | M1 migration spike done on emulators (API 36, 34, 24) with a throwaway key, accepted by the architect on review of `8f8dcb6`; physical devices and the production lineage are M9 |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **Owner decisions for the M1 manual checks** (package README, "Owner: running the review"): the
+  animation review (192 cells and A-FILTER), the listening review on a computer with speakers or
+  headphones (160 fields, B-MUTE, B-VOLUME), the title review (7 fields) and the sign-off. A FAIL is
+  recorded with exact reproduction steps and stops the M1 sign-off; nothing is repaired in the
+  evidence commit.
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 20: DOG-008a accepted on combined evidence; every automated M1 and M2 ID satisfied (`e0e6052`; M1 Partial, M2 Partial)
+
+> Historical record of `e0e6052`, superseded by progress report 21 (text below kept as
+> submitted). **Supersession:** its decisions and totals stand (98; every automated M1 and M2 ID
+> satisfied). Its current tree `2ffca5f` is superseded by `4ac0aed` (the review station added under
+> `tools/`, runtime files identical). Its manual M1 checks are prepared in progress report 21 and
+> wait for the owner.
 
 Scope: the architect's review of `386184b` (correction report 19), in one documentation-only commit
 (`docs/porting/FEATURE_MATRIX.md`, `TEST_PLAN.md` and this log). No gameplay, runtime, test, tool,
