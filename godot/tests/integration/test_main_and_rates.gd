@@ -130,8 +130,8 @@ func test_SLICE_viewport_underlay_and_black_letterbox() -> void:
 ## The same input gives the same logic at 30/60/90/120 rendered FPS (60 Hz physics, interpolation
 ## only in presentation); test hooks are off in the shipped scene defaults. CORE-002 in full. The interpolation-reset assertions (spawn, teleport, camera snap) are
 ## partial evidence for DOG-008a: the restart reset is test_P_DOG_008a_main_restart_…; the rendered
-## 30/60/90/120 FPS presentation clause stays open (tools/interpolation_probe.gd runs are
-## supplemental command evidence, not acceptance), and stage change is DOG-008b (M5).
+## 30/60/90/120 FPS presentation clause is renderer-backed evidence outside this suite
+## (tools/rendered_presentation_probe.gd), and stage change is DOG-008b (M5).
 func test_CORE_002_logic_independent_of_render_rate() -> void:
 	assert_eq([Engine.physics_ticks_per_second, ProjectSettings.get_setting("physics/common/physics_ticks_per_second")], [60, 60], "60 Hz physics")
 	# Reference: 150 manual ticks.
@@ -250,9 +250,66 @@ static func _nodes_of(node: Node, type: Script) -> Array:
 	return out
 
 
+## DOG-008a, logical side of the first frame after RESTART (partial case; the rendered frame itself
+## is measured by tools/rendered_presentation_probe.gd outside the suite). RESTART is chosen with
+## keys, so the pause menu's _process emits restart_requested and Main.start_green_zone runs in the
+## deferred flush after the process step, when no process callback of the new physics-interpolated
+## Camera2D remains before that frame is drawn. At the end of that flush the GameViewport canvas
+## transform must already be the replacement's snapped spawn view (CameraRig.snap() pushes it);
+## before that fix the frame was drawn with the identity transform the old camera left.
+func test_P_DOG_008a_restart_canvas_snapped_before_first_draw() -> void:
+	InputService.auto_update = true
+	tree.root.size = Vector2i(432, 864)
+	main = MAIN.instantiate()
+	tree.root.add_child(main)
+	await tree.process_frame
+	var gz: GreenZoneScene = main.current_scene
+	var briefing: OverlayPanel = gz._overlay
+	await _frames_until(func() -> bool: return briefing.time > 0.6, 5000)
+	await _tap_key(KEY_ENTER)
+	if not assert_true(await _frames_until(func() -> bool: return gz.active, 300), "Enter closed the briefing"):
+		return
+	await _tap_key(KEY_ESCAPE)
+	if not assert_true(await _frames_until(func() -> bool: return gz.paused, 300), "Esc opened the pause menu"):
+		return
+	var pause: PauseOverlay = gz._overlay
+	await _frames_until(func() -> bool: return pause.time > 0.4, 5000)
+	await _tap_key(KEY_DOWN)
+	assert_eq(pause.items[pause.selected]["label"], "RESTART", "Down selects RESTART")
+	var seen := {}
+	var on_added := func(n: Node) -> void:
+		if n is GreenZoneScene and not seen.has("frame"):
+			seen["frame"] = Engine.get_process_frames()
+			# Runs later in the same deferred flush, after Main.start_green_zone has finished.
+			(func() -> void:
+				seen["origin"] = main.game_viewport.canvas_transform.origin
+				seen["flush_frame"] = Engine.get_process_frames()).call_deferred()
+	tree.node_added.connect(on_added)
+	var old_id := gz.get_instance_id()
+	await _tap_key(KEY_ENTER)
+	var replaced := await _frames_until(func() -> bool: return main.current_scene.get_instance_id() != old_id, 300)
+	tree.node_added.disconnect(on_added)
+	if not assert_true(replaced and seen.has("origin"), "RESTART replaced the scene"):
+		return
+	var fresh: GreenZoneScene = main.current_scene
+	var view := Vector2(main.viewport_controller.logical_size)
+	var canon := GreenZoneLevel.load_model(GreenZoneLevel.definition())
+	var s := IsoGrid.grid_to_screen_xy(canon.start.x, canon.start.y)
+	var cm := CameraModel.new()
+	cm.view_w = view.x
+	cm.view_h = view.y
+	cm.set_bounds(fresh.world.walkable_bounds(4))
+	cm.snap_to(s[0], s[1] - fresh.world.camera_lift)
+	var expected: Vector2 = view / 2.0 - (cm.view_origin() + view / 2.0)
+	assert_eq(seen["flush_frame"], seen["frame"], "checked in the process frame that added the replacement")
+	assert_eq(seen["origin"], expected, "canvas transform is the snapped spawn view before the first draw")
+	InputService.auto_update = false
+
+
 ## DOG-008a restart clause, through the real flow only (partial case: the spawn, teleport and
 ## camera-snap resets and the test-hook defaults are test_CORE_002; the rendered 30/60/90/120 FPS
-## presentation clause stays open, tools/interpolation_probe.gd runs being supplemental evidence).
+## presentation clause is renderer-backed evidence outside this suite,
+## tools/rendered_presentation_probe.gd).
 ## Main starts the Green Zone; Enter closes the briefing; the dog walks on InputService movement in
 ## real 60 Hz physics ticks (interpolation history for the dog and the camera) and pees (Space);
 ## Esc opens the pause menu; Down and Enter choose RESTART, whose restart_requested reaches

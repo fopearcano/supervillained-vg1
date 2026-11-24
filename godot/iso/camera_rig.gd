@@ -20,6 +20,11 @@ func snap(tx: float, ty: float) -> void:
 	reset_physics_interpolation()
 	if camera:
 		camera.reset_physics_interpolation()
+		# A physics-interpolated Camera2D pushes its view to the viewport only in its process
+		# callbacks. A scene replaced after the process step (RESTART: Main.start_green_zone runs
+		# deferred from the pause menu's _process) would otherwise draw its first frame with the
+		# canvas transform the previous camera left (identity). Push the snapped view now.
+		camera.force_update_scroll()
 	interpolation_resets += 1
 
 

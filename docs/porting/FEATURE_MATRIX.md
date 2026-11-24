@@ -18,8 +18,8 @@ Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. The M1 Android
 migration-plugin feasibility spike has been executed on emulators (progress report 14, hardened and
 rerun on three Android versions in correction reports 15, 16 and 17; decision
-`native_bridge_viable_for_controlled_lineage`, pending architect review; see "Legacy-save plan"
-below); M1 stays Partial for its manual checks.
+`native_bridge_viable_for_controlled_lineage`, accepted by the architect on review of `8f8dcb6`; see
+"Legacy-save plan" below); M1 stays Partial for its manual checks.
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title frames for approval), `docs/porting/windows_evidence/`,
 `docs/porting/linux_evidence/` (real host runs) and `docs/porting/android_evidence/` (emulator runs of
@@ -30,12 +30,12 @@ not executed; **—** = not started.
 
 Acceptance IDs are claimed through a `test_<ID>_…` suite case that exercises every clause of the
 ID (TEST_PLAN.md case naming), on combined evidence (TEST_PLAN.md: named suite cases plus a named
-architect static review for a static code-review requirement, or an architect-accepted
-renderer-backed probe for rendered clauses, of which none is accepted yet), or on
+architect static review for a static code-review requirement, or a renderer-backed probe for
+rendered clauses under the acceptance conditions the architect set, below), or on
 architect-accepted command evidence (AST-019 and CORE-001, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `51ad8b3`, 138 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
+**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `366eb3b`, 139 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
 CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-005a, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
@@ -46,26 +46,29 @@ satisfied, AST-019 by command evidence (counted once, below). **AST-007 / findin
 (review of `6b91fd3`): the sword and shield are baked into the armoured frames, so shared frame and
 foot-anchor alignment is the applicable "arms attachment" contract.
 
-**Satisfied on combined evidence (1; TEST_PLAN.md):** ARCH-001a (suite:
+**Satisfied on combined evidence (4; TEST_PLAN.md):** ARCH-001a (suite:
 `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`; static: the named static review is
 the architect's review of `f580fa4`, **confirmed** by the architect on review of `46d7ad9`: no
-duplicate playable/input movement controller). **Satisfied on architect-accepted command evidence
-(2):** AST-019 and CORE-001 (below). **Total satisfied: 95 (92 full suite + 1 combined + 2
+duplicate playable/input movement controller). VIEW-004, CAM-004 and DOG-008a on suite cases plus
+the renderer-backed probe `tools/rendered_presentation_probe.gd` (correction report 18; the
+architect's review of `8f8dcb6` made them satisfied once every real measurement passed and every
+negative control was detected, which held for the `godot/` tree `366eb3b`; the rendered evidence is
+not a suite result): VIEW-004 (suite: `test_P_VIEW_004_whole_pixel_world_and_nearest_filtering`,
+nearest filtering and whole-pixel sprite, camera and UI transforms; renderer: no streak, double
+interpolation or static shimmer at 30/60/90/120 FPS); CAM-004 (suite: whole-pixel camera origin in
+`test_CAM_002_camera_clamps_small_and_large_maps` and `test_P_VIEW_004_…`; renderer: every static
+marker exactly where the interpolated camera puts it, with its exact pattern, under the following
+camera); DOG-008a (suite: `test_CORE_002_logic_independent_of_render_rate` for the spawn, teleport
+and camera-snap resets and the shipped test-hook defaults,
+`test_P_DOG_008a_main_restart_resets_interpolation_and_run_state` for the restart reset through
+the real Main flow, `test_P_DOG_008a_restart_canvas_snapped_before_first_draw`; renderer: the
+30/60/90/120 FPS presentation and the first frame after spawn, teleport, camera snap and the real
+Main RESTART). The probe found that the first frame after RESTART used the identity canvas
+transform (the pause menu's deferred restart left the new physics-interpolated camera no process
+callback before that frame); `CameraRig.snap()` now pushes the snapped view to the viewport at once,
+and the pre-fix run is kept with the evidence. **Satisfied on architect-accepted command evidence
+(2):** AST-019 and CORE-001 (below). **Total satisfied: 98 (92 full suite + 4 combined + 2
 command).**
-
-**Partial, rendered clauses open (M2; not counted):** on review of `f580fa4` the architect withdrew
-the acceptance of the rendered probe for these IDs; `tools/interpolation_probe.gd` is supplemental
-command evidence (below) until a strengthened renderer-backed probe passes (TEST_PLAN.md combined
-evidence lists what it must check). VIEW-004 (suite part:
-`test_P_VIEW_004_whole_pixel_world_and_nearest_filtering`, nearest filtering and whole-pixel sprite,
-camera and UI transforms; open: no streak, double interpolation or static shimmer at 30/60/90/120
-FPS); CAM-004 (suite part: whole-pixel camera origin in `test_CAM_002_camera_clamps_small_and_large_maps`
-and `test_P_VIEW_004_…`; open: no static shimmer); DOG-008a (suite parts:
-`test_CORE_002_logic_independent_of_render_rate` for the spawn, teleport and camera-snap resets and
-the shipped test-hook defaults; the **restart-reset subclause is satisfied** by
-`test_P_DOG_008a_main_restart_resets_interpolation_and_run_state` through the real Main flow; open:
-the 30/60/90/120 FPS presentation without streaks, including the first rendered frame after spawn,
-camera snap and restart where required).
 
 **Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
 ARCH-001a (M2, satisfied on combined evidence) + ARCH-001b (M5, production story scene); COLL-005 = COLL-005a (M2,
@@ -73,13 +76,12 @@ satisfied) + COLL-005b (M5–M7: scripted-position objectives; `test_P_COLL_005b
 M5/M6, the full aggregate in M7). COLL-005 covers static and scripted-position reachability only;
 dynamic goals (moving or runtime-placed targets) are owned by WALK/NPC/MINI and each scene's STY
 real-input completion. DOG-005 = DOG-005a (M2,
-satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, Partial: rendered clause open, restart reset satisfied) + DOG-008b (M5,
+satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, satisfied on combined evidence) + DOG-008b (M5,
 stage change).
 
-**Automated M2 acceptance IDs (MILESTONES.md M2):** open: VIEW-004, CAM-004 and DOG-008a
-(rendered clauses, above); every other automated M2 ID is satisfied, ARCH-001a on combined
-evidence. M2 stays **Partial**: those three IDs and its manual desktop and touch play checks are
-not done (below).
+**Automated M2 acceptance IDs (MILESTONES.md M2):** all satisfied, ARCH-001a, VIEW-004, CAM-004
+and DOG-008a on combined evidence. M2 stays **Partial**: its manual desktop and touch play checks
+are not done (below).
 
 **Partial evidence only (not satisfied, later milestones):** GZ-001, GZ-002, GZ-021, GZ-025,
 SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
@@ -92,23 +94,27 @@ did not change between the two trees). CORE-001, **counted as satisfied** (accep
 architect on review of `46d7ad9`): the clean import (exit 0, no ERROR/WARNING line) and the 600-frame
 headless Main launch (exit 0, engine banner only) on a fresh Windows 11 clone of the current tree
 (`godot/` `9bbe179`, correction report 12, `windows_evidence/correction-12-godot-tree-9bbe179/`
-`step_b_import.txt` and `step_d_main_600_frames.txt`; the current tree `51ad8b3` passed the same
-two steps in correction report 17, `android_evidence/m1_migration_spike/godot-tree-51ad8b3/host_checks/`); the clean Ubuntu 26.04 clone of the prior tree
-`d12bedd` (`linux_evidence/d12bedd/`) is supplemental support. **Rendered interpolation probe,
-supplemental only** (it satisfies no rendered clause; the architect's review of `f580fa4` requires
-the checks listed in TEST_PLAN.md before a probe can): `tools/interpolation_probe.gd` with
-`--rendering-driver opengl3 --disable-vsync` on the RTX 3090 for the tree `9bbe179` (correction report 12; rendering unchanged since):
-30.0 / 60.0 / 90.0 / 119.4 FPS achieved, 0 repeated frames, no step beyond two frames' worth, the teleport shown at once; the interpolation-off control showed 21 repeated frames at 120 FPS; the two static markers stayed 40 px apart under the moving camera at 90 and 120 FPS (`windows_evidence/correction-12-godot-tree-9bbe179/`); the architect's independent run
-on `1532143` passed at 30/60/90/120 FPS.
+`step_b_import.txt` and `step_d_main_600_frames.txt`; the current tree `366eb3b` passed the same
+two steps in correction report 18, `windows_evidence/correction-18-godot-tree-366eb3b/`); the clean Ubuntu 26.04 clone of the prior tree
+`d12bedd` (`linux_evidence/d12bedd/`) is supplemental support. **Renderer-backed probe (combined
+evidence above; not a suite result):** `tools/rendered_presentation_probe.gd` with
+`--rendering-driver opengl3 --disable-vsync` on the RTX 3090 for the tree `366eb3b` (correction report
+18, `windows_evidence/correction-18-godot-tree-366eb3b/`, frames in
+`captures/m2_rendered/godot-tree-366eb3b/`): motion at 30.0 / 60.0 / 90.0 / 119.99 FPS achieved (43 / 85 / 127 / 169 frames): one dog component in every frame with the reference frame's exact pixels (489 px, 34×21, intensity 234,147) at the position the interpolated physics state predicts (0 failures), rendered displacement within 0.42 px of the logic (limit 2 px), fitted velocity 0.9998–1.0002 of 169.705 px/s (limit ±3 %), step RMS 0.32–0.48 px (limit 1 px), no unexpected hold; camera at 30.14 / 60.07 / 90.17 / 120.39 FPS: 1,137–4,479 marker samples per rate, every marker at the predicted position with its exact pattern and intensity, no common-mode jitter, spacing 48 px; the first frame after spawn, teleport and camera snap exact at every rate with nothing at the old position; the real Main RESTART's first frame at the snapped spawn view with the dog's exact pixels at the canonical spawn and nothing at the old position, at every rate; all 24 negative controls detected (interpolation off at 90/120 FPS, doubled displacement at every rate, trails, a ghost and a stale copy, teleports and camera snaps without reset, a fractional-camera dither, an unsnapped linear subpixel camera). VSync on at 30/60 FPS passed as well; on the pre-fix code the four RESTART records failed (identity canvas transform) and everything else passed. The replaced
+`tools/interpolation_probe.gd` stays supplemental command evidence for its trees (`9bbe179`,
+correction report 12; the architect's run on `1532143`).
 
-**Host verification.** *Current tree* (`godot/` tree `51ad8b3f029fc565c9d4237dbc903fdeab15381d`, correction report 17: the
-`591e2df` tree with the M1 spike's same-process queued-cancellation test under
-`platform/android/`, which the project ignores through `.gdignore`): a fresh Windows 11 25H2 clone
-(PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0, pinned Chromium) passed the asset check
-(206 + 55 outputs identical), the clean import, the suite **138 passed, 0 failed**, the 600-frame
-Main run, the hermetic PCK smoke (254 runtime resources, 512 packed files, 32,905,976 bytes), the
-spike harness and tool self-tests, the PixiJS baseline (248 tests, build OK), `git diff --check` and the
-source-tree guard (`android_evidence/m1_migration_spike/godot-tree-51ad8b3/host_checks/`). *Previous Windows trees*: `591e2df` (correction report 16,
+**Host verification.** *Current tree* (`godot/` tree `366eb3bca4bfe5e71e2804eac2deb806351fa2eb`, correction report 18: the
+`51ad8b3` tree with the renderer-backed probe replacing `tools/interpolation_probe.gd`,
+`CameraRig.snap()` pushing the snapped view to the viewport, and one new partial DOG-008a case): a
+fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0, pinned
+Chromium) passed the asset check (206 + 55 outputs identical), the clean import, the suite **139
+passed, 0 failed**, the 600-frame Main run, the hermetic PCK smoke (254 runtime resources, 512 packed files, 32,906,024 bytes), the focused DOG-008a
+cases, the renderer-backed probe (VSync off at 30/60/90/120 FPS, VSync on at 30/60), the spike
+harness and tool self-tests, the PixiJS baseline (248 tests, build OK), `git diff --check` and the
+source-tree guard (`windows_evidence/correction-18-godot-tree-366eb3b/`). *Previous Windows trees*:
+`51ad8b3` (correction report 17, **138 passed**,
+`android_evidence/m1_migration_spike/godot-tree-51ad8b3/host_checks/`), `591e2df` (correction report 16,
 **138 passed**, `android_evidence/m1_migration_spike/godot-tree-591e2df/host_checks/`), `cd87171` (correction report 15,
 **138 passed**, `android_evidence/m1_migration_spike/godot-tree-cd87171/host_checks/`), `ef6c318` (progress report 14,
 **138 passed**, `android_evidence/m1_migration_spike/godot-tree-ef6c318/host_checks/`), `9bbe179` (correction report 12,
@@ -122,7 +128,7 @@ probe and the live audio probe, `windows_evidence/correction-12-godot-tree-9bbe1
 `windows_evidence/correction-7-godot-tree-b8535ab/`) and `81906cd` /
 `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, **134 passed**,
 `windows_evidence/correction-6-godot-tree-fd20ac1/`). **Correction 6 was not rerun on Linux, and
-neither were correction 7's addendum, corrections 8, 9, 10, 11 and 12, progress report 14 and correction reports 15, 16 and 17.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
+neither were correction 7's addendum, corrections 8, 9, 10, 11 and 12, progress report 14 and correction reports 15, 16, 17 and 18.** *Prior tree* (`d12bedd`, progress report 5): a fresh Ubuntu 26.04 (WSL 2) clone passed the
 asset check, clean import, suite **128 passed, 0 failed**, 600-frame run and empty `git status`
 (`linux_evidence/d12bedd/`), and Windows additionally ran the rendered probe at 30/60/90/120 FPS
 with VSync off (`windows_evidence/d12bedd/`). Earlier Windows evidence for `a0e3b8d` is kept in
@@ -158,7 +164,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 
 **Legacy-save plan (approved: MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3):**
 1. **M1 — feasibility spike: executed (progress report 14; hardened and rerun in correction reports
-   15, 16 and 17), pending architect review.** A throwaway
+   15, 16 and 17), accepted by the architect on review of `8f8dcb6`.** A throwaway
    native migration plugin under `/godot/platform/android/` (`m1_migration_spike/`, ignored by the
    project through `.gdignore`), tested on a controlled same-package/same-signature old→new APK
    lineage with a throwaway test key: the old Capacitor APK (versionCode 1, built from a clean clone)
@@ -192,9 +198,9 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the current tree (correction report 17, `godot/` `51ad8b3`; accepted on correction report 12, `9bbe179`); supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
+| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the current tree (correction report 18, `godot/` `366eb3b`; accepted on correction report 12, `9bbe179`); supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
-| Adaptive pixel-perfect viewport | Partial | VIEW-001, VIEW-002, VIEW-003; P: VIEW-004 (`test_P_VIEW_004`); underlay/letterbox SLICE case; 4 viewport captures; supplemental rendered probe on llvmpipe and a real RTX 3090 | VIEW-004 rendered clauses open (no accepted renderer-backed probe); device safe area unverified |
+| Adaptive pixel-perfect viewport | Slice | VIEW-001, VIEW-002, VIEW-003; VIEW-004 on combined evidence (`test_P_VIEW_004` + the renderer-backed probe on a real RTX 3090 at 30/60/90/120 FPS); underlay/letterbox SLICE case; 4 viewport captures | device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | not run on a device or the emulator yet |
 | Native Android build | — | SLICE: Android-preset PCK export + packed-runtime startup; M1 spike APKs only (gradle build, debug, the spike harness as main scene), built and installed on emulators (progress report 14; API 36, 34 and 24 in correction reports 15, 16 and 17) | the game's own APK not exported, installed or run yet |
 | 2:1 projection | Slice | ISO-001–004 | 64-bit math (F-03) |
@@ -203,14 +209,14 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 | Walk/run/terrain speed | Slice | MOVE-003, MOVE-004, MOVE-005 | — |
 | Collision and sliding | Slice | COLL-001–004, COLL-005a (one continuous drive to every treat's exact position within its pickup radius and on to the exit; every reachable story-map marker), COLL-006; SLICE solver decision | GridKinematicSolver (native slide rejected); COLL-005b scripted-position story objectives (M5–M7) |
 | Shared Green Zone/story world | Slice | ARCH-001a on combined evidence: the dummy Story host case (same classes and public interfaces, its own environment resources, lifecycle, movement, camera, sorting, recursive cleanup) + the architect's static review of `f580fa4`, confirmed (no duplicate playable/input controller; ActorBody controllers on the shared solver allowed) | ARCH-001b production story scene (M5) |
-| Camera lag/look-ahead/sway/shake/clamp | Partial | CAM-001–003; P: CAM-004 (whole-pixel origin in the suite; the rendered probe is supplemental) | CAM-004 static-shimmer clause open (no accepted renderer-backed probe); shake noise seeded (D-04) |
+| Camera lag/look-ahead/sway/shake/clamp | Slice | CAM-001–003; CAM-004 on combined evidence (whole-pixel origin in the suite + the renderer-backed probe: static markers exact under the following camera at 30/60/90/120 FPS, fractional-camera controls detected) | shake noise seeded (D-04) |
 | Stable depth sorting | Slice | DEPTH-001–003 | — |
 | Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |
 | Animated terrain and pollution presentation | Slice | WORLD-004, WORLD-005 (engine TileData), captures 10/11/20 | three layers, approved in ARCHITECTURE §7 |
 | ASCII maps and markers | Slice | MAP-001–007 (all twenty story maps parse like the source) | story scenes M5 |
 | Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
 | Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap; SLICE: probe reaches prop centres at rule distance + prop radius (tree/pole/fountain ±1e-9 boundaries, 16 directions, exact edge-distance decision authoritative) | consumers arrive with M3 |
-| Zampanò state controller | Partial | DOG-001–004, DOG-005a, DOG-006, DOG-007; P: DOG-008a (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults; restart-reset subclause satisfied by `test_P_DOG_008a` through the real Main flow) | DOG-008a rendered presentation clause open (no accepted renderer-backed probe); DOG-005b forced fetch (M3); DOG-008b stage change (M5) |
+| Zampanò state controller | Slice | DOG-001–004, DOG-005a, DOG-006, DOG-007; DOG-008a on combined evidence (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults; the restart reset through the real Main flow, two `test_P_DOG_008a` cases; the renderer-backed probe: 30/60/90/120 FPS presentation and the first frame after spawn, teleport, camera snap and RESTART) | DOG-005b forced fetch (M3); DOG-008b stage change (M5) |
 | Zampanò normal art | Slice | AST-002–005 (every playable skin) | — |
 | Playable profiles (cross, armour, Sbrimbrulòn, Bagnaskiz) | Slice | AST-006–009; SLICE: the dog scene references no profile, the world injects the `--as` choice before `add_child()` (all three), lazy Zampanò fallback only for an unconfigured dog | arms capability DOG-009 (M6); ALT-001–003 (M8) |
 | Story cast art | Slice | AST-011 (23 delivered, 17 frozen procedural roles + cat) | actors M5 |
@@ -237,7 +243,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 | Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
 | Synthesized audio | Slice | AUD-005–008 (14 cues + medieval loop as source-rendered PCM WAV) | chapter routing (M5–M8) |
 | Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022 (future main/temp/backup); P: SAV-021; SLICE: a valid older main becomes the backup on temp recovery; SLICE: failed future copies reported as `future_copy_failed:<file>` with writes still blocked | user-visible notice, campaign schema (D-11) |
-| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15, 16 and 17; pending review); format-3 converter, SaveService integration and fixture/simulated MIG-005 M4; production lineage, two WebView/device versions and MIG-001–010 proof M9 |
+| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15, 16 and 17; accepted on review of `8f8dcb6`); format-3 converter, SaveService integration and fixture/simulated MIG-005 M4; production lineage, two WebView/device versions and MIG-001–010 proof M9 |
 | Everything else in this matrix | — | — | later milestones |
 
 ## 1. Platform and runtime

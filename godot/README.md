@@ -71,16 +71,23 @@ xvfb-run -a godot --path godot --rendering-driver opengl3 --resolution 800x600 \
 Renderer and audio probes (exit 1 on failure):
 
 ```bash
-xvfb-run -a godot --path godot --rendering-driver opengl3 --script res://tools/interpolation_probe.gd
-godot --path godot --rendering-driver opengl3 --disable-vsync --script res://tools/interpolation_probe.gd  # desktop GPU
+godot --path godot --rendering-driver opengl3 --disable-vsync \
+  --script res://tools/rendered_presentation_probe.gd -- --out=/tmp/rendered   # desktop GPU
 godot --path godot --script res://tools/audio_suspend_probe.gd    # host with an audio device
 godot --path godot --rendering-driver opengl3 --script res://tools/title_capture.gd -- --out /tmp/title
 ```
 
-`interpolation_probe.gd` reads back rendered frames at 30/60/90/120 FPS (no stutter, streak or
-double interpolation; teleport resets; no static shimmer under the following camera). On a 60 Hz
-display with VSync the 90/120 caps cannot be reached: its interpolation-off control then shows no
-repeated frames and the probe exits 1 (inconclusive), so use `--disable-vsync` there.
+`rendered_presentation_probe.gd` (checks in `rendered_presentation_probe_impl.gd`, loaded once the
+autoloads exist) is the renderer-backed evidence for the rendered clauses of VIEW-004, CAM-004 and
+DOG-008a, outside the headless suite. At 30/60/90/120 FPS it reads back every measured frame after
+`RenderingServer.frame_post_draw`: the real PlayableDog with a frozen frame (one component, exact
+pixels, the position the interpolated physics state predicts, displacement and velocity against the
+logic), static pixel-art markers under the real CameraRig (absolute position, pattern, intensity),
+the first frame after spawn, teleport, camera snap and the real Main RESTART, and negative controls
+(interpolation off, doubled displacement, ghosts, missing resets, fractional and subpixel cameras)
+that must all be detected. It prints one `PROBE {json}` line per record and exits 1 on any failure.
+Achieved rates are checked against the requested ones, so on a 60 Hz display use `--disable-vsync`
+(with VSync only `--rates=30,60` can be reached). `--out=<dir>` saves representative frames.
 `audio_suspend_probe.gd` checks that live music/effects pause in the background and resume, and
 that a new effect requested in the background is dropped like the source's (with
 `--headless` the Dummy driver reports the started playbacks as leaked at exit, F-07).
