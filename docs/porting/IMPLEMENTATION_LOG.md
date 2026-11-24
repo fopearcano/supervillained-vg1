@@ -6,14 +6,150 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 19 is current. Erratum for the historical reports: their
+in progress report 5. Correction report 20 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 19: isolated camera-snap interpolation-reset control; DOG-008a pending architect acceptance (M1 Partial, M2 Partial) — current
+## Correction report 20: DOG-008a accepted on combined evidence; every automated M1 and M2 ID satisfied (M1 Partial, M2 Partial) — current
+
+Scope: the architect's review of `386184b` (correction report 19), in one documentation-only commit
+(`docs/porting/FEATURE_MATRIX.md`, `TEST_PLAN.md` and this log). No gameplay, runtime, test, tool,
+asset, evidence, PixiJS, Capacitor or root `android/` file changed; M3 not started. The `godot/` tree
+is still `2ffca5ffaf62ff0c55773fd07fd2630c23a6fe3b`, verified on a fresh Windows clone in correction
+report 19; no engine, Node or asset command was rerun for this documentation commit.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither milestone completion accepted); every automated M1 and M2 acceptance ID is satisfied; open: the manual M1 checks and the manual M2 desktop and touch play checks |
+| Base | `386184b` (correction report 19) |
+| Current `godot/` tree | `2ffca5ffaf62ff0c55773fd07fd2630c23a6fe3b`, unchanged; verified on a fresh Windows clone in correction report 19 |
+| Host | Windows 11 Pro N for Workstations 25H2; documentation checks only |
+| Android | not rerun (no rendered or device claim here); the accepted M1 spike evidence is correction report 17's, on emulators `sv_m1_api36` (`emulator-5554`, Android 16 / API 36), `sv_m1_api34` (`emulator-5556`, Android 14 / API 34) and `sv_m1_api24` (`emulator-5558`, Android 7.0 / API 24); no physical device |
+
+### Architect decisions recorded (review of `386184b`)
+
+- **DOG-008a is accepted on combined evidence** for `386184b` / `godot/` tree `2ffca5f`:
+  `test_CORE_002_logic_independent_of_render_rate`,
+  `test_P_DOG_008a_main_restart_resets_interpolation_and_run_state` and
+  `test_P_DOG_008a_restart_canvas_snapped_before_first_draw` plus the renderer-backed probe as run in
+  correction report 19 (the focused resets run and the complete probe; the pre-fix
+  `CameraRig.snap()` mutation stays the separate RESTART evidence).
+- **Accepted totals: 98** = 92 full-suite IDs + 4 combined (ARCH-001a, VIEW-004, CAM-004, DOG-008a)
+  + 2 command (AST-019, CORE-001), superseding 97.
+- **Every automated M1 and M2 acceptance ID is satisfied.** M1 and M2 stay Partial because their
+  manual checks remain open.
+- **Probe-reliability notes:** the two probe weaknesses that correction report 19 disclosed from its
+  first pre-fix run (the wall-clock step-timing metric failing `motion_30` although every frame sat
+  at its predicted position, and the per-tick fractional-camera dither control going undetected at
+  120 FPS) are non-blocking false-rejection risks, not evidence failures. Correction report 19's
+  notes are kept as submitted; the probe is unchanged.
+
+### Changes
+
+1. **FEATURE_MATRIX.md:**
+   - DOG-008a moved from "pending architect acceptance (not counted)" into the combined-evidence
+     list, accepted on review of `386184b`, with its suite cases, correction report 19's probe run
+     and the separate pre-fix RESTART evidence; combined evidence 3 → **4**;
+   - totals: **98 (92 full suite + 4 combined + 2 command)**, superseding 97;
+   - the split-ID entry (DOG-008a satisfied on combined evidence) and the automated M2 line (every
+     automated M1 and M2 acceptance ID satisfied; M1 and M2 Partial for their manual checks);
+   - the probe paragraph names correction report 19's run as the one on which DOG-008a was accepted
+     and records the architect's classification of the two probe weaknesses;
+   - the Zampanò state controller row: Partial → **Slice** under the Slice legend (its listed M2 IDs
+     are satisfied; DOG-005b (M3) and DOG-008b (M5) stay later parts);
+   - host verification: the current tree is unchanged by this documentation commit.
+2. **TEST_PLAN.md:** the combined-evidence paragraph records DOG-008a as accepted on review of
+   `386184b`; the acceptance conditions and the probe requirements are unchanged.
+3. **This log:** this report; correction report 19 marked historical with a supersession note (its
+   text, including its probe-weakness notes, kept as submitted).
+
+### Acceptance status (M2 IDs on combined evidence)
+
+| ID | Status | Evidence |
+|---|---|---|
+| ARCH-001a | **accepted** (named static review confirmed on review of `46d7ad9`), combined evidence | suite: `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`; static: the architect's review of `f580fa4` |
+| VIEW-004 | **accepted** (architect's review of `9c4cd52`), combined evidence | suite: `test_P_VIEW_004_whole_pixel_world_and_nearest_filtering`; renderer: correction report 18 (`366eb3b`), rerun in correction report 19 (`2ffca5f`) |
+| CAM-004 | **accepted** (architect's review of `9c4cd52`), combined evidence | suite: whole-pixel camera origin in `test_CAM_002_camera_clamps_small_and_large_maps` and `test_P_VIEW_004_…`; renderer: as VIEW-004 |
+| DOG-008a | **accepted** (architect's review of `386184b`), combined evidence | suite: `test_CORE_002_logic_independent_of_render_rate`, `test_P_DOG_008a_main_restart_resets_interpolation_and_run_state`, `test_P_DOG_008a_restart_canvas_snapped_before_first_draw`; renderer: correction report 19 (`2ffca5f`: the corrected camera-snap control detected at every rate, every positive frame exact; the pre-fix mutation fails the four RESTART records) |
+
+Totals: 98 satisfied (92 full suite + 4 combined: ARCH-001a, VIEW-004, CAM-004, DOG-008a + 2 command:
+AST-019, CORE-001). Every automated M1 and M2 acceptance ID is satisfied.
+
+### Commands executed and results (Windows 11)
+
+Documentation checks only; no engine, Node or asset command was run for this commit (the `godot/`
+tree is unchanged).
+
+| Command | Result |
+|---|---|
+| Fresh `git clone` of this commit's documentation (`core.autocrlf=true`; only this results table and the check count were written after it) | exit 0; `git rev-parse HEAD:godot` = `2ffca5ffaf62ff0c55773fd07fd2630c23a6fe3b` (unchanged) |
+| `git status --porcelain` (fresh clone, before and after the checks) | empty |
+| `git diff --check 386184b HEAD`; `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, empty (HEAD: the documentation commit before this table was filled in, folded into this commit) |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --name-only 386184b HEAD` | `docs/porting/FEATURE_MATRIX.md`, `docs/porting/IMPLEMENTATION_LOG.md`, `docs/porting/TEST_PLAN.md` |
+| `git diff --stat 386184b HEAD -- godot src android capacitor.config.ts package.json docs/porting/windows_evidence docs/porting/linux_evidence docs/porting/android_evidence docs/porting/captures docs/porting/MILESTONES.md` | empty: gameplay, runtime code, tests, tools, assets, the PixiJS/Capacitor source and the evidence files unchanged |
+| `git diff --check` (working tree, final text) | clean |
+| `python docs_consistency_check.py` (session tool, not committed; final text) | `OK: 83 checks` |
+
+Host evidence: current `godot/` tree `2ffca5f` (correction report 19, 139 passed), unchanged by this
+documentation commit. Previous Windows trees: `366eb3b` (correction report 18, 139 passed), `51ad8b3`
+(correction report 17, 138 passed), `591e2df` (correction report 16, 138 passed), `cd87171`
+(correction report 15, 138 passed), `ef6c318` (progress report 14, 138 passed), `9bbe179`
+(correction report 12, 138 passed), `a06b1df` (correction report 11, 138 passed), `1532143`
+(correction report 10, 137 passed), `6a3c53b` (correction report 9, 137 passed), `b1c3595`
+(correction report 8, 137 passed), `b8535ab` (correction report 7 addendum, 137 passed), `81906cd` /
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed). Linux: the prior tree
+`d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on Linux, and neither were
+correction 7's addendum, corrections 8 to 13, progress report 14 and correction reports 15 to 19.
+
+### Legacy-save plan (unchanged; MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike: executed and hardened, accepted by the architect on review of
+   `8f8dcb6`.** The throwaway native migration plugin under `/godot/platform/android/` read the five
+   legacy keys of a controlled same-package/same-signature lineage on three emulators. The
+   native-bridge versus staged-Capacitor decision stands: `native_bridge_viable_for_controlled_lineage`
+   (controlled lineage, emulators, test key; not a production approval).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005 (raw five-key payload written exactly with timestamp and SHA-256 before any parsing).
+3. **M9 — production proof:** the installed lineage and signing certificate, representative real
+   user data, two WebView/device versions, end-to-end MIG-001–010.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017) and the accepted M1 spike found the native bridge viable for a controlled lineage. Remaining: the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005; the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | M1 migration spike done on emulators (API 36, 34, 24) with a throwaway key, accepted by the architect on review of `8f8dcb6`; physical devices and the production lineage are M9 |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 19: isolated camera-snap interpolation-reset control; DOG-008a pending architect acceptance (`386184b`; M1 Partial, M2 Partial)
+
+> Historical record of `386184b`, superseded by correction report 20 (text below kept as
+> submitted). **Supersession:** on review of `386184b` the architect accepted DOG-008a on its combined
+> evidence (`godot/` tree `2ffca5f`). Its "pending architect acceptance" status, its total of 97 and
+> its "Architect acceptance of DOG-008a" item under "Still required" are superseded; the total is 98.
+> Its probe-weakness notes stand: the architect classified both weaknesses as non-blocking
+> false-rejection risks, not evidence failures. Its control correction, probe runs and pre-fix
+> evidence stand.
 
 Scope: the architect's review of `9c4cd52`, in one focused commit. Changed: the probe's
 camera-snap no-reset control (`godot/tools/rendered_presentation_probe_impl.gd`,

@@ -46,7 +46,7 @@ satisfied, AST-019 by command evidence (counted once, below). **AST-007 / findin
 (review of `6b91fd3`): the sword and shield are baked into the armoured frames, so shared frame and
 foot-anchor alignment is the applicable "arms attachment" contract.
 
-**Satisfied on combined evidence (3; TEST_PLAN.md):** ARCH-001a (suite:
+**Satisfied on combined evidence (4; TEST_PLAN.md):** ARCH-001a (suite:
 `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`; static: the named static review is
 the architect's review of `f580fa4`, **confirmed** by the architect on review of `46d7ad9`: no
 duplicate playable/input movement controller). VIEW-004 and CAM-004, **accepted by the architect on
@@ -58,22 +58,22 @@ camera and UI transforms; renderer: no streak, double interpolation or static sh
 30/60/90/120 FPS); CAM-004 (suite: whole-pixel camera origin in
 `test_CAM_002_camera_clamps_small_and_large_maps` and `test_P_VIEW_004_…`; renderer: every static
 marker exactly where the interpolated camera puts it, with its exact pattern, under the following
-camera). **Satisfied on architect-accepted command evidence (2):** AST-019 and CORE-001 (below).
-**Total satisfied: 97 (92 full suite + 3 combined + 2 command).**
-
-**Pending architect acceptance (M2; not counted):** DOG-008a on combined evidence (suite:
+camera). DOG-008a, **accepted by the architect on review of `386184b`** (`godot/` tree `2ffca5f`),
+on suite cases plus the same probe as run in correction report 19 (suite:
 `test_CORE_002_logic_independent_of_render_rate` for the spawn, teleport and camera-snap resets and
 the shipped test-hook defaults, `test_P_DOG_008a_main_restart_resets_interpolation_and_run_state` for
 the restart reset through the real Main flow, `test_P_DOG_008a_restart_canvas_snapped_before_first_draw`;
 renderer: the 30/60/90/120 FPS presentation and the first frame after spawn, teleport, camera snap
-and the real Main RESTART). On review of `9c4cd52` the architect found that correction 18's
+and the real Main RESTART). On review of `9c4cd52` the architect had found that correction 18's
 camera-snap no-reset control also left out `force_update_scroll()`, so it did not isolate the missing
 interpolation reset; correction report 19 made it reproduce `CameraRig.snap()` except for the two
 interpolation resets, and on `2ffca5f` it is detected at 30/60/90/120 FPS while every positive
 camera-snap frame passes. The RESTART defect found by correction report 18 (the first frame after
 RESTART drawn with the identity canvas transform, fixed by `CameraRig.snap()` pushing the snapped
 view with `force_update_scroll()`) stays separate evidence: the pre-fix mutation fails the four real
-Main RESTART records (its rerun in correction report 19 failed only those).
+Main RESTART records (its rerun in correction report 19 failed only those). **Satisfied on
+architect-accepted command evidence (2):** AST-019 and CORE-001 (below).
+**Total satisfied: 98 (92 full suite + 4 combined + 2 command).**
 
 **Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
 ARCH-001a (M2, satisfied on combined evidence) + ARCH-001b (M5, production story scene); COLL-005 = COLL-005a (M2,
@@ -81,12 +81,13 @@ satisfied) + COLL-005b (M5–M7: scripted-position objectives; `test_P_COLL_005b
 M5/M6, the full aggregate in M7). COLL-005 covers static and scripted-position reachability only;
 dynamic goals (moving or runtime-placed targets) are owned by WALK/NPC/MINI and each scene's STY
 real-input completion. DOG-005 = DOG-005a (M2,
-satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, pending architect acceptance on combined evidence) + DOG-008b (M5,
+satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, satisfied on combined evidence) + DOG-008b (M5,
 stage change).
 
-**Automated M2 acceptance IDs (MILESTONES.md M2):** all satisfied except DOG-008a, which is
-pending architect acceptance (above); ARCH-001a, VIEW-004 and CAM-004 on combined evidence. M2 stays
-**Partial**: DOG-008a's acceptance and its manual desktop and touch play checks are open (below).
+**Automated M2 acceptance IDs (MILESTONES.md M2):** all satisfied; ARCH-001a, VIEW-004, CAM-004
+and DOG-008a on combined evidence. **Every automated M1 and M2 acceptance ID is satisfied.** M1 and
+M2 stay **Partial** because their manual checks are open: the M1 checks and the M2 desktop and touch
+play checks (below).
 
 **Partial evidence only (not satisfied, later milestones):** GZ-001, GZ-002, GZ-021, GZ-025,
 SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
@@ -106,13 +107,15 @@ evidence above; not a suite result):** `tools/rendered_presentation_probe.gd` wi
 `--rendering-driver opengl3 --disable-vsync` on the RTX 3090. The run on which VIEW-004 and CAM-004
 were accepted is correction report 18's on `366eb3b` (`windows_evidence/correction-18-godot-tree-366eb3b/`,
 frames in `captures/m2_rendered/godot-tree-366eb3b/`). Correction report 19 corrected the
-camera-snap no-reset control and reran it on `2ffca5f` (`windows_evidence/correction-19-godot-tree-2ffca5f/`,
-frames in `captures/m2_rendered/godot-tree-2ffca5f/`): the focused resets section first (12 of 12 positive first frames passed (spawn, teleport and camera snap at 30/60/90/120 FPS, each drawn right after its action tick), and `camera_snap_without_reset` was detected at every rate (fractions 0.8852 / 0.8526 / 0.3453 / 0.1752): at 30, 60 and 120 FPS none of the 27 expected markers lay within 4 px of the snapped view and 27, 24 and 27 marker components stood elsewhere (the interpolated old view); at 90 FPS all 27 lay near but off their snapped positions (27 position failures); the dog was 16 / 21 / 93 / 118 px from its expected place; 12 of 12 controls of this section detected.) Then the complete probe: the stage check and all 24 measured records passed and 24 of 24 negative controls were detected, with no engine error (motion achieved 29.99 / 60.01 / 90.0 / 120.01 FPS, velocity ratio 1.0–1.0001; camera 30.13 / 60.09 / 90.23 / 119.26 FPS, every marker exact; the real Main RESTART first frame exact at every rate). The pre-fix `CameraRig.snap()` mutation failed the four RESTART records (its rerun only those; its first run also hit two probe weaknesses unrelated to the mutation, a wall-clock step-timing failure at 30 FPS and an undetected per-tick dither control; correction report 19). The replaced
+camera-snap no-reset control and reran it on `2ffca5f`, the run on which DOG-008a was accepted
+(architect's review of `386184b`; `windows_evidence/correction-19-godot-tree-2ffca5f/`,
+frames in `captures/m2_rendered/godot-tree-2ffca5f/`): the focused resets section first (12 of 12 positive first frames passed (spawn, teleport and camera snap at 30/60/90/120 FPS, each drawn right after its action tick), and `camera_snap_without_reset` was detected at every rate (fractions 0.8852 / 0.8526 / 0.3453 / 0.1752): at 30, 60 and 120 FPS none of the 27 expected markers lay within 4 px of the snapped view and 27, 24 and 27 marker components stood elsewhere (the interpolated old view); at 90 FPS all 27 lay near but off their snapped positions (27 position failures); the dog was 16 / 21 / 93 / 118 px from its expected place; 12 of 12 controls of this section detected.) Then the complete probe: the stage check and all 24 measured records passed and 24 of 24 negative controls were detected, with no engine error (motion achieved 29.99 / 60.01 / 90.0 / 120.01 FPS, velocity ratio 1.0–1.0001; camera 30.13 / 60.09 / 90.23 / 119.26 FPS, every marker exact; the real Main RESTART first frame exact at every rate). The pre-fix `CameraRig.snap()` mutation failed the four RESTART records (its rerun only those; its first run also hit two probe weaknesses unrelated to the mutation, a wall-clock step-timing failure at 30 FPS and an undetected per-tick dither control; correction report 19; on review of `386184b` the architect classified both as non-blocking false-rejection risks, not evidence failures). The replaced
 `tools/interpolation_probe.gd` stays supplemental command evidence for its trees (`9bbe179`,
 correction report 12; the architect's run on `1532143`).
 
 **Host verification.** *Current tree* (`godot/` tree `2ffca5ffaf62ff0c55773fd07fd2630c23a6fe3b`, correction report 19: the
-`366eb3b` tree with the probe's camera-snap no-reset control corrected): a
+`366eb3b` tree with the probe's camera-snap no-reset control corrected; unchanged by the
+documentation-only correction report 20): a
 fresh Windows 11 25H2 clone (PowerShell 7.7.0, Godot 4.7.2 console exe, Node 24.15.0, pinned
 Chromium) passed the asset check (206 + 55 outputs identical), the clean import, the suite **139
 passed, 0 failed**, the 600-frame Main run, the hermetic PCK smoke (254 runtime resources, 512 packed files, 32,906,024 bytes), the focused DOG-008a
@@ -224,7 +227,7 @@ non-integer aspect, animation preview, listening to the audio, approval of the t
 | ASCII maps and markers | Slice | MAP-001–007 (all twenty story maps parse like the source) | story scenes M5 |
 | Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
 | Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap; SLICE: probe reaches prop centres at rule distance + prop radius (tree/pole/fountain ±1e-9 boundaries, 16 directions, exact edge-distance decision authoritative) | consumers arrive with M3 |
-| Zampanò state controller | Partial | DOG-001–004, DOG-005a, DOG-006, DOG-007; DOG-008a on combined evidence, pending architect acceptance (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults; the restart reset through the real Main flow, two `test_P_DOG_008a` cases; the renderer-backed probe: 30/60/90/120 FPS presentation and the first frame after spawn, teleport, camera snap and RESTART, with the camera-snap no-reset control isolated in correction report 19) | DOG-008a pending architect acceptance; DOG-005b forced fetch (M3); DOG-008b stage change (M5) |
+| Zampanò state controller | Slice | DOG-001–004, DOG-005a, DOG-006, DOG-007; DOG-008a on combined evidence, accepted on review of `386184b` (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults; the restart reset through the real Main flow, two `test_P_DOG_008a` cases; the renderer-backed probe: 30/60/90/120 FPS presentation and the first frame after spawn, teleport, camera snap and RESTART, with the camera-snap no-reset control isolated in correction report 19) | DOG-005b forced fetch (M3); DOG-008b stage change (M5) |
 | Zampanò normal art | Slice | AST-002–005 (every playable skin) | — |
 | Playable profiles (cross, armour, Sbrimbrulòn, Bagnaskiz) | Slice | AST-006–009; SLICE: the dog scene references no profile, the world injects the `--as` choice before `add_child()` (all three), lazy Zampanò fallback only for an unconfigured dog | arms capability DOG-009 (M6); ALT-001–003 (M8) |
 | Story cast art | Slice | AST-011 (23 delivered, 17 frozen procedural roles + cat) | actors M5 |
