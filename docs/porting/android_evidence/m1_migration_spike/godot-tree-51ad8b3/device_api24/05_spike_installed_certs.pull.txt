@@ -1,0 +1,4 @@
+pull attempt 1
+adb: error: remote object '/data/app/com.zampano.supervillained-2/base.apk' does not exist
+pull attempt 2
+/data/local/tmp/m1_spike_base.apk: 1 file pulled, 0 skipped. 165.9 MB/s (277107269 bytes in 1.593s)

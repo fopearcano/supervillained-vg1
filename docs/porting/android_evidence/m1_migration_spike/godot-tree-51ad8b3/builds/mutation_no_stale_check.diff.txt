@@ -1,0 +1,7 @@
+diff --git a/godot/platform/android/m1_migration_spike/native/src/com/zampano/svspike/MigrationSpikePlugin.java b/godot/platform/android/m1_migration_spike/native/src/com/zampano/svspike/MigrationSpikePlugin.java
+index c6a0775..3205684 100644
+--- a/godot/platform/android/m1_migration_spike/native/src/com/zampano/svspike/MigrationSpikePlugin.java
++++ b/godot/platform/android/m1_migration_spike/native/src/com/zampano/svspike/MigrationSpikePlugin.java
+@@ -220 +220 @@ public class MigrationSpikePlugin extends GodotPlugin {
+-		final String stale = staleReason(activity, gen, epoch);
++		final String stale = null; // MUTATION no_stale_check: start() ignores staleReason()

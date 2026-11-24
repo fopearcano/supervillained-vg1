@@ -1,0 +1,3 @@
+pull attempt 1
+pull attempt 2
+/data/local/tmp/m1_spike_base.apk: 1 file pulled, 0 skipped. 58.3 MB/s (277107269 bytes in 4.534s)

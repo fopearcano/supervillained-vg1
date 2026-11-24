@@ -1,0 +1,11 @@
+--------- beginning of main
+attempt 1: reserved generation 1 (epoch 0) on thread GLThread 77; start queued on the UI thread
+attempt 1 (generation 1): creating the WebView, loading https://localhost/__sv_m1_migration_spike__/read.html diag={"page_url":"https:\/\/localhost\/__sv_m1_migration_spike__\/read.html","lifecycle_test_hold_ms":20000,"webview_data_dir_existed_before_read":true,"local_storage_dir_existed_before_read":true,"root_local_storage_dir_existed_before_read":false,"package_name":"com.zampano.supervillained","app_version_code":2}
+holding the page of generation 1 for up to 20000 ms (lifecycle test)
+lifecycle test: finishing the Activity
+godot_terminating on thread GLThread 77: epoch 1, invalidated reserved generation 1
+activity_destroy on thread main: epoch 2, no reserved generation
+ignored late page request of generation 1
+teardown of generation 1 (lifecycle activity_destroy): timeout cancelled, WebView destroyed on thread main
+activity_destroy: cancelled active read attempt 1 (generation 1); no result emitted
+godot_terminating: generation 1 was already torn down; nothing emitted

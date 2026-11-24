@@ -1,0 +1,3 @@
+source: e20cde0 WIP correction 17: same-process queued-read cancellation case (to be folded); godot tree 51ad8b3f029fc565c9d4237dbc903fdeab15381d
+device api36 rerun exit: 0
+all done

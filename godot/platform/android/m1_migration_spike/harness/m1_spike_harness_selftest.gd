@@ -5,7 +5,10 @@ extends SceneTree
 ## method. Each case must end in exactly one M1_SPIKE_DONE line with the expected status/error
 ## (never a stopped coroutine), and every _summarize() result must carry keys, diagnostics and
 ## _values. The four lifecycle modes run against a recording fake: the held modes call the
-## termination 2 s after the request, the immediate modes in the same frame; none prints DONE.
+## termination 2 s after the request, the immediate modes in the same frame; none prints DONE. The
+## same-process mode calls the plugin's lifecycle cancellation in the request's frame, never quits
+## or finishes, and reports after its wait whether a result arrived (a fake that emits one anyway
+## must show up as result_received true).
 ## Run: godot --headless --path godot --script res://platform/android/m1_migration_spike/harness/m1_spike_harness_selftest.gd
 
 const HARNESS := preload("res://platform/android/m1_migration_spike/harness/m1_spike_harness.gd")
@@ -41,6 +44,8 @@ class FakeNoMethod extends Object:
 class FakeLifecycle extends Object:
 	signal legacy_read_completed(json)
 	var calls: Array = []
+	## A broken plugin that still emits a result after the same-process cancellation.
+	var emit_after_cancel := false
 
 	func readLegacyStoreHeldForLifecycleTest() -> void:
 		calls.append(["held_read", Engine.get_process_frames()])
@@ -50,6 +55,14 @@ class FakeLifecycle extends Object:
 
 	func finishActivityForLifecycleTest() -> void:
 		calls.append(["finish_activity", Engine.get_process_frames()])
+
+	func cancelForLifecycleTest() -> void:
+		calls.append(["cancel", Engine.get_process_frames()])
+		if emit_after_cancel:
+			_late.call_deferred()
+
+	func _late() -> void:
+		legacy_read_completed.emit("{\"status\":\"success\"}")
 
 
 var _passed := 0
@@ -130,6 +143,39 @@ func _run_lifecycle_case(name: String, mode: String, expect_calls: Array, immedi
 	fake.free()
 
 
+func _run_same_process_case(name: String, emit_after_cancel: bool) -> void:
+	var fake := FakeLifecycle.new()
+	fake.emit_after_cancel = emit_after_cancel
+	var h: Node = HARNESS.new()
+	h.plugin_override = fake
+	h.use_singleton = false
+	h.quit_on_done = false
+	h.watchdog_s = 3.0
+	h.same_process_wait_s = 0.5
+	h.lifecycle_mode_override = "cancelled_while_queued_same_process"
+	h.lifecycle_quit_hook = func() -> void: fake.calls.append(["quit", Engine.get_process_frames()])
+	root.add_child(h)
+	await create_timer(3.5).timeout  # past the wait and the watchdog: a DONE line would show here
+	var names: Array = fake.calls.map(func(c: Array) -> String: return c[0])
+	var same_frame: bool = fake.calls.size() == 2 and fake.calls[0][1] == fake.calls[1][1]
+	var lines: Array = h.emitted.filter(func(l: String) -> bool: return l.begins_with("M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE "))
+	var info: Variant = JSON.parse_string(lines[0].trim_prefix("M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE ")) if lines.size() == 1 else null
+	var cancel_line: bool = h.emitted.has("M1_SPIKE_LIFECYCLE_CANCEL " + JSON.stringify({"frames_since_request": 0, "result_received": false}))
+	var active: bool = h.emitted.any(func(l: String) -> bool: return l.begins_with("M1_SPIKE_LIFECYCLE_ACTIVE "))
+	var done: bool = h.emitted.any(func(l: String) -> bool: return l.begins_with("M1_SPIKE_DONE "))
+	var received_line: bool = h.emitted.any(func(l: String) -> bool: return l.begins_with("M1_SPIKE_LIFECYCLE_RESULT_RECEIVED "))
+	# ms_since_cancel is only checked for presence: the headless timer runs on game time, which
+	# drifts from the wall clock; the device test times the queued start from logcat instead.
+	var ok: bool = names == ["queued_read", "cancel"] and same_frame and cancel_line and not active and not done \
+		and info is Dictionary and info.get("result_received") == emit_after_cancel \
+		and info.get("ms_since_cancel") is float and info["ms_since_cancel"] > 0.0 \
+		and received_line == emit_after_cancel
+	_check(name, ok, "calls %s, same frame %s, CANCEL line %s, SAME_PROCESS_DONE %s, ACTIVE %s, DONE %s, RESULT_RECEIVED %s" % [fake.calls, same_frame, cancel_line, lines, active, done, received_line])
+	root.remove_child(h)
+	h.free()
+	fake.free()
+
+
 func _fake(replies: Array) -> FakePlugin:
 	var f := FakePlugin.new()
 	f.replies = replies
@@ -199,5 +245,7 @@ func _main() -> void:
 	await _run_lifecycle_case("lifecycle: Activity finished during a held read", "activity_finished_during_read", ["held_read", "finish_activity"], false)
 	await _run_lifecycle_case("lifecycle: quit immediately after a queued request", "quit_immediately_after_request", ["queued_read", "quit"], true)
 	await _run_lifecycle_case("lifecycle: Activity finished immediately after a queued request", "activity_finished_immediately_after_request", ["queued_read", "finish_activity"], true)
+	await _run_same_process_case("lifecycle: cancelled while queued, same process, nothing received", false)
+	await _run_same_process_case("lifecycle: cancelled while queued, same process, a result emitted anyway is reported", true)
 	print("M1_SELFTEST_RESULT %d passed, %d failed" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)

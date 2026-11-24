@@ -1,0 +1,5 @@
+--------- beginning of main
+attempt 1: reserved generation 1 (epoch 0) on thread GLThread 78; start queued on the UI thread in 5000 ms (lifecycle test)
+lifecycle_test_cancel on thread GLThread 78: epoch 1, invalidated reserved generation 1
+lifecycle_test_cancel: generation 1 was still queued (no WebView); its start is discarded, nothing emitted
+discarded queued start of attempt 1 (generation 1): plugin terminated, stale epoch 0 (now 1), generation invalidated (reserved: 0); no WebView created, nothing emitted

@@ -1,0 +1,3 @@
+lifecycle_test_cancel: generation 1 was still queued (no WebView); its start is discarded, nothing emitted
+ignored late page request of generation 1
+ignored late onPageFinished of generation 1

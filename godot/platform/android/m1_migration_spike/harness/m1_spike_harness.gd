@@ -25,6 +25,14 @@ extends Node
 ##                                      a queued read (its start is posted 5 s later), then Godot
 ##                                      quits / the Activity is finished in the same frame, without
 ##                                      waiting: the termination lands while the start is pending.
+##   user://m1_lifecycle_same_process_cancel.flag
+##                                      a queued read, then, in the same frame, the plugin's lifecycle
+##                                      cancellation (cancelForLifecycleTest) without quitting or
+##                                      finishing: the process and the Activity keep running past the
+##                                      5 s queue delay, so the queued start runs and must discard
+##                                      itself; M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE after
+##                                      same_process_wait_s, then the harness idles (the device test
+##                                      stops the app).
 ## None prints M1_SPIKE_DONE; a result reaching GDScript would print M1_SPIKE_LIFECYCLE_RESULT_RECEIVED.
 
 const PLUGIN_NAME := "SvMigrationSpike"
@@ -39,7 +47,10 @@ const QUIT_FLAG := "user://m1_lifecycle_quit.flag"
 const FINISH_FLAG := "user://m1_lifecycle_finish.flag"
 const IMMEDIATE_QUIT_FLAG := "user://m1_lifecycle_immediate_quit.flag"
 const IMMEDIATE_FINISH_FLAG := "user://m1_lifecycle_immediate_finish.flag"
+const SAME_PROCESS_CANCEL_FLAG := "user://m1_lifecycle_same_process_cancel.flag"
 const FINISH_METHOD_NAME := "finishActivityForLifecycleTest"
+const CANCEL_METHOD_NAME := "cancelForLifecycleTest"
+const SAME_PROCESS_MODE := "cancelled_while_queued_same_process"
 
 ## Test hooks (harness/m1_spike_harness_selftest.gd): a fake plugin, no singleton lookup, no quit,
 ## shorter waits, a lifecycle mode without a marker file and a stand-in for the lifecycle quit;
@@ -49,6 +60,9 @@ var use_singleton := true
 var quit_on_done := true
 var timeout_s := 30.0
 var watchdog_s := 150.0
+## Same-process cancellation: how long the process keeps running after the cancellation (the
+## plugin's queue delay is 5 s).
+var same_process_wait_s := 9.0
 var lifecycle_mode_override := ""
 var lifecycle_quit_hook := Callable()
 var emitted: Array[String] = []
@@ -226,12 +240,15 @@ func _lifecycle_mode() -> String:
 		return "quit_immediately_after_request"
 	if FileAccess.file_exists(IMMEDIATE_FINISH_FLAG):
 		return "activity_finished_immediately_after_request"
+	if FileAccess.file_exists(SAME_PROCESS_CANCEL_FLAG):
+		return SAME_PROCESS_MODE
 	return ""
 
 
 func _lifecycle(mode: String) -> void:
 	_lifecycle_active = true
-	var immediate := mode.ends_with("_immediately_after_request")
+	var same_process := mode == SAME_PROCESS_MODE
+	var immediate := same_process or mode.ends_with("_immediately_after_request")
 	var method := QUEUED_METHOD_NAME if immediate else HELD_METHOD_NAME
 	_emit("M1_SPIKE_LIFECYCLE " + JSON.stringify({"mode": mode, "method": method}))
 	var frame := Engine.get_process_frames()
@@ -241,6 +258,16 @@ func _lifecycle(mode: String) -> void:
 		_emit("M1_SPIKE_LIFECYCLE_ACTIVE " + JSON.stringify({"mode": mode, "result_received": _received}))
 	_finished = true
 	var info := JSON.stringify({"frames_since_request": Engine.get_process_frames() - frame, "result_received": _received})
+	if same_process:
+		# The plugin's lifecycle cancellation in the same frame; nothing quits or finishes, so the
+		# queued start runs in this process when its delay is up.
+		_emit("M1_SPIKE_LIFECYCLE_CANCEL " + info)
+		_plugin.call(CANCEL_METHOD_NAME)
+		var cancelled_at := Time.get_ticks_msec()
+		await get_tree().create_timer(same_process_wait_s).timeout
+		_emit("M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE " + JSON.stringify({"ms_since_cancel": Time.get_ticks_msec() - cancelled_at,
+			"result_received": _received}))
+		return
 	if mode.begins_with("quit_"):
 		_emit("M1_SPIKE_LIFECYCLE_QUIT " + info)
 		if lifecycle_quit_hook.is_valid():

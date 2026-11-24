@@ -1,0 +1,25 @@
+app_webview:
+total 56
+drwx------ 3 u0_a250 u0_a250 4096 2026-11-24 13:15 .
+drwx------ 8 u0_a250 u0_a250 4096 2026-11-24 13:08 ..
+drwx------ 8 u0_a250 u0_a250 4096 2026-11-24 13:15 Default
+-rw------- 1 u0_a250 u0_a250   81 2026-11-24 13:15 last-exit-info
+-rw------- 1 u0_a250 u0_a250  134 2026-11-24 13:15 pref_store
+-rwx------ 1 u0_a250 u0_a250    0 2026-11-24 13:08 variations_seed_new
+-rw------- 1 u0_a250 u0_a250    0 2026-11-24 13:08 variations_stamp
+-rw------- 1 u0_a250 u0_a250   32 2026-11-24 13:15 webview_data.lock
+
+app_webview/Default:
+total 192
+drwx------ 8 u0_a250 u0_a250  4096 2026-11-24 13:15 .
+drwx------ 3 u0_a250 u0_a250  4096 2026-11-24 13:15 ..
+-rw------- 1 u0_a250 u0_a250 24576 2026-11-24 13:08 Cookies
+-rw------- 1 u0_a250 u0_a250     0 2026-11-24 13:08 Cookies-journal
+drwx------ 3 u0_a250 u0_a250  4096 2026-11-24 13:08 Local Storage
+drwx------ 2 u0_a250 u0_a250  4096 2026-11-24 13:15 PersistentOriginTrials
+drwx------ 2 u0_a250 u0_a250  4096 2026-11-24 13:15 Session Storage
+drwx------ 3 u0_a250 u0_a250  4096 2026-11-24 13:08 Shared Dictionary
+-rw------- 1 u0_a250 u0_a250 90112 2026-11-24 13:08 Web Data
+-rw------- 1 u0_a250 u0_a250     0 2026-11-24 13:08 Web Data-journal
+drwx------ 3 u0_a250 u0_a250  4096 2026-11-24 13:15 blob_storage
+drwx------ 3 u0_a250 u0_a250  4096 2026-11-24 13:15 shared_proto_db

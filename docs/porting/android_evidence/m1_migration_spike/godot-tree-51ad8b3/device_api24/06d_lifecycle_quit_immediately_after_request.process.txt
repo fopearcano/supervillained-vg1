@@ -1,0 +1,6 @@
+11-24 13:22:29.963  1639  2112 I ActivityManager: START u0 {flg=0x10000000 cmp=com.zampano.supervillained/com.godot.game.GodotAppLauncher} from uid 2000 on display 0
+11-24 13:22:29.977  1639  1746 I ActivityManager: Start proc 13483:com.zampano.supervillained/u0a96 for activity com.zampano.supervillained/com.godot.game.GodotAppLauncher
+11-24 13:22:31.118  1639  1660 I ActivityManager: Displayed com.zampano.supervillained/com.godot.game.GodotAppLauncher: +1s152ms
+11-24 13:22:32.985  1639  1878 I ActivityManager: Process com.zampano.supervillained (pid 13483) has died
+11-24 13:22:32.985  1639  1878 W ActivityManager: Force removing ActivityRecord{f55ac1b u0 com.zampano.supervillained/com.godot.game.GodotAppLauncher t43}: app died, no saved state
+pidof after the wait: ''

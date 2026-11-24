@@ -1,0 +1,19 @@
+source tree: e20cde0 WIP correction 17: same-process queued-read cancellation case (to be folded); godot tree 51ad8b3f029fc565c9d4237dbc903fdeab15381d; plugin source sha256 8E5154C48D7FB7E8F0ECE1524B318EB64D7CACBD3552960DB68A18D1E59B417B
+build spike_upgrade exit: 0
+build spike_wrong_key exit: 0
+build spike_wrong_package exit: 0
+build mutation_no_stale_check exit: 0
+restored after no_stale_check: identical; git status: ''
+build mutation_no_epoch_check exit: 0
+restored after no_epoch_check: identical; git status: ''
+build mutation_epoch_only exit: 0
+restored after epoch_only: identical; git status: ''
+device api36 exit: 1
+device api34 exit: 0
+device api24 exit: 0
+case api36 baseline exit: 0
+case api36 no_stale_check exit: 1
+case api36 no_epoch_check exit: 1
+case api36 epoch_only exit: 1
+host checks done
+all done

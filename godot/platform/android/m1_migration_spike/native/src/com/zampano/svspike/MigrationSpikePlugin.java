@@ -59,6 +59,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * destroyed Activity, and every late page, interception or evaluateJavascript callback of a
  * finished or cancelled generation is ignored: nothing is emitted for a cancelled read. The spike
  * treats termination as final for the plugin instance (its single Activity does not come back).
+ * A cancelled queued start is not removed from the UI queue: it runs and is discarded by that
+ * check (which is needed anyway for a start already taken off the queue when the cancellation
+ * lands); cancelForLifecycleTest() exercises this in a process that outlives the queue delay.
  */
 public class MigrationSpikePlugin extends GodotPlugin {
 	private static final String TAG = "SvMigrationSpike";
@@ -145,6 +148,17 @@ public class MigrationSpikePlugin extends GodotPlugin {
 	@UsedByGodot
 	public void readLegacyStoreQueuedForLifecycleTest() {
 		request(0, LIFECYCLE_QUEUE_DELAY_MS);
+	}
+
+	/**
+	 * Development-only (lifecycle test): runs the cancellation state transition of Activity
+	 * destruction and Godot termination (cancelForLifecycle) without ending the process or the
+	 * Activity. After readLegacyStoreQueuedForLifecycleTest() the queued start() then still runs, in
+	 * this process, and must be discarded by its own stale check: no WebView, nothing emitted.
+	 */
+	@UsedByGodot
+	public void cancelForLifecycleTest() {
+		cancelForLifecycle("lifecycle_test_cancel");
 	}
 
 	/**

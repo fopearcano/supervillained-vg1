@@ -1,0 +1,2 @@
+activity_destroy on thread main: epoch 2, no reserved generation
+godot_terminating: generation 1 was still queued (no WebView); its start is discarded, nothing emitted

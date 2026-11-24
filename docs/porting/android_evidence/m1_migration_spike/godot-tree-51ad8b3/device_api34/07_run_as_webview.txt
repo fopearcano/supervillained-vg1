@@ -1,0 +1,21 @@
+app_webview:
+total 48
+drwx------ 3 u0_a210 u0_a210 4096 2026-11-24 13:19 .
+drwx------ 8 u0_a210 u0_a210 4096 2026-11-24 13:16 ..
+drwx------ 5 u0_a210 u0_a210 4096 2026-11-24 13:19 Default
+-rw------- 1 u0_a210 u0_a210  187 2026-11-24 13:16 pref_store
+-rwx------ 1 u0_a210 u0_a210    0 2026-11-24 13:15 variations_seed_new
+-rw------- 1 u0_a210 u0_a210    0 2026-11-24 13:15 variations_stamp
+-rw------- 1 u0_a210 u0_a210   32 2026-11-24 13:19 webview_data.lock
+
+app_webview/Default:
+total 168
+drwx------ 5 u0_a210 u0_a210  4096 2026-11-24 13:19 .
+drwx------ 3 u0_a210 u0_a210  4096 2026-11-24 13:19 ..
+-rw------- 1 u0_a210 u0_a210 24576 2026-11-24 13:15 Cookies
+-rw------- 1 u0_a210 u0_a210     0 2026-11-24 13:15 Cookies-journal
+drwx------ 3 u0_a210 u0_a210  4096 2026-11-24 13:15 Local Storage
+drwx------ 2 u0_a210 u0_a210  4096 2026-11-24 13:19 Session Storage
+-rw------- 1 u0_a210 u0_a210 90112 2026-11-24 13:15 Web Data
+-rw------- 1 u0_a210 u0_a210     0 2026-11-24 13:15 Web Data-journal
+drwx------ 3 u0_a210 u0_a210  4096 2026-11-24 13:19 blob_storage

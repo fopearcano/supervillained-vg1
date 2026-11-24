@@ -1,0 +1,20 @@
+--------- beginning of main
+11-24 13:18:08.419 20871 20899 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+11-24 13:18:09.036 20871 20899 E godot   : WARNING: Failed to load cached shader, recompiling.
+11-24 13:18:09.037 20871 20899 E godot   :    at: _load_from_cache (drivers/gles3/shader_gles3.cpp:615)
+11-24 13:18:10.937 20871 20899 I godot   : OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 610.47) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 3090/PCIe/SSE2)
+11-24 13:18:10.949 20871 20899 I godot   :
+11-24 13:18:11.927 20871 20899 I godot   : M1_SPIKE_START {"godot":"4.7.2-stable (official)","keys":["settings","records","coins","story","story-v1-backup"],"os":"Android"}
+11-24 13:18:11.930 20871 20899 I godot   : M1_SPIKE_LIFECYCLE {"method":"readLegacyStoreHeldForLifecycleTest","mode":"activity_finished_during_read"}
+11-24 13:18:11.930 20871 20899 I SvMigrationSpike: attempt 1: reserved generation 1 (epoch 0) on thread GLThread 48; start queued on the UI thread
+11-24 13:18:11.944 20871 20871 I SvMigrationSpike: attempt 1 (generation 1): creating the WebView, loading https://localhost/__sv_m1_migration_spike__/read.html diag={"page_url":"https:\/\/localhost\/__sv_m1_migration_spike__\/read.html","lifecycle_test_hold_ms":20000,"webview_data_dir_existed_before_read":true,"local_storage_dir_existed_before_read":true,"root_local_storage_dir_existed_before_read":false,"package_name":"com.zampano.supervillained","app_version_code":2}
+11-24 13:18:12.213 20871 20937 I SvMigrationSpike: holding the page of generation 1 for up to 20000 ms (lifecycle test)
+11-24 13:18:14.070 20871 20899 I godot   : M1_SPIKE_LIFECYCLE_ACTIVE {"mode":"activity_finished_during_read","result_received":false}
+11-24 13:18:14.071 20871 20899 I godot   : M1_SPIKE_LIFECYCLE_FINISH_ACTIVITY {"frames_since_request":21,"result_received":false}
+11-24 13:18:14.071 20871 20899 I SvMigrationSpike: lifecycle test: finishing the Activity
+11-24 13:18:16.504 20871 20899 I SvMigrationSpike: godot_terminating on thread GLThread 48: epoch 1, invalidated reserved generation 1
+11-24 13:18:16.511 20871 20871 I SvMigrationSpike: activity_destroy on thread main: epoch 2, no reserved generation
+11-24 13:18:16.515 20871 20871 I SvMigrationSpike: teardown of generation 1 (lifecycle activity_destroy): timeout cancelled, WebView destroyed on thread main
+11-24 13:18:16.515 20871 20871 I SvMigrationSpike: activity_destroy: cancelled active read attempt 1 (generation 1); no result emitted
+11-24 13:18:16.515 20871 20937 I SvMigrationSpike: ignored late page request of generation 1
+11-24 13:18:16.560 20871 20871 I SvMigrationSpike: godot_terminating: generation 1 was already torn down; nothing emitted

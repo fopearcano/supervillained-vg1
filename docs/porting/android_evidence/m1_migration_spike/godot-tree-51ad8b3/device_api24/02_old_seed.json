@@ -1,0 +1,13 @@
+{
+  "target_url": "https://localhost/",
+  "value": {
+    "written": [
+      "settings",
+      "records",
+      "coins",
+      "story",
+      "story-v1-backup"
+    ],
+    "origin": "https://localhost"
+  }
+}

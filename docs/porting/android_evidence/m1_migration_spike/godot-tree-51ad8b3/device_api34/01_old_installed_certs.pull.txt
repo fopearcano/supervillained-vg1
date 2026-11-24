@@ -1,0 +1,2 @@
+pull attempt 1
+/data/app/~~QLkJ_7RS3FqCVXWcCezYlQ==/com.zampano.supervillained-0wrxY42mCGnmjuz4UelPpg==/base.apk: 1 file pulled, 0 skipped. 88.6 MB/s (40256561 bytes in 0.433s)

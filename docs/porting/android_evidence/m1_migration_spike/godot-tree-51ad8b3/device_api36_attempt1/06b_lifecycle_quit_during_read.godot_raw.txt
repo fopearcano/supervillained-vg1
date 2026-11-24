@@ -1,0 +1,5 @@
+--------- beginning of main
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Failed to load cached shader, recompiling.
+   at: _load_from_cache (drivers/gles3/shader_gles3.cpp:615)
+OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 610.47) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 3090/PCIe/SSE2)

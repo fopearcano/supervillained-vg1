@@ -6,14 +6,209 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 16 is current. Erratum for the historical reports: their
+in progress report 5. Correction report 17 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 16: pre-start lifecycle race, per-key error validation (M1 Partial, M2 Partial) — current
+## Correction report 17: same-process queued-read cancellation evidence (M1 Partial, M2 Partial) — current
+
+Scope: the architect's review of `d502adf`, in one focused commit. Changed: the throwaway M1 spike
+under `/godot/platform/android/m1_migration_spike/` only (plugin hook, harness, harness self-test,
+`tools/run_upgrade_test.ps1`, README), FEATURE_MATRIX.md, this log and new evidence. No gameplay,
+test, tool, asset, PixiJS, Capacitor configuration or root `android/` file changed; no APK or
+keystore is committed. The controlled-lineage decision and its production limits are unchanged;
+nothing here is a production approval.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither milestone completion accepted); M1 migration spike executed and hardened, pending architect review; open M1 items: the manual checks; open M2 items: the rendered clauses of VIEW-004, CAM-004 and DOG-008a, and the manual desktop and touch play checks |
+| Base | `d502adf` (correction report 16) |
+| Current `godot/` tree | `51ad8b3f029fc565c9d4237dbc903fdeab15381d`, verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2; Linux not rerun |
+| Android | emulators only, as in correction report 16: `sv_m1_api36` (`emulator-5554`, Android 16 / API 36, Google WebView 133.0.6943.137), `sv_m1_api34` (`emulator-5556`, Android 14 / API 34, WebView 113.0.5672.136), `sv_m1_api24` (`emulator-5558`, Android 7.0 / API 24, WebView provider Chrome 69.0.3497.100); no physical device |
+
+### Changes per review item
+
+1. **Same-process queued-read cancellation case.** New development-only plugin hook
+   `cancelForLifecycleTest()`: it calls `cancelForLifecycle("lifecycle_test_cancel")`, the state
+   transition `onMainDestroy` and `onGodotTerminating` run (plugin terminated, epoch bumped,
+   reservation cleared on the calling thread, then the UI-thread step), without ending the process
+   or the Activity. New harness mode (`user://m1_lifecycle_same_process_cancel.flag`): it calls
+   `readLegacyStoreQueuedForLifecycleTest()` (the reservation and queueing of `readLegacyStore()`,
+   with `start()` posted 5 s later) and, in the same frame, `cancelForLifecycleTest()`; it neither
+   quits nor finishes the Activity, and prints `M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE` 9 s after the
+   cancellation. Option **a)** of the review: the queued runnable is not removed; it runs in the
+   same process when due and logs `discarded queued start`. That keeps the stale check as the one
+   guard, which is needed anyway for a start already taken off the queue when a cancellation lands.
+   New device case 06f (7 checks): same-frame request and cancellation with no quit or finish;
+   reserved, then invalidated while pending by `lifecycle_test_cancel`; the queued start ran in the
+   same process (same pid on the reservation and discard lines and after the case) at least the
+   5 s delay after the reservation and discarded itself with exactly `plugin terminated, stale
+   epoch E (now E+1), generation invalidated (reserved: 0)`; no WebView created; nothing emitted
+   (`result_received: false`); the process and its Activity still running (same pid, Activity
+   resumed); no crash. The recovery run is now 06g.
+2. **Mutation sensitivity.** Three builds of the tested source, each with one mutation applied and
+   restored afterwards (`mutation_api36/`), ran the same case on API 36 with
+   `run_upgrade_test.ps1 -SameProcessCancelCaseOnly`, next to the unmutated build, which passed
+   (9/9). `no_stale_check` (`start()` ignores `staleReason()`) created a WebView 5,009 ms after the request and failed (7/9: "discarded
+   itself" and "no WebView created"; its late-callback guards still emitted nothing).
+   `no_epoch_check` (the epoch comparison removed) and `epoch_only` (the terminated and generation
+   conditions removed) still discarded the start without a WebView, through the remaining
+   conditions, and failed the exact-reasons check (8/9 each; reasons `plugin terminated, generation
+   invalidated (reserved: 0)` and `stale epoch 0 (now 1)`). Each mutated source was restored and
+   re-hashed identical before the next build. The review's other mutation, removing the
+   queued-runnable removal, belongs to option b and does not apply.
+3. **Kept:** the real Godot-termination and Activity-destruction cases during an active read (06b,
+   06c) and in the same frame as a queued request (06d, 06e), the API 24/34/36 upgrade runs, the
+   negative cases and the recovery run (06g).
+4. **Rerun** on API 36, 34 and 24 from a fresh clone of this commit's code, and the host checks on
+   another fresh clone (below). Harness self-test **37/37** (new: the same-process mode, with nothing
+   received and with a fake that emits a result anyway, which must show as `result_received: true`);
+   tool self-test 6/6.
+5. **Docs.** FEATURE_MATRIX.md: host verification and project-isolation row (this tree), the Android
+   emulators, the legacy-save plan's M1 stage, the native-build and campaign-migration rows. This
+   log: this report; correction report 16 historical with a supersession note.
+
+### Controlled lineage and results
+
+| APK | Package | versionCode | Certificate SHA-256 | APK SHA-256 |
+|---|---|---|---|---|
+| old Capacitor (unchanged, progress report 14) | `com.zampano.supervillained` | 1 | `034b187e…2191` | `0771cd78…a89d` |
+| Godot spike (minSdk 24, no permissions) | `com.zampano.supervillained` | 2 | the same | `c01004c2…ef82` |
+| spike, wrong key | `com.zampano.supervillained` | 2 | `b2df28e1…7a26` | `084e1a06…8396` |
+| spike, wrong package | `com.zampano.supervillained.m1negative` | 2 | `034b187e…2191` | `7fada722…951e` |
+
+| Check | API 36 / WebView 133 | API 34 / WebView 113 | API 24 / Chrome 69 |
+|---|---|---|---|
+| old install, seeding (old boot migration; API 24: direct), values stable across a cold restart | pass | pass | pass |
+| wrong-key update rejected, wrong package `not_found` (null error on every key) | pass | pass | pass |
+| `adb install -r`: versionCode 2, same firstInstallTime and certificate | pass | pass | pass |
+| two spike processes × two reads: `success`, origin `https://localhost`, five raw values identical to the old app's, null key errors | pass | pass | pass |
+| termination during an active read (06b Godot quit, 06c Activity finish): cancelled, teardown on `main`, nothing emitted, the lifecycle log consistent, no crash | pass | pass | pass |
+| termination in the same frame as a queued request (06d Godot quit, 06e Activity finish): the reserved generation invalidated while pending, no WebView created, nothing emitted, no crash | pass | pass | pass |
+| same process (06f): the lifecycle cancellation in the request's frame, process and Activity kept running; the queued start ran in that process after its delay and discarded itself with all three stale reasons; no WebView, nothing emitted, no crash | pass | pass | pass |
+| 06g third run after the lifecycle tests: identical values | pass | pass | pass |
+| no production save; WebView storage present; fresh install `not_found` (null key errors) | pass | pass | pass |
+| `webview_package` | object (API 26+) | object | `null` + diagnostic |
+| **Total** | **62/62** | **62/62** | **61/61** |
+
+Same process: `lifecycle_test_cancel` invalidated the reservation 0–1 ms after it, and the queued
+start was discarded 5,003 ms (API 36), 5,004 ms (API 34) and 5,004 ms (API 24) after the reservation,
+with the same process id on the reservation and discard lines and after the case, and the spike's
+Activity still resumed. The same-frame terminations (06d, 06e) ended the process 29 ms–3.2 s after
+the request, before the delayed start was due, as in correction report 16.
+
+API 36 needed a second full run of this tree: the first (same APKs) ended **58/62** because in 06b
+Godot stalled at start-up after its OpenGL line (12.9 s after its banner, 3.4–6.5 s in that run's
+other launches) and the harness never printed `M1_SPIKE_START` (about 105 s, no crash-buffer
+entry); no spike code had run. 06b's four held-read checks failed; all of 06c–06g passed in that
+run. The test records only the `godot`, `SvMigrationSpike` and `AndroidRuntime` tags, so the cause
+is not known. The second run, with an unfiltered logcat recorded alongside (not committed), passed
+62/62 without a stall (`android_evidence/…/godot-tree-51ad8b3/REPORT.md`, `device_api36_attempt1/`).
+
+### Commands executed and results
+
+| Command | Result |
+|---|---|
+| `…/harness/m1_spike_harness_selftest.gd` (working tree) | `37 passed, 0 failed` |
+| `tools/run_upgrade_test.ps1 -Serial emulator-5554 -SameProcessCancelCaseOnly` (working tree, trial 1) | exit 0: 9/9 |
+| `tools/build_spike_apk.ps1` ×3 from a fresh clone of this commit's code, plus ×3 with one mutation each applied to the clone's plugin source and restored (javac; `api_level_check.py`; JAR; scratch project; `godot --headless --install-android-build-template --export-debug Android`; `apksigner verify`; `aapt2 dump badging`) | exit 0 each; API-level check OK (68 references, 2 guarded); upgrade / wrong-key / wrong-package APKs `c01004c2…ef82` / `084e1a06…8396` / `7fada722…951e` (SHA-256), minSdk 24, no `uses-permission`; plugin source identical after each restore |
+| `tools/run_upgrade_test.ps1 -Serial emulator-5554` (API 36) | first run exit 1: 58/62 (06b start-up stall, above); second run exit 0: **62/62** |
+| `tools/run_upgrade_test.ps1 -Serial emulator-5556 -DevToolsPort 9334` (API 34) | exit 0: **62/62** |
+| `tools/run_upgrade_test.ps1 -Serial emulator-5558 -DevToolsPort 9335 -SeedMode direct -DirectSeedValues <API 36 expected.json>` (API 24) | exit 0: **61/61** |
+| `tools/run_upgrade_test.ps1 -Serial emulator-5554 -SameProcessCancelCaseOnly` with the upgrade APK and each mutation APK (API 36) | baseline exit 0 (9/9); `no_stale_check` exit 1 (7/9); `no_epoch_check` exit 1 (8/9); `epoch_only` exit 1 (8/9) |
+| Fresh `git clone` of this commit's code (`core.autocrlf=true`; tested `godot/` tree `51ad8b3f029fc565c9d4237dbc903fdeab15381d` = `git rev-parse HEAD:godot` of this commit; only the docs and the evidence folder were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | exit 0: 206 + 55 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | exit 0, no ERROR/WARNING line |
+| `… --script res://tests/test_runner.gd -- --suite all` | exit 0: **138 passed, 0 failed, 138 total** |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame desktop launch) | exit 0, engine banner only |
+| `… --suite integration --file test_export_pack` (hermetic PCK smoke) | exit 0: 32,905,976 bytes, **254** runtime resources, **512** packed files, 18 source-only paths unresolved, control resolved 18 |
+| `… --script res://platform/android/m1_migration_spike/harness/m1_spike_harness_selftest.gd` | exit 0: **37 passed, 0 failed** |
+| `node godot/platform/android/m1_migration_spike/tools/m1_spike_tool.mjs selftest` | exit 0: **6 passed, 0 failed** |
+| `npm test`; `npm run build` | exit 0: 30 files, 248 tests passed; build OK |
+| `git status --porcelain` (before and after the checks); `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty (HEAD: the code-only commit `e20cde0`, folded into this commit with the same `godot/` tree) |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --cached --check d502adf` (this commit's full content, staged) | clean |
+| Secret scan of the evidence and of the commit (the two test keystore passwords, the local user name, the account e-mail) | no match; no APK, AAB, keystore, JAR or binary in the commit |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 72 checks` |
+
+Evidence: `docs/porting/android_evidence/m1_migration_spike/godot-tree-51ad8b3/` (REPORT.md,
+DECISION.md, `builds/`, `device_api36/`, `device_api36_attempt1/`, `device_api34/`, `device_api24/`,
+`mutation_api36/`, `dev_attempts/`, `host_checks/`); the folders of correction reports 16
+(`godot-tree-591e2df/`) and 15 (`godot-tree-cd87171/`) and progress report 14 (`godot-tree-ef6c318/`)
+are unchanged. Not run: Linux; a physical Android device; the game itself on the emulators; manual
+play; listening to the audio.
+
+Host evidence: current tree above. Previous Windows trees: `591e2df` (correction report 16, 138
+passed), `cd87171` (correction report 15, 138 passed), `ef6c318` (progress report 14, 138 passed),
+`9bbe179` (correction report 12, 138 passed), `a06b1df` (correction report 11, 138 passed), `1532143`
+(correction report 10, 137 passed), `6a3c53b` (correction report 9, 137 passed), `b1c3595`
+(correction report 8, 137 passed), `b8535ab` (correction report 7 addendum, 137 passed), `81906cd` /
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed). Linux: the prior tree
+`d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on Linux, and neither were
+correction 7's addendum, corrections 8 to 13, progress report 14, correction reports 15 and 16 and
+this report.
+
+### Development attempts (kept as found)
+
+- Harness self-test, first version of the new case (working tree): it required `ms_since_cancel`
+  of at least 500 for a 0.5 s wait and failed with 450 (the headless timer runs on game time, which
+  drifts from the wall clock); it now requires only the field, and the device test times the
+  queued start from logcat timestamps.
+- Trial 1 (working tree, API 36, `-SameProcessCancelCaseOnly`, the upgrade APK from the working
+  tree): 9/9; discarded at +5,006 ms with all three reasons, same process, no WebView.
+- The first full API 36 run of this tree: 58/62 (the 06b start-up stall above). Logs:
+  `android_evidence/…/godot-tree-51ad8b3/dev_attempts/` and `device_api36_attempt1/`.
+
+### Legacy-save plan (MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike: executed and hardened, pending architect review.** The native-bridge
+   versus staged-Capacitor decision is unchanged: `native_bridge_viable_for_controlled_lineage`.
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005 (raw five-key payload written exactly with timestamp and SHA-256 before any parsing).
+3. **M9 — production proof:** the installed lineage and signing certificate, representative real
+   user data, two WebView/device versions, end-to-end MIG-001–010.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017) and the M1 spike found the native bridge viable for a controlled lineage. Remaining: the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005; the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | M1 migration spike done on emulators (API 36, 34, 24) with a throwaway key (decision `native_bridge_viable_for_controlled_lineage`, pending architect review); physical devices and the production lineage are M9 |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **Architect review of the M1 spike** (evidence and decision above).
+- **Manual M1 checks:** editor preview of every playable animation/direction; listening to the
+  recorded and synthesized audio; approval of the title images (`captures/title_m1/`).
+- **Rendered clauses of VIEW-004, CAM-004 and DOG-008a (M2):** a strengthened renderer-backed probe
+  with the checks listed in TEST_PLAN.md (combined evidence), run at 30/60/90/120 FPS and accepted
+  by the architect.
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 16: pre-start lifecycle race, per-key error validation (`d502adf`; M1 Partial, M2 Partial)
+
+> Historical record of `d502adf`, superseded by correction report 17 (text below kept as
+> submitted). **Supersession:** its decision `native_bridge_viable_for_controlled_lineage` and its limits stand.
+> On review of `d502adf` the architect required a same-process test of a cancelled queued start:
+> its `start()` rejection had not run on a device, because every real termination ended the process
+> before the delayed start was due. Correction report 17 adds that test (option a): the queued start
+> runs in a process that keeps running and discards itself) with mutation checks. Its device totals
+> (55/55, 55/55, 54/54) are superseded by correction report 17's reruns.
 
 Scope: the architect's review of `b5b6c82`, in one commit. Changed: the throwaway M1 spike under
 `/godot/platform/android/m1_migration_spike/` only (plugin, harness, harness self-test,

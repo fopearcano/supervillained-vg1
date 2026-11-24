@@ -1,0 +1,8 @@
+--------- beginning of main
+--------- beginning of system
+attempt 1: reserved generation 1 (epoch 0) on thread GLThread 465; start queued on the UI thread
+attempt 1 (generation 1): creating the WebView, loading https://localhost/__sv_m1_migration_spike__/read.html diag={"page_url":"https:\/\/localhost\/__sv_m1_migration_spike__\/read.html","lifecycle_test_hold_ms":20000,"webview_data_dir_existed_before_read":true,"local_storage_dir_existed_before_read":false,"root_local_storage_dir_existed_before_read":true,"package_name":"com.zampano.supervillained","app_version_code":2,"webview_package_unavailable":"WebView.getCurrentWebViewPackage() needs API 26; device API 24 (see user_agent)"}
+holding the page of generation 1 for up to 20000 ms (lifecycle test)
+godot_terminating on thread GLThread 465: epoch 1, invalidated reserved generation 1
+teardown of generation 1 (lifecycle godot_terminating): timeout cancelled, WebView destroyed on thread main
+godot_terminating: cancelled active read attempt 1 (generation 1); no result emitted

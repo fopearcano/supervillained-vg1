@@ -1,0 +1,84 @@
+adb -s <serial> shell getprop ro.product.model
+  exit 0
+adb -s <serial> shell getprop ro.build.version.release
+  exit 0
+adb -s <serial> shell getprop ro.build.version.sdk
+  exit 0
+adb -s <serial> shell getprop ro.build.fingerprint
+  exit 0
+adb -s <serial> shell getprop ro.kernel.qemu
+  exit 0
+adb -s <serial> shell getprop ro.product.cpu.abilist
+  exit 0
+adb -s <serial> shell dumpsys webviewupdate
+  exit 0
+adb -s <serial> shell settings get global webview_provider
+  exit 0
+adb -s <serial> shell dumpsys package null
+  exit 0
+adb -s <serial> shell dumpsys package com.google.android.webview
+  exit 0
+adb -s <serial> shell pm list packages
+  exit 0
+adb -s <serial> install %USERPROFILE%\sv-m1-spike\c17\apk\spike_upgrade_testkey.apk
+  exit 0
+adb -s <serial> shell am force-stop com.zampano.supervillained
+  exit 0
+adb -s <serial> shell run-as com.zampano.supervillained mkdir -p files
+  exit 0
+adb -s <serial> shell run-as com.zampano.supervillained touch files/m1_lifecycle_same_process_cancel.flag
+  exit 0
+adb -s <serial> logcat -c
+  exit 0
+adb -s <serial> shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER com.zampano.supervillained
+  exit 0
+adb -s <serial> shell am start -W -n com.zampano.supervillained/com.godot.game.GodotAppLauncher
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> shell pidof com.zampano.supervillained
+  exit 0
+adb -s <serial> shell dumpsys activity activities
+  exit 0
+adb -s <serial> logcat -d -v raw -s godot
+  exit 0
+adb -s <serial> logcat -d -v raw -s SvMigrationSpike
+  exit 0
+adb -s <serial> logcat -d -v threadtime -s godot SvMigrationSpike AndroidRuntime
+  exit 0
+adb -s <serial> logcat -d -v threadtime -s ActivityManager
+  exit 0
+adb -s <serial> logcat -d -b crash
+  exit 0
+adb -s <serial> shell am force-stop com.zampano.supervillained
+  exit 0
+adb -s <serial> shell run-as com.zampano.supervillained rm -f files/m1_lifecycle_same_process_cancel.flag
+  exit 0
+adb -s <serial> uninstall com.zampano.supervillained
+  exit 0

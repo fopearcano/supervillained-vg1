@@ -1,0 +1,5 @@
+11-24 13:22:58.686  1639  2180 I ActivityManager: START u0 {flg=0x10000000 cmp=com.zampano.supervillained/com.godot.game.GodotAppLauncher} from uid 2000 on display 0
+11-24 13:22:58.701  1639  1916 I ActivityManager: Start proc 13649:com.zampano.supervillained/u0a96 for activity com.zampano.supervillained/com.godot.game.GodotAppLauncher
+11-24 13:22:59.913  1639  1660 I ActivityManager: Displayed com.zampano.supervillained/com.godot.game.GodotAppLauncher: +1s223ms
+pidof after M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE: '13649'
+mResumedActivity: ActivityRecord{d3729c6 u0 com.zampano.supervillained/com.godot.game.GodotAppLauncher t45}
