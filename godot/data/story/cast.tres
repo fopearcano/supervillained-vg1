@@ -58,5 +58,41 @@ speakers = {
 "gesture": false,
 "name": "A LADY",
 "portrait": "lady"
+},
+"fulk": {
+"color": Color(0.847058824, 0.690196078, 0.501960784, 1),
+"gesture": true,
+"name": "FULK OF NEUILLY",
+"portrait": "fulk"
+},
+"clerk": {
+"color": Color(1, 1, 1, 1),
+"gesture": true,
+"name": "A CLERK",
+"portrait": "clerk"
+},
+"marshal": {
+"color": Color(1, 0.603921569, 0.121568627, 1),
+"gesture": false,
+"name": "THE MARSHAL",
+"portrait": "bagnaskizMarshal"
+},
+"doge": {
+"color": Color(0.909803922, 0.752941176, 0.282352941, 1),
+"gesture": false,
+"name": "THE DOGE",
+"portrait": "doge"
+},
+"knight": {
+"color": Color(0.815686275, 0.847058824, 0.909803922, 1),
+"gesture": true,
+"name": "A KNIGHT",
+"portrait": "knight"
+},
+"pilgrim": {
+"color": Color(0.784313725, 0.690196078, 0.564705882, 1),
+"gesture": true,
+"name": "A PILGRIM",
+"portrait": "pilgrim"
 }
 }

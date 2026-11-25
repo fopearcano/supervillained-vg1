@@ -27,6 +27,7 @@ const SUITES := {
 		"res://tests/integration/test_story_engine.gd",
 		"res://tests/integration/test_story_input.gd",
 		"res://tests/integration/test_story_combat.gd",
+		"res://tests/integration/test_story_m6.gd",
 		"res://tests/integration/test_collision_decision.gd",
 		"res://tests/integration/test_main_and_rates.gd",
 		"res://tests/integration/test_export_pack.gd",

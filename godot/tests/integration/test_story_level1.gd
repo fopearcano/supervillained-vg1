@@ -187,6 +187,8 @@ func test_STY_101_bucket_visor_slap_and_helmet_setup() -> void:
 const CATALOG_IDS := ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "3.4", "4.1", "4.2", "4.3",
 	"5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7", "7.8", "7.9", "8.1", "8.2", "8.3", "8.4"]
 const CHAPTER_COUNTS := [6, 3, 4, 3, 5, 3, 9, 4]
+## The last scene with Resources in this build (M6: Levels 2–4 as they land); after it, the boundary.
+const BUILD_LAST := "2.3"
 
 
 ## A Resource as plain data (its stored properties, nested Resources included), to prove a run
@@ -210,10 +212,11 @@ static func _snap(v: Variant) -> Variant:
 
 ## CONTENT-001/002: exactly eight chapters; the exact 37-ID sequence and order; the per-chapter
 ## counts; no retired or unknown ID (a save holding one drops it); the exact Green Zone dispatch
-## (1.0 only); the frozen compatibility catalog gives the same IDs; Chapter 1's Resources validate in
-## catalog order, and every run starts from fresh state (two runs at once share nothing; a run never
-## changes the Resource); every scene without Resources reaches the explicit "not in this build"
-## boundary through Main; rewritten titles are shown, draft titles only where nothing is rewritten.
+## (1.0 only); the frozen compatibility catalog gives the same IDs; every implemented chapter's Resources
+## validate in catalog order (1.1 up to BUILD_LAST, every one present), and every run starts from fresh
+## state (two runs at once share nothing; a run never changes the Resource); every scene after
+## BUILD_LAST has no Resources and reaches the explicit "not in this build" boundary through Main;
+## rewritten titles are shown, draft titles only where nothing is rewritten.
 func test_CONTENT_001_002_catalog_exact_dispatch_fresh_steps_and_boundaries() -> void:
 	var cat := SaveService.CATALOG
 	assert_eq(cat.chapters.map(func(c: Dictionary) -> int: return int(c["number"])), [1, 2, 3, 4, 5, 6, 7, 8], "exactly eight chapters, in order")
@@ -233,6 +236,12 @@ func test_CONTENT_001_002_catalog_exact_dispatch_fresh_steps_and_boundaries() ->
 	var ch := StoryLibrary.chapter(1)
 	assert_eq(v.validate_chapter(ch), PackedStringArray(), "chapter 1 and its scenes validate")
 	assert_eq(ch.scenes.map(func(x: StorySceneData) -> String: return x.id), CATALOG_IDS.slice(1, 6), "1.1–1.5 in catalog order")
+	var last := CATALOG_IDS.find(BUILD_LAST)
+	for id: String in CATALOG_IDS.slice(1, last + 1):
+		assert_true(StoryLibrary.has_scene(id) and cat.playable_in_build(id), "%s: in this build" % id)
+	for n in range(2, int(BUILD_LAST.get_slice(".", 0)) + 1):
+		var chn := StoryLibrary.chapter(n)
+		assert_true(chn != null and v.validate_chapter(chn).is_empty(), "chapter %d validates" % n)
 	for id in IDS:
 		var data := StoryLibrary.scene(id)
 		var before := var_to_str(_snap(data))
@@ -247,7 +256,7 @@ func test_CONTENT_001_002_catalog_exact_dispatch_fresh_steps_and_boundaries() ->
 	# Not implemented: every other scripted ID has no Resource and stops at the explicit boundary.
 	await _main_start()
 	await _settle()
-	for id in CATALOG_IDS.slice(6):
+	for id in CATALOG_IDS.slice(CATALOG_IDS.find(BUILD_LAST) + 1):
 		assert_false(StoryLibrary.has_scene(id) or cat.playable_in_build(id), "%s: not in this build" % id)
 		main._play_scene(id)
 		var top := main.top_overlay() as MessageOverlay
@@ -481,7 +490,7 @@ func test_FLOW_007_force_close_and_reload_at_each_save_boundary() -> void:
 	var camp := SaveService.get_campaign()
 	assert_eq([camp["meters"]["supervillain"], camp["abilities"], camp["flags"]], [10 - 3 + 3, ["cross"], {"pawOffered": true, "longWay": true, "santinaBall": "performed"}], "every effect exactly once across the level")
 	assert_eq((camp["book"]["remembered"] as Array).size(), 5, "five remembered lines")
-	assert_eq(String(AppState.continue_target()["id"]), "2.1", "after 1.5: 2.1 (this build's boundary)")
+	assert_eq(String(AppState.continue_target()["id"]), "2.1", "after 1.5: 2.1")
 
 
 # --- Through the real Main ----------------------------------------------------------------------
@@ -581,7 +590,9 @@ func test_STY_100_green_zone_hands_over_to_1_1_with_exact_coins_and_time() -> vo
 
 ## The end of Level 1 through Main: 1.5 commits, the Supervillained snap, then the Professor's
 ## aside (names in yellow), then 2.1's explicit "not in this build" card over the title.
-func test_SLICE_end_of_level_1_snap_aside_and_level_2_boundary() -> void:
+## After 1.5: the snap, the Professor's Level 1 aside, then Level 2's first scene card (2.1 is in this
+## build since M6-B).
+func test_SLICE_end_of_level_1_snap_aside_then_the_2_1_card() -> void:
 	var st := _entry("1.5")
 	SaveService.save_campaign(st, NOW - 1000)
 	await _main_start()
@@ -601,8 +612,8 @@ func test_SLICE_end_of_level_1_snap_aside_and_level_2_boundary() -> void:
 	assert_true(aside.markup.name_spans(String(aside.paragraphs[0][0]), Color.WHITE).has(["CLARI", aside.markup.name_color]), "CLARI in yellow")
 	aside.time = 1.0
 	aside.on_tap(Vector2(5, 5))
-	assert_true(await _until(func() -> bool: return main.current_scene is TitleScreen and main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).heading == "NOT IN THIS BUILD"), "2.1: the explicit boundary")
-	assert_eq((main.top_overlay() as MessageOverlay).paragraphs[0][0], "LEVEL 2: 2.1 ONE STEP FROM JERUSALEM", "names the next scene")
+	assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().get_meta(&"story_card", "") == "2.1"), "then 2.1's scene card")
+	assert_eq((main.top_overlay() as MessageOverlay).heading, "LEVEL 2", "the card names Level 2")
 
 
 ## Arms a save fault (main and backup exist first): a failing file operation, or a blocked session.

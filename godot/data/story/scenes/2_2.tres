@@ -1,0 +1,487 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=49 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="5_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="7_effectstep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="8_actorstep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="9_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="10_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="11_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="12_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "fulk"
+role = "fulk"
+at = "0"
+point = Vector2(0.0, 0.0)
+face = "SE"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "c0"
+role = "pilgrim"
+at = "1"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "c1"
+role = "pilgrim"
+at = "2"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_storyactorspec")
+name = "c2"
+role = "pilgrim"
+at = "3"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("3_storyactorspec")
+name = "c3"
+role = "pilgrim"
+at = "4"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("3_storyactorspec")
+name = "c4"
+role = "pilgrim"
+at = "5"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("3_storyactorspec")
+name = "c5"
+role = "pilgrim"
+at = "7"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "fair"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7")]
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("4_cardstep")
+id = "s02"
+big = "A TOURNAMENT IN CHAMPAGNE"
+small = "A PREACHER HAS TAKEN THE FIELD FROM THE JOUSTERS"
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("5_dialoguestep")
+id = "s03"
+speaker = "fulk"
+text = "TAKE THE CROSS! THE HOLY VOYAGE, THE GENERAL PASSAGE! WHOEVER GOES, GOES FORGIVEN. THE LORDS FIRST, AND THEN THE REST OF YOU."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("6_objectivestep")
+id = "s04"
+objective = "SHOUT YOUR VOW IN THE PAUSES OF THE SERMON"
+objective_kind = "rule"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = "VOW"
+action_text = ""
+action_sound = "bark"
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "lull"
+rule_params = {
+"source": "fulk",
+"stand": Vector2(9.5, 10.5),
+"range": 6.0,
+"need": 3,
+"good_effects": {
+"commozione": 2
+},
+"responders": [["c0", "c1"], ["c2", "c3"], ["c4", "c5"]],
+"responder_shift": 2.5
+}
+rule_lines = {
+"noise": ["TAKE THE CROSS!", "REPENT!", "OVERSEAS!", "LEAVE YOUR FIELDS!", "GOD IS COUNTING!"],
+"noise_label": "FULK IS PREACHING",
+"drowned": "FULK DROWNS HIM OUT. WAIT FOR A PAUSE",
+"act_text": "I AM GOING TOO! WOOF!",
+"response": "THE SMALL ONE TOO?"
+}
+hint = "WHEN THE SERMON PAUSES, PRESS VOW"
+hint_after = 1.0
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("7_effectstep")
+id = "s05"
+effects = {
+"unlock": "sermon",
+"grace": 5,
+"flags": {
+"vow": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("4_cardstep")
+id = "s06"
+big = "A VOW"
+small = "HE SAID IT OUT LOUD, IN FRONT OF EVERYONE. NOW IT COUNTS."
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("8_actorstep")
+id = "s07"
+actor = "count1"
+action = "spawn"
+role = "marquis"
+at = ""
+point = Vector2(7.5, 5.5)
+near_player = false
+face = "S"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("8_actorstep")
+id = "s08"
+actor = "count2"
+action = "spawn"
+role = "knight"
+at = ""
+point = Vector2(9.5, 5.5)
+near_player = false
+face = "S"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("8_actorstep")
+id = "s09.0"
+actor = "c0"
+action = "face"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = "N"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("8_actorstep")
+id = "s09.1"
+actor = "c1"
+action = "face"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = "N"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("8_actorstep")
+id = "s09.2"
+actor = "c2"
+action = "face"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = "N"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("8_actorstep")
+id = "s09.3"
+actor = "c3"
+action = "face"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = "N"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("8_actorstep")
+id = "s09.4"
+actor = "c4"
+action = "face"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = "N"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("8_actorstep")
+id = "s09.5"
+actor = "c5"
+action = "face"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = "N"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("9_narrationstep")
+id = "s10"
+text = "ON THE PLATFORM THE COUNTS OF CHAMPAGNE AND OF BLOIS TAKE THE CROSS, AND EVERY HEAD IN THE FIELD TURNS TO THEM."
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("8_actorstep")
+id = "s11"
+actor = "clerk"
+action = "spawn"
+role = "clerk"
+at = ""
+point = Vector2(11.5, 8.5)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("5_dialoguestep")
+id = "s12"
+speaker = "clerk"
+text = "(WRITING) CRUCESIGNATI, SIGNED WITH THE CROSS. THE COUNTS FIRST. THEN THEIR KNIGHTS. THEN THE KNIGHTS OF THEIR KNIGHTS. AND YOU?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("5_dialoguestep")
+id = "s13.proud.1"
+speaker = "clerk"
+text = "THE LIST GOES BY RANK. (HE WRITES AT THE BOTTOM.)"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("11_storychoiceoption")
+id = "proud"
+label = "A KNIGHT OF PICARDY. WRITE ME NEAR THE TOP."
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"supervillain": 3,
+"standing": -2
+}
+then_steps = [SubResource("Resource_25")]
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("5_dialoguestep")
+id = "s13.glad.1"
+speaker = "clerk"
+text = "(HE WRITES AT THE BOTTOM, IN VERY SMALL LETTERS.)"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("11_storychoiceoption")
+id = "glad"
+label = "(BE GLAD TO BE ON IT AT ALL.)"
+said = ""
+silent = true
+cost = 0
+locked_text = ""
+effects = {
+"commozione": 3,
+"standing": 2
+}
+then_steps = [SubResource("Resource_27")]
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("10_choicestep")
+id = "s13"
+speaker = "clerk"
+prompt = "YOUR NAME, AND WHOSE MAN YOU ARE."
+prompt_again = ""
+options = [SubResource("Resource_26"), SubResource("Resource_28")]
+once_each = false
+
+[sub_resource type="Resource" id="Resource_30"]
+script = ExtResource("8_actorstep")
+id = "s14"
+actor = "marshal"
+action = "spawn"
+role = "bagnaskizMarshal"
+at = ""
+point = Vector2(5.5, 9.5)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_31"]
+script = ExtResource("4_cardstep")
+id = "s15"
+big = "A FAMILIAR FACE"
+small = "BAGNASKIZ IS THE MARSHAL HERE: GEOFFROI DE VILLEHARDOUIN, WHO WILL WRITE ALL OF IT DOWN."
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_32"]
+script = ExtResource("5_dialoguestep")
+id = "s16"
+speaker = "marshal"
+text = "SIX OF US RIDE TO VENICE TO HIRE THE SHIPS. I AM ONE OF THE SIX."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_33"]
+script = ExtResource("5_dialoguestep")
+id = "s17"
+speaker = "zampano"
+text = "CAN I COME?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_34"]
+script = ExtResource("5_dialoguestep")
+id = "s18"
+speaker = "marshal"
+text = "YOU CAN PAY, LATER. EVERYONE PAYS, LATER."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_35"]
+script = ExtResource("5_dialoguestep")
+id = "s19"
+speaker = "zampano"
+text = "THERE WAS A LIST, AND MY NAME WAS AT THE BOTTOM OF IT."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_36"]
+script = ExtResource("12_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "2.2"
+content_version = 1
+title = "Names on a list"
+old_title = "Names on a list"
+level = 2
+summary = "A TOURNAMENT FIELD IN CHAMPAGNE, AND FULK OF NEUILLY HAS TAKEN IT OVER TO PREACH THE CROSS. SHOUT ZAMPANO'S VOW IN THE PAUSES OF THE SERMON UNTIL THE CROWD HEARS HIM. THEN THE GREAT COUNTS TAKE THE CROSS ON THE PLATFORM, A CLERK WRITES EVERYONE DOWN BY RANK, AND THE MARSHAL RIDES FOR VENICE TO HIRE THE SHIPS."
+map = "fair"
+music = "level2"
+cast = PackedStringArray("zampano", "fulk", "clerk", "marshal")
+steps = [SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_29"), SubResource("Resource_30"), SubResource("Resource_31"), SubResource("Resource_32"), SubResource("Resource_33"), SubResource("Resource_34"), SubResource("Resource_35"), SubResource("Resource_36")]
+entry_conditions = {
+"requires_completed": ["2.1"]
+}
+persistent_effects = PackedStringArray("unlock.sermon", "meter.grace", "meter.commozione", "meter.supervillain", "meter.standing", "flags.vow", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["vow"],
+"requires_abilities": ["sermon"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Champagne, 1199: the preaching of the cross", "the tourney at Ecri: the counts take the cross", "the six envoys to Venice")
+source_refs = PackedStringArray("Villehardouin pp. 1-4 (Fulk of Neuilly preaches; the indulgence; Thibaut of Champagne and Louis of Blois take the cross at the tourney; six envoys, Villehardouin among them; attested per docs/STORY-SOURCES.md)", "docs/STORY-SOURCES.md \"Period words\": THE HOLY VOYAGE, THE GENERAL PASSAGE; CRUCESIGNATI", "docs/STORY.md 2.2", "src/campaign/chapters/ch2.ts 2.2 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "REVIEW REQUIRED: Fulk preaching on the tournament field is an adaptation (Villehardouin has the preaching and the tourney at Ecri separately; Fulk's presence at the tourney is not stated).", "REVIEW REQUIRED: \"A KNIGHT OF PICARDY\" (as OQ-09, Clari's origin).", "Fulk's sermon lines, the vow in the lulls, the crowd's answer and the ranked list are adaptation.")
+technical_status = "technically_complete"

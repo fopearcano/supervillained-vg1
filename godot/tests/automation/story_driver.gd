@@ -8,8 +8,15 @@ extends RefCounted
 ## target, a debug skip that still runs every step and rule.
 ## Navigation is a breadth-first search over the stage's walkable tiles (a test aid; the game has
 ## no pathfinding).
+##
+## M6: fights (approach the nearest foe; bark when one is close; a knight holds the shield while a
+## red ring fills within reach and strikes a foe who reels or swings: the rings a player sees), the
+## lull (stand within range, press the action once in each pause the gauge shows), listening (stand
+## by the point), stealth (keep out of the cones a player sees, waiting behind cover when a watcher
+## looks this way), and the beat games (press on the beats the cues show).
 
 const DT := 1.0 / 60.0
+const CB := GameConfig.Combat
 
 var scene: StoryScene
 ## choice id -> option id; a choice not listed takes its first open option.
@@ -25,6 +32,7 @@ var _next_action := 0.0
 var _path: Array = []
 var _goal := Vector2(-99, -99)
 var _repath := 0.0
+var _lull_acted := false
 
 
 func _init(p_scene: StoryScene, p_policy: Dictionary = {}, p_gate: String = "bark", p_scripted: bool = false) -> void:
@@ -44,6 +52,8 @@ func drive(dt: float) -> void:
 	var st: Dictionary = scene.runner.st
 	if step == null:
 		return
+	if not step is ObjectiveStep:
+		InputService.guard_hold_injected = false
 	if step is ObjectiveStep:
 		_objective(step as ObjectiveStep, st)
 	elif step is ChoiceStep and st.get("phase", "") == "choosing":
@@ -85,6 +95,17 @@ func _choose(step: ChoiceStep, st: Dictionary) -> void:
 func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 	var dog := scene.world.player
 	var pos := Vector2(dog.gx, dog.gy)
+	if st.has("interrupt"):
+		InputService.guard_hold_injected = false
+		return
+	var combat := scene.ctx.combat
+	if combat != null and combat.active() and not combat.won():
+		_fight(pos)
+		return
+	InputService.guard_hold_injected = false
+	if step.rule == "lull":
+		_lull(step, pos)
+		return
 	var target: Variant = null
 	var blocked: Array = []
 	var bark_here := false
@@ -128,6 +149,63 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 		dog.set_grid_position((target as Vector2).x, (target as Vector2).y)
 		return
 	_steer(pos, target, blocked)
+
+
+## A fight: what a player sees is the foes, their red wind-up rings and yellow stagger rings.
+func _fight(pos: Vector2) -> void:
+	var combat := scene.ctx.combat
+	var nearest: StoryActor = null
+	var nd := INF
+	var threat := false
+	for a: StoryActor in combat.foes:
+		if a.foe == null or a.foe.routed:
+			continue
+		var d := pos.distance_to(Vector2(a.gx, a.gy))
+		if d < nd:
+			nd = d
+			nearest = a
+		if a.foe.windup > 0.0 and d < CB.FOE_REACH + 0.3:
+			threat = true
+	if nearest == null:
+		InputService.guard_hold_injected = false
+		return
+	var at := Vector2(nearest.gx, nearest.gy)
+	if scene.ctx.armed():
+		var open := nearest.foe.stun > 0.0 or nearest.foe.windup > 0.0
+		InputService.guard_hold_injected = threat and not (open and nd <= CB.SWORD_RANGE)
+		if open and nd <= CB.SWORD_RANGE and t >= _next_action:
+			_next_action = t + CB.SWORD_COOLDOWN + 0.03
+			InputService.trigger(&"strike")
+			actions += 1
+	elif nd <= CB.BARK_RADIUS - 0.4 and t >= _next_action:
+		_next_action = t + CB.BARK_COOLDOWN + 0.05
+		InputService.trigger(&"bark")
+		actions += 1
+	if nd > 0.95:
+		var to := at + (pos - at).normalized() * 0.8
+		if scripted:
+			scene.world.player.set_grid_position(to.x, to.y)
+		else:
+			_steer(pos, to, [])
+
+
+## The lull: stand within range, press the walk's action once in each pause the gauge shows.
+func _lull(step: ObjectiveStep, pos: Vector2) -> void:
+	var s: Variant = step.rule_params["stand"]
+	var stand: Vector2 = scene.ctx.marker(s) if s is String else s
+	if pos.distance_to(stand) > float(step.rule_params["range"]) - 0.6:
+		if scripted:
+			scene.world.player.set_grid_position(stand.x, stand.y)
+		else:
+			_steer(pos, stand, [])
+		return
+	var in_lull := scene.hud.mode_label == scene.ctx.ui_text("story_lull_now")
+	if not in_lull:
+		_lull_acted = false
+	elif not _lull_acted:
+		_lull_acted = true
+		InputService.trigger(&"action")
+		actions += 1
 
 
 func _steer(pos: Vector2, target: Vector2, blocked: Array) -> void:

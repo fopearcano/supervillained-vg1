@@ -443,7 +443,7 @@ func test_FLOW_010_replay_starts_from_a_deep_copy() -> void:
 	assert_eq(st["completed"], ["1.0"], "deep copy")
 	var p := CampaignFlow.start(st, cat, "1.1")
 	assert_eq([p["mode"], p["persist"], p["playable"], is_same(p["state"], st)], ["play", true, true, true], "the next scene plays on the campaign (1.1 is playable from M5R)")
-	assert_false(cat.playable_in_build("2.1"), "a scene without Resources is not playable in this build")
+	assert_false(cat.playable_in_build("5.1"), "a scene without Resources is not playable in this build (5.1: Levels 2–4 arrive with M6)")
 	assert_eq(CampaignFlow.start(st, cat, "1.3")["mode"], "locked", "locked")
 	assert_eq(CampaignFlow.finish(st, "1.0", true), {"save": false}, "a replay finish saves nothing")
 

@@ -1,0 +1,653 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=57 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="4_actorstep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="5_cardstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="6_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="7_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="8_storypickup"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="9_effectstep"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="10_cuestep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="11_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "conf"
+role = "confusione"
+at = ""
+point = Vector2(9.5, 26.5)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "road"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_actorstep")
+id = "s02"
+actor = "conf"
+action = "follow"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 3.0
+run = false
+wait_arrival = false
+side = -0.8
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_cardstep")
+id = "s03"
+big = "A FAMILIAR FACE"
+small = "CONFUSIONE IS ALEAUME HERE, ROBERT DE CLARI'S BROTHER, A CLERK. IN THE DREAM HE CALLS ZAMPANO BROTHER. ON THE LAWN HE NEVER WOULD."
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 3.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_dialoguestep")
+id = "s04"
+speaker = "confusione"
+text = "BROTHER, A COAT OF MAIL DOES NOT MAKE A KNIGHT. A KNIGHT CARRIES A SWORD AND A SHIELD. THE ARMOURER DROPPED THEM SOMEWHERE ON THIS ROAD."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("4_actorstep")
+id = "s05"
+actor = "jack"
+action = "spawn"
+role = "jack"
+at = ""
+point = Vector2(8.5, 21.5)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("4_actorstep")
+id = "s06"
+actor = "lad1"
+action = "spawn"
+role = "pilgrim"
+at = ""
+point = Vector2(6.5, 23.5)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("4_actorstep")
+id = "s07"
+actor = "lad2"
+action = "spawn"
+role = "pilgrim"
+at = ""
+point = Vector2(5.5, 25.5)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("6_dialoguestep")
+id = "s08"
+speaker = "jack"
+text = "A DOG IN A TIN COAT, OFF TO JERUSALEM? WHATEVER THE ARMOURER DROPPED IS OURS NOW. LIKE THE GATE WAS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("5_cardstep")
+id = "s09"
+big = "BARK!"
+small = "THE ROUND BUTTON, B, OR A DOUBLE TAP OVER THE BUTTONS. A BARK SHOVES BACK EVERYONE CLOSE TO HIM."
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 3.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_objectivestep")
+id = "s10"
+objective = "BARK JACK AND HIS LADS OFF THE ROAD"
+objective_kind = "fight"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {
+"rout": ["MAD DOG!", "KEEP YOUR TIN COAT!", "ALL RIGHT! ALL RIGHT!"]
+}
+hint = ""
+hint_after = 0.6
+fight = {
+"foes": ["jack", "lad1", "lad2"],
+"hp": 1.0,
+"speed": 1.4
+}
+knocked_text = "UP AGAIN. BARK BEFORE THEY GET CLOSE."
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("4_actorstep")
+id = "s11.1"
+actor = "jack"
+action = "despawn"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("4_actorstep")
+id = "s11.2"
+actor = "lad1"
+action = "despawn"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("4_actorstep")
+id = "s11.3"
+actor = "lad2"
+action = "despawn"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("6_dialoguestep")
+id = "s12"
+speaker = "confusione"
+text = "THEY WILL BE BACK, BROTHER. THAT KIND ALWAYS COMES BACK."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("8_storypickup")
+id = "sword"
+at = "2"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "A SWORD"
+text = "BORROWED AND BLUNT. HE HOLDS IT LIKE A BONE."
+sprite = "sword_0"
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("8_storypickup")
+id = "belt"
+at = "3"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "A SWORD BELT"
+text = "TWO SIZES TOO BIG, LIKE THE MAIL. IT CLINKS."
+sprite = "belt_0"
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("8_storypickup")
+id = "shield"
+at = "4"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "A SHIELD"
+text = "PAINTED LAST NIGHT. STILL WET."
+sprite = "shieldItem_0"
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("7_objectivestep")
+id = "s13"
+objective = "PICK UP THE SWORD, THE BELT AND THE SHIELD"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("9_effectstep")
+id = "s14"
+effects = {
+"unlock": "knight",
+"supervillain": 8
+}
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("10_cuestep")
+id = "s15"
+sound = "star"
+shake = 0.0
+flash = false
+visor = -1.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("5_cardstep")
+id = "s16"
+big = "A KNIGHT"
+small = "ARMED, HEAVY, CLINKING AND MAGNIFICENT"
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("6_dialoguestep")
+id = "s17"
+speaker = "zampano"
+text = "WOOF. (LOWER THAN USUAL.)"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("6_dialoguestep")
+id = "s18"
+speaker = "confusione"
+text = "THAT IS THE HELMET. IT ECHOES."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("7_objectivestep")
+id = "s19"
+objective = "TRY A CHARGE DOWN THE ROAD (HOLD RUN)"
+objective_kind = "reach"
+goal_marker = "6"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "CHARGE!"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = "THE MAIL IS HEAVY: ONLY A CHARGE FEELS GRAND"
+hint_after = 1.2
+walk_speed_mul = 0.8
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("4_actorstep")
+id = "s20"
+actor = "pierre"
+action = "spawn"
+role = "sbrimbrulonKnight"
+at = ""
+point = Vector2(1.0, -0.6)
+near_player = true
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("5_cardstep")
+id = "s21"
+big = "A FAMILIAR FACE"
+small = "SBRIMBRULON IS PIERRE D'AMIENS HERE: THE LORD WHOSE MEN HE RIDES WITH."
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("6_dialoguestep")
+id = "s22"
+speaker = "sbrimbrulon"
+text = "A FINE CHARGE AT NOTHING, LITTLE ONE. NOW TRY SOMETHING THAT HITS BACK. MY SQUIRES HAVE STICKS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("4_actorstep")
+id = "s23"
+actor = "sq1"
+action = "spawn"
+role = "knight"
+at = ""
+point = Vector2(10.5, 9.5)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_30"]
+script = ExtResource("4_actorstep")
+id = "s24"
+actor = "sq2"
+action = "spawn"
+role = "pilgrim"
+at = ""
+point = Vector2(5.5, 11.5)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_31"]
+script = ExtResource("4_actorstep")
+id = "s25"
+actor = "sq3"
+action = "spawn"
+role = "knight"
+at = ""
+point = Vector2(10.5, 12.5)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_32"]
+script = ExtResource("4_actorstep")
+id = "s26"
+actor = "pierre"
+action = "idle"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_33"]
+script = ExtResource("5_cardstep")
+id = "s27"
+big = "SWORD AND SHIELD"
+small = "U, OR A SWIPE UP OVER THE BUTTONS: STRIKE. I, OR A SWIPE DOWN: THE SHIELD (HOLD I TO KEEP IT UP). Q, OR THE SMALL BUTTON: CHANGE WHAT THE ROUND BUTTON DOES."
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 3.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_34"]
+script = ExtResource("5_cardstep")
+id = "s28"
+big = "THE RING"
+small = "WHEN THE RING UNDER A SQUIRE FILLS RED, HIS STICK IS COMING: SHIELD UP, THEN STRIKE WHILE HE REELS. A SQUIRE PARRIES A BLOW HE SEES COMING."
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 3.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_35"]
+script = ExtResource("7_objectivestep")
+id = "s29"
+objective = "SPAR UNTIL ALL THREE SQUIRES YIELD"
+objective_kind = "fight"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {
+"rout": ["I YIELD!", "MERCY, SIR DOG!", "ENOUGH, MESSIRE!"]
+}
+hint = ""
+hint_after = 0.6
+fight = {
+"foes": ["sq1", "sq2", "sq3"],
+"hp": 2.0,
+"speed": 1.2,
+"health": 6,
+"parry": true
+}
+knocked_text = "UP AGAIN. SHIELD UP WHEN THE RING FILLS, THEN STRIKE."
+
+[sub_resource type="Resource" id="Resource_36"]
+script = ExtResource("4_actorstep")
+id = "s30.1"
+actor = "sq1"
+action = "despawn"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_37"]
+script = ExtResource("4_actorstep")
+id = "s30.2"
+actor = "sq2"
+action = "despawn"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_38"]
+script = ExtResource("4_actorstep")
+id = "s30.3"
+actor = "sq3"
+action = "despawn"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_39"]
+script = ExtResource("6_dialoguestep")
+id = "s31"
+speaker = "sbrimbrulon"
+text = "GOOD. THE SWORD IS THE EASY PART. NOW WE WALK. VENICE IS A LONG WAY OFF."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_40"]
+script = ExtResource("6_dialoguestep")
+id = "s32"
+speaker = "zampano"
+text = "YES, MESSIRE PIERRE. TO THE CRUSADE!"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_41"]
+script = ExtResource("6_dialoguestep")
+id = "s33"
+speaker = "confusione"
+text = "NOBODY SAYS CRUSADE, BROTHER. IT IS THE HOLY VOYAGE, AND WE ARE PILGRIMS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_42"]
+script = ExtResource("7_objectivestep")
+id = "s34"
+objective = "FALL IN BEHIND PIERRE. TO VENICE"
+objective_kind = "follow"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = "pierre"
+path = PackedStringArray("7", "8", "9")
+leader_speed = 1.6
+leader_lines = PackedStringArray("THEY SAY THE VENETIANS HAVE BUILT A WHOLE FLEET FOR US.", "THEY SAY IT IS PAID FOR ALREADY.", "THEY SAY A GREAT DEAL.")
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+leader_leg_timeout = 14.0
+
+[sub_resource type="Resource" id="Resource_43"]
+script = ExtResource("5_cardstep")
+id = "s35"
+big = "A HARDER TRICK"
+small = "WILL BE TO KEEP WALKING"
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_44"]
+script = ExtResource("6_dialoguestep")
+id = "s36"
+speaker = "zampano"
+text = "THERE WAS A COAT OF MAIL, AND I WAS SOMEWHERE INSIDE IT."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_45"]
+script = ExtResource("11_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "2.3"
+content_version = 1
+title = "A coat of mail too big"
+old_title = "A coat of mail too big"
+level = 2
+summary = "THE ROAD SOUTH. ZAMPANO WEARS A COAT OF MAIL TWO SIZES TOO BIG AND STILL HAS NO ARMS. JACK AND TWO LADS OF THE ROAD WANT WHAT THE ARMOURER DROPPED: BARK THEM OFF. THEN PICK UP A SWORD, A BELT AND A SHIELD PAINTED LAST NIGHT, TRY A CHARGE, AND SPAR WITH THE SQUIRES OF PIERRE D'AMIENS, HIS LORD. CONFUSIONE IS ALEAUME, A CLERK WHO CALLS HIM BROTHER."
+map = "road"
+music = "level2"
+cast = PackedStringArray("zampano", "confusione", "jack", "sbrimbrulon")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28"), SubResource("Resource_29"), SubResource("Resource_30"), SubResource("Resource_31"), SubResource("Resource_32"), SubResource("Resource_33"), SubResource("Resource_34"), SubResource("Resource_35"), SubResource("Resource_36"), SubResource("Resource_37"), SubResource("Resource_38"), SubResource("Resource_39"), SubResource("Resource_40"), SubResource("Resource_41"), SubResource("Resource_42"), SubResource("Resource_43"), SubResource("Resource_44"), SubResource("Resource_45")]
+entry_conditions = {
+"requires_completed": ["2.2"]
+}
+persistent_effects = PackedStringArray("unlock.knight", "meter.supervillain", "book.remembered")
+completion = {
+"boundary": "chapter_end",
+"requires_abilities": ["knight"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the road south", "Pierre d'Amiens, Clari's lord", "Aleaume of Clari, a clerk", "first fight (bark only), the arms, sparring")
+source_refs = PackedStringArray("Clari 120 (\"Robert of Clari, knight\"; attested per docs/STORY-SOURCES.md)", "Clari 45-47, 75 (Pierre d'Amiens's battalion)", "Clari 75-76 (Aleaume, a clerk, his brother)", "docs/STORY-SOURCES.md \"Period words\": MESSIRE, PILGRIMS, THE HOLY VOYAGE", "docs/STORY.md 2.3", "src/campaign/chapters/ch2.ts 2.3 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The borrowed armour and arms, the road, Jack's lads and the sparring are adaptation.", "The coat of mail is visible from 2.1; the arms (knight) are unlocked only here, after the three pickups.")
+technical_status = "technically_complete"

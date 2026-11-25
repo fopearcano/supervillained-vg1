@@ -1,0 +1,174 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=22 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="3_cardstep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="4_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="5_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="7_cuestep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="8_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "jerusalem"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = []
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_cardstep")
+id = "s02"
+big = ""
+small = "THE UNDERSIDE OF THE DESK WAS THE BOTTOM OF A SHIP. NOW IT OPENS."
+color = Color(0.964705882, 0.784313725, 0.878431373, 1)
+seconds = 1.8
+dim = 0.9
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_cardstep")
+id = "s03"
+big = "JERUSALEM"
+small = "THE CITY EVERY PREACHER NAMES"
+color = Color(0.964705882, 0.784313725, 0.878431373, 1)
+seconds = 2.2
+dim = 0.3
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("4_narrationstep")
+id = "s04"
+text = "HE IS WEARING A COAT OF MAIL, TWO SIZES TOO BIG. THE HELMET IS THE BUCKET FROM THE LAWN, ONLY GRANDER. HE HAS NO SWORD AND NO SHIELD."
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("5_dialoguestep")
+id = "s05"
+speaker = "professor"
+text = "JERUSALEM IS WHAT THE PREACHERS PROMISED, YOU UNDERSTAND. IT IS WHAT THE CROSS ON THE SHOULDER MEANT TO THE MEN WHO SEWED IT ON."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_objectivestep")
+id = "s06"
+objective = "WALK TO THE GATE OF JERUSALEM. KEEP YOUR HEAD UP"
+objective_kind = "reach"
+goal_marker = "1"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE GATE"
+goal_radius = 0.0
+pickups = []
+no_run = true
+action_label = "BARK"
+action_text = "JERUSALEM!"
+action_sound = "bark"
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "receding"
+rule_params = {
+"steps": 2,
+"step": Vector2(-1.0, -1.0),
+"within": 1.6,
+"door_every": 3.2,
+"door_offset": Vector2(2.0, -2.0)
+}
+rule_lines = {
+"door": "(BEHIND A DOOR) ...BABYLON FIRST. EGYPT. KEEP IT FROM THE MEN...",
+"recede": "THE GATE STEPS BACK. EXACTLY ONE STEP.",
+"slip": "THE HELMET SLIPS OVER HIS EYES. WALK ON TO PUSH IT UP"
+}
+hint = "STOP, OR BARK, AND THE HELMET SLIDES DOWN"
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_cuestep")
+id = "s07"
+sound = ""
+shake = 0.0
+flash = false
+visor = 0.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("3_cardstep")
+id = "s08"
+big = "ONE STEP AWAY"
+small = "HE REACHES THE GATE. THE GATE IS STILL ONE STEP AWAY."
+color = Color(0.964705882, 0.784313725, 0.878431373, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("5_dialoguestep")
+id = "s09"
+speaker = "zampano"
+text = "WHO SAID ANYTHING ABOUT EGYPT?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("4_narrationstep")
+id = "s10"
+text = "NOBODY. NOT TO HIM."
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("3_cardstep")
+id = "s11"
+big = ""
+small = "FIRST A PREACHER. THEN A LIST OF NAMES. THEN THE SHIPS. THEN THE BILL."
+color = Color(0.603921569, 0.643137255, 0.752941176, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("5_dialoguestep")
+id = "s12"
+speaker = "zampano"
+text = "THERE WAS A CITY, AND IT WAS ALWAYS ONE STEP FURTHER ON."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("8_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "2.1"
+content_version = 1
+title = "One step from Jerusalem"
+old_title = "One step from Jerusalem"
+level = 2
+summary = "UNDER THE DESK THE DARK OPENS INTO A PALE COUNTRY. ON THE SKYLINE STANDS JERUSALEM, THE CITY EVERY PREACHER NAMES. HE WEARS A COAT OF MAIL NOW, AND A HELMET MUCH TOO BIG FOR HIM. WALK TO THE GATE: IT KEEPS STEPPING BACK, AND BEHIND A DOOR SOMEONE NAMES ANOTHER PLACE."
+map = "jerusalem"
+music = "level2"
+cast = PackedStringArray("zampano", "professor")
+steps = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13")]
+entry_conditions = {
+"requires_completed": ["1.5"]
+}
+persistent_effects = PackedStringArray("book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the dream begins (the sleep boundary of 1.5)", "Jerusalem as the preached destination, never reached", "the leaders' objective: Babylon, that is Egypt (Villehardouin p. 8), heard behind a door")
+source_refs = PackedStringArray("Villehardouin p. 8 (the council knew the objective was Babylon, Egypt; the people were told only \"overseas\"; attested per docs/STORY-SOURCES.md)", "Clari XIII (Munro): only the leaders knew the plan", "docs/STORY.md 2.1", "src/campaign/chapters/ch2.ts 2.1 (draft reference)", "STORY_CONTENT_MATRIX.md 2.1")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01: prototype deferral, not approval).", "The dream prologue is adaptation: the receding gate and the helmet (the bucket of 1.1) are invented images.", "Jerusalem is presented only as the preached destination; the line behind the door carries the leaders' objective (Babylon, Egypt) and is source-tagged (Villehardouin p. 8). Jerusalem is never said to be the leaders' operative target.", "REVIEW REQUIRED: the door line's \"BABYLON FIRST\" compresses Villehardouin p. 8 (the decision taken in council at Venice); confirm the wording or move it to the Professor.")
+technical_status = "technically_complete"

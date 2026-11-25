@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StoryChapterData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_chapter_data.gd" id="1_storychapterdata"]
+[ext_resource type="Resource" path="res://data/story/scenes/2_1.tres" id="s2_1"]
+[ext_resource type="Resource" path="res://data/story/scenes/2_2.tres" id="s2_2"]
+[ext_resource type="Resource" path="res://data/story/scenes/2_3.tres" id="s2_3"]
+
+[resource]
+script = ExtResource("1_storychapterdata")
+number = 2
+scenes = [ExtResource("s2_1"), ExtResource("s2_2"), ExtResource("s2_3")]
+content_version = 1
+review_status = "draft_implemented_review_pending"
+title = "On the edge of dreams"
+menu_title = "Edge of dreams"
+intro = "UNDER THE DESK THE DARK FILLS WITH PEOPLE: A PREACHER, A LIST OF NAMES, A BORROWED COAT OF MAIL. ZAMPANO IS A SMALL KNIGHT NOW, AND JERUSALEM IS ALWAYS ONE STEP FURTHER ON."
+cast_note = "CONFUSIONE AS ALEAUME, A CLERK; SBRIMBRULON AS PIERRE D'AMIENS, HIS LORD; BAGNASKIZ AS THE MARSHAL, GEOFFROI DE VILLEHARDOUIN; FULK OF NEUILLY"
+music = "level2"
+professor_aside = "VILLEHARDOUIN WAS ONE OF THE SIX MEN WHO SIGNED FOR THE SHIPS, YOU UNDERSTAND. CLARI WAS IN THE CROWD THAT WOULD HAVE TO PAY FOR THEM. READ THE TWO SIDE BY SIDE AND YOU CAN HEAR A DOOR CLOSING."
+review_notes = PackedStringArray("Draft implemented; narrative review pending for the whole level (OD-01: prototype deferral, not approval).", "REVIEW REQUIRED: the aside's \"ONE OF THE SIX MEN WHO SIGNED\" (Villehardouin pp. 4-7: the six envoys made the treaty; confirm the wording).")
