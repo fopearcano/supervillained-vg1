@@ -33,7 +33,11 @@ godot --path godot -- --skip=game       # straight into the Green Zone walk, out
 
 The save lives in `user://save_v3.json` (with `.tmp`/`.bak` during and after writes, and
 `user://legacy/` for an imported Capacitor payload). The test runner and `--script` tools keep the
-save in memory or in `user://test_runs/<pid>/`, never in the real save.
+save in memory or in `user://test_runs/<pid>/`, never in the real save. Every change is one
+transaction: it reaches memory only after its write succeeded, so a failed or refused save changes
+nothing and the game shows a save-error card instead of moving on. An unreadable main save is
+copied exactly (`save_v3.corrupt*.json`) and checked before anything replaces it; when that is not
+possible, or the save comes from a newer version, the session is read-only.
 
 Controls: WASD/arrows move, Shift or K run, Space pee, J/X or B bark, Esc/P menu. With a mouse the
 touch controls are emulated (left side: floating joystick; right: PEE / BARK / RUN; MENU top-right).

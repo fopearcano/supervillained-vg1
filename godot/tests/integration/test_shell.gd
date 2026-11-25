@@ -20,6 +20,10 @@ func before_each() -> void:
 
 
 func after_each() -> void:
+	SaveService.file_ops = SaveFileOps.new()
+	SaveService.fault_after = ""
+	SaveService.write_blocked = false
+	SaveService.block_reason = ""
 	if main and is_instance_valid(main):
 		main.get_parent().remove_child(main)
 		main.free()
@@ -70,6 +74,77 @@ func _disk() -> Dictionary:
 
 func _save_bytes() -> PackedByteArray:
 	return FileAccess.get_file_as_bytes(SaveService.base_dir + "save_v3.json")
+
+
+## Committed bytes: the main, or the backup while an interrupted write left no main.
+func _committed() -> PackedByteArray:
+	var d := SaveService.base_dir
+	return FileAccess.get_file_as_bytes(d + ("save_v3.json" if FileAccess.file_exists(d + "save_v3.json") else "save_v3.bak"))
+
+
+func _files() -> Dictionary:
+	var out := {}
+	for f in DirAccess.get_files_at(SaveService.base_dir):
+		out[f] = FileAccess.get_file_as_bytes(SaveService.base_dir + f)
+	return out
+
+
+## Waits until no transition runs (a covered title takes no input).
+func _settle() -> void:
+	await _until(func() -> bool: return not main.transition.running)
+
+
+## Every injected write stage (file-operation failures, crash hooks) and a blocked session.
+const STAGES := [
+	{"fail": {"write_bytes": "save_v3.tmp"}, "why": "open_temp_failed"},
+	{"torn": "save_v3.tmp", "why": "temp_validation_failed"},
+	{"fail": {"read_bytes": "save_v3.tmp"}, "why": "temp_validation_failed"},
+	{"fail": {"remove": "save_v3.bak"}, "why": "backup_remove_failed"},
+	{"fail": {"rename": "save_v3.bak"}, "why": "backup_rotation_failed"},
+	{"fail": {"rename": "save_v3.tmp"}, "why": "rename_failed"},
+	{"hook": "temp_partial", "why": "simulated_crash_during_temp_write"},
+	{"hook": "temp_written", "why": "simulated_crash_after_temp_written"},
+	{"hook": "temp_validated", "why": "simulated_crash_after_temp_validated"},
+	{"hook": "backup_rotated", "why": "simulated_crash_after_backup_rotated"},
+	{"blocked": true, "why": "write_blocked_future_version"},
+]
+
+
+## Arms one stage: main and backup exist first (so every stage is reachable).
+func _arm(stage: Dictionary) -> void:
+	SaveService.file_ops = SaveFileOps.new()
+	SaveService.write_to_disk()
+	SaveService.write_to_disk()
+	var f := FaultyFileOps.new()
+	f.fail = stage.get("fail", {})
+	f.torn_write = stage.get("torn", "")
+	SaveService.file_ops = f
+	SaveService.fault_after = stage.get("hook", "")
+	SaveService.write_blocked = stage.get("blocked", false)
+
+
+func _disarm() -> void:
+	SaveService.file_ops = SaveFileOps.new()
+	SaveService.fault_after = ""
+	SaveService.write_blocked = false
+
+
+func _labels(o: OverlayPanel) -> Array:
+	return o.items.map(func(i: Dictionary) -> String: return i["label"])
+
+
+## A real touch (press, then release) at a logical point, through the window, the
+## SubViewportContainer and the GUI.
+func _tap(logical: Vector2) -> void:
+	var vc: PixelViewportController = main.viewport_controller
+	var physical: Vector2 = vc.container.get_global_rect().position + logical * vc.scale
+	for pressed: bool in [true, false]:
+		var e := InputEventScreenTouch.new()
+		e.index = 0
+		e.position = physical
+		e.pressed = pressed
+		Input.parse_input_event(e)
+		await tree.process_frame
 
 
 func _gz_step(gz: GreenZoneScene, n: int) -> void:
@@ -221,11 +296,11 @@ static func T_fits(w: float, avail: float) -> bool:
 	return w <= avail
 
 
-## UI-012–014: the COUCH card shows, for the source's five fixture campaigns, the next scene or the
-## finished story and its ending, scenes per level, meters, book counts, coins, costume, the Green
-## Zone best, play time and the last campaign save, exactly as src/campaign/summary.ts computes
-## them; it closes with CLOSE, a tap outside, confirm and Back.
-func test_UI_012_014_couch_shows_progress_meters_records_and_times() -> void:
+## UI-012/013: the COUCH card shows, for the source's five fixture campaigns, the next scene, scenes
+## per level, meters, book counts, coins and the Green Zone best exactly as src/campaign/summary.ts
+## computes them; it closes with CLOSE, a tap outside, confirm and Back. (UI-014's play/save time
+## and ending: test_P_UI_014 below.)
+func test_UI_012_013_couch_shows_progress_meters_book_and_records() -> void:
 	var cf: Dictionary = fixture()["couch"]
 	await _main()
 	SaveService.save_record("level1", {"score": 1234, "stars": 3.5, "time": 75.0})
@@ -239,13 +314,10 @@ func test_UI_012_014_couch_shows_progress_meters_records_and_times() -> void:
 		var lines := o.lines()
 		if s["next"] != null:
 			assert_true(lines.has("LEVEL %d: %s %s" % [s["next"]["level"], s["next"]["id"], String(s["next"]["title"]).to_upper()]), "%s: next scene" % c["name"])
-		else:
-			assert_true(lines.has("ENDING: %s" % ("THE KNIGHT" if s["ending"] == "knight" else "THE WITNESS")), "%s: ending" % c["name"])
 		assert_true(lines.has("SCENES %d / %d  %d%%" % [s["done"], s["total"], int(round(float(s["done"]) * 100.0 / float(s["total"])))]), "%s: scenes" % c["name"])
 		assert_true(lines.has("COMMOZIONE %d" % int(s["meters"]["commozione"])) and lines.has("GRACE %d" % int(s["meters"]["grace"])), "%s: meters" % c["name"])
 		assert_true(lines.has("VALUES %d  MARVELS %d" % [s["values"], s["marvels"]]) and lines.has("COINS %d" % s["coins"]), "%s: book and coins" % c["name"])
 		assert_true(lines.has("SCORE 1234  STARS 4") and lines.has("TIME 01:15"), "%s: the Green Zone best" % c["name"])
-		assert_true(lines.has("PLAY TIME %s" % c["playTime"]) and lines.has("SAVED %s" % c["savedAt"]), "%s: play and save time" % c["name"])
 		for v: String in ["COUCH", "CLOSE"]:
 			assert_true(o.drawn.has(v), "%s: %s drawn" % [c["name"], v])
 		o.time = 1.0
@@ -260,6 +332,26 @@ func test_UI_012_014_couch_shows_progress_meters_records_and_times() -> void:
 			_:
 				o.back()
 		assert_eq(closed[0], 1, "%s: closed once" % c["name"])
+		main.pop_overlay(o)
+
+
+## UI-014 (partial): play time, the last campaign save and the finished story's ending match the
+## source fixtures at a fixed UTC offset. Partial: the saved date uses the device's CURRENT UTC offset
+## for every date (Time.get_time_zone_from_system), not the offset in force at that date, so across
+## a daylight-saving or historical time-zone change it can differ from the source's local time.
+func test_P_UI_014_couch_play_time_saved_date_and_ending() -> void:
+	var cf: Dictionary = fixture()["couch"]
+	await _main()
+	for c: Dictionary in cf["cases"]:
+		var s: Dictionary = c["summary"]
+		var o := CouchOverlay.new()
+		o.setup(c["state"], SaveService.CATALOG, null, load("res://data/shell/shell_text.tres"), int(cf["now"]), 0, func() -> void: pass)
+		main.push_overlay(o)
+		await tree.process_frame
+		var lines := o.lines()
+		assert_true(lines.has("PLAY TIME %s" % c["playTime"]) and lines.has("SAVED %s" % c["savedAt"]), "%s: play and save time" % c["name"])
+		if s["next"] == null:
+			assert_true(lines.has("ENDING: %s" % ("THE KNIGHT" if s["ending"] == "knight" else "THE WITNESS")), "%s: ending" % c["name"])
 		main.pop_overlay(o)
 
 
@@ -348,61 +440,299 @@ func test_UI_022_glossary_content_ring_and_close_paths() -> void:
 		main.pop_overlay(g)
 
 
-## NEW GAME: without a saved story it starts 1.0; over one it asks (NO preselected; NO and Back
-## keep the story); YES creates the exact default campaign, saved, and starts the walk.
-func test_SLICE_new_game_confirmation_and_exact_default() -> void:
+## UI-007 NEW GAME, through the title's own row: without a saved story it saves the exact default
+## campaign and starts 1.0 at once (no question), as the story's scene with its briefing; over a
+## saved story it asks (NO preselected; NO and Back keep the story in memory and byte for byte);
+## YES saves the exact default and starts 1.0 with its briefing.
+func test_UI_007_new_game_confirms_over_a_story_and_starts_the_walk() -> void:
+	await _main()
+	var t := _ready_title()
+	assert_eq([_labels(t)[0], t.selected], ["NEW GAME", 0], "NEW GAME first, preselected without a story")
+	t.activate(0)
+	assert_eq(main.overlay_host.get_child_count(), 0, "no question without a saved story")
+	var want := CampaignSchema.new_campaign()
+	want["savedAt"] = NOW
+	assert_eq(_disk()["campaign"], want, "the exact default, saved before the walk starts")
+	assert_true(await _until(func() -> bool: return main.current_scene is GreenZoneScene), "1.0 starts")
+	var gz := main.current_scene as GreenZoneScene
+	assert_true(gz.as_story_scene and gz._overlay is BriefingOverlay, "as the story's 1.0, with its briefing")
+	await _settle()
 	var st := CampaignSchema.new_campaign()
 	st["completed"] = ["1.0"]
 	st["coins"] = 40
 	SaveService.save_campaign(st, NOW - 1000)
-	await _main()
-	var t := _ready_title()
+	main.show_title()
+	t = _ready_title()
+	assert_eq(t.selected, 1, "CONTINUE preselected over a saved story")
+	var bytes := _save_bytes()
 	t.activate(0)
 	var c := main.top_overlay() as ConfirmOverlay
-	assert_true(c != null and c.selected == 1 and c.heading == "NEW GAME?", "asked, NO preselected")
+	assert_true(c != null and c.selected == 1 and c.heading == "NEW GAME?" and c.body == "THE SAVED STORY WILL BE LOST.", "asked, NO preselected")
 	c.activate(1)
-	assert_eq([main.overlay_host.get_child_count(), SaveService.get_campaign()["coins"]], [0, 40], "NO keeps the story")
+	assert_eq([main.overlay_host.get_child_count(), SaveService.get_campaign()["coins"], _save_bytes()], [0, 40, bytes], "NO keeps the story")
 	t.activate(0)
 	(main.top_overlay() as ConfirmOverlay).back()
-	assert_eq(SaveService.get_campaign()["completed"], ["1.0"], "Back keeps it too")
+	assert_eq([SaveService.get_campaign()["completed"], _save_bytes(), main.current_scene is TitleScreen], [["1.0"], bytes, true], "Back keeps it too")
 	t.activate(0)
 	(main.top_overlay() as ConfirmOverlay).activate(0)
-	var want := CampaignSchema.new_campaign()
-	want["savedAt"] = NOW
-	assert_eq(_disk()["campaign"], want, "the exact default, saved")
+	assert_eq(_disk()["campaign"], want, "YES: the exact default, saved")
 	assert_true(await _until(func() -> bool: return main.current_scene is GreenZoneScene), "1.0 starts")
-	assert_true((main.current_scene as GreenZoneScene)._overlay is BriefingOverlay, "with its briefing")
+	assert_true((main.current_scene as GreenZoneScene).as_story_scene and (main.current_scene as GreenZoneScene)._overlay is BriefingOverlay, "with its briefing")
 
 
-## CONTINUE: the one-time migration notice first; then 1.0 (no story yet), the honest 1.1 boundary
-## after the walk (progress kept, no other run), the level list when the story is finished.
-func test_SLICE_continue_destinations() -> void:
+## UI-007 CONTINUE, through the title's own row: NEW GAME preselected without progress and CONTINUE
+## with it; the one-time migration notice first (cleared and saved once, savedAt = now as the
+## source); without progress it starts 1.0 as the story's scene; after the walk it reaches the
+## honest 1.1 boundary over the title (the scene named, progress kept, no other run); a finished
+## story opens the level list.
+func test_UI_007_continue_preselection_notice_and_destinations() -> void:
 	var st := CampaignSchema.new_campaign()
 	st["notice"] = "dream-rewritten"
-	SaveService.save_campaign(st, NOW)
+	SaveService.save_campaign(st, NOW - 1000)
 	await _main()
-	_ready_title().activate(1)
+	var t := _ready_title()
+	assert_eq([_labels(t)[1], t.selected], ["CONTINUE", 0], "no progress: NEW GAME preselected")
+	t.activate(1)
 	var m := main.top_overlay() as MessageOverlay
 	assert_true(m != null and m.heading == "THE DREAM HAS BEEN REWRITTEN", "the notice first")
-	assert_eq(_disk()["campaign"]["notice"], null, "cleared and saved once")
+	assert_eq([_disk()["campaign"]["notice"], _disk()["campaign"]["savedAt"]], [null, NOW], "cleared and saved once (savedAt = now, as the source)")
 	m.time = 1.0
 	m.on_tap(Vector2(5, 5))
 	assert_true(await _until(func() -> bool: return main.current_scene is GreenZoneScene), "then 1.0 (the next scene)")
-	main.show_title()
-	await tree.process_frame
+	assert_true((main.current_scene as GreenZoneScene).as_story_scene, "as the story's scene")
+	await _settle()
+	assert_false(AppState.take_story_notice()["notice"], "the notice never again")
 	st = SaveService.get_campaign()
 	st["completed"] = ["1.0"]
 	SaveService.save_campaign(st, NOW)
-	_ready_title().activate(1)
+	main.show_title()
+	t = _ready_title()
+	assert_eq(t.selected, 1, "progress: CONTINUE preselected")
+	t.activate(1)
 	assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).heading == "NOT IN THIS BUILD"), "1.1: the boundary")
+	assert_eq((main.top_overlay() as MessageOverlay).paragraphs[0][0], "LEVEL 1: 1.1 A BUCKET ON HIS HEAD", "the next scene named")
 	assert_true(main.current_scene is TitleScreen, "no other run started")
 	assert_eq(SaveService.get_campaign()["completed"], ["1.0"], "progress kept")
+	await _settle()
 	main.clear_overlays()
 	st["completed"] = Array(SaveService.CATALOG.ids())
 	SaveService.save_campaign(st, NOW)
 	_ready_title().activate(1)
 	assert_true(main.top_overlay() is LevelListOverlay, "finished: the level list")
 
+
+## NEW GAME whose save fails (every injected write stage) or is refused (blocked) stays on the title:
+## the save-error card (TRY AGAIN and BACK; BACK only when blocked, with the update advice), the
+## saved story unchanged in memory and in the committed file, no transition, no walk. TRY AGAIN
+## once the fault is gone saves the new game and starts 1.0.
+func test_SLICE_new_game_save_failure_stays_on_the_title() -> void:
+	var st := CampaignSchema.new_campaign()
+	st["completed"] = ["1.0"]
+	st["coins"] = 40
+	SaveService.save_campaign(st, NOW - 1000)
+	await _main()
+	var t := _ready_title()
+	for stage: Dictionary in STAGES:
+		var why: String = stage["why"]
+		var blocked: bool = stage.get("blocked", false)
+		_arm(stage)
+		var before: Dictionary = SaveService.data.duplicate(true)
+		var committed := _committed()
+		t.activate(0)
+		(main.top_overlay() as ConfirmOverlay).activate(0)
+		var card := main.top_overlay() as MessageOverlay
+		_disarm()
+		if not assert_true(card != null and card.has_meta(&"save_error"), "%s: the save-error card" % why):
+			return
+		assert_eq(card.get_meta(&"save_error"), {"context": "new_game", "reason": why}, "%s: what failed" % why)
+		assert_eq(_labels(card), ["BACK"] if blocked else ["TRY AGAIN", "BACK"], "%s: actions" % why)
+		assert_true(String(card.paragraphs[1][0]).contains("UPDATE THE GAME" if blocked else "TRY AGAIN"), "%s: what to do" % why)
+		assert_eq([main.current_scene is TitleScreen, main.transition.running], [true, false], "%s: stays on the title" % why)
+		assert_eq(SaveService.data, before, "%s: the saved story unchanged in memory" % why)
+		assert_eq(_committed(), committed, "%s: and in the committed file" % why)
+		card.activate(_labels(card).size() - 1)
+		assert_eq(main.overlay_host.get_child_count(), 0, "%s: BACK returns to the title" % why)
+	_arm(STAGES[5])
+	t.activate(0)
+	(main.top_overlay() as ConfirmOverlay).activate(0)
+	var retry := main.top_overlay() as MessageOverlay
+	_disarm()
+	retry.activate(0)
+	var want := CampaignSchema.new_campaign()
+	want["savedAt"] = NOW
+	assert_eq(_disk()["campaign"], want, "TRY AGAIN saved the new game")
+	assert_true(await _until(func() -> bool: return main.current_scene is GreenZoneScene), "and 1.0 starts")
+
+
+## CONTINUE on the result card whose campaign save fails (every injected write stage) or is refused
+## stays on the result card: the save-error card (TRY AGAIN, TITLE, BACK; no TRY AGAIN when
+## blocked), coins, time and 1.0 not applied (memory and committed bytes), no transition, no 1.1.
+## TRY AGAIN once the fault is gone applies the walk exactly once; a repeated CONTINUE adds nothing.
+func test_SLICE_continue_save_failure_stays_on_the_result_card() -> void:
+	await _main()
+	AppState.new_game()
+	main.start_green_zone(true)
+	await tree.process_frame
+	var gz := main.current_scene as GreenZoneScene
+	gz.rules.stats["coins"] = 15
+	var end := _finish_walk(gz)
+	var walk_time: float = gz.rules.stats["time"]
+	for stage: Dictionary in STAGES:
+		var why: String = stage["why"]
+		var blocked: bool = stage.get("blocked", false)
+		_arm(stage)
+		var before: Dictionary = SaveService.data.duplicate(true)
+		var committed := _committed()
+		end.activate(0)
+		var card := main.top_overlay() as MessageOverlay
+		_disarm()
+		if not assert_true(card != null and card.has_meta(&"save_error"), "%s: the save-error card" % why):
+			return
+		assert_eq(card.get_meta(&"save_error"), {"context": "continue", "reason": why}, "%s: what failed" % why)
+		assert_eq(_labels(card), ["TITLE", "BACK"] if blocked else ["TRY AGAIN", "TITLE", "BACK"], "%s: actions" % why)
+		assert_eq([main.current_scene == gz, gz._overlay == end, main.transition.running], [true, true, false], "%s: stays on the result card" % why)
+		assert_eq(SaveService.data, before, "%s: nothing applied in memory" % why)
+		assert_eq(_committed(), committed, "%s: nor in the committed file" % why)
+		assert_eq(main.campaign.handoffs.size(), 0, "%s: no handoff accepted" % why)
+		card.activate(_labels(card).size() - 1)
+		assert_eq(main.top_overlay(), end, "%s: BACK returns to the result card" % why)
+	_arm(STAGES[5])
+	end.activate(0)
+	var retry := main.top_overlay() as MessageOverlay
+	_disarm()
+	retry.activate(0)
+	var c: Dictionary = _disk()["campaign"]
+	assert_eq([c["completed"], int(c["coins"]), int(c["savedAt"])], [["1.0"], 15, NOW], "TRY AGAIN: 1.0 and the coins, once")
+	assert_near(float(c["playTime"]), walk_time, 1e-9, "and the time, once")
+	end.activate(0)
+	assert_eq([int(SaveService.get_campaign()["coins"]), main.campaign.handoffs.size()], [15, 1], "a repeated CONTINUE adds nothing")
+	assert_true(await _until(func() -> bool: return main.current_scene is TitleScreen and main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).heading == "NOT IN THIS BUILD"), "then 1.1's boundary")
+
+
+## A real future-format backup makes the whole session read-only: NEW GAME and the walk's CONTINUE
+## show the save-error card without TRY AGAIN and stay put; the record is not saved; TITLE on the
+## card leaves without saving; no file changes at any point.
+func test_SLICE_future_blocked_session_changes_nothing() -> void:
+	var st := CampaignSchema.new_campaign()
+	st["coins"] = 3
+	SaveService.save_campaign(st, NOW - 1000)
+	SaveService.write_to_disk()
+	var f := FileAccess.open(SaveService.base_dir + "save_v3.bak", FileAccess.WRITE)
+	f.store_string("{\"format_version\": 3.5, \"campaign\": {\"version\": 3}}")
+	f.close()
+	SaveService.load_from_disk()
+	assert_eq([SaveService.load_status, SaveService.write_blocked], ["future_version", true], "blocked by the future backup")
+	var files := _files()
+	var shown: Dictionary = SaveService.data.duplicate(true)
+	await _main()
+	var notice := main.top_overlay() as MessageOverlay
+	assert_true(notice != null and String(notice.paragraphs[0][0]).contains("NEWER VERSION"), "the title says so")
+	notice.time = 1.0
+	notice.on_tap(Vector2(4, 4))
+	var t := _ready_title()
+	t.activate(0)
+	var card := main.top_overlay() as MessageOverlay
+	assert_eq([card.get_meta(&"save_error"), _labels(card), main.current_scene is TitleScreen], [{"context": "new_game", "reason": "write_blocked_future_version"}, ["BACK"], true], "NEW GAME refused, on the title")
+	card.activate(0)
+	t.activate(1)
+	assert_true(await _until(func() -> bool: return main.current_scene is GreenZoneScene), "CONTINUE starts 1.0 (nothing to save yet)")
+	var gz := main.current_scene as GreenZoneScene
+	gz.rules.stats["coins"] = 9
+	var end := _finish_walk(gz)
+	assert_false(end.result["record_saved"], "the record could not be saved")
+	end.activate(0)
+	card = main.top_overlay() as MessageOverlay
+	assert_eq([card.get_meta(&"save_error"), _labels(card), main.current_scene == gz], [{"context": "continue", "reason": "write_blocked_future_version"}, ["TITLE", "BACK"], true], "CONTINUE refused, on the result card")
+	assert_eq([SaveService.data, _files()], [shown, files], "nothing changed in memory or on disk")
+	card.activate(0)
+	assert_true(await _until(func() -> bool: return main.current_scene is TitleScreen), "TITLE leaves without saving")
+	assert_eq([SaveService.data, _files()], [shown, files], "still nothing changed")
+
+
+## CONTINUE over the one-time notice whose save fails keeps the notice (memory and committed file),
+## shows the save-error card instead of the notice card and does not move on; TRY AGAIN once the
+## fault is gone shows the notice and clears it on disk.
+func test_SLICE_story_notice_kept_when_its_save_fails() -> void:
+	var st := CampaignSchema.new_campaign()
+	st["notice"] = "dream-rewritten"
+	SaveService.save_campaign(st, NOW - 1000)
+	await _main()
+	var t := _ready_title()
+	_arm(STAGES[5])
+	var committed := _committed()
+	t.activate(1)
+	var card := main.top_overlay() as MessageOverlay
+	_disarm()
+	assert_eq([card.heading, card.get_meta(&"save_error")], ["SAVE FAILED", {"context": "notice", "reason": "rename_failed"}], "the save-error card, not the notice")
+	assert_eq([SaveService.get_campaign()["notice"], _committed()], ["dream-rewritten", committed], "the notice kept, in memory and on disk")
+	assert_eq([main.current_scene is TitleScreen, main.transition.running], [true, false], "nothing moved on")
+	card.activate(0)
+	var m := main.top_overlay() as MessageOverlay
+	assert_true(m != null and m.heading == "THE DREAM HAS BEEN REWRITTEN", "TRY AGAIN: the notice")
+	assert_eq(_disk()["campaign"]["notice"], null, "cleared on disk")
+
+
+## A settings change whose save fails is not applied (memory, disk, audio and input agree) and the
+## save-error card says so: the lives counter on the title and SOUND in OPTIONS.
+func test_SLICE_settings_save_failure_keeps_the_setting() -> void:
+	await _main()
+	var t := _ready_title()
+	t.queue_redraw()
+	await tree.process_frame
+	_arm(STAGES[0])
+	t.on_tap(t.lives_rect.get_center())
+	_disarm()
+	assert_eq([AppState.lives(), SaveService.get_settings()["lives"], int(_disk()["settings"]["lives"])], [2, 2, 2], "lives unchanged everywhere")
+	var card := main.top_overlay() as MessageOverlay
+	assert_eq(card.get_meta(&"save_error"), {"context": "settings", "reason": "open_temp_failed"}, "the save-error card")
+	card.activate(_labels(card).size() - 1)
+	t.activate(3)
+	var o := main.top_overlay() as OptionsOverlay
+	_arm(STAGES[5])
+	o.toggle_sound()
+	_disarm()
+	var committed: Dictionary = JSON.parse_string(_committed().get_string_from_utf8())
+	assert_eq([AudioService.muted, AppState.settings["muted"], SaveService.get_settings()["muted"], committed["settings"]["muted"]], [false, false, false, false], "SOUND stays on everywhere")
+	assert_true(main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).get_meta(&"save_error")["context"] == "settings", "said so")
+
+
+## A covered title takes no touch. Real InputEventScreenTouch presses and releases go through the
+## window, the SubViewportContainer and the GUI: one NEW GAME touch saves and starts the glitch;
+## while it runs, repeated NEW GAME and CONTINUE touches (and the lives counter and the publisher
+## link) run nothing: no second save, the pending scene change neither runs early nor is replaced
+## (the burst is not restarted); it runs once, at its midpoint.
+func test_SLICE_title_takes_no_touch_while_a_transition_runs() -> void:
+	await _main()
+	var t := _ready_title()
+	t.queue_redraw()
+	await tree.process_frame
+	var rects := t.item_rects().duplicate()
+	main.transition.set_process(false)
+	await _tap(rects[0].get_center())
+	assert_true(main.transition.running, "a real touch on NEW GAME started the glitch")
+	var written := int(_disk()["written_at_unix_ms"])
+	main.transition.step(0.1)
+	var at: float = main.transition._t
+	for k in 3:
+		await _tap(rects[0].get_center())
+		await _tap(rects[1].get_center())
+		await _tap(t.lives_rect.get_center())
+		await _tap(t.footer_rect.get_center())
+	# The rows Main does not guard itself (COUCH, OPTIONS, GLOSSARY, QUIT): the title alone drops them.
+	for row in [2, 3, 4, 5]:
+		await _tap(rects[row].get_center())
+	assert_eq(main.transition._t, at, "the burst was not restarted")
+	assert_true(main.transition._mid.is_valid(), "its scene change still pending")
+	assert_true(main.current_scene is TitleScreen, "not run early")
+	assert_eq([int(_disk()["written_at_unix_ms"]), main.overlay_host.get_child_count(), AppState.lives(), opened, quits[0]], [written, 0, 2, [], 0], "no save, no overlay, no lives step, no link, no quit")
+	main.transition.step(0.2)
+	assert_false(main.transition._mid.is_valid(), "the midpoint ran it")
+	await tree.process_frame
+	assert_true(main.current_scene is GreenZoneScene, "once: 1.0")
+	main.transition.set_process(true)
+
+
+## SAV-008 through Main
 
 ## SAV-008 through Main: the record saves when level 1 completes (campaign untouched); RETRY, the
 ## game over and TITLE leave the campaign as it was; CONTINUE saves coins, time and 1.0.
@@ -456,8 +786,9 @@ func test_SAV_008_green_zone_record_and_campaign_handoff_order() -> void:
 	assert_eq(_disk()["legacy_arcade_coins"], {"present": false, "value": 0}, "the passive legacy coins untouched")
 
 
-## SAV-021: a corrupt main with a valid backup restores the backup with no data loss (the unreadable
-## file kept) and the title says so once.
+## SAV-021 (with test_save's preservation case): a corrupt main with a valid backup restores the
+## backup with no data loss (the unreadable file kept) and the title says so once; a main that
+## cannot be read is left untouched and the title says why nothing will be saved.
 func test_SAV_021_corrupt_main_restored_from_backup_with_notice() -> void:
 	SaveService.save_record("level1", {"score": 777, "stars": 4.0, "time": 66.0})
 	SaveService.save_record("level1", {"score": 778, "stars": 4.0, "time": 66.0})
@@ -477,6 +808,21 @@ func test_SAV_021_corrupt_main_restored_from_backup_with_notice() -> void:
 	main.show_title()
 	await tree.process_frame
 	assert_eq(main.overlay_host.get_child_count(), 0, "once")
+	# A main that cannot be read: left untouched, read-only session, and the title says so.
+	main.get_parent().remove_child(main)
+	main.free()
+	f = FileAccess.open(SaveService.base_dir + "save_v3.json", FileAccess.WRITE)
+	f.store_string("{ unreadable")
+	f.close()
+	var ops := FaultyFileOps.new()
+	ops.fail = {"read_bytes": "save_v3.json"}
+	SaveService.file_ops = ops
+	SaveService.load_from_disk()
+	SaveService.file_ops = SaveFileOps.new()
+	await _main()
+	m = main.top_overlay() as MessageOverlay
+	assert_true(m != null and String(m.paragraphs[0][0]).contains("COULD NOT BE READ OR SAFELY COPIED"), "the title says the save is left untouched")
+	assert_eq(FileAccess.get_file_as_string(SaveService.base_dir + "save_v3.json"), "{ unreadable", "the main untouched")
 
 
 ## FLOW-011: a replay of the finished walk — its completion, a RETRY, CONTINUE and a choice applied

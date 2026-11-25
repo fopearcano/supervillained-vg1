@@ -18,6 +18,12 @@ func _write(name: String, text: String) -> void:
 	f.close()
 
 
+func _write_bytes(name: String, bytes: PackedByteArray) -> void:
+	var f := FileAccess.open(_dir + name, FileAccess.WRITE)
+	f.store_buffer(bytes)
+	f.close()
+
+
 func _exists(name: String) -> bool:
 	return FileAccess.file_exists(_dir + name)
 
@@ -135,15 +141,81 @@ func test_SAV_020_crash_at_every_write_stage_recovers_newest_valid() -> void:
 		score += 10
 
 
-func test_P_SAV_021_corrupt_save_recovers_from_backup() -> void:
+## SAV-021 (with test_shell's notice case): a corrupt main with a valid backup is restored with no
+## data loss. The invalid main's exact bytes are copied and the copy read back BEFORE the main is
+## removed or replaced; an earlier, different copy is never overwritten. When the main cannot be
+## read, or its copy cannot be written or verified, the main stays byte-for-byte untouched, the
+## backup is shown read-only, every write is refused for the session and a notice is raised; the
+## next healthy launch preserves and recovers as usual.
+func test_SAV_021_invalid_main_copied_and_verified_before_any_repair() -> void:
 	_svc.save_record("level1", {"score": 7, "stars": 1, "time": 9})
 	_svc.save_record("level1", {"score": 8, "stars": 1, "time": 9})
-	_write("save_v3.json", "{ this is not json")
+	var bad := PackedByteArray([0x7b, 0x20, 0xc3, 0xa9, 0x00, 0x6e, 0x6f, 0x74, 0x0d, 0x0a, 0x20])
+	_write_bytes("save_v3.json", bad)
+	var ops := FaultyFileOps.new()
+	_svc.file_ops = ops
 	_svc.load_from_disk()
-	assert_eq(_svc.load_status, "recovered_from_backup", "status (user-visible notice is M4)")
+	_svc.file_ops = SaveFileOps.new()
+	assert_eq([_svc.load_status, _svc.take_notice()], ["recovered_from_backup", "recovered_backup"], "restored, with a notice")
 	assert_eq(_svc.get_record("level1")["score"], 7, "backup content restored")
-	assert_eq(FileAccess.get_file_as_string(_dir + "save_v3.corrupt.json"), "{ this is not json", "corrupt payload preserved")
+	assert_eq(FileAccess.get_file_as_bytes(_dir + "save_v3.corrupt.json"), bad, "the exact bytes kept")
 	assert_eq(_score_in("save_v3.json"), 7, "recovered save promoted to main")
+	# Order: the copy is written and read back before anything removes or replaces the main.
+	var copy_write := ops.calls.find(["write_bytes", _dir + "save_v3.corrupt.json"])
+	var copy_read := ops.calls.find(["read_bytes", _dir + "save_v3.corrupt.json"])
+	var first_touch := -1
+	for k in ops.calls.size():
+		var c: Array = ops.calls[k]
+		if (c[0] == "remove" and String(c[1]).ends_with("save_v3.json")) or (c[0] == "rename" and (String(c[1]).ends_with("save_v3.json") or String(c[2]).ends_with("save_v3.json"))):
+			first_touch = k
+			break
+	assert_true(copy_write >= 0 and copy_read > copy_write and first_touch > copy_read, "copy %d, read back %d, then the main %d" % [copy_write, copy_read, first_touch])
+	# A second, different invalid main: the first copy stays, the new one gets a hash suffix.
+	_write("save_v3.json", "{ another torn save")
+	_svc.load_from_disk()
+	var copies := Array(DirAccess.get_files_at(_dir)).filter(func(f: String) -> bool: return f.begins_with("save_v3.corrupt."))
+	assert_eq(copies.size(), 2, "two copies (%s)" % [copies])
+	assert_eq(FileAccess.get_file_as_bytes(_dir + "save_v3.corrupt.json"), bad, "the first copy untouched")
+	assert_eq(FileAccess.get_file_as_string(_svc.corrupt_copy), "{ another torn save", "the second copy verified")
+	# Failures: the main cannot be read; the copy cannot be written; the copy reads back wrong.
+	for fault: Dictionary in [{"fail": {"read_bytes": "save_v3.json"}, "why": "main_unreadable"},
+			{"fail": {"write_bytes": "corrupt"}, "why": "corrupt_copy_write_failed"},
+			{"short": "corrupt", "why": "corrupt_copy_verify_failed"},
+			{"fail": {"read_bytes": "corrupt"}, "why": "corrupt_copy_verify_failed"}]:
+		_clear()
+		_write("save_v3.bak", _valid_save(41, 1000))
+		_write("save_v3.json", "{ torn main " + String(fault["why"]))
+		var before := _files()
+		var f := FaultyFileOps.new()
+		f.fail = fault.get("fail", {})
+		f.short_read = fault.get("short", "")
+		_svc.file_ops = f
+		_svc.load_from_disk()
+		var what := String(fault["why"])
+		assert_eq([_svc.load_status, _svc.write_blocked, _svc.block_reason, _svc.last_error], ["unpreserved", true, "unpreserved", what], what + ": read-only session")
+		assert_eq(_svc.take_notice(), "save_unpreserved", what + ": notice")
+		assert_eq(_svc.get_record("level1")["score"], 41, what + ": the valid backup shown read-only")
+		var shown: Dictionary = _svc.data.duplicate(true)
+		var r: Dictionary = _svc.save_record("level1", {"score": 99, "stars": 0, "time": 1})
+		var rs: Dictionary = _svc.set_settings({"lives": 7})
+		assert_eq([r["saved"], rs["saved"], _svc.last_error], [false, false, "write_blocked_unpreserved_save"], what + ": every write refused")
+		assert_eq(_svc.data, shown, what + ": memory unchanged")
+		_svc.file_ops = SaveFileOps.new()
+		assert_eq(_files(), before, what + ": every file byte-for-byte untouched, no partial copy")
+		# The next healthy launch preserves the main and recovers.
+		_svc.load_from_disk()
+		assert_eq([_svc.load_status, _svc.write_blocked, FileAccess.get_file_as_string(_dir + "save_v3.corrupt.json")], ["recovered_from_backup", false, "{ torn main " + what], what + ": recovered next time")
+	# An unreadable main with nothing else: defaults, read-only, the main untouched.
+	_clear()
+	_write("save_v3.json", "{ only this")
+	var f2 := FaultyFileOps.new()
+	f2.fail = {"read_bytes": "save_v3.json"}
+	_svc.file_ops = f2
+	_svc.load_from_disk()
+	_svc.file_ops = SaveFileOps.new()
+	assert_eq([_svc.load_status, _svc.data, FileAccess.get_file_as_string(_dir + "save_v3.json")], ["unpreserved", ARCH_DEFAULT, "{ only this"], "defaults read-only, main untouched")
+	_clear()
+	_svc.load_from_disk()
 
 
 func test_SLICE_corrupt_without_backup_uses_defaults_then_saves() -> void:
@@ -165,6 +237,8 @@ func test_SLICE_older_format_is_not_mistaken_for_future() -> void:
 
 ## CRLF line ends, non-ASCII characters and trailing spaces must all survive unchanged.
 const FUTURE_BYTES := "{\"format_version\": 4,\r\n \"something\": \"nuovo \u2013 \u0259\"}\r\n  "
+## A fractional future version: greater than 3, so future (never normalized as format 3).
+const FUTURE_FRACTION := "{\"format_version\": 3.5, \"settings\": {\"lives\": 9}, \"records\": {}}\r\n"
 
 
 func _valid_save(score: int, written: int) -> String:
@@ -188,7 +262,14 @@ func _clear() -> void:
 		DirAccess.remove_absolute(_dir + d)
 
 
+## SAV-022: a future format (4, and the fractional 3.5) in main, temp or backup is preserved byte for
+## byte and blocks every write; the session is genuinely read-only (memory unchanged too).
 func test_SAV_022_future_format_in_main_temp_or_backup_is_preserved_and_blocks_writes() -> void:
+	for payload: String in [FUTURE_BYTES, FUTURE_FRACTION]:
+		_future_case(payload)
+
+
+func _future_case(payload: String) -> void:
 	var copies := {"save_v3.json": "save_v3.future.json", "save_v3.tmp": "save_v3.tmp.future.json", "save_v3.bak": "save_v3.bak.future.json"}
 	for loc: String in copies:
 		_clear()
@@ -197,7 +278,7 @@ func test_SAV_022_future_format_in_main_temp_or_backup_is_preserved_and_blocks_w
 			_write("save_v3.json", _valid_save(5, 2000))
 		if loc != "save_v3.bak":
 			_write("save_v3.bak", _valid_save(4, 1000))
-		_write(loc, FUTURE_BYTES)
+		_write(loc, payload)
 		var before := _files()
 		_svc.load_from_disk()
 		assert_eq([_svc.load_status, _svc.last_error, _svc.write_blocked], ["future_version", "future_format_version", true], loc + ": reported and blocked")
@@ -210,22 +291,174 @@ func test_SAV_022_future_format_in_main_temp_or_backup_is_preserved_and_blocks_w
 		var failures := []
 		var cb := func(reason: String) -> void: failures.append(reason)
 		_svc.save_failed.connect(cb)
+		var shown: Dictionary = _svc.data.duplicate(true)
 		var r: Dictionary = _svc.save_record("level1", {"score": 99, "stars": 0, "time": 1})
 		var st: Dictionary = _svc.get_settings()
 		st["lives"] = 5
 		var rs: Dictionary = _svc.set_settings(st)
 		_svc.save_failed.disconnect(cb)
 		assert_eq([r["saved"], rs["saved"]], [false, false], loc + ": nothing saved")
+		assert_eq(_svc.data, shown, loc + ": read-only in memory too (no record, no setting, same written_at)")
 		assert_eq(failures, ["write_blocked_future_version", "write_blocked_future_version"], loc + ": each refused write reported")
 		var after := _files()
 		for f: String in before:
 			assert_eq(after.get(f), before[f], "%s: %s byte-for-byte untouched" % [loc, f])
-		assert_eq(after.get(copies[loc]), FUTURE_BYTES.to_utf8_buffer(), loc + ": byte-for-byte copy " + copies[loc])
+		assert_eq(after.get(copies[loc]), payload.to_utf8_buffer(), loc + ": byte-for-byte copy " + copies[loc])
 		assert_eq(after.keys().size(), before.keys().size() + 1, loc + ": only the copy was added")
 		_svc.load_from_disk()
 		assert_eq([_svc.load_status, _files()], ["future_version", after], loc + ": next launch still blocked, nothing rewritten")
 	_clear()
 	_svc.load_from_disk()
+
+
+func _container(fields: Dictionary) -> String:
+	var c: Dictionary = _svc.default_container()
+	c["written_at_unix_ms"] = 5000
+	c["records"] = {"level1": {"score": 55, "stars": 1.0, "time": 2.0}}
+	c.merge(fields, true)
+	return JSON.stringify(c)
+
+
+## Exact versions: the container is format 3 only at exactly 3 (3.0 included); 3.5, 3.0001, 4 are
+## future; 2.5, 2.999, 2 are unsupported; a nested campaign is accepted only at exactly 2, and any
+## other campaign version makes the container invalid (never normalized, never reset to defaults).
+## On disk: a below-3 or bad-campaign main is preserved exactly and the backup recovered; a temp or
+## backup with such a version is never used.
+func test_SLICE_exact_versions_fractional_and_nested_never_normalized() -> void:
+	var base: Dictionary = _svc.default_container()
+	var cases := [[3, "ok"], [3.0, "ok"], [3.5, "future_format_version"], [3.0001, "future_format_version"], [4, "future_format_version"],
+		[2.5, "unsupported_format_version"], [2.999, "unsupported_format_version"], [2, "unsupported_format_version"], [0, "unsupported_format_version"],
+		["3", "missing_format_version"], [true, "missing_format_version"]]
+	for pair: Array in cases:
+		var c := base.duplicate(true)
+		c["format_version"] = pair[0]
+		var v := SaveService.validate_container(c)
+		assert_eq("ok" if v["ok"] else String(v["error"]), pair[1], "format_version %s (%s)" % [pair[0], type_string(typeof(pair[0]))])
+	for cv: Variant in [2.5, 2.1, 1.999, 2.0000001, 3, 1, "2"]:
+		var c := base.duplicate(true)
+		c["campaign"]["version"] = cv
+		var v := SaveService.validate_container(c)
+		assert_eq([v["ok"], v.get("error")], [false, "unsupported_campaign_version"], "campaign version %s rejects the container" % [cv])
+		assert_false(CampaignSchema.normalize(c["campaign"], SaveService.CATALOG.ids())["ok"], "campaign version %s rejected" % [cv])
+	var c2 := base.duplicate(true)
+	c2["campaign"]["version"] = 2.0
+	assert_true(SaveService.validate_container(c2)["ok"], "campaign 2.0 accepted")
+	# On disk: a main below 3 or with a fractional campaign version is kept exactly; the backup wins.
+	for main_text: String in [_container({"format_version": 2.5}), _container({"campaign": {"version": 2.5, "completed": ["1.0"], "coins": 77}}),
+			_container({"campaign": {"version": 2.1}})]:
+		_clear()
+		_write("save_v3.bak", _valid_save(4, 1000))
+		_write("save_v3.json", main_text)
+		_svc.load_from_disk()
+		assert_eq([_svc.load_status, _svc.write_blocked, _svc.get_record("level1")["score"]], ["recovered_from_backup", false, 4], "invalid version: backup recovered (%s)" % main_text.substr(0, 40))
+		assert_eq(FileAccess.get_file_as_string(_dir + "save_v3.corrupt.json"), main_text, "kept exactly, not normalized")
+		assert_eq(_score_in("save_v3.json"), 4, "the backup promoted")
+	# A newer temp or a backup with such a version is never used.
+	_clear()
+	_write("save_v3.json", _valid_save(6, 1000))
+	_write("save_v3.tmp", _container({"written_at_unix_ms": 9000, "campaign": {"version": 2.5}}))
+	_svc.load_from_disk()
+	assert_eq([_svc.load_status, _svc.get_record("level1")["score"], _exists("save_v3.tmp")], ["loaded", 6, false], "a fractional-campaign temp is not recovered")
+	_clear()
+	_write("save_v3.json", "{ torn")
+	_write("save_v3.bak", _container({"format_version": 2.5}))
+	_svc.load_from_disk()
+	assert_eq([_svc.load_status, _svc.data], ["corrupt", ARCH_DEFAULT], "a below-3 backup is not recovered: defaults")
+	_clear()
+	_svc.load_from_disk()
+
+
+## Committed bytes: the main, or the backup while an interrupted write left no main.
+func _committed() -> PackedByteArray:
+	return FileAccess.get_file_as_bytes(_dir + ("save_v3.json" if _exists("save_v3.json") else "save_v3.bak"))
+
+
+const WRITE_STAGES := [
+	{"fail": {"write_bytes": "save_v3.tmp"}, "why": "open_temp_failed"},
+	{"torn": "save_v3.tmp", "why": "temp_validation_failed"},
+	{"fail": {"read_bytes": "save_v3.tmp"}, "why": "temp_validation_failed"},
+	{"fail": {"remove": "save_v3.bak"}, "why": "backup_remove_failed"},
+	{"fail": {"rename": "save_v3.bak"}, "why": "backup_rotation_failed"},
+	{"fail": {"rename": "save_v3.tmp"}, "why": "rename_failed"},
+	{"hook": "temp_partial", "why": "simulated_crash_during_temp_write"},
+	{"hook": "temp_written", "why": "simulated_crash_after_temp_written"},
+	{"hook": "temp_validated", "why": "simulated_crash_after_temp_validated"},
+	{"hook": "backup_rotated", "why": "simulated_crash_after_backup_rotated"},
+	{"blocked": true, "why": "write_blocked_future_version"},
+]
+
+
+## Settings, a record and the campaign are each one transaction: at every injected write stage (and
+## in a blocked session) the call reports failure, the whole in-memory container (written_at
+## included) is exactly what it was and the committed file keeps its exact bytes; the next launch
+## loads either the previous state or, only from a complete validated temp, the whole candidate.
+## A retry in the same session then succeeds once.
+func test_SLICE_domain_writes_are_transactions_at_every_stage() -> void:
+	var ops := {
+		"settings": func() -> bool:
+			var st: Dictionary = _svc.get_settings()
+			st["lives"] = 2 + (int(st["lives"]) - 1) % 8
+			return _svc.set_settings(st)["saved"],
+		"record": func() -> bool:
+			var old: Variant = _svc.get_record("level1")
+			return _svc.save_record("level1", {"score": (int(old["score"]) if old != null else 0) + 1, "stars": 1.0, "time": 50.0})["saved"],
+		"campaign": func() -> bool:
+			var camp: Dictionary = _svc.get_campaign()
+			camp["coins"] = int(camp["coins"]) + 1
+			return _svc.save_campaign(camp, 1800000000000),
+	}
+	for op: String in ops:
+		for stage: Dictionary in WRITE_STAGES:
+			var what := "%s/%s" % [op, stage["why"]]
+			_clear()
+			_svc.load_from_disk()
+			_svc.save_record("level1", {"score": 10, "stars": 1.0, "time": 60.0})
+			_svc.write_to_disk()
+			assert_true(_exists("save_v3.json") and _exists("save_v3.bak"), what + ": main and backup to start from")
+			var f := FaultyFileOps.new()
+			f.fail = stage.get("fail", {})
+			f.torn_write = stage.get("torn", "")
+			_svc.file_ops = f
+			_svc.fault_after = stage.get("hook", "")
+			_svc.write_blocked = stage.get("blocked", false)
+			var before: Dictionary = _svc.data.duplicate(true)
+			var committed := _committed()
+			var saved: bool = (ops[op] as Callable).call()
+			var reason: String = _svc.last_error
+			_svc.file_ops = SaveFileOps.new()
+			_svc.fault_after = ""
+			_svc.write_blocked = false
+			assert_eq([saved, reason], [false, stage["why"]], what + ": reported")
+			assert_eq(_svc.data, before, what + ": the whole container in memory unchanged")
+			assert_eq(_committed(), committed, what + ": the committed file's bytes unchanged")
+			var parsed: Variant = JSON.parse_string(_committed().get_string_from_utf8())
+			assert_eq(SaveService.validate_container(parsed)["data"], before, what + ": memory equals the committed save")
+			# Retry in the same session: succeeds once.
+			var attempt: Dictionary = _svc.data.duplicate(true)
+			assert_true((ops[op] as Callable).call(), what + ": the retry saves")
+			var after_retry: Dictionary = _svc.data.duplicate(true)
+			_svc.load_from_disk()
+			assert_eq(_svc.data, after_retry, what + ": the retry is what loads")
+			assert_true(after_retry != attempt, what + ": the retry changed the state once")
+	_clear()
+	_svc.load_from_disk()
+
+
+## Crash recovery stays: a complete, validated temp from a failed call is recovered whole by the
+## next launch (never a mix with the previous state).
+func test_SLICE_failed_call_leaves_a_recoverable_whole_temp() -> void:
+	_svc.save_record("level1", {"score": 10, "stars": 1.0, "time": 60.0})
+	_svc.write_to_disk()
+	var f := FaultyFileOps.new()
+	f.fail = {"rename": "save_v3.tmp"}
+	_svc.file_ops = f
+	var st: Dictionary = _svc.get_settings()
+	st["lives"] = 6
+	assert_false(_svc.set_settings(st)["saved"], "reported failed")
+	_svc.file_ops = SaveFileOps.new()
+	assert_eq(_svc.get_settings()["lives"], 2, "not applied in this session")
+	_svc.load_from_disk()
+	assert_eq([_svc.load_status, _svc.get_settings()["lives"], _svc.get_record("level1")["score"]], ["recovered_from_temp", 6, 10], "the whole candidate recovered next launch")
 
 
 func test_SLICE_temp_recovery_keeps_a_valid_older_main_as_backup() -> void:

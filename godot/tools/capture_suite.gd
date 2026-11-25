@@ -233,6 +233,11 @@ func _shell() -> void:
 		await _frames(80)
 		await _shot("32_glossary_w%d" % w)
 		_main.call("clear_overlays")
+		# The save-error card as a failed CONTINUE shows it (TRY AGAIN, TITLE, BACK).
+		_main.call("show_save_error", "continue", "rename_failed", func() -> void: pass, [{"label": "TITLE", "color": Color("#ff6bd6"), "action": func() -> void: pass}])
+		await _frames(30)
+		await _shot("36_save_error_w%d" % w)
+		_main.call("clear_overlays")
 		if w == 216:
 			_main.call("open_options")
 			await _frames(20)

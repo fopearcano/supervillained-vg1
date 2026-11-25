@@ -5,6 +5,9 @@ extends Node
 ##   LEVELS (REPLAY), MERAVIGLIA BOOK) | GLOSSARY | QUIT (Goodbye where an app cannot close);
 ##   1.0 = the Green Zone walk; its CONTINUE hands the walk to the campaign (AppState.complete_walk)
 ##   and leads to 1.1, which this build shows honestly as not built yet (the story is M5).
+## Every save the flow depends on is checked: a failed or refused NEW GAME stays on the title, a
+## failed CONTINUE stays on the result card, a failed notice save keeps the notice; each shows the
+## save-error card (what failed, that nothing changed, what to do) and never moves on.
 ## Scenes and overlays are instanced into GameViewport; nothing renders outside it except the
 ## black letterbox.
 
@@ -37,6 +40,9 @@ var quit_app: Callable = func() -> void: get_tree().quit()
 ## (`-- --skip=game`: RETRY/TITLE on its result); "walk" = the walk as the story's 1.0, as Main
 ## started before the title existed (tests and tools set it before adding Main to the tree).
 var start_target := ""
+## The scene whose walk was handed over to the campaign (its instance id; 0 = none), so a repeated
+## CONTINUE on the same result card never hands it over twice.
+var _handed_over := 0
 
 
 func _ready() -> void:
@@ -44,6 +50,7 @@ func _ready() -> void:
 	transition_host.add_child(transition)
 	viewport_controller.viewport_changed.connect(_on_viewport_changed)
 	_on_viewport_changed(viewport_controller.logical_size, viewport_controller.scale)
+	AppState.save_error.connect(func(context: String, reason: String) -> void: show_save_error(context, reason))
 	var target := start_target if start_target != "" else _arg_start()
 	match target:
 		"game":
@@ -148,6 +155,7 @@ func _show_save_notice() -> void:
 		"recovered_temp": key = "save_recovered_temp"
 		"corrupt_reset": key = "save_corrupt_reset"
 		"future_blocked": key = "save_future_blocked"
+		"save_unpreserved": key = "save_unpreserved"
 	var li: Dictionary = SaveService.legacy_import_state()
 	if key == "" and li["status"] == "retryable_error":
 		key = "legacy_retry"
@@ -173,15 +181,29 @@ func new_game() -> void:
 	push_overlay(c)
 
 
+## The new campaign is saved first; only then the walk starts. A failed or refused save stays on
+## the title with the save-error card (the saved story is unchanged). Ignored while a transition
+## runs (its pending scene change is never run early or replaced).
 func _begin_new_game() -> void:
-	AppState.new_game()
+	if transition.running:
+		return
+	if not AppState.new_game():
+		show_save_error("new_game", SaveService.last_error, _begin_new_game)
+		return
 	_glitch(func() -> void: _play_scene.call_deferred("1.0"))
 
 
-## CONTINUE (source StoryFlow.continueGame): the one-time migration notice first; then the next
+## CONTINUE (source StoryFlow.continueGame): the one-time migration notice first (shown only once
+## its clearing is saved; a failed save keeps it and shows the save-error card); then the next
 ## unfinished scene, or the level list when the story is finished. With no saved story it starts it.
 func continue_game() -> void:
-	if AppState.take_story_notice():
+	if transition.running:
+		return
+	var n := AppState.take_story_notice()
+	if not n["saved"]:
+		show_save_error("notice", String(n["error"]), continue_game)
+		return
+	if n["notice"]:
 		var m := MessageOverlay.new().setup(TEXT.get_text("notice_title"), [[TEXT.get_text("notice_body"), PixelText.WHITE], [TEXT.get_text("notice_foot"), Color("#9aa4c0")]], [], Callable(), 0.96)
 		m.dismiss = func() -> void:
 			pop_overlay(m)
@@ -279,6 +301,8 @@ func open_chapter(number: int) -> void:
 
 
 func play_from_list(id: String) -> void:
+	if transition.running:
+		return
 	var s := CampaignFlow.start(SaveService.get_campaign(), SaveService.CATALOG, id)
 	if s["mode"] == "locked":
 		AudioService.play(&"empty")
@@ -286,6 +310,36 @@ func play_from_list(id: String) -> void:
 	if s["mode"] == "replay":
 		AppState.begin_replay(id)
 	_glitch(func() -> void: _play_scene.call_deferred(id))
+
+
+## The save-error card: what could not be saved (`context`: "new_game", "continue", "notice",
+## "settings"), that nothing changed, and what to do. A failed write offers TRY AGAIN (`retry`); a
+## read-only session (a newer save format, or a save that could not be safely copied) says why
+## nothing can be saved instead. `extra` buttons ({"label", "color", "action"}) close the card
+## first; BACK closes it and returns to the screen below.
+func show_save_error(context: String, reason: String, retry: Callable = Callable(), extra: Array = []) -> MessageOverlay:
+	var why := "save_error_retry"
+	if reason.begins_with("write_blocked_future"):
+		why = "save_error_future"
+	elif reason.begins_with("write_blocked_unpreserved"):
+		why = "save_error_unpreserved"
+	var m := MessageOverlay.new()
+	var buttons: Array = []
+	if why == "save_error_retry" and retry.is_valid():
+		buttons.append({"label": "TRY AGAIN", "color": PixelText.GREEN, "action": func() -> void:
+			pop_overlay(m)
+			retry.call()})
+	for b: Dictionary in extra:
+		var act: Callable = b["action"]
+		buttons.append({"label": b["label"], "color": b["color"], "action": func() -> void:
+			pop_overlay(m)
+			act.call()})
+	buttons.append({"label": "BACK", "color": PixelText.WHITE, "action": func() -> void: pop_overlay(m)})
+	m.setup(TEXT.get_text("save_error_title"), [[TEXT.get_text("save_error_" + context), PixelText.YELLOW], [TEXT.get_text(why), PixelText.WHITE]], buttons, Callable(), 0.92)
+	m.heading_color = PixelText.RED
+	m.set_meta(&"save_error", {"context": context, "reason": reason})
+	push_overlay(m)
+	return m
 
 
 ## QUIT (source Flow.quit): the app closes where it can; otherwise the Goodbye card.
@@ -327,11 +381,18 @@ func quit_to_title() -> void:
 
 
 ## CONTINUE on the level end (source Flow.levelComplete next → StoryFlow.addWalk → finishSub):
-## outside a replay the walk's coins and time go to the campaign and 1.0 is completed (saved);
-## then the next scene. A replay returns to its level's list and saves nothing.
+## outside a replay the walk's coins and time go to the campaign and 1.0 is completed, in one
+## atomic save; then the next scene. A failed or refused save stays on the result card with the
+## save-error card (TRY AGAIN, TITLE, BACK): nothing was added, nothing moves on, and a retry
+## counts the walk once. A repeated CONTINUE on the same card is ignored. A replay returns to its
+## level's list and saves nothing.
 func _on_campaign_handoff(data: Dictionary) -> void:
-	campaign.receive(data)
+	var scene_id := current_scene.get_instance_id() if current_scene else 0
+	if scene_id != 0 and scene_id == _handed_over:
+		return
 	if AppState.replaying:
+		_handed_over = scene_id
+		campaign.receive(data)
 		var id := AppState.replay_id
 		AppState.end_replay()
 		var f := SaveService.CATALOG.find(id)
@@ -341,7 +402,13 @@ func _on_campaign_handoff(data: Dictionary) -> void:
 				open_levels()
 				open_chapter(int(f["chapter"]["number"]) if not f.is_empty() else 1)).call_deferred())
 		return
-	AppState.complete_walk(int(data["coins"]), float(data["time"]), String(data["from"]))
+	var r := AppState.complete_walk(int(data["coins"]), float(data["time"]), String(data["from"]))
+	if not r["saved"]:
+		show_save_error("continue", String(r["error"]), func() -> void: _on_campaign_handoff(data),
+			[{"label": "TITLE", "color": PixelText.PINK, "action": quit_to_title}])
+		return
+	_handed_over = scene_id
+	campaign.receive(data)
 	var target := AppState.continue_target()
 	transition.play(func() -> void:
 		if target.is_empty():

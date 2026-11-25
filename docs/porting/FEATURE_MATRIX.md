@@ -12,7 +12,7 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 
 Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
-## Godot implementation status — M1, M2, M3 Partial (manual checks owner-deferred), M4 Partial (save system and product shell, pending review)
+## Godot implementation status — M1, M2, M3 Partial (manual checks owner-deferred; M3 automated IDs accepted), M4 Partial (save system and product shell, pending review)
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. The M1 Android
@@ -32,8 +32,9 @@ release-approved**; the 98 accepted IDs stay valid; the review station is not ex
 package is bound to a content fingerprint that covers files M3 changed
 (`autoload/audio_service.gd`, `scenes/green_zone/green_zone_scene.gd`), so it must be regenerated
 before any later owner review.
-**M3 (complete Green Zone 1.0 and core arcade flow): implemented as a playable prototype, pending
-architect review; M3 stays Partial** — its manual runs (MAN-GZ: healthy, polluted and game-over runs;
+**M3 (complete Green Zone 1.0 and core arcade flow): implemented as a playable prototype; its 21
+automated IDs (correction report 26) are accepted by the architect (recorded in correction report
+28); M3 stays Partial** — its manual runs (MAN-GZ: healthy, polluted and game-over runs;
 portrait phone checks with both hands; background/resume during warning, attack and result) are not
 executed, UI-001–006 and FLOW-005 are partial, and the story after 1.0 and M4 persistence are out of
 scope (CONTINUE hands `{result, time, coins}` to a stub receiver). Evidence: M3 report 25 and
@@ -52,6 +53,16 @@ build" card (the story is M5). M4's manual checks (every option across a restart
 import fixtures through a debug UI, a force-close during a save, Android Back) are not executed.
 Evidence: M4 report 27 in the log, `docs/porting/captures/m4_shell/` (12 PNGs at logical widths 192,
 216 and 270).
+**Correction report 28 (M4 persistence safety)**: exact versions (format 3 only at exactly 3; 3.5 is
+a future format; a campaign only at exactly 2, any other version makes the container invalid); every
+domain write (settings, records, the campaign, the import) is one transaction that reaches memory
+only after a successful write, so a failed or refused save changes nothing and a future-format
+session is read-only; the walk's handoff is one atomic, idempotent save and Main keeps a failed NEW
+GAME on the title and a failed CONTINUE on the result card with a save-error card; the legacy import
+converts into an isolated candidate and never overwrites an unpreserved raw backup; an invalid or
+unreadable main is copied and verified before any repair, or left untouched with a read-only
+session; the story notice is taken only after its saved clear; a covered title takes no touch.
+Evidence: correction report 28, three save-error captures in `docs/porting/captures/m4_shell/`.
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title captures: `…_49` and `…_98` of commit `16b5619`; `…_00`
 regenerated as rendered frame 0 in correction report 22 after the `title_capture.gd` fix; the earlier
@@ -70,11 +81,13 @@ rendered clauses under the acceptance conditions the architect set, below), or o
 architect-accepted command evidence (AST-019 and CORE-001, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; last architect-accepted M1/M2 baseline verified on the Windows console build (`godot/` tree `21ce8a2`, 139 passed, correction report 24); the current correction tree `0684cc9` passes the same cases (161 passed, 0 failed in total, correction report 26); Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed; not rerun since):**
+**Acceptance IDs satisfied by a full suite case (113, counting split-ID parts), Godot 4.7.2; last architect-accepted M1/M2 baseline verified on the Windows console build (`godot/` tree `21ce8a2`, 139 passed, correction report 24); the 21 M3 IDs accepted on correction report 26's tree `0684cc9` (161 passed); the current correction-28 tree `69eba9b` passes the same cases (212 passed, 0 failed in total, correction report 28); Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed; not rerun since):**
 CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
-DOG-001–004, DOG-005a, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
-FLOW-001, FLOW-002; SAV-001–004, SAV-013–020, SAV-022 (main, temp and backup).
+DOG-001–004, DOG-005a, DOG-005b, DOG-006, DOG-007; GZ-001, GZ-008, GZ-009, GZ-016, GZ-017, GZ-019, GZ-020, GZ-024, GZ-031, GZ-032,
+GZ-034–036, GZ-037, GZ-038–041, GZ-042–045; AST-001–018, AST-020; AUD-001–008;
+FLOW-001–004; AUTO-001; SAV-001–004, SAV-013–020, SAV-022 (main, temp and backup; the fractional
+future version 3.5 too since correction report 28).
 MAP-007 is one aggregator case (rows/topology, canonical route length, treat placements).
 Every automated M1 ID (ISO-001–003, RNG-001–003, AST-001–020, AUD-001–008, SAV-013–017) is
 satisfied, AST-019 by command evidence (counted once, below). **AST-007 / finding F-15 accepted by the architect**
@@ -108,7 +121,10 @@ RESTART drawn with the identity canvas transform, fixed by `CameraRig.snap()` pu
 view with `force_update_scroll()`) stays separate evidence: the pre-fix mutation fails the four real
 Main RESTART records (its rerun in correction report 19 failed only those). **Satisfied on
 architect-accepted command evidence (2):** AST-019 and CORE-001 (below).
-**Total satisfied: 98 (92 full suite + 4 combined + 2 command).**
+**Total satisfied: 119 (113 full suite + 4 combined + 2 command).** The 21 M3 IDs of correction
+report 26 (GZ-001, GZ-016, GZ-017, GZ-031, GZ-032, GZ-034–036, GZ-037, GZ-038–041, GZ-042–045,
+DOG-005b, FLOW-003, FLOW-004, AUTO-001) were accepted by the architect after that report (recorded
+in correction report 28); the earlier 98 are unchanged.
 
 **Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
 ARCH-001a (M2, satisfied on combined evidence) + ARCH-001b (M5, production story scene); COLL-005 = COLL-005a (M2,
@@ -116,7 +132,7 @@ satisfied) + COLL-005b (M5–M7: scripted-position objectives; `test_P_COLL_005b
 M5/M6, the full aggregate in M7). COLL-005 covers static and scripted-position reachability only;
 dynamic goals (moving or runtime-placed targets) are owned by WALK/NPC/MINI and each scene's STY
 real-input completion. DOG-005 = DOG-005a (M2,
-satisfied) + DOG-005b (M3, forced fetch; claimed in M3 report 25, pending review); DOG-008 = DOG-008a (M2, satisfied on combined evidence) + DOG-008b (M5,
+satisfied) + DOG-005b (M3, forced fetch; accepted) — **satisfied**; DOG-008 = DOG-008a (M2, satisfied on combined evidence) + DOG-008b (M5,
 stage change).
 
 **Automated M2 acceptance IDs (MILESTONES.md M2):** all satisfied; ARCH-001a, VIEW-004, CAM-004
@@ -124,32 +140,40 @@ and DOG-008a on combined evidence. **Every automated M1 and M2 acceptance ID is 
 M2 stay **Partial** because their manual checks are open: the M1 checks and the M2 desktop and touch
 play checks (below).
 
-**Claimed by full suite cases in M3 report 25 (pending architect review; not counted above):**
+**M3 IDs accepted by the architect (counted above):**
 GZ-001, GZ-016, GZ-017, GZ-031, GZ-032, GZ-034–036, GZ-037, GZ-038–041, GZ-042–045, DOG-005b,
-FLOW-003, FLOW-004, AUTO-001 — first on `godot/` tree `b93d332` (M3 report 25, 156 passed); the GZ-032 and
+FLOW-003, FLOW-004, AUTO-001 — first claimed on `godot/` tree `b93d332` (M3 report 25, 156 passed); the GZ-032 and
 GZ-042–045 cases were strengthened in correction report 26 (input-driven bark, in-cone and
 out-of-cone critters, travel delay, ordered hits, exact bump cost and cooldown, the flee award once);
-current correction tree `0684cc95bfebbaa1016fdeddf8f755696e90b340`, 161 passed, 0 failed on a fresh Windows clone. The threat
+accepted on correction report 26's tree `0684cc95bfebbaa1016fdeddf8f755696e90b340` (161 passed, 0 failed on a fresh Windows clone). The threat
 cases compare with fixtures executed from the audited `src/systems/threats.ts`, `threatLogic.ts` and
 `src/entities/critters.ts` (the source's unseeded `Math.random` in the flee steering replaced by the
 port's seeded critter RNG during extraction, D-16).
 
-**Claimed by full suite cases in M4 report 27 (pending architect review; not counted above):**
+**Claimed by full suite cases in M4 report 27 and correction report 28 (pending architect review; not counted above; 24):**
 SAV-005, SAV-006, SAV-007, SAV-008, SAV-011, SAV-012, SAV-021; UI-007, UI-008, UI-010, UI-011,
-UI-012–014, UI-015–021, UI-022; FLOW-006, FLOW-010, FLOW-011 — `godot/` tree `477f012b1f3861c6ea4273dd532acf5adce34997`, 197 passed, 0 failed on a fresh
-Windows clone. The Couch summary, the effect rules, the catalog, the TITLE/COUCH/GLOSSARY constants
-and the v1 migration compare with fixtures executed from the audited TypeScript.
+UI-012, UI-013, UI-015–021, UI-022; FLOW-006, FLOW-010, FLOW-011 — `godot/` tree `69eba9b75fbbb08002ef92cf02e1a9a91b9b3964`, 212 passed, 0 failed on a fresh
+Windows clone (correction report 28; first claimed on `477f012`, 197 passed, M4 report 27). SAV-021
+rests on the new preservation cases (the invalid main copied and verified before any repair; main
+read, copy write and copy read-back failures leave it untouched in a read-only session) and the
+title notices; UI-007 on two named cases that drive NEW GAME and CONTINUE through the title's rows
+(confirmation, preselection, the notice, every destination). The Couch summary, the effect rules,
+the catalog, the TITLE/COUCH/GLOSSARY constants and the v1 migration compare with fixtures executed
+from the audited TypeScript.
 **M4 partial cases (later milestones complete them):** SAV-009 and SAV-010 (the story's per-effect
 saves and play time, M5); MIG-005 (the M4 fixture/simulated half: raw payload, SHA-256, timestamp,
-read-back, failures; M9 proves it on a real WebView store); MIG-006–010 (converter, status and
-notice portions; real acquisition and the missing-store proof are M9; the notice copy is not
-owner-approved); UI-009 (film, scratches and the lettering glitch simplified, M8); FLOW-007–009 and
-FLOW-012 (the story runner, M5); FLOW-005 (the walk's handoff now saves; the 1.1 scene is M5).
+read-back, failures, an existing raw backup preserved or left alone; M9 proves it on a real WebView
+store); MIG-006–010 (converter, status, transactional commit and notice portions; real acquisition
+and the missing-store proof are M9; the notice copy is not owner-approved); UI-009 (film, scratches
+and the lettering glitch simplified, M8); UI-014 (moved to partial in correction report 28: the
+saved date uses the device's current UTC offset for every date, so a daylight-saving or historical
+time-zone change can make it differ from the source's local time); FLOW-007–009 and FLOW-012 (the
+story runner, M5); FLOW-005 (the walk's handoff saves atomically; the 1.1 scene is M5).
 
 **Partial evidence only (not satisfied, later milestones):** GZ-002, GZ-021, GZ-025, GZ-033 (catch
 coins/score in `test_GZ_031_032_…`, the meow → cash pair in `test_SLICE_threat_events_reach_source_cues`),
 UI-001–006 (M3 adds `test_P_UI_001_radar_threats_banner_hints_and_button_state`),
-FLOW-005 (M3: `test_P_FLOW_005_starvation_game_over_retry_and_continue_handoff`; the 1.1 receiver is a stub).
+FLOW-005 (M3: `test_P_FLOW_005_starvation_game_over_retry_and_continue_handoff`; M4 saves the handoff; the 1.1 scene is M5).
 
 **Command-level evidence (no suite case):** AST-019, **counted as satisfied** (accepted; all 206 generated
 outputs byte-identical under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
@@ -178,7 +202,14 @@ frames in `captures/m2_rendered/godot-tree-2ffca5f/`): the focused resets sectio
 `tools/interpolation_probe.gd` stays supplemental command evidence for its trees (`9bbe179`,
 correction report 12; the architect's run on `1532143`).
 
-**Host verification.** *Current tree* (`godot/` tree `477f012b1f3861c6ea4273dd532acf5adce34997`, M4 report 27): a fresh Windows 11
+**Host verification.** *Current tree* (`godot/` tree `69eba9b75fbbb08002ef92cf02e1a9a91b9b3964`, correction report 28): a fresh Windows 11
+25H2 clone passed the asset check (208 + 56 outputs identical), the clean import (no ERROR/WARNING line),
+the suite **212 passed, 0 failed**, the focused save, M4 shell and new transaction / exact-version / preservation /
+touch cases, the M3 focused suites, AUTO-001 twice (identical summaries), the 600-frame Main run
+starting at the title, the hermetic PCK smoke (285 runtime resources, 573 packed files, 33,048,624 bytes), the
+PixiJS baseline (248 tests, build OK), `git diff --check`, `git show --check`, a clean status and
+the source-tree guard (correction report 28 lists the commands). *M4 report 27's tree*
+(`godot/` tree `477f012b1f3861c6ea4273dd532acf5adce34997`, M4 report 27): a fresh Windows 11
 25H2 clone passed the asset check (208 + 56 outputs identical), the clean import (no ERROR/WARNING
 line), the suite **197 passed, 0 failed**, the focused M4 and M3 suites, AUTO-001 twice (identical summaries), the
 600-frame Main run starting at the title, the hermetic PCK smoke (285 runtime resources, 573 packed
@@ -319,7 +350,7 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | ASCII maps and markers | Slice | MAP-001–007 (all twenty story maps parse like the source) | story scenes M5 |
 | Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
 | Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap; SLICE: probe reaches prop centres at rule distance + prop radius (tree/pole/fountain ±1e-9 boundaries, 16 directions, exact edge-distance decision authoritative) | consumers arrive with M3 |
-| Zampanò state controller | Slice | DOG-001–004, DOG-005a, DOG-006, DOG-007; DOG-008a on combined evidence, accepted on review of `386184b` (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults; the restart reset through the real Main flow, two `test_P_DOG_008a` cases; the renderer-backed probe: 30/60/90/120 FPS presentation and the first frame after spawn, teleport, camera snap and RESTART, with the camera-snap no-reset control isolated in correction report 19) | DOG-005b forced fetch (M3); DOG-008b stage change (M5) |
+| Zampanò state controller | Slice | DOG-001–004, DOG-005a, DOG-005b (M3, accepted), DOG-006, DOG-007; DOG-008a on combined evidence, accepted on review of `386184b` (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults; the restart reset through the real Main flow, two `test_P_DOG_008a` cases; the renderer-backed probe: 30/60/90/120 FPS presentation and the first frame after spawn, teleport, camera snap and RESTART, with the camera-snap no-reset control isolated in correction report 19) | DOG-008b stage change (M5) |
 | Zampanò normal art | Slice | AST-002–005 (every playable skin) | — |
 | Playable profiles (cross, armour, Sbrimbrulòn, Bagnaskiz) | Slice | AST-006–009; SLICE: the dog scene references no profile, the world injects the `--as` choice before `add_child()` (all three), lazy Zampanò fallback only for an unconfigured dog | arms capability DOG-009 (M6); ALT-001–003 (M8) |
 | Story cast art | Slice | AST-011 (23 delivered, 17 frozen procedural roles + cat) | actors M5 |
@@ -331,28 +362,28 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Digestion and poop warning | Partial | DOG-004; SLICE scripted rules run | warning bubble simplified (D-07) |
 | Surface-dependent pollution | Slice | GZ-008, GZ-009 | — |
 | Bladder and pee | Partial | DOG-003; SLICE scripted rules run; captures 06/11 | — |
-| Marking | Slice (M3, pending review) | GZ-016, GZ-017 claimed: radius, points, centre, once per object | — |
+| Marking | Slice (M3, accepted) | GZ-016, GZ-017 claimed: radius, points, centre, once per object | — |
 | Zone health and half-stars | Slice | GZ-019, GZ-020 | — |
 | Score/time/records | Partial | SAV-004; P: GZ-021; cat (250), first mark (150) and flee (400) components in M3 cases; level-end totals in FLOW-004 | GZ-021–023 full cases |
 | Lives for speed | Partial | GZ-024; P: GZ-025 | title counter UI is M4 |
 | Run energy | Slice | DOG-007; HUD energy ring | — |
 | Treats | Partial | SLICE real-input run; MAP-007 placements | — |
-| Cats and coins | Slice (M3, pending review) | GZ-031, GZ-032 claimed; P: GZ-033; capture 21 | — |
-| Magnet balls / forced fetch | Slice (M3, pending review) | GZ-034–036, DOG-005b claimed | — |
-| Under Attack | Slice (M3, pending review) | GZ-038–041 claimed; banner, alarm, siren loop, duck, pause/resume (SLICE cue case); capture 22 | screen look approximate (D-19) |
-| Bagnaskiz | Slice (M3, pending review) | GZ-042–045 claimed | — |
-| Pollution waves | Slice (M3, pending review) | GZ-037 claimed; one shared threat RNG drawn in the source order (GZ-001) | — |
+| Cats and coins | Slice (M3, accepted) | GZ-031, GZ-032; P: GZ-033; capture 21 | — |
+| Magnet balls / forced fetch | Slice (M3, accepted) | GZ-034–036, DOG-005b | — |
+| Under Attack | Slice (M3, accepted) | GZ-038–041; banner, alarm, siren loop, duck, pause/resume (SLICE cue case); capture 22 | screen look approximate (D-19) |
+| Bagnaskiz | Slice (M3, accepted) | GZ-042–045 | — |
+| Pollution waves | Slice (M3, accepted) | GZ-037; one shared threat RNG drawn in the source order (GZ-001) | — |
 | HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006 (M3: threat radar dots, attack banner and hints, button state); SLICE multi-touch routing; captures | gestures/switcher (D-09); device safe area |
-| Briefing/level end/game over | Partial | FLOW-001, FLOW-002; FLOW-003, FLOW-004 claimed (M3); P: FLOW-005; Supervillained snap; glitch transition; CONTINUE → stub handoff; the level frozen under the terminal overlays (SLICE, correction report 26); captures 23, 14 | title (M4); the 1.1 receiver (M5) |
-| Green Zone automated full-play coverage | Slice (M3, pending review) | AUTO-001 claimed (seeded real-input run with an attack); SLICE reproducibility | MAN-GZ manual runs |
+| Briefing/level end/game over | Partial | FLOW-001–004 (FLOW-003, FLOW-004 accepted from M3); P: FLOW-005; Supervillained snap; glitch transition; CONTINUE → stub handoff; the level frozen under the terminal overlays (SLICE, correction report 26); captures 23, 14 | title (M4); the 1.1 receiver (M5) |
+| Green Zone automated full-play coverage | Slice (M3, accepted) | AUTO-001 (seeded real-input run with an attack); SLICE reproducibility | MAN-GZ manual runs |
 | Press Start 2P pixel font | Slice | AST-020 (glyphs, metrics, wrapping, fallback, IPA, schwa); OFL exported | glow (D-06) |
 | Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
 | Synthesized audio | Slice | AUD-005–008 (14 cues + medieval loop as source-rendered PCM WAV) | chapter routing (M5–M8) |
-| Settings / records persistence, atomic save | Slice (M4, pending review) | SAV-001–004, SAV-018–020, SAV-022; SAV-021 claimed (corrupt main restored from the backup with a title notice); crash windows through injected file operations (SLICE); tests and --script tools never touch a real save | — |
+| Settings / records persistence, atomic save | Slice (M4, pending review) | SAV-001–004, SAV-018–020, SAV-022 (3.5 included); SAV-021 claimed (an invalid main copied and verified before any repair, or left untouched in a read-only session; restored from the backup with a title notice); every domain write one transaction at every injected stage, exact versions (SLICE, correction report 28); tests and --script tools never touch a real save | — |
 | Format-3 campaign, legacy coins, import metadata | Slice (M4, pending review) | SAV-005–008, SAV-011, SAV-012 claimed; P: SAV-009, SAV-010 | per-effect story saves (M5) |
-| Legacy Capacitor converter | Partial | P: MIG-005 (M4 half), MIG-006–010 (fixtures, statuses, notices) | real WebView acquisition, MIG-001–004, M9 half of MIG-005 (M9) |
-| Title, NEW GAME, CONTINUE, Couch, Options, Controls, Glossary, Goodbye | Slice (M4, pending review) | UI-007, UI-008, UI-010, UI-011, UI-012–014, UI-015–021, UI-022 claimed; P: UI-009; captures `m4_shell/` | title film/glitch/lettering (M8, D-21); story cards before 1.0 (M5, D-22) |
-| Replay and flow-policy shell | Slice (M4, pending review) | FLOW-006, FLOW-010, FLOW-011 claimed; P: FLOW-007–009, FLOW-012 | the story runner (M5) |
+| Legacy Capacitor converter | Partial | P: MIG-005 (M4 half; an existing raw backup preserved or left alone), MIG-006–010 (fixtures, statuses, notices, one transactional commit with retry) | real WebView acquisition, MIG-001–004, M9 half of MIG-005 (M9) |
+| Title, NEW GAME, CONTINUE, Couch, Options, Controls, Glossary, Goodbye | Slice (M4, pending review) | UI-007, UI-008, UI-010, UI-011, UI-012, UI-013, UI-015–021, UI-022 claimed; P: UI-009, UI-014; save-error card (SLICE); captures `m4_shell/` | title film/glitch/lettering and the title visible under OPTIONS, the confirmation and Goodbye (M8, D-21); story cards before 1.0 (M5, D-22); UI-014 historical UTC offsets |
+| Replay and flow-policy shell | Slice (M4, pending review) | FLOW-006, FLOW-010, FLOW-011 claimed; P: FLOW-007–009, FLOW-012; the walk handoff one atomic, idempotent save (SLICE) | the story runner (M5) |
 | Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15, 16 and 17; accepted on review of `8f8dcb6`); M4: the format-3 converter, SaveService integration and the fixture/simulated half of MIG-005 implemented (M4 report 27); production lineage, two WebView/device versions and MIG-001–010 proof M9 |
 | Everything else in this matrix | — | — | later milestones |
 

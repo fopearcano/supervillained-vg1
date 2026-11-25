@@ -39,6 +39,52 @@ func _store(values: Dictionary) -> LegacyImport.FixtureSource:
 	return LegacyImport.FixtureSource.new({"status": "ok", "raw": LegacyImport.FixtureSource.payload(values)})
 
 
+func _write_abs(path: String, bytes: PackedByteArray) -> void:
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_buffer(bytes)
+	f.close()
+
+
+## Committed bytes: the main, or the backup while an interrupted write left no main.
+func _committed() -> PackedByteArray:
+	return _bytes("save_v3.json") if FileAccess.file_exists(_dir + "save_v3.json") else _bytes("save_v3.bak")
+
+
+## Every injected write stage (file-operation failures, crash hooks) and a blocked session.
+const STAGES := [
+	{"fail": {"write_bytes": "save_v3.tmp"}, "why": "open_temp_failed"},
+	{"torn": "save_v3.tmp", "why": "temp_validation_failed"},
+	{"fail": {"read_bytes": "save_v3.tmp"}, "why": "temp_validation_failed"},
+	{"fail": {"remove": "save_v3.bak"}, "why": "backup_remove_failed"},
+	{"fail": {"rename": "save_v3.bak"}, "why": "backup_rotation_failed"},
+	{"fail": {"rename": "save_v3.tmp"}, "why": "rename_failed"},
+	{"hook": "temp_partial", "why": "simulated_crash_during_temp_write"},
+	{"hook": "temp_written", "why": "simulated_crash_after_temp_written"},
+	{"hook": "temp_validated", "why": "simulated_crash_after_temp_validated"},
+	{"hook": "backup_rotated", "why": "simulated_crash_after_backup_rotated"},
+	{"blocked": true, "why": "write_blocked_future_version"},
+]
+
+
+## Arms one stage: main and backup exist first (so every stage is reachable).
+func _arm(stage: Dictionary) -> void:
+	_svc.file_ops = SaveFileOps.new()
+	_svc.write_to_disk()
+	_svc.write_to_disk()
+	var f := FaultyFileOps.new()
+	f.fail = stage.get("fail", {})
+	f.torn_write = stage.get("torn", "")
+	_svc.file_ops = f
+	_svc.fault_after = stage.get("hook", "")
+	_svc.write_blocked = stage.get("blocked", false)
+
+
+func _disarm() -> void:
+	_svc.file_ops = SaveFileOps.new()
+	_svc.fault_after = ""
+	_svc.write_blocked = false
+
+
 func test_SAV_005_legacy_standalone_coins_are_passive_preservation() -> void:
 	var r: Variant = _svc.run_legacy_import(_store({"coins": "123.7"}), NOW)
 	assert_eq(r["status"], "imported", "coins key imported")
@@ -120,7 +166,7 @@ func test_P_SAV_010_play_time_excludes_replays_and_saved_at_is_unix_ms() -> void
 	assert_eq([_svc.get_campaign()["playTime"], _svc.get_campaign()["savedAt"]], [30.25, NOW], "walk time counted; savedAt in ms")
 	AppState.begin_replay("1.0")
 	var bytes := _bytes("save_v3.json")
-	assert_eq(AppState.complete_walk(5, 90.0), {"saved": false, "replay": true}, "a replay hands nothing over")
+	assert_eq(AppState.complete_walk(5, 90.0), {"saved": false, "replay": true, "applied": false, "error": ""}, "a replay hands nothing over")
 	assert_eq(_bytes("save_v3.json"), bytes, "no persistent byte changed")
 	assert_eq(_svc.get_campaign()["playTime"], 30.25, "replay time not counted")
 	assert_true(int(_svc.get_campaign()["savedAt"]) > 1_000_000_000_000, "milliseconds, not seconds")
@@ -405,13 +451,14 @@ func test_FLOW_010_replay_starts_from_a_deep_copy() -> void:
 ## shows the aside and offers SKIP SCENE is M5).
 func test_P_FLOW_007_009_policy_shell() -> void:
 	var cat := SaveService.CATALOG
-	# FLOW-007: the walk's save order — effects (coins, time) first, then the completion.
+	# FLOW-007: the walk's effects (coins, time) and its completion persist together, in ONE atomic
+	# campaign save (the source saves twice, addWalk then finishSub; one save cannot half-apply).
 	var ops := FaultyFileOps.new()
 	_svc.file_ops = ops
 	AppState.complete_walk(4, 12.0)
 	var saves := ops.calls.filter(func(c: Array) -> bool: return c[0] == "rename" and String(c[2]).ends_with("save_v3.json"))
-	assert_eq(saves.size(), 2, "two campaign saves, as the source (addWalk, finishSub)")
-	assert_eq([_svc.get_campaign()["coins"], _svc.get_campaign()["completed"]], [4, ["1.0"]], "both persisted")
+	assert_eq(saves.size(), 1, "one atomic campaign save")
+	assert_eq([_svc.get_campaign()["coins"], _svc.get_campaign()["playTime"], _svc.get_campaign()["completed"]], [4, 12.0, ["1.0"]], "coins, time and 1.0 persisted together")
 	# FLOW-009: the snap after the walk (replay or not) and after each level's last scene, never after a story replay.
 	assert_true(CampaignFlow.supervillained_after(cat, "1.0", false) and CampaignFlow.supervillained_after(cat, "1.0", true), "after 1.0")
 	assert_true(CampaignFlow.supervillained_after(cat, "1.5", false), "after 1.5")
@@ -424,6 +471,152 @@ func test_P_FLOW_007_009_policy_shell() -> void:
 	var st := CampaignSchema.new_campaign()
 	CampaignRules.apply_effects(st, {"marvel": "A", "unlock": "cross"})
 	assert_eq(CampaignRules.apply_effects(st, {"marvel": "A", "unlock": "cross"}), [], "no second award on a restart")
+
+
+## The walk's handoff is ONE campaign save (coins, time, 1.0 and one savedAt): at every injected write
+## stage and in a blocked session none of them is applied (the whole container in memory and the
+## committed bytes unchanged); the retry applies them exactly once; a repeated handoff after
+## success adds nothing.
+func test_SLICE_walk_handoff_is_atomic_and_idempotent() -> void:
+	_svc.save_record("level1", {"score": 10, "stars": 1.0, "time": 60.0})
+	for stage: Dictionary in STAGES:
+		_arm(stage)
+		var before: Dictionary = _svc.data.duplicate(true)
+		var committed := _committed()
+		var r: Dictionary = AppState.complete_walk(4, 12.5)
+		_disarm()
+		assert_eq([r["saved"], r["applied"], r["error"]], [false, false, stage["why"]], "%s: reported" % stage["why"])
+		assert_eq(_svc.data, before, "%s: nothing applied in memory" % stage["why"])
+		assert_eq(_committed(), committed, "%s: committed bytes unchanged" % stage["why"])
+	AppState.clock = func() -> int: return NOW + 5
+	var ok: Dictionary = AppState.complete_walk(4, 12.5)
+	assert_eq([ok["saved"], ok["applied"]], [true, true], "the retry saves")
+	var camp: Dictionary = _svc.get_campaign()
+	assert_eq([camp["coins"], camp["playTime"], camp["completed"], camp["savedAt"]], [4, 12.5, ["1.0"], NOW + 5], "applied once, with one savedAt")
+	assert_eq(_disk()["campaign"], camp, "on disk")
+	var again: Dictionary = AppState.complete_walk(4, 12.5)
+	assert_eq([again["saved"], again["applied"], _svc.get_campaign()], [true, false, camp], "a repeated handoff adds nothing")
+
+
+## The dream-rewritten notice counts as taken only after its clearing is saved (source showNotice:
+## saveCampaign, savedAt = now). At every failed stage, and blocked, it stays in memory and in the
+## committed file and the caller learns the save failed.
+func test_SLICE_story_notice_taken_only_after_a_saved_clear() -> void:
+	var st := CampaignSchema.new_campaign()
+	st["notice"] = "dream-rewritten"
+	st["completed"] = ["1.0"]
+	_svc.save_campaign(st, NOW - 1000)
+	for stage: Dictionary in STAGES:
+		_arm(stage)
+		var before: Dictionary = _svc.data.duplicate(true)
+		var committed := _committed()
+		var n: Dictionary = AppState.take_story_notice()
+		_disarm()
+		assert_eq([n["notice"], n["saved"], n["error"]], [false, false, stage["why"]], "%s: not taken, failure reported" % stage["why"])
+		assert_eq(_svc.data, before, "%s: notice kept in memory" % stage["why"])
+		assert_eq(_committed(), committed, "%s: and in the committed file" % stage["why"])
+		var parsed: Dictionary = JSON.parse_string(committed.get_string_from_utf8())
+		assert_eq(parsed["campaign"]["notice"], "dream-rewritten", "%s: persisted notice" % stage["why"])
+	assert_eq(AppState.take_story_notice(), {"notice": true, "saved": true, "error": ""}, "taken once saved")
+	assert_eq([_disk()["campaign"]["notice"], _disk()["campaign"]["savedAt"]], [null, NOW], "cleared and saved (savedAt = now, as the source)")
+	assert_eq(AppState.take_story_notice(), {"notice": false, "saved": true, "error": ""}, "only once")
+
+
+## MIG-009 (fixture portion): the import is one transaction. When its final container write fails (at
+## every injected stage) the pre-import settings, records, passive coins, campaign and import record
+## stay exactly as they were, in memory and in the committed file, and the attempt reports
+## retryable_error with no imported keys (blocked: it waits, nothing changes). A same-session retry
+## imports cleanly (no campaign_conflict); a forced re-run never adds the campaign's coins, time or
+## progress twice.
+func test_P_MIG_009_final_write_failure_leaks_nothing_and_retries() -> void:
+	_svc.save_record("level1", {"score": 500, "stars": 2.0, "time": 70.0})
+	var v2 := {"version": 2, "completed": ["1.0", "1.1"], "meters": {"commozione": 33, "supervillain": 12, "grace": 64, "standing": 55},
+		"flags": {"vow": true}, "book": {"marvels": ["M"], "items": [], "values": [], "remembered": [], "shards": []},
+		"abilities": ["cross"], "coins": 12, "playTime": 321.5, "savedAt": 1700000000000, "notice": null}
+	var values := {"settings": JSON.stringify({"muted": true, "lives": 6}), "records": JSON.stringify({"level1": {"score": 900, "stars": 4.0, "time": 65.0}}),
+		"coins": "17", "story": JSON.stringify(v2)}
+	for stage: Dictionary in STAGES:
+		_arm(stage)
+		var before: Dictionary = _svc.data.duplicate(true)
+		var committed := _committed()
+		var r: Dictionary = _svc.run_legacy_import(_store(values), NOW)
+		_disarm()
+		var want := ["blocked", "save_write_blocked"] if stage.get("blocked", false) else ["retryable_error", "container_write_failed"]
+		assert_eq([r["status"], r["error_code"], r["keys_imported"], r["committed"]], want + [[], false], "%s: reported, nothing claimed" % stage["why"])
+		assert_eq(_svc.data, before, "%s: no partial import in memory" % stage["why"])
+		assert_eq(_committed(), committed, "%s: committed bytes unchanged" % stage["why"])
+	var ok: Dictionary = _svc.run_legacy_import(_store(values), NOW + 1)
+	assert_eq([ok["status"], ok["keys_imported"], ok["committed"]], ["imported", ["settings", "records", "coins", "story"], true], "the same-session retry imports")
+	assert_eq(_svc.get_campaign(), v2, "the campaign once (no campaign_conflict): coins 12, time 321.5")
+	assert_eq([_svc.get_settings()["muted"], _svc.get_settings()["lives"], _svc.get_record("level1"), _svc.legacy_coins()],
+		[true, 6, {"score": 900, "stars": 4.0, "time": 65.0}, {"present": true, "value": 17}], "settings, merged records, passive coins")
+	assert_eq(_svc.legacy_import_state()["attempt_count"], 1, "only the committed attempt is on record")
+	var bytes := _bytes("save_v3.json")
+	assert_eq([_svc.run_legacy_import(_store(values), NOW + 2)["ran"], _bytes("save_v3.json")], [false, bytes], "imported: idempotent")
+	var forced: Dictionary = _svc.run_legacy_import(_store(values), NOW + 3, true)
+	assert_eq([forced["status"], forced["keys_failed"], forced["error_code"]], ["imported_partial", ["story"], "story:campaign_conflict"], "a forced re-run does not replace the campaign")
+	assert_eq([_svc.get_campaign()["coins"], _svc.get_campaign()["playTime"], _svc.get_campaign()["completed"], _svc.legacy_coins()["value"]],
+		[12, 321.5, ["1.0", "1.1"], 17], "coins, time, progress and the passive coins never added twice")
+
+
+## MIG-005 (fixture portion): an existing raw backup is never written over unless it was preserved
+## first. A different earlier payload is moved aside and verified there; one that cannot be read,
+## whose aside name holds other bytes, or that cannot be moved, stays untouched and the attempt is
+## retryable (nothing parsed, nothing claimed).
+func test_P_MIG_005_existing_raw_backup_preserved_or_left_alone() -> void:
+	var dir: String = _svc.legacy_dir()
+	DirAccess.make_dir_recursive_absolute(dir)
+	var path := dir.path_join("capacitor_local_storage.json")
+	var earlier := "{\"supervillained:coins\": \"5\"}".to_utf8_buffer()
+	_write_abs(path, earlier)
+	var aside := dir.path_join("capacitor_local_storage.%s.json" % LegacyImport.sha256_hex(earlier).substr(0, 12))
+	var raw := LegacyImport.FixtureSource.payload({"coins": "9"})
+	var src := LegacyImport.FixtureSource.new({"status": "ok", "raw": raw})
+	var f := FaultyFileOps.new()
+	for fault: Array in [[{"read_bytes": "capacitor_local_storage.json"}, "", "backup_existing_unreadable"],
+			[{"rename": "capacitor_local_storage"}, "", "backup_rotate_failed"], [{}, "other", "backup_aside_conflict"]]:
+		f.fail = fault[0]
+		if fault[1] != "":
+			_write_abs(aside, String(fault[1]).to_utf8_buffer())
+		_svc.file_ops = f
+		var r: Dictionary = _svc.run_legacy_import(src, NOW)
+		_svc.file_ops = SaveFileOps.new()
+		assert_eq([r["status"], r["error_code"], r["parsed"], _svc.legacy_coins()["present"]], ["retryable_error", fault[2], false, false], "%s: retryable, nothing parsed" % fault[2])
+		assert_eq(FileAccess.get_file_as_bytes(path), earlier, "%s: the earlier raw backup untouched" % fault[2])
+		if fault[1] != "":
+			assert_eq(FileAccess.get_file_as_string(aside), "other", "%s: the other aside file untouched" % fault[2])
+			DirAccess.remove_absolute(aside)
+	# The moved copy reads back wrong: stop before writing (the earlier bytes are already aside).
+	f.fail = {}
+	f.short_read = "capacitor_local_storage.%s" % LegacyImport.sha256_hex(earlier).substr(0, 6)
+	_svc.file_ops = f
+	var bad: Dictionary = _svc.run_legacy_import(src, NOW)
+	_svc.file_ops = SaveFileOps.new()
+	assert_eq([bad["status"], bad["error_code"], FileAccess.file_exists(path), FileAccess.get_file_as_bytes(aside)], ["retryable_error", "backup_rotate_verify_failed", false, earlier], "not written over; the earlier bytes kept aside")
+	var ok: Dictionary = _svc.run_legacy_import(src, NOW)
+	assert_eq([ok["status"], FileAccess.get_file_as_bytes(path), FileAccess.get_file_as_bytes(aside), _svc.legacy_coins()], ["imported", raw, earlier, {"present": true, "value": 9}], "healthy: the new payload, the earlier one aside")
+	# A healthy different payload later: the previous one moves aside, verified.
+	var raw2 := LegacyImport.FixtureSource.payload({"coins": "11"})
+	_svc.run_legacy_import(LegacyImport.FixtureSource.new({"status": "ok", "raw": raw2}), NOW, true)
+	var aside2 := dir.path_join("capacitor_local_storage.%s.json" % LegacyImport.sha256_hex(raw).substr(0, 12))
+	assert_eq([FileAccess.get_file_as_bytes(path), FileAccess.get_file_as_bytes(aside2), FileAccess.get_file_as_bytes(aside)], [raw2, raw, earlier], "every earlier payload kept")
+
+
+## MIG-007/008 (fixture portion): only exact story versions convert: 1 (migrated first) and 2, also
+## written as 1.0 and 2.0; 2.5, 2.1, 1.5, 2.0000001, 0.999, "2" and 3 are unknown versions and leave
+## the campaign exactly as it was.
+func test_P_MIG_007_008_story_versions_must_be_exact() -> void:
+	for ver: Variant in [2.5, 2.1, 1.5, 2.0000001, 0.999, "2", 3]:
+		_svc.data = _svc.default_container()
+		var story := {"version": ver, "completed": ["1.0"], "coins": 40, "playTime": 9}
+		var r: Dictionary = _svc.run_legacy_import(_store({"story": JSON.stringify(story)}), NOW)
+		assert_eq([r["status"], r["keys_failed"], r["error_code"]], ["blocked", ["story"], "story:unknown_version"], "version %s rejected" % [ver])
+		assert_eq(_svc.get_campaign(), CampaignSchema.new_campaign(), "version %s: campaign untouched" % [ver])
+	for ver: Variant in [1.0, 2.0]:
+		_svc.data = _svc.default_container()
+		var story := {"version": ver, "completed": ["1.0"], "coins": 40, "playTime": 9}
+		var r: Dictionary = _svc.run_legacy_import(_store({"story": JSON.stringify(story)}), NOW)
+		assert_eq([r["status"], _svc.get_campaign()["completed"], _svc.get_campaign()["coins"]], ["imported", ["1.0"], 40], "version %s accepted" % [ver])
 
 
 func test_SLICE_tests_use_isolated_save_directories() -> void:

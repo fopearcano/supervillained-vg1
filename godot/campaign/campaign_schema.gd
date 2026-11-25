@@ -116,11 +116,18 @@ static func normalize_flags(raw: Variant, dropped: Array = []) -> Dictionary:
 	return out
 
 
+## True when `raw` is an object whose `version` is a finite number exactly equal to 2 (2.5, 2.1, "2"
+## and the like are rejected; no integer cast decides it).
+static func is_version(raw: Variant, version: int = VERSION) -> bool:
+	return raw is Dictionary and is_finite_number((raw as Dictionary).get("version")) and float(raw["version"]) == float(version)
+
+
 ## Normalizes a campaign v2 object against the catalog ids. Returns {"ok", "data", "dropped"};
-## ok is false only when `raw` is not a version-2 object (the caller then keeps defaults).
+## ok is false only when `raw` is not a version-2 object (the caller then keeps defaults or, for a
+## saved container, rejects the container).
 static func normalize(raw: Variant, catalog_ids: PackedStringArray) -> Dictionary:
 	var dropped: Array = []
-	if not raw is Dictionary or not is_finite_number(raw.get("version")) or int(raw["version"]) != VERSION:
+	if not is_version(raw):
 		return {"ok": false, "data": new_campaign(), "dropped": ["campaign"]}
 	var r: Dictionary = raw
 	var out := new_campaign()

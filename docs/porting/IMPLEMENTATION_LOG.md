@@ -6,14 +6,256 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. M4 report 27 is current. Erratum for the historical reports: their
+in progress report 5. Correction report 28 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## M4 report 27: native save system and non-story product shell (M1, M2, M3 Partial; M4 Partial) — current
+## Correction report 28: M4 persistence safety — exact versions, transactional writes, atomic handoff, non-destructive recovery (M1, M2, M3 Partial; M4 Partial) — current
+
+Scope: the owner's narrow M4 persistence-safety correction after `5c593d6`. Changed: `godot/autoload/`
+(`save_service.gd`, `app_state.gd`), `godot/campaign/` (`campaign_schema.gd`, `legacy_import.gd`),
+`godot/main/main.gd`, `godot/scenes/title/title_screen.gd`, `godot/data/shell/shell_text.tres`,
+`godot/tools/capture_suite.gd` (one more shell shot), `godot/README.md`, the three save test files
+(`tests/unit/test_save.gd`, `tests/unit/test_save_m4.gd`, `tests/integration/test_shell.gd`), this
+log, FEATURE_MATRIX.md and three captures in `docs/porting/captures/m4_shell/`. The PixiJS, Capacitor
+and iOS sources and every file outside `godot/` and `docs/porting/` are unchanged. No story scene,
+dialogue, chapter prose, combat or minigame; no story rewrite; M5 not started.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1, M2, M3 Partial** (their manual and device checks owner-deferred: not passed, not cancelled, release-blocking; M3's 21 automated IDs accepted by the architect, below); **M4 Partial**: 24 M4 acceptance IDs claimed by full suite cases, pending architect review (UI-014 moved to partial; SAV-021 claimed on the new preservation cases); MIG-005 (M4 half), MIG-006–010, SAV-009, SAV-010, UI-009, UI-014 and the shell portions of FLOW-005, FLOW-007–009 and FLOW-012 partial; M4's manual checks not executed |
+| Base | `5c593d6` (M4 report 27; `godot/` tree `477f012`) |
+| Current `godot/` tree | `69eba9b75fbbb08002ef92cf02e1a9a91b9b3964`; verified on a fresh Windows clone of the local verification commit `c25ea3f` (the same `godot/` tree and the three captures; this commit adds only `docs/porting/` text) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090, OpenGL 3.3 Compatibility renderer; Linux not run |
+| Android | not run (no device or emulator claim) |
+
+### Architect decision recorded
+
+**Correction report 26's 21 M3 IDs are accepted:** GZ-001, GZ-016, GZ-017, GZ-031, GZ-032,
+GZ-034–036, GZ-037, GZ-038–041, GZ-042–045, DOG-005b, FLOW-003, FLOW-004 and AUTO-001 (`57f4bf7`,
+`godot/` tree `0684cc9`). With DOG-005b, the split ID DOG-005 (DOG-005a + DOG-005b) is satisfied.
+**Totals: 113 by full suite cases (counting split-ID parts; 92 + 21) + 4 on combined evidence + 2 on
+command evidence = 119 satisfied.** Their cases pass unchanged on the current tree. M1, M2 and M3
+stay **Partial**: the M1 manual checks, the M2 desktop and touch play checks and M3's MAN-GZ runs,
+portrait phone checks with both hands and background/resume checks are owner-deferred, unpassed and
+release-blocking; UI-001–006 and FLOW-005 remain partial.
+
+### Corrected
+
+1. **Exact schema versions** (`SaveService.validate_container`, `CampaignSchema.is_version`/
+   `normalize`, `LegacyImport`). The version decision compares the finite numeric value, never an
+   integer cast: a container is format 3 only at exactly 3 (3.0 included); anything greater — 3.5
+   and 3.0001 included — is a future format (preserved byte for byte, writes blocked); anything
+   smaller is unsupported and never normalized as format 3. A campaign is accepted only at exactly
+   version 2 (2.5, 2.1, 2.0000001, "2" rejected); a present campaign with any other version makes the
+   whole container invalid, so it is preserved as a corrupt copy and recovered from, never silently
+   reset to defaults. The legacy `story` key converts only at exactly 1 (migrated first) or 2.
+   Before: `int(format_version)` read 3.5 as 3 and normalized it; `int(version)` accepted campaign
+   2.5.
+2. **Transactional domain writes** (`SaveService.commit`). `set_settings`, `save_record`,
+   `save_campaign` and the import build a deep candidate container; `commit()` stamps
+   `written_at_unix_ms`, writes it atomically and only then replaces `data`. A refused or failed
+   write leaves the whole in-memory container (its `written_at_unix_ms` included) exactly as it was,
+   so memory and the committed file never diverge; a future-format (or unpreserved) session is
+   genuinely read-only, in memory too (before, a blocked `save_record` kept the record in memory and
+   a blocked import changed the import record). A completely written, validated temp from a failed
+   call is still recovered whole by the next launch (crash recovery). AppState applies a settings
+   change only after it is saved; a failure emits `save_error` and Main shows the save-error card.
+3. **Atomic, idempotent walk handoff** (`AppState.complete_walk`, `Main`). Coins, time and the
+   completion of 1.0 are one campaign candidate with one savedAt (the source's addWalk + finishSub,
+   two saves, became one: D-25). A failed or refused handoff applies none of them; a retry cannot
+   double them (the live state is unchanged); once 1.0 is complete a repeated handoff adds nothing,
+   and Main ignores a second CONTINUE from the same result card. Main checks every result: a failed
+   NEW GAME stays on the title, a failed CONTINUE stays on the result card, each with the save-error
+   card (what failed, that nothing changed, what to do: TRY AGAIN and BACK, plus TITLE on the result
+   card; in a read-only session no TRY AGAIN and the update or restart advice); neither advances to
+   1.1 nor starts another Green Zone. The normal path and replay isolation are unchanged.
+4. **Transactional legacy import** (`LegacyImport.run`). After the raw backup and its read-back,
+   every key converts into an isolated candidate; `SaveService.data` is not touched until the one
+   commit succeeds. A failed final write keeps the pre-import settings, records, passive coins,
+   campaign and import record exactly, reports `retryable_error` (`container_write_failed`) with no
+   imported keys, and a same-session retry imports without `campaign_conflict`; coins, time and
+   progress are never added twice. An existing raw backup with different bytes is moved aside and
+   verified first; one that cannot be read (`backup_existing_unreadable`), whose aside name holds
+   other bytes (`backup_aside_conflict`), that cannot be moved (`backup_rotate_failed`) or whose moved
+   copy reads back wrong (`backup_rotate_verify_failed`) is never written over. Before, a failed
+   write left the converted keys in memory and a retry hit `campaign_conflict`; an unreadable raw
+   backup was overwritten.
+5. **Non-destructive corrupt-save recovery** (`SaveService._read_file`, `_preserve_corrupt`). Loading
+   distinguishes an absent file, readable bytes that are not a valid container, and a file whose
+   bytes cannot be read. An invalid main's exact bytes are copied (`save_v3.corrupt.json`, or a
+   hash-suffixed name when an earlier, different copy exists — never overwritten) and the copy is
+   read back and compared BEFORE the main is removed, rotated or replaced (at load and in the
+   writer). When the main cannot be read, or its copy cannot be written or verified, the main stays
+   byte-for-byte untouched, the newest valid file (or the defaults) is shown read-only, every write
+   is refused for the session (`write_blocked_unpreserved_save`) and the title shows a notice; the
+   next healthy launch preserves and recovers as usual. Before, an unreadable main was copied as an
+   empty file and deleted, and a second corrupt main overwrote the first copy.
+6. **The story notice** (`AppState.take_story_notice`, `Main.continue_game`). The dream-rewritten
+   notice is cleared and reported only after a successful transactional campaign save (savedAt =
+   now, as the source's showNotice → saveCampaign; before, the port wrote the container without
+   moving savedAt and ignored the result). On failure the notice stays in memory and on disk, Main
+   gets the failure and shows the save-error card instead of the notice card and does not move on.
+7. **Title input while covered** (`TitleScreen`). `activate()` and the inherited `_gui_input()` drop
+   everything while `covered` is true (an overlay or a running transition), besides `_process()`,
+   `on_tap()` and now `change_lives()`; Main's NEW GAME, CONTINUE and level-list starts also ignore
+   requests while a transition runs, so a pending scene change is never run early or replaced.
+8. **Evidence and documentation**: the named UI-007 cases now drive NEW GAME and CONTINUE through
+   the title's own rows (confirmation, preselection, the notice, every destination); UI-012–014 is
+   split into `test_UI_012_013_…` and the partial `test_P_UI_014_…`; FEATURE_MATRIX.md records the
+   M3 acceptance and the new totals; D-21 gains the visible title behind OPTIONS.
+
+### Deviations (new or amended)
+
+| ID | Deviation | Planned |
+|---|---|---|
+| D-21 (amended) | Besides the simplified title presentation: OPTIONS, the NEW GAME confirmation and the Goodbye card are drawn over the dimmed, visible title; the source hides the title under them (`Flow.overTitle`) | M8 |
+| D-24 | A refused or failed save changes nothing and the flow stops on a save-error card (TRY AGAIN where it can help); the source's `storage.set` ignores storage failures and the game goes on with the unsaved in-memory change. The card's wording is not owner-approved | — |
+| D-25 | The walk's handoff is one atomic campaign save with one savedAt (the source saves twice, addWalk then finishSub; the final state and the final savedAt agree); once 1.0 is complete a repeated handoff adds nothing (unreachable in the source's flow) | — |
+
+D-17–D-20, D-22 and D-23 are unchanged.
+
+### Acceptance IDs
+
+Accepted by the architect (counted above): correction report 26's 21 M3 IDs.
+Claimed by full suite cases (pending review, 24): SAV-005, SAV-006, SAV-007, SAV-008, SAV-011,
+SAV-012, SAV-021; UI-007, UI-008, UI-010, UI-011, UI-012, UI-013, UI-015–021, UI-022; FLOW-006,
+FLOW-010, FLOW-011. SAV-021 rests on `test_SAV_021_invalid_main_copied_and_verified_before_any_repair`
+(unit: exact copy and read-back before the main is touched, an earlier copy kept, main read
+failure, copy write failure, two copy read-back failures, the next healthy launch) and
+`test_SAV_021_corrupt_main_restored_from_backup_with_notice` (title notices, now including the
+unreadable main). SAV-022 (accepted earlier) still passes, now also with the fractional future
+version 3.5 in main, temp and backup and an unchanged in-memory container after the refused writes.
+Moved to partial: UI-014 (`test_P_UI_014_couch_play_time_saved_date_and_ending`: the saved date uses
+the device's current UTC offset for every date, not the offset in force at that date, so across a
+daylight-saving or historical time-zone change it can differ from the source's local time).
+Partial (`test_P_`): SAV-009, SAV-010, MIG-005 (M4 half), MIG-006, MIG-007, MIG-008, MIG-009,
+MIG-010, UI-009, UI-014, FLOW-005, FLOW-007–009, FLOW-012. Not attempted: MIG-001–004 (M9). Still
+satisfied: SAV-001–004, SAV-013–020, SAV-022.
+
+Tests added or changed:
+- `tests/unit/test_save.gd`: `test_SAV_021_invalid_main_copied_and_verified_before_any_repair`
+  (replaces `test_P_SAV_021_corrupt_save_recovers_from_backup`); `test_SAV_022_…` (payloads 4 and
+  3.5; memory read-only); `test_SLICE_exact_versions_fractional_and_nested_never_normalized`
+  (validator table, nested campaign versions, a below-3 or bad-campaign main/temp/backup on disk);
+  `test_SLICE_domain_writes_are_transactions_at_every_stage` (settings, a record and the campaign ×
+  eleven stages: temp write, torn temp, temp read-back, backup removal, backup rotation, final
+  rename, the four crash hooks, a blocked session; whole-container equality, committed bytes, a
+  same-session retry); `test_SLICE_failed_call_leaves_a_recoverable_whole_temp`.
+- `tests/unit/test_save_m4.gd`: `test_SLICE_walk_handoff_is_atomic_and_idempotent`,
+  `test_SLICE_story_notice_taken_only_after_a_saved_clear`,
+  `test_P_MIG_009_final_write_failure_leaks_nothing_and_retries`,
+  `test_P_MIG_005_existing_raw_backup_preserved_or_left_alone`,
+  `test_P_MIG_007_008_story_versions_must_be_exact` (the handoff, notice and final-write cases each
+  run the eleven stages); `test_P_SAV_010_…` (result shape) and `test_P_FLOW_007_009_policy_shell`
+  (one atomic save) updated.
+- `tests/integration/test_shell.gd`: `test_UI_007_new_game_confirms_over_a_story_and_starts_the_walk`
+  and `test_UI_007_continue_preselection_notice_and_destinations` (from the two SLICE cases, expanded:
+  the title's own rows, no question without a story, NO/Back byte-identical, the story scene with its
+  briefing, preselection both ways, the notice's savedAt, the named 1.1 boundary, the level list);
+  `test_UI_012_013_…` and `test_P_UI_014_…` (split); `test_SLICE_new_game_save_failure_stays_on_the_title`
+  and `test_SLICE_continue_save_failure_stays_on_the_result_card` (every stage, then TRY AGAIN applies
+  once; a repeated CONTINUE adds nothing); `test_SLICE_future_blocked_session_changes_nothing` (a real
+  3.5 backup: NEW GAME, the walk, CONTINUE and TITLE change no byte and no memory);
+  `test_SLICE_story_notice_kept_when_its_save_fails`; `test_SLICE_settings_save_failure_keeps_the_setting`;
+  `test_SLICE_title_takes_no_touch_while_a_transition_runs` (real `InputEventScreenTouch` presses and
+  releases through `Input.parse_input_event`: one NEW GAME touch starts the glitch; repeated NEW
+  GAME, CONTINUE, lives, publisher, COUCH, OPTIONS, GLOSSARY and QUIT touches during it run nothing,
+  the burst is not restarted and its scene change runs once, at its midpoint); the SAV-021 case gains
+  the unreadable-main notice.
+
+Mutation checks (scratchpad harness; each source restored from a byte copy): the tests failed for
+every injected defect — commit writing memory before the file, the handoff saved in two steps, an
+import leaking its candidate on failure, no corrupt-copy preservation, the integer-cast container
+version, the integer-cast campaign version, the notice taken before its save, an unreadable raw
+backup overwritten, Main ignoring a failed NEW GAME, Main ignoring a failed CONTINUE, and both title
+guards removed. Removing only one of the two title guards (`activate` or `_gui_input`) is not
+detected, because the other still drops the touch (they are deliberate defence in depth).
+
+### Commands executed and results
+
+| Command | Exit | Result |
+|---|---|---|
+| `git clone --branch claude/gallant-keller-rbvtvy <session clone> <fresh dir>`; `npm ci`; `npx playwright install chromium` | 0 / 0 / 0 | fresh clone of the verification commit; `godot/` tree as above |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (deterministic asset check) | 0 | asset check OK: 208 outputs identical (73 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12); build_resources check (all): OK, 56 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | 0 | 0 ERROR/WARNING lines; `git status --porcelain` afterwards empty: yes |
+| `… --script res://tests/test_runner.gd -- --suite all` (full suite) | 0 | 212 passed, 0 failed, 212 total (101.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_threats` (focused M3) | 0 | 13 passed, 0 failed, 13 total (2.8 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3` (focused M3) | 0 | 7 passed, 0 failed, 7 total (8.0 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3 --case AUTO_001`, twice (deterministic AUTO-001) | 0 / 0 | identical lines: yes — `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` |
+| `… -- --suite unit --file test_save_m4` (focused M4 save) | 0 | 25 passed, 0 failed, 25 total (1.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell` (focused M4 shell) | 0 | 23 passed, 0 failed, 23 total (9.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save` (the runner matches file names by substring: test_save.gd and test_save_m4.gd) | 0 | 46 passed, 0 failed, 46 total (3.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save --case exact_versions` (exact versions (fractional, nested campaign)) | 0 | 1 passed, 0 failed, 1 total (0.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save --case SAV_022` (SAV-022 future formats incl. 3.5, read-only memory) | 0 | 1 passed, 0 failed, 1 total (0.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save --case SAV_021` (SAV-021 corrupt-main preservation (unit)) | 0 | 1 passed, 0 failed, 1 total (0.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save --case transactions_at_every_stage` (transactions at every write stage) | 0 | 1 passed, 0 failed, 1 total (1.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save --case recoverable_whole_temp` (failed call leaves a whole recoverable temp) | 0 | 1 passed, 0 failed, 1 total (0.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save_m4 --case walk_handoff_is_atomic` (walk handoff atomic and idempotent) | 0 | 1 passed, 0 failed, 1 total (0.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save_m4 --case story_notice_taken_only` (story notice taken only after a saved clear) | 0 | 1 passed, 0 failed, 1 total (0.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save_m4 --case final_write_failure` (legacy import final-write failure, retry, idempotence) | 0 | 1 passed, 0 failed, 1 total (0.4 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save_m4 --case existing_raw_backup` (existing raw legacy backup preserved or left alone) | 0 | 1 passed, 0 failed, 1 total (0.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save_m4 --case story_versions_must_be_exact` (legacy story versions exact) | 0 | 1 passed, 0 failed, 1 total (0.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell --case new_game_save_failure` (NEW GAME save failures stay on the title) | 0 | 1 passed, 0 failed, 1 total (1.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell --case continue_save_failure` (CONTINUE save failures stay on the result card) | 0 | 1 passed, 0 failed, 1 total (1.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell --case future_blocked_session` (future-blocked session changes nothing) | 0 | 1 passed, 0 failed, 1 total (1.1 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell --case notice_kept_when` (notice kept when its save fails) | 0 | 1 passed, 0 failed, 1 total (0.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell --case settings_save_failure` (settings save failure keeps the setting) | 0 | 1 passed, 0 failed, 1 total (0.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell --case title_takes_no_touch` (title takes no touch during a transition (real touches)) | 0 | 1 passed, 0 failed, 1 total (1.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell --case SAV_021` (SAV-021 notices through the title) | 0 | 1 passed, 0 failed, 1 total (0.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell --case UI_007` (UI-007 named cases) | 0 | 3 passed, 0 failed, 3 total (3.0 s), Godot 4.7.2-stable (official) |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame Main launch) | 0 | 0 ERROR/WARNING lines |
+| `<console exe> --headless --path godot --quit-after 120 --verbose`, filtered for the first scene loaded | 0 | Completed load for: 'res://scenes/title/title_screen.tscn' remapped 'res://scenes/title/title_screen.tscn' at thread -1 |
+| `… -- --suite integration --file test_export_pack` (hermetic PCK smoke) | 0 | 1 passed, 0 failed, 1 total (17.3 s), Godot 4.7.2-stable (official) |
+| `npm test` (PixiJS) | 0 | Tests  248 passed (248) |
+| `npm run build` (PixiJS) | 0 | built in 309ms |
+| `git status --porcelain` after the checks (clean status) | 0 | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check --format= HEAD` | 0 / 0 | no output |
+| `bash godot/tools/source_tree_guard.sh` | 0 | source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265 |
+| `git diff --stat 95b69c0 HEAD -- src public assets android ios package.json package-lock.json` | 0 | empty (PixiJS untouched) |
+| `git status --porcelain` after all steps | 0 | empty |
+
+Captures (`docs/porting/captures/m4_shell/`, windowed Compatibility renderer, `capture_suite.gd
+--mode shell`): `36_save_error_w192.png`, `36_save_error_w216.png`, `36_save_error_w270.png` — the
+save-error card of a failed CONTINUE over the title at logical widths 192, 216 and 270. The twelve
+M4 captures are unchanged.
+
+Not run: Linux; Android (no APK, no device or emulator); any manual check (M1–M3 deferred; M4's
+manual list); listening to audio; the M2 rendered presentation probe; an owner review of the
+save-error card.
+
+### Remaining gaps
+
+- Manual: every option across a real app restart, three Green Zone records by hand, the import
+  fixtures through a debug UI, a force-close during a save, Android Back through every overlay and
+  the save-error card on a device, visual review of the shell at phone sizes; the save-error and
+  unpreserved-save wording is not owner-approved.
+- UI-014: historical UTC offsets for the saved date.
+- M5: the story scenes after 1.0, the level/scene cards, the Meraviglia book, the story pause and
+  SKIP SCENE, per-effect saves, story play time, the gesture recognizer, text speed in dialogue.
+- M9: the Android bridge acquisition, MIG-001–004 and the M9 half of MIG-005, signed upgrade.
+- M8: the title's logo lettering, film and glitch, the title hidden under OPTIONS, the confirmation
+  and the Goodbye card (D-21), D-17–D-19.
+
+### Development attempts (kept as found)
+
+- The first run of the corrupt-copy case used invalid UTF-8 bytes; Godot printed "Unicode parsing
+  error" while decoding them, so the case now uses valid UTF-8 with a NUL and CRLF (the same
+  byte-exact check).
+- A Variant-typed `var camp :=` in `test_save_m4.gd` failed to parse; typed explicitly.
+- The first settings-failure case read `save_v3.json` after a failed final rename had moved it to
+  the backup; it now reads the committed file.
+- Two existing M4 cases expected the old two-save handoff and result shape; updated to the atomic
+  save.
+
+---
+
+## Historical — M4 report 27: native save system and non-story product shell (`5c593d6`; M1, M2, M3 Partial; M4 Partial)
+
+> Superseded by correction report 28 (the current tree, claims and counts are its): UI-014 moved to partial, SAV-021 now rests on the preservation cases, the walk handoff is one atomic save (D-25), and correction report 26's 21 M3 IDs are accepted. Its other M4 claims, deviations D-20–D-23 and gaps stand.
 
 Scope: the owner's M4 instruction after `57f4bf7`: the format-3 save, its validators, writer and
 recovery; the deterministic legacy converter with the fixture/simulated half of MIG-005; settings

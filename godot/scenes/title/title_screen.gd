@@ -17,7 +17,8 @@ const VIOLET := Color("#a77bff")
 
 ## {"new_game", "cont", "couch", "options", "glossary", "quit", "publisher"} -> Callable
 var actions: Dictionary = {}
-## True while another screen covers the title (it keeps animating but takes no input).
+## True while another screen covers the title or a transition runs: it keeps animating but takes
+## no input at all (keys, menu rows by touch or confirm, the lives counter, the publisher link).
 var covered: Callable = func() -> bool: return false
 var lives_rect := Rect2()
 var footer_rect := Rect2()
@@ -122,9 +123,28 @@ func _process(delta: float) -> void:
 
 
 func change_lives(step: int) -> void:
+	if covered.call():
+		return
 	AppState.step_lives(step)
 	AudioService.play(&"click")
 	queue_redraw()
+
+
+## Menu rows run only while nothing covers the title (a covered title, e.g. during the glitch to
+## the next scene, never starts another action or replaces the pending scene change).
+func activate(index: int) -> void:
+	if covered.call():
+		return
+	super.activate(index)
+
+
+## Touches go through the inherited GUI handling only while nothing covers the title; while covered
+## they are taken and dropped, so no row, lives counter or publisher tap fires.
+func _gui_input(event: InputEvent) -> void:
+	if covered.call():
+		accept_event()
+		return
+	super._gui_input(event)
 
 
 func on_tap(pos: Vector2) -> void:

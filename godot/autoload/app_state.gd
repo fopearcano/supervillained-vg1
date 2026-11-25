@@ -4,6 +4,9 @@ extends Node
 ## Owns no scene nodes and performs no file I/O itself (SaveService does).
 
 signal settings_changed(settings: Dictionary)
+## A requested change could not be saved (refused or failed write); nothing changed. `context` is
+## "settings"; Main shows the save-error card.
+signal save_error(context: String, reason: String)
 
 const DEFAULT_PROFILE := &"zampano"
 ## Playable profiles present in this build (src/assets/manifest.ts PLAY_AS).
@@ -57,11 +60,19 @@ static func resolve_profile(args: PackedStringArray) -> Dictionary:
 	return out
 
 
+## A confirmed settings change, saved as one transaction. Applied only once saved; a refused or
+## failed write keeps the previous settings (memory, disk and the applied audio/input agree) and
+## reports save_error.
 func update_settings(new_settings: Dictionary) -> void:
-	if SaveService.set_settings(new_settings)["changed"]:
-		settings = SaveService.get_settings()
-		_apply()
-		settings_changed.emit(settings)
+	var r := SaveService.set_settings(new_settings)
+	if not r["changed"]:
+		return
+	if not r["saved"]:
+		save_error.emit("settings", SaveService.last_error)
+		return
+	settings = SaveService.get_settings()
+	_apply()
+	settings_changed.emit(settings)
 
 
 func _apply() -> void:
@@ -129,20 +140,23 @@ func new_game() -> bool:
 
 
 ## The Green Zone walk (1.0) handed over by CONTINUE (source addWalk then finishSub): its coins go
-## to the campaign purse, its time to the play time, then 1.0 is complete; two campaign saves, as in
-## the source. A replay hands over nothing. Returns {"saved": bool, "replay": bool}.
+## to the campaign purse, its time to the play time and 1.0 is complete, all in ONE atomic campaign
+## save with one savedAt (the source saves twice, the second savedAt being the final one). A failed
+## or refused save applies none of them, so CONTINUE can be tried again without counting the walk
+## twice; once 1.0 is complete a repeated handoff adds nothing. A replay hands over nothing.
+## Returns {"saved": bool, "replay": bool, "applied": bool, "error": String}.
 func complete_walk(coins: int, seconds: float, sub_id: String = "1.0") -> Dictionary:
 	if replaying:
-		return {"saved": false, "replay": true}
+		return {"saved": false, "replay": true, "applied": false, "error": ""}
 	var st := SaveService.get_campaign()
+	if (st["completed"] as Array).has(sub_id):
+		return {"saved": true, "replay": false, "applied": false, "error": ""}
 	if coins != 0:
 		st["coins"] = maxi(0, int(st["coins"]) + coins)
 	st["playTime"] = float(st["playTime"]) + maxf(0.0, seconds)
-	var a: bool = SaveService.save_campaign(st, now_ms())
-	st = SaveService.get_campaign()
 	CampaignFlow.finish(st, sub_id, false)
-	var b: bool = SaveService.save_campaign(st, now_ms())
-	return {"saved": a and b, "replay": false}
+	var ok: bool = SaveService.save_campaign(st, now_ms())
+	return {"saved": ok, "replay": false, "applied": ok, "error": "" if ok else SaveService.last_error}
 
 
 ## A replay of a finished scene starts from a deep copy; persistence stays off until end_replay().
@@ -163,14 +177,18 @@ func persists() -> bool:
 	return not replaying
 
 
-## The one-time "dream rewritten" notice (source showNotice): true once, then cleared and saved.
-func take_story_notice() -> bool:
+## The one-time "dream rewritten" notice (source showNotice: clear it, saveCampaign, show the card).
+## It counts as taken only after the cleared notice was saved (one transaction, savedAt = now as
+## the source's saveCampaign); on a refused or failed save the notice stays, in memory and on disk,
+## and the caller shows the save error instead of the card.
+## Returns {"notice": bool (show the card), "saved": bool, "error": String}.
+func take_story_notice() -> Dictionary:
 	var st := SaveService.get_campaign()
 	if not CampaignMigration.consume_notice(st):
-		return false
-	SaveService.data["campaign"] = st
-	SaveService.write_to_disk()
-	return true
+		return {"notice": false, "saved": true, "error": ""}
+	if not SaveService.save_campaign(st, now_ms()):
+		return {"notice": false, "saved": false, "error": SaveService.last_error}
+	return {"notice": true, "saved": true, "error": ""}
 
 
 func lives() -> int:
