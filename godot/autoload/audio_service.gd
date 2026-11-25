@@ -87,6 +87,9 @@ var _duck := 1.0
 var _pending: Array = []
 ## Audio time of each cue's last accepted request (source lastPlayed).
 var _last_played: Dictionary = {}
+## Looping effects (source AudioEngine.loop: the siren during an attack): cue -> {"player":
+## AudioStreamPlayer or null, "delay": seconds of audio time before it starts}.
+var _loops: Dictionary = {}
 
 
 func _ready() -> void:
@@ -221,6 +224,12 @@ func advance_pending(delta: float) -> void:
 	if suspended:
 		return
 	audio_time += delta
+	for cue: StringName in _loops.keys():
+		var entry: Dictionary = _loops[cue]
+		if float(entry["delay"]) > 0.0:
+			entry["delay"] = float(entry["delay"]) - delta
+			if float(entry["delay"]) <= 0.0:
+				_start_loop(cue)
 	if _pending.is_empty():
 		return
 	var due: Array = []
@@ -237,6 +246,65 @@ func pending_count() -> int:
 	return _pending.size()
 
 
+## Starts a looping effect once (source loop(name, {volume, delay})): from its leading-silence
+## offset to the end, at SFX volume x the file trim x `gain`, after `delay` seconds of audio time.
+## A second request while it loops is ignored.
+func loop(cue: StringName, gain: float = 1.0, delay: float = 0.0) -> void:
+	if _loops.has(cue) or not SFX.has(cue):
+		return
+	requested[cue] = int(requested.get(cue, 0)) + 1
+	var player: AudioStreamPlayer = null
+	if output_available:
+		var stream: AudioStream = _stream(SFX[cue]).duplicate()
+		if stream is AudioStreamMP3:
+			(stream as AudioStreamMP3).loop = true
+			(stream as AudioStreamMP3).loop_offset = float(offsets.get(cue, 0.0))
+		player = AudioStreamPlayer.new()
+		player.bus = &"SFX"
+		player.stream = stream
+		var trim: float = GameConfig.Audio.FILE_GAIN.get(String(cue), 1.0)
+		player.volume_db = linear_to_db(GameConfig.Audio.SFX_VOLUME * trim * gain)
+		player.stream_paused = suspended
+		add_child(player)
+	_loops[cue] = {"player": player, "delay": delay}
+	if delay <= 0.0:
+		_start_loop(cue)
+
+
+func _start_loop(cue: StringName) -> void:
+	var entry: Dictionary = _loops[cue]
+	entry["delay"] = 0.0
+	var player: AudioStreamPlayer = entry["player"]
+	if player:
+		player.play(float(offsets.get(cue, 0.0)))
+
+
+## Stops a looping effect (source stopLoop).
+func stop_loop(cue: StringName) -> void:
+	if not _loops.has(cue):
+		return
+	var player: AudioStreamPlayer = _loops[cue]["player"]
+	_loops.erase(cue)
+	if player:
+		player.stop()
+		player.queue_free()
+
+
+func stop_all_loops() -> void:
+	for cue: StringName in _loops.keys():
+		stop_loop(cue)
+
+
+## Loops requested and not stopped (started or still waiting for their delay).
+func active_loops() -> Array:
+	return _loops.keys()
+
+
+## True when the loop has started (its delay elapsed).
+func loop_started(cue: StringName) -> bool:
+	return _loops.has(cue) and float(_loops[cue]["delay"]) <= 0.0
+
+
 func _process(delta: float) -> void:
 	advance_pending(delta)
 
@@ -247,6 +315,10 @@ func set_suspended(on: bool) -> void:
 	_music.stream_paused = on
 	for p in _pool:
 		p.stream_paused = on
+	for cue: StringName in _loops:
+		var lp: AudioStreamPlayer = _loops[cue]["player"]
+		if lp:
+			lp.stream_paused = on
 
 
 func players() -> Array[AudioStreamPlayer]:
@@ -266,6 +338,7 @@ func _notification(what: int) -> void:
 
 ## Stops every player and forgets session state (scene teardown, app exit, tests).
 func stop_all() -> void:
+	stop_all_loops()
 	_pending.clear()
 	_last_played.clear()
 	stop_music()

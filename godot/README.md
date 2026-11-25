@@ -4,9 +4,14 @@ Native Godot 4.7.2 (GDScript, GL Compatibility renderer) port of the PixiJS game
 root. The PixiJS/TypeScript source is untouched and remains the reference implementation
 (audited commit `95b69c0`). Architecture, milestones and the test plan live in `docs/porting/`.
 
-Current state: **M1 Partial, M2 Partial** (not accepted) — Level 1 / Green Zone playable from
-briefing to result card. See `docs/porting/IMPLEMENTATION_LOG.md` for evidence and deviations and
-the status section of `docs/porting/FEATURE_MATRIX.md` for the acceptance IDs actually satisfied.
+Current state: **M1 Partial, M2 Partial** (their manual checks deferred by the owner for prototype
+development: not passed, not cancelled), **M3 prototype implemented, pending review** — the
+complete Green Zone 1.0 is playable: hunger, digestion and poop, bladder and pee, marking, scoring,
+cats and coins, magnet balls and the forced fetch, the three pollution waves, Under Attack with
+Bagnaskiz, briefing → play ⇄ pause → Supervillained snap → level end (CONTINUE hands
+`{result, time, coins}` to a stub receiver; the story is not ported) or game over → retry. See
+`docs/porting/IMPLEMENTATION_LOG.md` for evidence and deviations and the status section of
+`docs/porting/FEATURE_MATRIX.md` for the acceptance IDs claimed and satisfied.
 
 ## Requirements
 
@@ -50,6 +55,10 @@ errors/warnings, orphan nodes and timeouts, writes `test-results/results.json` a
 a PCK with the same binary and starts it as a packed runtime (`test_export_pack.gd`). Every case runs isolated (input, audio, a per-case
 save directory, app state and renderable IDs are reset first).
 
+Focused M3 suites: `--file test_threats` (threat helpers, director, the source threats run, the
+forced-fetch overlap) and `--file test_green_zone_m3` (AUTO-001 real-input run, cues, radar/banner,
+level end). AUTO-001 alone: `--suite integration --file test_green_zone_m3 --case AUTO_001`.
+
 Case naming: `test_<ID>_…` only when every clause of that TEST_PLAN acceptance ID is exercised;
 `test_P_<ID>_…` is partial evidence and never satisfies the ID; `test_SLICE_…` checks port behaviour
 with no plan ID.
@@ -63,7 +72,7 @@ Reference fixtures in `tests/fixtures/` were produced by executing the audited T
 xvfb-run -a godot --path godot --rendering-driver opengl3 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures            # scripted tour
 xvfb-run -a godot --path godot --rendering-driver opengl3 \
-  --script res://tools/capture_suite.gd -- --out /tmp/captures --mode run # full real-input run
+  --script res://tools/capture_suite.gd -- --out /tmp/captures --mode run # full real-input run (M3 shots 20-23)
 xvfb-run -a godot --path godot --rendering-driver opengl3 --resolution 800x600 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode diagnostic --size 800x600
 ```
@@ -99,6 +108,11 @@ and its first image showed a later frame. Its three images are byte-identical to
 `m1_review.tscn --export` (`docs/porting/manual_evidence/m1-godot-tree-2ffca5f/README.md`).
 
 ## M1 manual review (development only; needs a renderer and audio output)
+
+The owner deferred the M1/M2 manual checks for prototype development (M3 report 25); the station is
+kept as it is and is not extended. Its content fingerprint covers files that M3 changed
+(`autoload/audio_service.gd`, `scenes/green_zone/green_zone_scene.gd`), so the committed package
+would be set aside as stale and must be regenerated before any later owner review.
 
 ```bash
 godot --path godot res://tools/m1_review.tscn -- --decisions <absolute dir>   # review station
@@ -207,10 +221,13 @@ autoload/    AppState, SaveService (format-3 atomic save), InputService, AudioSe
 core/        GameConfig (source tuning), DeterministicRng, JsMath, resource classes
 iso/         IsoGrid projection, IsoRenderable, IsoDepthSorter, CameraModel/CameraRig
 world/       TileCatalog, AsciiMapLoader, WorldMapModel, IsoWorld scene, runtime TileMapLayers
-entities/    PlayableDog, props, treat/poop views
-systems/     needs, Green Zone rules, threats (bark + pollution waves), scoring, lives, placement
-scenes/      Green Zone scene, native overlays (briefing, pause, level end, game over)
-ui/          HUD, touch controls, pixel text
+entities/    PlayableDog, props, treat/poop views, critter controllers (cat, ball, Bagnaskiz) + views
+systems/     needs, Green Zone rules, threats (cats, balls, waves, attack director, Bagnaskiz, bark),
+             threat helpers, scoring, lives, placement
+scenes/      Green Zone scene, native overlays (briefing, pause, Supervillained snap, level end, game over)
+campaign/    save migration rules; the Green Zone → 1.1 handoff contract and its stub receiver
+fx/          world text, glitch shader (transition and the Under Attack look)
+ui/          HUD, attack banner, touch controls, pixel text
 data/        generated Resources + layout data (from the source manifests)
 assets/      runtime copies and frozen generated art (see data/source_asset_manifest.json)
 tests/       first-party runner, unit/content/integration suites, fixtures, automation driver

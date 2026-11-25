@@ -661,7 +661,8 @@ func test_AST_018_export_excludes_archives_originals_and_unused_files() -> void:
 	assert_eq(bad, PackedStringArray(), "forbidden files")
 	for e: Dictionary in _manifest()["copies"]:
 		var src := String(e["source"])
-		var runtime := src.begins_with("public/") or src.begins_with("assets/music/") or src.begins_with("assets/sounds/") or src == "src/assets/fonts/OFL.txt"
+		# The Supervillained logo is imported by src/ui/titleArt.ts and bundled by Vite (runtime art).
+		var runtime := src.begins_with("public/") or src.begins_with("assets/music/") or src.begins_with("assets/sounds/") or src == "src/assets/fonts/OFL.txt" or src == "assets/starting-page-images/Youve_Been_Supervillained_Logo.png"
 		assert_true(runtime and not src.contains("originals") and not src.contains("art-archive"), "copy from a runtime source path: " + src)
 	var cfg := ConfigFile.new()
 	assert_eq(cfg.load("res://export_presets.cfg"), OK, "export presets")
@@ -764,7 +765,10 @@ func test_AST_010_title_conversion() -> void:
 				var text := FileAccess.get_file_as_string(dir.path_join(f))
 				if text.contains("TEXTURE_FILTER_LINEAR") or text.contains("texture_filter = 2"):
 					linear_users.append(dir.path_join(f))
-	assert_eq(linear_users, PackedStringArray(["res://ui/title/title_portrait.gd"]), "only the title portrait samples linearly")
+	linear_users.sort()
+	# The title portrait and the end-of-level Supervillained logo (both source titleTexture/titleFrames
+	# smooth resizes with the 110 alpha cut); pixel art never samples linearly.
+	assert_eq(linear_users, PackedStringArray(["res://scenes/overlays/supervillained_overlay.gd", "res://ui/title/title_portrait.gd"]), "only the title portrait and the Supervillained logo sample linearly")
 	for idx in [0, 49, 98]:
 		assert_true(FileAccess.file_exists(root.path_join("docs/porting/captures/title_m1/title_frame_%02d_widths_88_99_124.png" % idx)), "review image for frame %d" % idx)
 

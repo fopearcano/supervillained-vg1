@@ -158,6 +158,7 @@ const COPIES = [
   { from: 'public/environment-ink/ch08_greenzone.png', to: 'assets/environment/ch08_greenzone.png', use: 'Color Ink environment bank ch08_greenzone' },
   { from: 'public/environment-ink/manifest.json', to: 'assets/environment/manifest.json', use: 'Color Ink environment manifest (frames, themes, floor designs); kept verbatim (CRLF) for provenance' },
   { from: 'public/icon-192.png', to: 'assets/branding/icon.png', use: 'application icon (launcher art)' },
+  { from: 'assets/starting-page-images/Youve_Been_Supervillained_Logo.png', to: 'assets/branding/supervillained_logo.png', use: 'the Supervillained end-of-level logo (src/ui/titleArt.ts logoUrl, SupervillainedScene)' },
   { from: 'src/assets/fonts/OFL.txt', to: 'assets/fonts/OFL.txt', use: 'Press Start 2P license (OFL), exported with the game' },
   { from: 'assets/music/intro-music.mp3', to: 'assets/audio/recorded/intro-music.mp3', use: 'reading-screen music (MUSIC_FILES.intro): briefing' },
   { from: 'assets/music/greenzone-music.mp3', to: 'assets/audio/recorded/greenzone-music.mp3', use: 'Green Zone music (MUSIC_FILES.greenzone)' },
@@ -673,7 +674,7 @@ const { Emitter } = await importSource('core/events.ts');
 const { animationFrame, animationDuration } = await importSource('assets/animationTiming.ts');
 
 const fx = { audited_commit: AUDITED_COMMIT, note: 'Generated from the audited TypeScript; do not hand-edit or regenerate to match a Godot mismatch.' };
-const PICK = ['DISPLAY', 'LOOP', 'ISO', 'CAMERA', 'PLAYER', 'ENERGY', 'INPUT', 'OCCLUSION', 'HUNGER', 'TREAT', 'DIGESTION', 'POOP', 'BLADDER', 'POLLUTION', 'ZONE', 'LIVES', 'SCORE', 'BARK', 'FX'];
+const PICK = ['DISPLAY', 'LOOP', 'ISO', 'CAMERA', 'PLAYER', 'ENERGY', 'INPUT', 'OCCLUSION', 'HUNGER', 'TREAT', 'DIGESTION', 'POOP', 'BLADDER', 'POLLUTION', 'ZONE', 'LIVES', 'SCORE', 'BARK', 'FX', 'CAT', 'BALL', 'ATTACK', 'BAGNASKIZ', 'SUPERVILLAINED'];
 fx.config = Object.fromEntries(PICK.map((k) => [k, config[k]]));
 fx.config.AUDIO = config.AUDIO;
 
@@ -1033,6 +1034,178 @@ fx.rules_overlap = rulesScenario((t, c) => {
   if (t === 150) c.player.setPosition(c.fountain.x + 0.9, c.fountain.y);
   if (t === 230) c.player.setPosition(c.m.exit.x + 0.3, c.m.exit.y + 0.3);
 }, 260);
+
+// M3 threats (GZ-031–045, DOG-005b): the pure threat helpers and a scripted Rules + Threats run of
+// the audited source. The source steers fleeing critters with Math.random; for a reproducible
+// reference it is replaced during the run by mulberry32 seeded (level.seed ^ 0x2545f491) — the
+// Godot port's critter RNG. Every other draw is the source's own seeded threat RNG.
+{
+  const { Threats } = await importSource('systems/threats.ts');
+  const { AttackDirector, inBarkCone, magnetPull } = await importSource('systems/threatLogic.ts');
+  const tl = { bark_cone: [], magnet: [], attack: [] };
+  const br = new Rng(31);
+  for (let k = 0; k < 80; k++) {
+    const a = br.range(0, Math.PI * 2);
+    const s = [br.range(10, 80), br.range(10, 80), Math.cos(a), Math.sin(a)];
+    const t = [s[0] + br.range(-3.5, 3.5), s[1] + br.range(-3.5, 3.5)];
+    const range = k % 2 ? config.BARK.RANGE : config.BARK.RANGE * 1.3;
+    const half = k % 2 ? config.BARK.HALF_ANGLE : config.BARK.HALF_ANGLE * 1.3;
+    tl.bark_cone.push([...s, ...t, range, half, inBarkCone(s[0], s[1], s[2], s[3], t[0], t[1], range, half)]);
+  }
+  tl.bark_cone.push([5, 5, 1, 0, 5.2, 5.1, 2.8, 0.75, inBarkCone(5, 5, 1, 0, 5.2, 5.1, 2.8, 0.75)]);
+  tl.bark_cone.push([5, 5, 0, 0, 6, 5, 2.8, 0.75, inBarkCone(5, 5, 0, 0, 6, 5, 2.8, 0.75)]);
+  for (let d = 0; d <= 4.0001; d += 0.05) tl.magnet.push([d, magnetPull(d, config.BALL.MAGNET_RADIUS, config.BALL.MAGNET_STRENGTH)]);
+  // Director: health dips (start, no restart in cooldown), the scripted start, hysteresis end.
+  const dir = new AttackDirector(config.ATTACK.HEALTH_THRESHOLD, 0.56);
+  for (let k = 0; k < 4200; k++) {
+    const t = k * DT;
+    const health = t < 5 ? 0.99 : t < 10 ? 0.94 : t < 14 ? 0.952 : t < 16 ? 0.955 : t < 30 ? 0.93 : 0.97;
+    const progress = t < 50 ? 0.3 : 0.6;
+    const pugGone = t < 12 || (t > 20 && t < 50) || t > 60;
+    const s = dir.update(DT, health, progress, pugGone);
+    if (s || k % 300 === 0) tl.attack.push([k, s, dir.state, +dir.elapsed.toFixed(9), dir.intensity(health)]);
+  }
+  fx.threat_logic = tl;
+
+  const m = new GameMap(level);
+  const player = new Zampano(m.start.x, m.start.y);
+  player.face('N');
+  const events = new Emitter();
+  const log = [];
+  let tick = 0;
+  const round = (v) => (typeof v === 'number' ? +v.toFixed(9) : v);
+  for (const ev of ['cat', 'ballSpawn', 'fetch', 'bark', 'barkHit', 'bagnaskizFled', 'bump', 'pollutionSurge', 'attackStart', 'attackEnd', 'lifeLost', 'gameOver', 'treat', 'poop', 'pee']) {
+    events.on(ev, (e) => log.push([tick, ev, Object.fromEntries(Object.entries(e ?? {}).map(([k, v]) => [k, round(v)]))]));
+  }
+  const world = { map: m, player, events, addEntity() {}, removeEntity() {} };
+  const rules = new Rules(world, LEVEL_1, 2);
+  const threats = new Threats(world, rules, LEVEL_1);
+  const pending = new Set();
+  const input = {
+    move: { x: 0, y: 0 },
+    runHeld: false,
+    consume: (a) => pending.delete(a),
+    consumeAny: (as) => as.reduce((hit, a) => pending.delete(a) || hit, false),
+  };
+  // The first walkable non-water tile (row-major) whose centre progress is the smallest >= p.
+  const spotAt = (p) => {
+    let best = null;
+    let bestP = Infinity;
+    for (let j = 0; j < m.height; j++) for (let i = 0; i < m.width; i++) {
+      if (!m.isWalkable(i, j) || m.isWaterAt(i + 0.5, j + 0.5) || m.exitDistance[m.index(i, j)] < 0) continue;
+      const pr = m.progressAt(i + 0.5, j + 0.5);
+      if (pr >= p && pr < bestP) { bestP = pr; best = [i + 0.5, j + 0.5]; }
+    }
+    return best;
+  };
+  const script = [];
+  const rand = new Rng((LEVEL_1.seed ^ 0x2545f491) >>> 0);
+  const savedRandom = Math.random;
+  Math.random = () => rand.next();
+  const trace = [];
+  let attackTick = -1;
+  try {
+    for (tick = 0; tick < 4800; tick++) {
+      input.move.x = 0; input.move.y = 0; input.runHeld = false;
+      const cat = threats.cats[0];
+      if (tick === 1000 && cat) { player.setPosition(cat.gx, cat.gy); script.push([tick, 'onto cat', cat.gx, cat.gy]); }
+      if (tick === 1180 && threats.cats.length) {
+        const c = threats.cats[0];
+        player.setPosition(c.gx - 1.2, c.gy);
+        player.face(proj.dirFromGridVector(1, 0));
+        pending.add('bark');
+        script.push([tick, 'bark at cat', c.gx - 1.2, c.gy]);
+      }
+      if (tick === 1700 && threats.balls.length) {
+        const b = threats.balls[0];
+        player.setPosition(b.gx + 1.6, b.gy);
+        script.push([tick, 'near ball', b.gx + 1.6, b.gy]);
+      }
+      for (const [t, p] of [[2000, 0.25], [2100, 0.5], [2300, 0.57]]) {
+        if (tick === t) { const s = spotAt(p); player.setPosition(s[0], s[1]); script.push([tick, `progress ${p}`, s[0], s[1]]); }
+      }
+      if (threats.director.state === 'attack' && attackTick < 0) attackTick = tick;
+      const pug = threats.pug;
+      if (pug && attackTick >= 0 && tick === attackTick + 90) {
+        player.setPosition(pug.gx + 0.3, pug.gy);
+        script.push([tick, 'onto pug', pug.gx + 0.3, pug.gy]);
+      }
+      if (pug && pug.active && attackTick >= 0 && tick >= attackTick + 200 && (tick - attackTick) % 40 === 0) {
+        const dx = player.gx - pug.gx;
+        const dy = player.gy - pug.gy;
+        const d = Math.hypot(dx, dy) || 1;
+        const x = pug.gx + (dx / d) * 1.5;
+        const y = pug.gy + (dy / d) * 1.5;
+        player.setPosition(x, y);
+        player.face(proj.dirFromGridVector(pug.gx - x, pug.gy - y, player.facing));
+        pending.add('action');
+        script.push([tick, 'bark at pug', x, y]);
+      }
+      if (tick === 4000) { const s = spotAt(0.75); player.setPosition(s[0], s[1]); script.push([tick, 'progress 0.75', s[0], s[1]]); }
+      rules.update(DT, input);
+      if (rules.state === 'playing') threats.update(DT, input);
+      m.update(DT);
+      if (tick % 30 === 29) {
+        trace.push({
+          tick, gx: player.gx, gy: player.gy, state: player.state, facing: player.facing,
+          cats: threats.cats.map((c) => [c.gx, c.gy, c.state]),
+          balls: threats.balls.map((b) => [b.gx, b.gy, b.taken]),
+          pug: threats.pug ? [threats.pug.gx, threats.pug.gy, threats.pug.state, threats.pug.hits] : null,
+          attack: threats.director.state, waves: threats.pollutionDirector.remaining, health: m.health(),
+          score: rules.stats.score, coins: rules.stats.coins, time: rules.stats.time, barkHits: rules.stats.barkHits,
+          lives: rules.stats.lives, hunger: rules.hunger.value, rstate: rules.state,
+        });
+      }
+      if (rules.state !== 'playing') break;
+    }
+  } finally {
+    Math.random = savedRandom;
+  }
+  fx.threats_run = { critter_seed: (LEVEL_1.seed ^ 0x2545f491) >>> 0, script, trace, events: log, final_tick: tick, attack_tick: attackTick };
+}
+
+// DOG-005b: the forced fetch against bark, pee, eat, drink, hurt and exit requests (source Rules +
+// Threats; balls and Bagnaskiz placed by the script; Math.random replaced as in threats_run).
+{
+  const { Threats } = await importSource('systems/threats.ts');
+  const { Ball, Bagnaskiz } = await importSource('entities/critters.ts');
+  const m = new GameMap(level);
+  const player = new Zampano(m.start.x, m.start.y);
+  player.face('N');
+  const events = new Emitter();
+  const log = [];
+  let tick = 0;
+  for (const ev of ['fetch', 'bark', 'bump', 'treat', 'pee', 'peeEmpty', 'drink', 'lifeLost', 'levelComplete']) events.on(ev, () => log.push([tick, ev]));
+  const world = { map: m, player, events, addEntity() {}, removeEntity() {} };
+  const rules = new Rules(world, LEVEL_1, 2);
+  const threats = new Threats(world, rules, LEVEL_1);
+  const treats = rules.treats.map((t) => [t.gx, t.gy]);
+  const fountain = m.props.find((p) => p.kind === 'fountain');
+  const pending = new Set();
+  const input = { move: { x: 0, y: 0 }, runHeld: false, consume: (a) => pending.delete(a), consumeAny: (as) => as.reduce((hit, a) => pending.delete(a) || hit, false) };
+  const rand = new Rng((LEVEL_1.seed ^ 0x2545f491) >>> 0);
+  const savedRandom = Math.random;
+  Math.random = () => rand.next();
+  const trace = [];
+  try {
+    for (tick = 0; tick < 300; tick++) {
+      if (tick === 5 || tick === 150) threats.balls.push(new Ball(player.gx + 0.3, player.gy));
+      if (tick === 10 || tick === 160) pending.add('bark');
+      if (tick === 12 || tick === 165) pending.add('pee');
+      if (tick === 20) player.setPosition(...treats[0]);
+      if (tick === 40) player.setPosition(fountain.x + 0.9, fountain.y);
+      if (tick === 60) { threats.pug = new Bagnaskiz(player.gx + 0.2, player.gy); threats.pug.target = { x: player.gx, y: player.gy }; }
+      if (tick === 100) threats.pug = null;
+      if (tick === 200) player.setPosition(m.exit.x + 0.3, m.exit.y + 0.3);
+      rules.update(DT, input);
+      if (rules.state === 'playing') threats.update(DT, input);
+      trace.push([tick, player.state, +player.stateDuration.toFixed(6), player.controllable, rules.stats.lives, +rules.hunger.value.toFixed(9), +rules.stats.time.toFixed(9), rules.stats.treats, rules.stats.pees, rules.bladder.charges, threats.balls.length, rules.state]);
+    }
+  } finally {
+    Math.random = savedRandom;
+  }
+  fx.rules_fetch = { trace, events: log, treats: treats.slice(0, 1), fountain: [fountain.x, fountain.y], exit: [m.exit.x, m.exit.y] };
+}
 
 // AST-012/013: the environment banks against the game's native frame contract. The native entries
 // are the source's own level textures (buildLevelTextures() generators, executed with the Green

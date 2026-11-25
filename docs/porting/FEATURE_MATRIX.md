@@ -12,7 +12,7 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 
 Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
-## Godot implementation status — M1 Partial, M2 Partial, awaiting architect review
+## Godot implementation status — M1 Partial, M2 Partial (manual checks owner-deferred), M3 Partial (playable prototype, pending review)
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. The M1 Android
@@ -24,8 +24,20 @@ rerun on three Android versions in correction reports 15, 16 and 17; decision
 correction reports 22, 23 and 24). The package `docs/porting/manual_evidence/m1-godot-tree-2ffca5f/`
 (development-only review station `godot/tools/m1_review.tscn`, blank checklist of 363 fields bound to
 a content fingerprint and review contract, crash-safe generation saves selected by one pointer,
-inventories, contact sheets, title stills) waits for the independent review of correction report 24
-before the owner is asked; no manual decision has been received, so every field is NOT EXECUTED.
+inventories, contact sheets, title stills) was not reviewed by the owner; no manual decision has been
+received, so every field is NOT EXECUTED.
+**Owner decision (M3 report 25): prototype execution mode.** The owner deferred the remaining M1 and
+M2 manual checks for prototype development. They are **not passed, not cancelled and not
+release-approved**; the 98 accepted IDs stay valid; the review station is not extended. Its committed
+package is bound to a content fingerprint that covers files M3 changed
+(`autoload/audio_service.gd`, `scenes/green_zone/green_zone_scene.gd`), so it must be regenerated
+before any later owner review.
+**M3 (complete Green Zone 1.0 and core arcade flow): implemented as a playable prototype, pending
+architect review; M3 stays Partial** — its manual runs (MAN-GZ: healthy, polluted and game-over runs;
+portrait phone checks with both hands; background/resume during warning, attack and result) are not
+executed, UI-001–006 and FLOW-005 are partial, and the story after 1.0 and M4 persistence are out of
+scope (CONTINUE hands `{result, time, coins}` to a stub receiver). Evidence: M3 report 25 in
+`docs/porting/IMPLEMENTATION_LOG.md`, `docs/porting/captures/m3_green_zone_prototype/` (5 PNGs).
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title captures: `…_49` and `…_98` of commit `16b5619`; `…_00`
 regenerated as rendered frame 0 in correction report 22 after the `title_capture.gd` fix; the earlier
@@ -90,7 +102,7 @@ satisfied) + COLL-005b (M5–M7: scripted-position objectives; `test_P_COLL_005b
 M5/M6, the full aggregate in M7). COLL-005 covers static and scripted-position reachability only;
 dynamic goals (moving or runtime-placed targets) are owned by WALK/NPC/MINI and each scene's STY
 real-input completion. DOG-005 = DOG-005a (M2,
-satisfied) + DOG-005b (M3, forced fetch); DOG-008 = DOG-008a (M2, satisfied on combined evidence) + DOG-008b (M5,
+satisfied) + DOG-005b (M3, forced fetch; claimed in M3 report 25, pending review); DOG-008 = DOG-008a (M2, satisfied on combined evidence) + DOG-008b (M5,
 stage change).
 
 **Automated M2 acceptance IDs (MILESTONES.md M2):** all satisfied; ARCH-001a, VIEW-004, CAM-004
@@ -98,8 +110,17 @@ and DOG-008a on combined evidence. **Every automated M1 and M2 acceptance ID is 
 M2 stay **Partial** because their manual checks are open: the M1 checks and the M2 desktop and touch
 play checks (below).
 
-**Partial evidence only (not satisfied, later milestones):** GZ-001, GZ-002, GZ-021, GZ-025,
-SAV-021 (no user-visible notice yet), UI-001–006, FLOW-005.
+**Claimed by full suite cases in M3 report 25 (pending architect review; not counted above):**
+GZ-001, GZ-016, GZ-017, GZ-031, GZ-032, GZ-034–036, GZ-037, GZ-038–041, GZ-042–045, DOG-005b,
+FLOW-003, FLOW-004, AUTO-001 — `godot/` tree `b93d332aa607d56c7ef465617688afba3ab0d57a`, 156 passed on a fresh Windows clone. The threat
+cases compare with fixtures executed from the audited `src/systems/threats.ts`, `threatLogic.ts` and
+`src/entities/critters.ts` (the source's unseeded `Math.random` in the flee steering replaced by the
+port's seeded critter RNG during extraction, D-16).
+
+**Partial evidence only (not satisfied, later milestones):** GZ-002, GZ-021, GZ-025, GZ-033 (catch
+coins/score in `test_GZ_031_032_…`, the meow → cash pair in `test_SLICE_threat_events_reach_source_cues`),
+SAV-021 (no user-visible notice yet), UI-001–006 (M3 adds `test_P_UI_001_radar_threats_banner_hints_and_button_state`),
+FLOW-005 (M3: `test_P_FLOW_005_starvation_game_over_retry_and_continue_handoff`; the 1.1 receiver is a stub).
 
 **Command-level evidence (no suite case):** AST-019, **counted as satisfied** (accepted; all 206 generated
 outputs byte-identical under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
@@ -186,9 +207,8 @@ does resolve them; no JSON/tests/tools/platform/environment manifest is packed (
 exported leading-silence Resource reaches AudioService; a 600-frame packed startup logs no engine
 error or warning. Not an APK and not device evidence.
 
-**Not claimed:** AUTO-001 is reserved for the M3 run that includes an attack
-(`test_SLICE_real_input_run_reaches_exit` is the current real-input run); FLOW-003/004, GZ-005 and
-every other ID not listed above.
+**Not claimed:** GZ-003–007, GZ-010–015, GZ-018, GZ-022, GZ-023, GZ-026–030 (M2 ports with scripted
+or partial evidence; M3 added no full case for them), MAN-GZ and every other ID not listed above.
 
 **Not verified (no physical device or tester here; the emulators ran only the M1 spike, not the game):**
 everything on Android hardware; the game on the emulators (its APK export, install, Back, immersive,
@@ -197,7 +217,7 @@ physical device or with the production signing lineage (M9); the manual M1/M2 ch
 play sessions, occlusion and camera-edge inspection, crisp rendering at two sizes and one
 non-integer aspect, animation preview, listening to the audio, approval of the title images; the
 M1 items are prepared in `docs/porting/manual_evidence/m1-godot-tree-2ffca5f/` and wait for the
-owner's decisions).
+owner's decisions, now deferred); the M3 Green Zone played by a human or on any device (MAN-GZ).
 
 **Legacy-save plan (approved: MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3):**
 1. **M1 — feasibility spike: executed (progress report 14; hardened and rerun in correction reports
@@ -265,17 +285,20 @@ owner's decisions).
 | Digestion and poop warning | Partial | DOG-004; SLICE scripted rules run | warning bubble simplified (D-07) |
 | Surface-dependent pollution | Slice | GZ-008, GZ-009 | — |
 | Bladder and pee | Partial | DOG-003; SLICE scripted rules run; captures 06/11 | — |
-| Marking | Partial | ported rule | MARK paths not fixture-covered |
+| Marking | Slice (M3, pending review) | GZ-016, GZ-017 claimed: radius, points, centre, once per object | — |
 | Zone health and half-stars | Slice | GZ-019, GZ-020 | — |
-| Score/time/records | Partial | SAV-004; P: GZ-021 | cat/mark components need M3 |
+| Score/time/records | Partial | SAV-004; P: GZ-021; cat (250), first mark (150) and flee (400) components in M3 cases; level-end totals in FLOW-004 | GZ-021–023 full cases |
 | Lives for speed | Partial | GZ-024; P: GZ-025 | title counter UI is M4 |
 | Run energy | Slice | DOG-007; HUD energy ring | — |
 | Treats | Partial | SLICE real-input run; MAP-007 placements | — |
-| Cats and coins / Magnet balls / Under Attack / Bagnaskiz | — | — | M3 (D-10) |
-| Pollution waves | Partial | director + placement ported | RNG sharing with cats (D-03) |
-| HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006; SLICE multi-touch routing; captures | gestures/switcher (D-09) |
-| Briefing/level end/game over | Partial | FLOW-001, FLOW-002; P: FLOW-005; captures 01/07/13/14 | Supervillained snap, CONTINUE handoff (D-08) |
-| Green Zone automated full-play coverage | Partial | SLICE real-input run (no teleports) | AUTO-001 needs the M3 attack |
+| Cats and coins | Slice (M3, pending review) | GZ-031, GZ-032 claimed; P: GZ-033; capture 21 | — |
+| Magnet balls / forced fetch | Slice (M3, pending review) | GZ-034–036, DOG-005b claimed | — |
+| Under Attack | Slice (M3, pending review) | GZ-038–041 claimed; banner, alarm, siren loop, duck, pause/resume (SLICE cue case); capture 22 | screen look approximate (D-19) |
+| Bagnaskiz | Slice (M3, pending review) | GZ-042–045 claimed | — |
+| Pollution waves | Slice (M3, pending review) | GZ-037 claimed; one shared threat RNG drawn in the source order (GZ-001) | — |
+| HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006 (M3: threat radar dots, attack banner and hints, button state); SLICE multi-touch routing; captures | gestures/switcher (D-09); device safe area |
+| Briefing/level end/game over | Partial | FLOW-001, FLOW-002; FLOW-003, FLOW-004 claimed (M3); P: FLOW-005; Supervillained snap; glitch transition; CONTINUE → stub handoff; captures 23, 14 | title (M4); the 1.1 receiver (M5) |
+| Green Zone automated full-play coverage | Slice (M3, pending review) | AUTO-001 claimed (seeded real-input run with an attack); SLICE reproducibility | MAN-GZ manual runs |
 | Press Start 2P pixel font | Slice | AST-020 (glyphs, metrics, wrapping, fallback, IPA, schwa); OFL exported | glow (D-06) |
 | Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
 | Synthesized audio | Slice | AUD-005–008 (14 cues + medieval loop as source-rendered PCM WAV) | chapter routing (M5–M8) |

@@ -3,9 +3,12 @@ extends OverlayPanel
 ## "GOOD BOY!" result card, with the source geometry and reveal timing of src/scenes/overlays.ts
 ## LevelEndScene: one centred box, rows appearing every 0.15 s, stars popping in from 1.2 s every
 ## 0.35 s (3× → 2×), then the bonuses, the total, NEW BEST and the menu; a tap/confirm skips the
-## reveal. Until the title and campaign shell exist (M4/M5) the actions are RETRY and TITLE
-## (TITLE returns to the briefing).
+## reveal. When the walk is played as the story's 1.0 (`result["has_next"]`) the menu is CONTINUE
+## (the campaign handoff) and RETRY, otherwise RETRY and TITLE (the title arrives with M4; until
+## then TITLE returns to the briefing). Each revealed full or half star plays 'star', its rate
+## rising 0.12 per star (source Flow.levelComplete onStar).
 
+signal continue_requested
 signal retry_requested
 signal title_requested
 
@@ -25,10 +28,12 @@ func _ready() -> void:
 	menu_item_width = 120.0
 	menu_item_height = 16.0
 	menu_gap = 5.0
-	items = [
-		{"label": "RETRY", "color": T.YELLOW, "action": func() -> void: retry_requested.emit()},
-		{"label": "TITLE", "color": T.PINK, "action": func() -> void: title_requested.emit()},
-	]
+	items = []
+	if result.get("has_next", false):
+		items.append({"label": String(result.get("next_label", "CONTINUE")), "color": T.GREEN, "action": func() -> void: continue_requested.emit()})
+	items.append({"label": "RETRY", "color": T.YELLOW, "action": func() -> void: retry_requested.emit()})
+	if not result.get("has_next", false):
+		items.append({"label": "TITLE", "color": T.PINK, "action": func() -> void: title_requested.emit()})
 
 
 func _reveal_time() -> float:
@@ -46,6 +51,8 @@ func _process(delta: float) -> void:
 		var k := _stars_shown
 		_stars_shown += 1
 		_star_scale[k] = 2.0 if _star_variant(k) == 2 else 3.0
+		if _star_variant(k) != 2:
+			AudioService.play(&"star", 1.0, 1.0 + k * 0.12)
 	for k in 5:
 		if _star_scale[k] > 2.0:
 			_star_scale[k] = maxf(2.0, _star_scale[k] - delta * 8.0)

@@ -193,6 +193,84 @@ class Combat:
 	const SHIELD_SPEED := 0.55
 
 
+class Cat:
+	const SPEED := 3.9
+	const RADIUS := 0.22
+	const TOUCH_RADIUS := 0.55
+	const ALERT_DISTANCE := 5.0
+	const LIFETIME := 16.0
+	const COINS := 5
+	const SCORE := 250
+	const THINK_INTERVAL := 0.18
+	const SPAWN_MIN_DISTANCE := 5.0
+	const SPAWN_MAX_DISTANCE := 8.0
+
+
+class Ball:
+	const MAGNET_RADIUS := 3.6
+	const MAGNET_STRENGTH := 5.0
+	const GRAB_RADIUS := 0.45
+	const LIFETIME := 22.0
+	const FETCH_TIME := 2.0
+	const FETCH_HUNGER := 8.0
+	const TIME_PENALTY := 5.0
+	const SPAWN_MIN_DISTANCE := 4.0
+	const SPAWN_MAX_DISTANCE := 7.0
+
+
+class Attack:
+	const HEALTH_THRESHOLD := 0.95
+	const HYSTERESIS := 0.004
+	const COOLDOWN := 25.0
+	const TITLE_TIME := 2.6
+	const FULL_INTENSITY_DEFICIT := 0.08
+	const BASE_INTENSITY := 0.35
+
+
+class Bagnaskiz:
+	const SPEED := 2.65
+	const FLEE_SPEED := 5.6
+	const RADIUS := 0.3
+	const HITS_TO_FLEE := 3
+	const TRAIL_RADIUS := 0.95
+	const TRAIL_STRENGTH := 0.8
+	const TRAIL_INTERVAL := 0.25
+	const KNOCKBACK_SPEED := 7.0
+	const KNOCKBACK_DECAY := 9.0
+	const STUN_TIME := 0.7
+	const BUMP_HUNGER := 6.0
+	const BUMP_COOLDOWN := 1.2
+	const SPAWN_DISTANCE := 9.0
+	const RETARGET := 2.5
+	const FLEE_SCORE := 400
+
+
+## "You've been supervillained" at the end of the Green Zone (src/scenes/supervillainedScene.ts).
+class Supervillained:
+	const WIDTH := 0.84
+	const MAX_HEIGHT := 0.5
+	const Y := 0.44
+	const DIM := 0.72
+	const SNAP_FROM := 2.2
+	const SNAP_TIME := 0.12
+	const BOUNCE := 0.12
+	const BOUNCE_FREQ := 34.0
+	const BOUNCE_DECAY := 9.0
+	const FLASH_TIME := 0.3
+	const SHAKE := 5.0
+	const SHAKE_TIME := 0.4
+	const GLOW_ALPHA := [0.55, 1.0]
+	const GLOW_SPEED := 4.0
+	const GLOW_SCALE := 1.08
+	const GLOW_BLUR := 6.0
+	const SPARKS := 34
+	const SPARK_SPEED := [70.0, 190.0]
+	const SPARK_LIFE := [0.55, 1.2]
+	const SPARK_GRAVITY := 120.0
+	const HOLD := 2.4
+	const SKIP_AFTER := 0.45
+
+
 ## Maps the source config group names to the inner classes above (CFG-001 parity test).
 static func groups() -> Dictionary:
 	return {
@@ -200,5 +278,6 @@ static func groups() -> Dictionary:
 		"ENERGY": Energy, "INPUT": InputCfg, "OCCLUSION": Occlusion, "HUNGER": Hunger,
 		"TREAT": Treat, "DIGESTION": Digestion, "POOP": Poop, "BLADDER": Bladder,
 		"POLLUTION": Pollution, "ZONE": Zone, "LIVES": Lives, "SCORE": Score, "BARK": Bark,
-		"FX": Fx,
+		"FX": Fx, "CAT": Cat, "BALL": Ball, "ATTACK": Attack, "BAGNASKIZ": Bagnaskiz,
+		"SUPERVILLAINED": Supervillained,
 	}

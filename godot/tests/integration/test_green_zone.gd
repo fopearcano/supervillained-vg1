@@ -230,9 +230,9 @@ func test_DEPTH_004_tree_fades_when_hiding_the_dog() -> void:
 	assert_true(w.player.z_index > tree_prop.z_index, "dog sorts in front when south-east of the tree")
 
 
-## Real-input Green Zone slice run (no plan ID: the M3 run with an attack is a different case).
-## The driver only sets InputService movement and presses PEE; it follows the BFS distance field toward the exit, detours to nearby treats, and pees on
-## its poops. It must eat, poop, pee, clean, reach the exit and save the record.
+## Real-input Green Zone slice run (no plan ID; AUTO-001 in test_green_zone_m3.gd is the full M3
+## run). The driver (tests/automation/green_zone_driver.gd) only sets InputService movement/RUN and
+## presses PEE and BARK. It must eat, poop, pee, clean, reach the exit and save the record.
 func test_SLICE_real_input_run_reaches_exit() -> void:
 	_spawn()
 	var dog := scene.world.player
@@ -256,6 +256,9 @@ func test_SLICE_real_input_run_reaches_exit() -> void:
 	assert_true(st["pees"] >= 1, "peed (%d)" % st["pees"])
 	assert_true(cleaned[0] >= 1, "cleaned a poop with pee")
 	assert_eq(scene.result.get("state"), "complete", "level-end result")
+	# M3: "You've been supervillained" snaps in first, then the result card.
+	if assert_true(scene._overlay is SupervillainedOverlay, "Supervillained snap shown"):
+		(scene._overlay as SupervillainedOverlay).step(GameConfig.Supervillained.HOLD + 0.05)
 	assert_true(scene._overlay is LevelEndOverlay, "level end overlay shown")
 	var rec: Variant = SaveService.get_record("level1")
 	assert_true(rec != null and int(rec["score"]) == int(scene.result["total"]), "record saved at completion")

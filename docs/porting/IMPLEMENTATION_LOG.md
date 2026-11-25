@@ -6,14 +6,213 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 24 is current. Erratum for the historical reports: their
+in progress report 5. M3 report 25 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 24: crash-safe M1 owner evidence and corrected scope claims; owner decisions not yet requested (M1 Partial, M2 Partial) — current
+## M3 report 25: playable Green Zone 1.0 prototype and core arcade flow; M1/M2 manual checks owner-deferred (M1 Partial, M2 Partial, M3 Partial) — current
+
+Scope: the owner's M3 instruction after `d2f1c02`: implement M3 (the complete Green Zone 1.0 and the
+core arcade flow) as a functional prototype on the accepted M1/M2 foundations, in one implementation
+commit. Changed: the Godot project (`godot/`, list below), this log, FEATURE_MATRIX.md and five
+prototype screenshots in `docs/porting/captures/m3_green_zone_prototype/`. The PixiJS source, root
+`android/`, `ios/` and every file outside `godot/` and `docs/porting/` are unchanged. No story
+content was implemented; M4 persistence was not started (the only save remains the M2 level record,
+SAV-004).
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (manual checks owner-deferred: not passed, not cancelled, not release-approved); **M3 Partial**: every required gameplay system is implemented and playable; 21 M3 acceptance IDs claimed by full suite cases (GZ-001, GZ-016, GZ-017, GZ-031, GZ-032, GZ-034–045, DOG-005b, FLOW-003, FLOW-004, AUTO-001), pending architect review; UI-001–006 and FLOW-005 partial; MAN-GZ not executed |
+| Base | `d2f1c02` (correction report 24; `godot/` tree `21ce8a2`) |
+| Current `godot/` tree | `b93d332aa607d56c7ef465617688afba3ab0d57a`; verified on a fresh Windows clone of the local verification commit `0d1fe18` (the same `godot/` tree; this commit adds only `docs/porting/`) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090, OpenGL 3.3 Compatibility renderer, 60 Hz display; Linux not run |
+| Android | not run (no device or emulator claim for the game) |
+
+### Owner decision: prototype execution mode
+
+The owner is not skipping M1 or M2: their automated implementation and the 98 accepted IDs remain
+valid. The remaining M1/M2 manual checks are **explicitly deferred for prototype development**; they
+are not passed, not cancelled and not release-approved. The M1 manual-review station is no longer
+extended and no further evidence-tool hardening is done unless it blocks development. Its committed
+package (`docs/porting/manual_evidence/m1-godot-tree-2ffca5f/`) is bound to a content fingerprint
+over files this report changed (`autoload/audio_service.gd`, `scenes/green_zone/green_zone_scene.gd`):
+the station would set those decisions aside as stale, so the package must be regenerated before any
+later owner review. The story is an unfinished draft: no campaign prose or final story content is
+implemented here; the handoff after 1.0 is data only.
+
+### M3 systems: completed, partial, missing
+
+Completed (playable, automated cases):
+1. **Hunger and lives** (M2 port, unchanged): idle/walk/run drain, starvation life loss with refill
+   to 50, hurt and 2 s invulnerability, game over at 0 lives; Green Zone-only speed for lives.
+2. **Digestion and poop** (M2 port): treat digestion and overflow, the 3 s warning, postponement while
+   busy, automatic poop, surface footprints, spread, cleaning and fade.
+3. **Bladder and pee** (M2 port): charges, empty feedback, regeneration, puddle/fountain refill with
+   the drink cooldown, expanding cleaning; **marking**: bonus once per object (GZ-016/017 cases new).
+4. **Scoring and environmental health**: treat, cat (250), first mark (150), poop clean (100), flee
+   (400), time and star components; half stars; pees < poops final penalty; result data
+   `{score, stars, time, bonuses, total}`; the record stays the M2 SAV-004 save (no M4 persistence).
+5. **Cats and coins** (new): spawn timers and spots ahead of the dog, idle → flee steering on the
+   shared GridKinematicSolver, bark startle (0.8 s hop), catch (5 coins, 250), leave after 16 s with a
+   1.2 s fade; meow then the cash 0.35 s later.
+6. **Magnet balls and fetch** (new): the source pull curve, escape by running, forced fetch (2 s, no
+   control, hunger 8, +5 s), DOG-005b overlap rules.
+7. **Pollution waves**: three route-progress waves, once each, seeded placement, radius, strength,
+   one cue; the one shared threat RNG is now drawn exactly in the source order by cat and ball
+   timers, spots and tints, the waves, Bagnaskiz's spawn and his green targets (D-03 resolved).
+8. **Under Attack** (new): health and scripted (progress 0.56) triggers, 25 s cooldown, intensity,
+   flee + hysteresis end; banner (big title 2.6 s, reminder with the bark or pee hint, ZONE SAVED!),
+   alarm, the siren loop after 3.9 s at 0.45, music duck 0.45, siren off on pause / back on resume,
+   saved cue on the end; the sepia/scanline/glitch look.
+9. **Bagnaskiz** (new): spawn 7–9 tiles away, green-target selection (14 samples, clean tiles within
+   1.6), pollution trail, bump (knockback 6, hurt 0.35 s, hunger 6, 1.2 s cooldown), delayed bark
+   hits inside the cone, stun, three-hit flee with FLEE_SCORE and fade-out.
+10. **Complete flow**: briefing → play; pause / resume / restart; RESTART and RETRY replay at once with
+    the glitch transition (source Flow.restart: no briefing); level end after the "You've been
+    supervillained" snap (logo, flash, shake, sparks; skip after 0.45 s); game over → RETRY / QUIT;
+    CONTINUE emits `campaign_handoff` with `CampaignHandoff.from_result()` =
+    `{from: "1.0", to: "1.1", result, time, coins}`, received by `Main.campaign`
+    (`CampaignHandoff.Receiver`, a stub that only records it; the briefing then stands in for the
+    title). QUIT/TITLE return to the briefing until the title exists (M4).
+11. **UI and controls**: the M2 HUD (stats, half stars, hunger, score, timer, lives, energy ring on
+    RUN, MENU) plus radar dots for cats, balls and a blinking Bagnaskiz, the magnet rings, the attack
+    banner; the existing keyboard/controller/touch paths and both handed layouts; the logical viewport
+    stays inside the display safe area (M2 VIEW-003). The interface was not redesigned.
+
+Partial: UI-001–006 (no device safe-area or hand-layout check on hardware), FLOW-005 (the 1.1
+receiver is a stub), GZ-033 (no single full case), MAN-GZ (no human run). Missing: nothing among
+the required gameplay systems; story content, the title scene and M4 persistence are out of scope.
+
+New or changed files (`godot/`): `systems/threat_logic.gd` (bark cone, magnet curve, flee steering,
+AttackDirector), `systems/green_zone_threats.gd` (full threats), `entities/critters/critter_controllers.gd`
+(cat, ball and Bagnaskiz controllers), `entities/critters/critter_view.gd`, `ui/hud/attack_banner.gd`,
+`scenes/overlays/supervillained_overlay.gd`, `fx/glitch.gdshader`, `fx/glitch_rect.gd`,
+`fx/glitch_transition.gd`, `campaign/campaign_handoff.gd`, `scenes/green_zone/green_zone_scene.gd`
++ `.tscn` (wiring, cues, attack look, magnet rings, radar, flow), `main/main.gd` (transition,
+restart/title/handoff), `scenes/overlays/level_end_overlay.gd` (CONTINUE, star cues),
+`autoload/audio_service.gd` (looping effects: `loop`, `stop_loop`, `stop_all_loops`),
+`core/game_config.gd` (CAT, BALL, ATTACK, BAGNASKIZ, SUPERVILLAINED), `assets/branding/supervillained_logo.png`
+(copied by the extractor from `assets/starting-page-images/`, manifest updated),
+`ui/title/title_portrait.gdshader` (comment: shared with the logo), `tools/source_extract/extract.mjs`
+(logo copy, config groups, `threat_logic`, `threats_run` and `rules_fetch` fixtures),
+`tools/capture_suite.gd` (M3 shots), `README.md`, tests (below). No world, movement, camera,
+collision, animation, input, asset-pipeline or save foundation was rewritten.
+
+### Deviations (new or changed)
+
+| ID | Deviation | Planned |
+|---|---|---|
+| D-03 | **Resolved**: the shared threat RNG is drawn by cats, balls, waves and Bagnaskiz in the source order (fixture equality) | — |
+| D-08 | **Partly resolved**: the Supervillained snap, the glitch transition and the CONTINUE handoff (stub receiver) exist; TITLE/QUIT still return to the briefing | M4 (title), M5 (1.1) |
+| D-10 | **Resolved**: cats, coins, magnet balls, Bagnaskiz and Under Attack are ported | — |
+| D-16 | The source steers fleeing cats and Bagnaskiz with unseeded `Math.random`; the port uses a second seeded critter RNG (seed ^ 0x2545f491), drawn once per open direction in the source order; the extractor used the same generator for the fixtures | — |
+| D-17 | Supervillained logo: smooth (linear) sampling + the 110 alpha cut, like the title portrait, instead of the source's step-halving canvas resize; the halo is not blurred | M8 |
+| D-18 | `stop_loop` stops the siren at once (the source fades it out over about 0.4 s) | M8 |
+| D-19 | The glitch/sepia look is a screen-space shader over the world (attack) or the whole stage (transition); colours follow the source shader, but the look was not compared side by side | M8 |
+| D-07, D-09 | Unchanged (text-only popups, no particles or thought sprite; gestures/switcher) | M8; M5 |
+
+### Tests added or changed
+
+New: `tests/unit/test_threats.gd` (10 cases: `test_SLICE_bark_cone_and_magnet_curve_match_source`,
+`test_GZ_038_041_…`, `test_GZ_001_…`, `test_SLICE_threats_run_trace_matches_source`, `test_GZ_037_…`,
+`test_GZ_042_045_…`, `test_DOG_005b_…`, `test_GZ_031_032_…`, `test_GZ_034_036_…`, `test_GZ_016_017_…`)
+and `tests/integration/test_green_zone_m3.gd` (5: `test_AUTO_001_…`, `test_SLICE_auto_run_is_reproducible`,
+`test_SLICE_threat_events_reach_source_cues`, `test_P_UI_001_…`, `test_FLOW_004_…`);
+`tests/integration/test_main_and_rates.gd` gains `test_FLOW_003_restart_from_dirty_run_is_clean_and_keeps_settings`
+and `test_P_FLOW_005_starvation_game_over_retry_and_continue_handoff`. Fixtures: `threat_logic`
+(80 bark-cone samples, the magnet curve, a 4200-tick director script), `threats_run` (a 4800-tick
+scripted Rules + Threats run: a cat caught, a ball fetched, three waves, the scripted attack, a bump,
+three hits, the flee, the attack end) and `rules_fetch` (DOG-005b), all executed from the audited
+TypeScript; the existing fixture entries are byte-identical apart from the five added config groups.
+Changed: `test_SLICE_real_input_run_reaches_exit` (the snap precedes the result card); the two
+`test_P_DOG_008a_main_restart…` cases (RESTART now replays at once after the glitch midpoint, like the
+source: no briefing, Green Zone music, run clock started); `test_AST_018` (the logo is a runtime
+copy) and `test_AST_010`'s linear-sampling list (the logo joins the title portrait);
+`tests/automation/green_zone_driver.gd` (M3 behaviours, below).
+
+AUTO-001 driver: InputService movement, RUN, PEE and BARK only; no teleports, no rule or threat
+calls. It barks Bagnaskiz away (approach, face, bark in the cone), chases one cat at a run, walks
+into the first ball (forced fetch) and runs clear of later ones, pees on its poops, marks one tree,
+heals the zone after an attack, refills once at water and otherwise follows the exit distance field
+with detours to treats ahead.
+
+**AUTO-001 run (seed 20240501):** `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` — events: 26 treats, 6 poops (all 6 cleaned by pee), 1 first mark, 2 cats spawned and 1 caught, 1 ball spawned and fetched, 3 pollution waves, 1 attack started and ended, 3 barks and 3 hits, Bagnaskiz fled, 2 drinks; the exit reached with 2 lives; the Supervillained snap, the result card (CONTINUE / RETRY) and the CONTINUE handoff `{from 1.0, to 1.1, time 60.1 s, coins 5}` followed. The same line twice on the fresh clone and in `test_SLICE_auto_run_is_reproducible`.
+
+Restart from a dirty run (FLOW-003, through Main and the pause menu): after 32 s of real-input play
+plus the dog placed past the scripted attack point (cats/balls, poops, waves, Bagnaskiz and the
+siren live), RESTART gives no threats, no pollution, no poops, three waves pending, a calm director
+with no cooldown, 30 treats, fresh stats with the lives setting, Green Zone music, no siren, and the
+non-default settings (volume 0.5, 4 lives, left hand, RUN toggle) intact. Starvation/game over
+(FLOW-005 partial): an idle dog starves through both lives (refill 50, 2 s invulnerability, hurt),
+GAME OVER follows with no record, RETRY plays a clean run at once.
+
+### Commands executed and results
+
+| Command | Exit | Result |
+|---|---|---|
+| `git clone --branch claude/gallant-keller-rbvtvy <session clone> <fresh dir>`; `npm ci`; `npx playwright install chromium` | 0 / 0 / 0 | fresh clone of the verification commit; `godot/` tree as above |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (deterministic asset check) | 0 | asset check OK: 207 outputs identical (73 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12); build_resources check (all): OK, 55 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | 0 | 0 ERROR/WARNING lines; `git status --porcelain` afterwards empty: yes |
+| `… --script res://tests/test_runner.gd -- --suite all` (full suite) | 0 | 156 passed, 0 failed, 156 total (86.0 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_threats` (focused M3) | 0 | 10 passed, 0 failed, 10 total (2.1 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3` (focused M3) | 0 | 5 passed, 0 failed, 5 total (6.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3 --case AUTO_001`, twice (deterministic AUTO-001) | 0 / 0 | identical lines: yes — `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame Main launch) | 0 | 0 ERROR/WARNING lines |
+| `… -- --suite integration --file test_export_pack` (hermetic PCK smoke) | 0 | 1 passed, 0 failed, 1 total (16.6 s), Godot 4.7.2-stable (official) |
+| `npm test` (PixiJS) | 0 | Tests  248 passed (248) |
+| `npm run build` (PixiJS) | 0 | built in 318ms |
+| `git status --porcelain` after the checks | 0 | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check --format= HEAD` | 0 / 0 | no output |
+| `bash godot/tools/source_tree_guard.sh` | 0 | source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265 |
+| `git diff --stat 95b69c0 HEAD -- src public assets android ios package.json package-lock.json` | 0 | empty (PixiJS untouched) |
+| `git status --porcelain` after all steps | 0 | empty |
+
+Screenshots (`docs/porting/captures/m3_green_zone_prototype/`, windowed Compatibility renderer,
+432×864, from `tools/capture_suite.gd --mode run`, the same driver): `20_green_zone_full_hud.png`
+(play with the full HUD), `21_cat_or_ball.png` (a fleeing cat), `22_attack_bagnaskiz.png` (Under
+Attack banner and look, Bagnaskiz and his trail), `23_supervillained.png` (the end-of-level snap),
+`14_level_end_final.png` (result card with CONTINUE / RETRY). The run that produced them ended
+complete with total 6360 at 60.7 s. A first capture run missed the attack shot (its trigger waited
+until Bagnaskiz was within 5 tiles after the big title; the driver had already barked him away); the
+trigger was changed to 1.2 s into the attack and the run repeated.
+
+Not run: Linux; Android (no APK of the game, no device or emulator run); any manual check (M1/M2
+deferred; MAN-GZ); the M2 rendered presentation probe (`tools/rendered_presentation_probe.gd`): no
+camera or interpolation file changed, but its RESTART record was written for the instant M2 restart
+and RESTART now plays the glitch transition first, so that record would need its wait adjusted; it
+was not rerun or changed (evidence-tool hardening is out of scope unless it blocks development). The
+M1 review station was not run.
+
+### Remaining prototype limitations
+
+- No human has played this build; balance, feel, visuals and audio are unreviewed (MAN-GZ).
+- Touch, both hands and the safe area were exercised only in the logical viewport in tests; no
+  phone run.
+- The glitch/sepia look, the logo halo and the siren fade differ in detail from the source (D-17 to D-19).
+- Popups are text-only; no particles or thought-bubble sprite (D-07); gestures/switcher not wired (D-09).
+- TITLE/QUIT and the stub handoff return to the briefing; there is no title scene or story (M4/M5).
+- The M1 manual package is stale against this tree and must be regenerated before an owner review.
+
+### Development attempts (kept as found)
+
+- The first extractor run stopped at a JavaScript syntax error (an apostrophe in the new copy
+  entry's description) before writing anything; fixed and rerun.
+- The first marking test chose a tree with another tree next to it, so the pee marked the
+  neighbour; the test now picks an isolated tree.
+- The first FLOW-005 test read the refill values inside the life-lost signal, which the rules emit
+  before refilling (as the source does); it now reads them after the tick.
+- A driver variable typed from a Variant failed GDScript's warnings-as-errors parse, and the word
+  "placeholder" in two comments tripped AST-017's no-procedural-art scan; both fixed.
+- The first capture run missed the attack shot (above).
+
+---
+
+## Historical — correction report 24: crash-safe M1 owner evidence and corrected scope claims (`d2f1c02`; M1 Partial, M2 Partial)
+
+> Superseded by M3 report 25: the owner deferred the M1/M2 manual checks for prototype development, so this report's "the owner is not asked to review until … independent review" no longer gates anything; its package is stale against tree `b93d332` (see M3 report 25).
 
 Scope: the architect's correction 24 after `9ca2ec5`: make the M1 owner evidence crash-safe and
 correct the remaining scope claims, in one commit of review-tool, evidence and documentation

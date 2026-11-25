@@ -541,6 +541,16 @@
    "h": 192
   },
   {
+   "source": "assets/starting-page-images/Youve_Been_Supervillained_Logo.png",
+   "target": "assets/branding/supervillained_logo.png",
+   "sha256": "9a0a2dcbb105177465793fa2d38a13994ed6173cd753c444eee2a781aace0ead",
+   "bytes": 6834,
+   "use": "the Supervillained end-of-level logo (src/ui/titleArt.ts logoUrl, SupervillainedScene)",
+   "provenance": "Git blob at the audited commit; distribution rights to be recorded by owner (REL-001)",
+   "w": 588,
+   "h": 315
+  },
+  {
    "source": "src/assets/fonts/OFL.txt",
    "target": "assets/fonts/OFL.txt",
    "sha256": "98e451fe911e5ee4a1a45359535dc30ea7df28b8d9a9cd1f741778efab1387ee",
@@ -2310,8 +2320,8 @@
   },
   {
    "target": "tests/fixtures/source_reference.json",
-   "sha256": "07a8fbe64de2c1883a859ddc12d23e6e6c5ce3919e91dd43967d86fc4a1a2d39",
-   "bytes": 487235
+   "sha256": "20f8c6be46763972b317f15277d5175db6210e66e970c68d74801868cd690fcb",
+   "bytes": 620653
   },
   {
    "target": "tests/fixtures/source_story_maps.json",

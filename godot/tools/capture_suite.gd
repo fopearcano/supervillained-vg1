@@ -122,6 +122,21 @@ func _full_run() -> void:
 		if events["clean"] == 20 and not shots.has("clean"):
 			shots["clean"] = true
 			await _shot("11_pee_cleans_poop")
+		# M3 prototype shots: the full HUD in play, a cat or ball near the dog, Bagnaskiz under attack.
+		var dog = scene.world.player
+		if frame == 240 and not shots.has("hud"):
+			shots["hud"] = true
+			await _shot("20_green_zone_full_hud")
+		if not shots.has("critter"):
+			for c in scene.threats.cats + scene.threats.balls:
+				if absf(c.gx - dog.gx) + absf(c.gy - dog.gy) < 4.0:
+					shots["critter"] = true
+					await _shot("21_cat_or_ball")
+					break
+		var pug = scene.threats.pug
+		if pug != null and pug.is_active() and scene.threats.director.elapsed > 1.2 and not shots.has("attack"):
+			shots["attack"] = true
+			await _shot("22_attack_bagnaskiz")
 		if not shots.has("occlusion"):
 			for n in scene.world.object_layer.get_children():
 				if "map_prop" in n and n.visible and n.iso.fadeable and n.iso.fade < 0.6:
@@ -130,6 +145,14 @@ func _full_run() -> void:
 					break
 		if scene.result.get("state", "") != "" :
 			await _frames(45)
+			if scene.result["state"] == "complete":
+				# M3: the Supervillained snap first, then the result card.
+				await _shot("23_supervillained")
+				for k in 400:
+					if scene._overlay != null and String(scene._overlay.get_script().resource_path).ends_with("level_end_overlay.gd"):
+						break
+					await process_frame
+			await _frames(30)
 			await _shot("13_level_end_reveal" if scene.result["state"] == "complete" else "13_game_over")
 			input.trigger(&"confirm")
 			await _frames(30)
