@@ -6,14 +6,177 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 26 is current. Erratum for the historical reports: their
+in progress report 5. M4 report 27 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 26: terminal freeze and strengthened GZ-032/043/044/045 evidence (M1 Partial, M2 Partial, M3 Partial) — current
+## M4 report 27: native save system and non-story product shell (M1, M2, M3 Partial; M4 Partial) — current
+
+Scope: the owner's M4 instruction after `57f4bf7`: the format-3 save, its validators, writer and
+recovery; the deterministic legacy converter with the fixture/simulated half of MIG-005; settings
+and Green Zone persistence; the title, NEW GAME confirmation, COUCH, OPTIONS, CONTROLS, GLOSSARY,
+Goodbye and a replay-selection shell. Changed: `godot/` (list below), this log, FEATURE_MATRIX.md
+and twelve captures in `docs/porting/captures/m4_shell/`. The PixiJS, Capacitor and iOS sources and
+every file outside `godot/` and `docs/porting/` are unchanged. No story scene, dialogue, chapter
+prose, combat or minigame was implemented; M5 was not started.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1, M2, M3 Partial** (their manual checks owner-deferred: not passed, not cancelled, release-blocking); **M4 Partial**: every M4 system implemented and automated; 25 M4 acceptance IDs claimed by full suite cases, pending architect review; MIG-005 (M4 half), MIG-006–010, SAV-009, SAV-010, UI-009 and the shell portions of FLOW-007–009/012 partial; M4's manual checks not executed |
+| Base | `57f4bf7` (correction report 26; `godot/` tree `0684cc9`) |
+| Current `godot/` tree | `477f012b1f3861c6ea4273dd532acf5adce34997`; verified on a fresh Windows clone of the local verification commit `1ce0330` (the same `godot/` tree; this commit adds only `docs/porting/`) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090, OpenGL 3.3 Compatibility renderer; Linux not run |
+| Android | not run (no device or emulator claim) |
+
+### Implemented
+
+1. **Format-3 persistence** (`autoload/save_service.gd`, `campaign/campaign_schema.gd`): the exact
+   `user://save_v3.json` container of ARCHITECTURE §17.1. Every section is normalized on load and on
+   every write: settings (the source loadSettings/validControls rules), independent records, the
+   passive `legacy_arcade_coins` `{present, value}`, the campaign v2 (catalog ids only, meters
+   clamped 0–100, book/ability arrays deduplicated by first occurrence, abilities limited to
+   cross/knight/sermon, coins/playTime/savedAt/notice typed) with CampaignFlagSchema (known enums,
+   the nonnegative `shortfall`, the booleans, `santinaBall` any scalar, unknown scalars kept,
+   unknown arrays/objects dropped), and the legacy-import metadata. `written_at_unix_ms` changes on
+   every container write; `campaign.savedAt` only at a campaign save. The atomic protocol (temp
+   write + flush, read-back validation, backup rotation, rename; newest-valid recovery; future
+   formats preserved byte-for-byte and writes blocked for the session) now runs through one
+   injectable `SaveFileOps`; a recovery from the backup or an unreadable main raises a title notice.
+2. **Legacy conversion** (`campaign/legacy_import.gd`): a source hands over the five-key payload as
+   received; its raw bytes and a metadata file (timestamp, SHA-256, size) are written to
+   `user://legacy/` and read back before anything is parsed (an earlier, different payload is kept
+   aside); then settings, records (merged as bests), the standalone coins (present/value only), the
+   campaign (v1 → the existing CampaignMigration → v2 → format 3, or v2 → format 3; never over a
+   campaign with progress) and the v1 backup are converted independently. Statuses: imported,
+   imported_partial, not_found, retryable_error, blocked, with per-key results, attempt count, the
+   payload hash and an error code; retryable_error retries, blocked waits, not_found is terminal
+   unless forced, imported states are idempotent. M4 uses `FixtureSource`; the Android bridge that
+   reads the old WebView store is M9 (the accepted M1 spike).
+3. **AppState and the Green Zone** (`autoload/app_state.gd`, `scenes/green_zone/green_zone_scene.gd`):
+   settings save on a confirmed change and apply at once (audio mute/volume, input run toggle and
+   hand, the gesture bindings and switcher stored in InputService for M5's recognizer); NEW GAME
+   saves the exact default campaign; the walk's record saves at level completion; CONTINUE hands the
+   walk over like the source (addWalk then finishSub: coins and time, then 1.0 complete, two
+   campaign saves); RETRY, result-screen TITLE/QUIT and game over hand nothing over; gameplay never
+   writes `legacy_arcade_coins`.
+4. **Product shell**: Main starts at `scenes/title/title_screen.tscn` (NEW GAME, CONTINUE, COUCH,
+   OPTIONS, GLOSSARY, QUIT; the animated portrait; INSERT BRAIN with the lives counter; LIFE FOR
+   SPEED; SUPERVOID EDITIONS), with overlays in `scenes/shell/`: the NEW GAME confirmation, OPTIONS
+   (sound, volume, text speed, CONTROLS, LEVELS (REPLAY), MERAVIGLIA BOOK, BACK), CONTROLS (three
+   gestures, RUN hold/toggle, switcher, hand, DEFAULTS), COUCH and GLOSSARY paper cards, the level
+   and chapter lists, and a message card (Goodbye where an app cannot close; the one-time migration
+   notice; save notices; the boundary). CONTINUE derives its destination from the saved campaign
+   (`StoryCatalog`, generated from the source catalog's ids and titles; `CampaignFlow`); starting
+   1.0 launches the Green Zone; after 1.0, 1.1 is shown as "NOT IN THIS BUILD" over the title with
+   the progress kept — no story scene is invented, nothing is erased and no other run starts. Story
+   words of the shell live in `data/shell/shell_text.tres`; a story rewrite edits that resource and
+   the generated catalog, not the title or save code. Only the topmost overlay takes input; queued
+   input is cleared when an overlay opens; Esc and Android Back close one overlay at a time and quit
+   on the bare title. Developer start `-- --skip=game` (source `?skip=game`).
+5. **Replay and flow policy** (`campaign/campaign_flow.gd`, `campaign/campaign_rules.gd`,
+   `campaign/campaign_summary.gd`): sequential unlock (level 1 open, a level after the previous one,
+   finished scenes plus the first unfinished one), replays on a deep copy with persistence off
+   (no record, no campaign write), the walk's save order, the Supervillained boundaries, the
+   effects rules (applyEffects/markComplete) and the Couch summary.
+
+Tests and tools never read or write a developer's save: with a scripted main loop (the test runner,
+`--script` tools) SaveService starts in memory until a directory is set explicitly (before this
+report the runner's autoload start-up read the real `user://` save before each case was isolated).
+
+### Deviations (new)
+
+| ID | Deviation | Planned |
+|---|---|---|
+| D-20 | A replay of the walk saves no record (the source records a replayed walk's best); the architect's rule is that a replay changes no persistent byte | — |
+| D-21 | Title presentation simplified: SUPERVILLAINED in the pixel font (source: the gradient/outline/glow logo lettering), no blurred frozen Green Zone with the film and glitch filters behind it, no lettering glitch, the footer glow approximated | M8 |
+| D-22 | NEW GAME and CONTINUE into 1.0 skip the story's level-intro and scene cards (chapter prose); 1.1 onwards and the MERAVIGLIA BOOK show a "not in this build" card | M5 |
+| D-23 | QUIT closes the app on desktop builds too (the source closes on Android and shows the Goodbye card in browsers and on iOS; Godot shows it where an app cannot close) | — |
+
+D-17, D-18, D-19 and the frozen HUD remain M8 presentation debt. All saves are written at once, so
+nothing is dirty when the app goes to the background (no extra flush needed).
+
+### Acceptance IDs
+
+Claimed by full suite cases (pending review): SAV-005, SAV-006, SAV-007, SAV-008, SAV-011, SAV-012,
+SAV-021; UI-007, UI-008, UI-010, UI-011, UI-012–014, UI-015–021, UI-022; FLOW-006, FLOW-010,
+FLOW-011. Still satisfied: SAV-001–004, SAV-013–020, SAV-022 (their cases pass on the new writer).
+Partial (`test_P_`): SAV-009, SAV-010, MIG-005 (M4 half), MIG-006, MIG-007, MIG-008, MIG-009,
+MIG-010, UI-009, FLOW-007–009 (one case), FLOW-012, FLOW-005. Not attempted: MIG-001–004 (M9).
+
+Tests: `tests/unit/test_save_m4.gd` (20 cases) and `tests/integration/test_shell.gd` (16); updated
+`test_main_and_rates.gd` (Main starts the walk with `start_target = "walk"`; FLOW-005 now checks the
+saved handoff and the 1.1 card), `test_export_pack.gd` (the pack starts at the title, then the
+walk), `test_assets` unchanged. Fixtures executed from the audited TypeScript and added to
+`tests/fixtures/source_reference.json`: `couch` (progressSummary, formatPlayTime, formatSavedAt —
+local time bound to UTC during extraction), `effects` (applyEffects, markComplete), the
+TITLE/COUCH/GLOSSARY config groups; `data/campaign/story_catalog.json` (ids and titles, built into
+`story_catalog.tres`). The extractor's module hook now resolves directory imports (tools only).
+
+### Commands executed and results
+
+| Command | Exit | Result |
+|---|---|---|
+| `git clone --branch claude/gallant-keller-rbvtvy <session clone> <fresh dir>`; `npm ci`; `npx playwright install chromium` | 0 / 0 / 0 | fresh clone of the verification commit; `godot/` tree as above |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (deterministic asset check) | 0 | asset check OK: 208 outputs identical (73 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12); build_resources check (all): OK, 56 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | 0 | 0 ERROR/WARNING lines; `git status --porcelain` afterwards empty: yes |
+| `… --script res://tests/test_runner.gd -- --suite all` (full suite) | 0 | 197 passed, 0 failed, 197 total (94.8 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_threats` (focused M3) | 0 | 13 passed, 0 failed, 13 total (2.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3` (focused M3) | 0 | 7 passed, 0 failed, 7 total (7.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3 --case AUTO_001`, twice (deterministic AUTO-001) | 0 / 0 | identical lines: yes — `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` |
+| `… -- --suite unit --file test_save_m4` (focused M4) | 0 | 20 passed, 0 failed, 20 total (0.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell` (focused M4 shell) | 0 | 16 passed, 0 failed, 16 total (5.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save` (M1/M2 save cases on the new writer) | 0 | 38 passed, 0 failed, 38 total (1.2 s), Godot 4.7.2-stable (official) |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame Main launch) | 0 | 0 ERROR/WARNING lines |
+| `<console exe> --headless --path godot --quit-after 120 --verbose`, filtered for the first scene loaded | 0 | the title scene is loaded (`title_screen.tscn`); Main preloads the Green Zone scene too, so its resource load is also listed; the running first scene is the title (`test_SLICE_fresh_launch_reaches_title`, the PCK probe's `running_scene`) |
+| `… -- --suite integration --file test_export_pack` (hermetic PCK smoke) | 0 | 1 passed (17.3 s): PCK 33,042,832 bytes, 285 runtime resources loaded from the pack, 573 packed files, 18 source-only paths unresolved (control 18); the packed game starts at the title, then the Green Zone loads from the pack |
+| `npm test` (PixiJS) | 0 | Tests  248 passed (248) |
+| `npm run build` (PixiJS) | 0 | built in 308ms |
+| `git status --porcelain` after the checks (clean status) | 0 | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check --format= HEAD` | 0 / 0 | no output |
+| `bash godot/tools/source_tree_guard.sh` | 0 | source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265 |
+| `git diff --stat 95b69c0 HEAD -- src public assets android ios package.json package-lock.json` | 0 | empty (PixiJS untouched) |
+| `git status --porcelain` after all steps | 0 | empty |
+
+These ran on the fresh clone of the verification commit. The final commit (the same `godot/` tree plus
+`docs/porting/`) is checked with `git show --check`, `git status` and the source-tree guard right after
+committing; those results are reported with the commit.
+
+Captures (`docs/porting/captures/m4_shell/`, windowed Compatibility renderer, `capture_suite.gd
+--mode shell`, an in-memory save after the walk with a record): the title, COUCH and GLOSSARY at
+logical widths 192, 216 and 270; OPTIONS, CONTROLS and the level list at 216.
+
+Not run: Linux; Android (no APK, no device or emulator); any manual check (M1–M3 deferred; M4's
+manual list); listening to audio; the M2 rendered presentation probe (it now starts Main with
+`start_target = "walk"`, not rerun).
+
+### Remaining gaps
+
+- Manual: every option across a real app restart, three Green Zone records by hand, the import
+  fixtures through a debug UI, a force-close during a save, Android Back through every overlay on a
+  device, visual review of the shell at phone sizes.
+- M5: the story scenes after 1.0, the level/scene cards, the Meraviglia book, the story pause and
+  SKIP SCENE, per-effect saves, story play time, the gesture recognizer, text speed in dialogue.
+- M9: the Android bridge acquisition, MIG-001–004 and the M9 half of MIG-005, signed upgrade.
+- M8: the title's logo lettering, film and glitch, D-17–D-19.
+
+### Development attempts (kept as found)
+
+- The first Couch layout captured its line counter in GDScript lambdas, which copy locals; it was
+  rewritten with member state before any run.
+- The first shell run found that a covered overlay still read Esc, so one press closed two
+  screens; only the topmost overlay now takes input (`OverlayPanel.is_top`).
+- Test fixes in the first runs: a too-short glint window, a wrong expected gesture value, a test
+  lambda holding a freed scene, a wrong failure target for the final rename, the fixture's key
+  names (`raw`/`migrated`), and Variant typing of untyped SaveService results.
+
+---
+
+## Historical — correction report 26: terminal freeze and strengthened GZ-032/043/044/045 evidence (`57f4bf7`; M1 Partial, M2 Partial, M3 Partial)
+
+> Superseded by M4 report 27 (the current tree and counts are its). Its M3 claims, the terminal freeze and the owner deferral of the M1–M3 manual checks (unpassed, release-blocking) stand.
 
 Scope: the architect's narrow M3 correction after `be6f9dd`: freeze the level under the terminal
 presentation, strengthen four named Green Zone cases, correct the documentation. Changed:

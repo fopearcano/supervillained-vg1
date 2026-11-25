@@ -68,6 +68,12 @@ func _run() -> void:
 	var current: Node = main.get("current_scene")
 	_report["main_scene"] = main_path
 	_report["running_scene"] = current.scene_file_path if current else ""
+	# Then the Green Zone, as NEW GAME starts it (its sprites and scenes from the pack).
+	main.call("start_green_zone", true)
+	for k in 30:
+		await process_frame
+	current = main.get("current_scene")
+	_report["walk_scene"] = current.scene_file_path if current else ""
 	_report["dog_frames"] = current.world.player.body_sprite.sprite_frames.get_animation_names().size() if current and current.get("world") else 0
 	root.remove_child(main)
 	main.free()

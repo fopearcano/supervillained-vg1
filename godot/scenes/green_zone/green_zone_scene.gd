@@ -492,8 +492,10 @@ func _freeze_terminal() -> void:
 	world.reset_physics_interpolation()
 
 
-## Level end: final health with the pee deficit, stars, bonuses; the record is saved at once
-## (SAV-004, M2 boundary). "You've been supervillained" snaps in first, then the result card.
+## Level end: final health with the pee deficit, stars, bonuses; the independent record is saved
+## at once (SAV-004/SAV-008) — not during a replay, which changes no persistent byte. The campaign
+## (time, coins, 1.0) is handed over only by CONTINUE. "You've been supervillained" snaps in first,
+## then the result card.
 func _on_complete() -> void:
 	_freeze_terminal()
 	var st := rules.stats
@@ -502,10 +504,15 @@ func _on_complete() -> void:
 	var tb := ScoringRules.time_bonus(st["time"], level.par_time)
 	var sb := ScoringRules.star_bonus(stars)
 	var total: int = st["score"] + tb + sb
-	var saved: Dictionary = SaveService.save_record(level.id, {"score": total, "stars": stars, "time": st["time"]})
+	var replay := not AppState.persists()
+	var saved: Dictionary = {"new_best": false, "saved": false}
+	if not replay:
+		saved = SaveService.save_record(level.id, {"score": total, "stars": stars, "time": st["time"]})
+	var campaign_coins := int(AppState.campaign()["coins"])
 	result = {"state": "complete", "level": level.number, "stats": st.duplicate(), "health": health, "stars": stars,
 		"time_bonus": tb, "star_bonus": sb, "total": total, "new_best": saved["new_best"],
-		"record_saved": saved["saved"], "coins_total": st["coins"], "has_next": as_story_scene, "next_label": "CONTINUE"}
+		"record_saved": saved["saved"], "coins_total": campaign_coins + int(st["coins"]), "has_next": as_story_scene,
+		"next_label": "CONTINUE", "replay": replay}
 	finished.emit(result)
 	_set_controls(false)
 	_reading()

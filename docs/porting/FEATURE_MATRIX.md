@@ -12,7 +12,7 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 
 Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
-## Godot implementation status — M1 Partial, M2 Partial (manual checks owner-deferred), M3 Partial (playable prototype, pending review)
+## Godot implementation status — M1, M2, M3 Partial (manual checks owner-deferred), M4 Partial (save system and product shell, pending review)
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. The M1 Android
@@ -40,6 +40,18 @@ scope (CONTINUE hands `{result, time, coins}` to a stub receiver). Evidence: M3 
 correction report 26 (the level freezes under the Supervillained snap, the result card and game over;
 strengthened GZ-032/043/044/045 cases) in `docs/porting/IMPLEMENTATION_LOG.md`,
 `docs/porting/captures/m3_green_zone_prototype/` (5 PNGs, M3 report 25).
+**M4 (save system, title shell, settings, records, replay shell): implemented, pending architect
+review; M4 stays Partial** — the game starts at the title; the format-3 save validates every
+section (settings, independent records, passive legacy coins, the campaign v2 with
+CampaignFlagSchema, legacy-import metadata) and writes atomically with recovery, user-visible
+notices and future-format preservation; the legacy Capacitor converter runs on fixtures with the raw
+backup first (real WebView acquisition, MIG-001–004 and the M9 half of MIG-005 remain M9); the
+Green Zone record saves at completion and the walk's coins, time and 1.0 on CONTINUE; replays run on
+a deep copy and change no persistent byte; 1.1 and the MERAVIGLIA BOOK show an honest "not in this
+build" card (the story is M5). M4's manual checks (every option across a restart, three records,
+import fixtures through a debug UI, a force-close during a save, Android Back) are not executed.
+Evidence: M4 report 27 in the log, `docs/porting/captures/m4_shell/` (12 PNGs at logical widths 192,
+216 and 270).
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title captures: `…_49` and `…_98` of commit `16b5619`; `…_00`
 regenerated as rendered frame 0 in correction report 22 after the `title_capture.gd` fix; the earlier
@@ -122,9 +134,21 @@ cases compare with fixtures executed from the audited `src/systems/threats.ts`, 
 `src/entities/critters.ts` (the source's unseeded `Math.random` in the flee steering replaced by the
 port's seeded critter RNG during extraction, D-16).
 
+**Claimed by full suite cases in M4 report 27 (pending architect review; not counted above):**
+SAV-005, SAV-006, SAV-007, SAV-008, SAV-011, SAV-012, SAV-021; UI-007, UI-008, UI-010, UI-011,
+UI-012–014, UI-015–021, UI-022; FLOW-006, FLOW-010, FLOW-011 — `godot/` tree `477f012b1f3861c6ea4273dd532acf5adce34997`, 197 passed, 0 failed on a fresh
+Windows clone. The Couch summary, the effect rules, the catalog, the TITLE/COUCH/GLOSSARY constants
+and the v1 migration compare with fixtures executed from the audited TypeScript.
+**M4 partial cases (later milestones complete them):** SAV-009 and SAV-010 (the story's per-effect
+saves and play time, M5); MIG-005 (the M4 fixture/simulated half: raw payload, SHA-256, timestamp,
+read-back, failures; M9 proves it on a real WebView store); MIG-006–010 (converter, status and
+notice portions; real acquisition and the missing-store proof are M9; the notice copy is not
+owner-approved); UI-009 (film, scratches and the lettering glitch simplified, M8); FLOW-007–009 and
+FLOW-012 (the story runner, M5); FLOW-005 (the walk's handoff now saves; the 1.1 scene is M5).
+
 **Partial evidence only (not satisfied, later milestones):** GZ-002, GZ-021, GZ-025, GZ-033 (catch
 coins/score in `test_GZ_031_032_…`, the meow → cash pair in `test_SLICE_threat_events_reach_source_cues`),
-SAV-021 (no user-visible notice yet), UI-001–006 (M3 adds `test_P_UI_001_radar_threats_banner_hints_and_button_state`),
+UI-001–006 (M3 adds `test_P_UI_001_radar_threats_banner_hints_and_button_state`),
 FLOW-005 (M3: `test_P_FLOW_005_starvation_game_over_retry_and_continue_handoff`; the 1.1 receiver is a stub).
 
 **Command-level evidence (no suite case):** AST-019, **counted as satisfied** (accepted; all 206 generated
@@ -154,7 +178,13 @@ frames in `captures/m2_rendered/godot-tree-2ffca5f/`): the focused resets sectio
 `tools/interpolation_probe.gd` stays supplemental command evidence for its trees (`9bbe179`,
 correction report 12; the architect's run on `1532143`).
 
-**Host verification.** *Current correction tree* (`godot/` tree `0684cc95bfebbaa1016fdeddf8f755696e90b340`, correction report 26): a
+**Host verification.** *Current tree* (`godot/` tree `477f012b1f3861c6ea4273dd532acf5adce34997`, M4 report 27): a fresh Windows 11
+25H2 clone passed the asset check (208 + 56 outputs identical), the clean import (no ERROR/WARNING
+line), the suite **197 passed, 0 failed**, the focused M4 and M3 suites, AUTO-001 twice (identical summaries), the
+600-frame Main run starting at the title, the hermetic PCK smoke (285 runtime resources, 573 packed
+files, 33,042,832 bytes; the title, then the Green Zone from the pack), the PixiJS baseline (248 tests, build
+OK), `git diff --check`, `git show --check`, a clean status and the source-tree guard (M4 report 27
+lists the commands). *Correction report 26's tree* (`godot/` tree `0684cc95bfebbaa1016fdeddf8f755696e90b340`, correction report 26): a
 fresh Windows 11 25H2 clone passed the asset check (207 + 55 outputs identical), the clean import (no
 ERROR/WARNING line), the suite **161 passed, 0 failed**, the focused M3 and terminal-freeze cases, AUTO-001 twice
 (identical summaries), the 600-frame Main run, the hermetic PCK smoke (264 runtime resources, 531 packed
@@ -318,8 +348,12 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Press Start 2P pixel font | Slice | AST-020 (glyphs, metrics, wrapping, fallback, IPA, schwa); OFL exported | glow (D-06) |
 | Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
 | Synthesized audio | Slice | AUD-005–008 (14 cues + medieval loop as source-rendered PCM WAV) | chapter routing (M5–M8) |
-| Settings / records persistence, atomic save | Partial | SAV-001–004, SAV-018–020, SAV-022 (future main/temp/backup); P: SAV-021; SLICE: a valid older main becomes the backup on temp recovery; SLICE: failed future copies reported as `future_copy_failed:<file>` with writes still blocked | user-visible notice, campaign schema (D-11) |
-| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15, 16 and 17; accepted on review of `8f8dcb6`); format-3 converter, SaveService integration and fixture/simulated MIG-005 M4; production lineage, two WebView/device versions and MIG-001–010 proof M9 |
+| Settings / records persistence, atomic save | Slice (M4, pending review) | SAV-001–004, SAV-018–020, SAV-022; SAV-021 claimed (corrupt main restored from the backup with a title notice); crash windows through injected file operations (SLICE); tests and --script tools never touch a real save | — |
+| Format-3 campaign, legacy coins, import metadata | Slice (M4, pending review) | SAV-005–008, SAV-011, SAV-012 claimed; P: SAV-009, SAV-010 | per-effect story saves (M5) |
+| Legacy Capacitor converter | Partial | P: MIG-005 (M4 half), MIG-006–010 (fixtures, statuses, notices) | real WebView acquisition, MIG-001–004, M9 half of MIG-005 (M9) |
+| Title, NEW GAME, CONTINUE, Couch, Options, Controls, Glossary, Goodbye | Slice (M4, pending review) | UI-007, UI-008, UI-010, UI-011, UI-012–014, UI-015–021, UI-022 claimed; P: UI-009; captures `m4_shell/` | title film/glitch/lettering (M8, D-21); story cards before 1.0 (M5, D-22) |
+| Replay and flow-policy shell | Slice (M4, pending review) | FLOW-006, FLOW-010, FLOW-011 claimed; P: FLOW-007–009, FLOW-012 | the story runner (M5) |
+| Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15, 16 and 17; accepted on review of `8f8dcb6`); M4: the format-3 converter, SaveService integration and the fixture/simulated half of MIG-005 implemented (M4 report 27); production lineage, two WebView/device versions and MIG-001–010 proof M9 |
 | Everything else in this matrix | — | — | later milestones |
 
 ## 1. Platform and runtime

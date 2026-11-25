@@ -2,9 +2,10 @@ extends Node
 ## Versioned atomic save container (ARCHITECTURE.md §17.1), replacing the source's localStorage
 ## (src/core/settings.ts, src/core/storage.ts).
 ##
-## Milestone scope: settings and Green Zone records are validated and persisted; the campaign,
-## legacy-coin and legacy-import sections are created with their exact defaults and preserved
-## through round trips. Full campaign v1/v2 validation and Capacitor import land in M4/M9.
+## Every section is validated (CampaignSchema for the campaign v2 object and the legacy-import
+## metadata); the Capacitor importer (LegacyImport) converts a legacy five-key payload after its raw
+## backup. Real WebView acquisition is M9. All file access goes through `file_ops` (SaveFileOps),
+## which tests replace to inject failures.
 ##
 ## Write protocol: save_v3.tmp is written and closed, re-read and validated, the previous valid
 ## save is rotated to save_v3.bak, then the temp file is renamed over save_v3.json.
@@ -17,6 +18,9 @@ extends Node
 ## session (load_status, last_error, future_copy_errors, save_failed).
 
 signal save_failed(reason: String)
+## A user-visible notice became pending ("recovered_backup", "recovered_temp", "corrupt_reset",
+## "future_blocked"); the title shows it once (take_notice()).
+signal notice_raised(kind: String)
 
 const FORMAT_VERSION := 3
 const FILE_NAME := "save_v3.json"
@@ -50,10 +54,37 @@ var future_copy_errors: Array[String] = []
 ## exercise the verification of the written copy; empty in the game.
 var fault_future_copy: Array[String] = []
 var data: Dictionary = {}
+## File operations (tests inject failures by replacing it).
+var file_ops: SaveFileOps = SaveFileOps.new()
+## False when the process runs a scripted main loop (the test runner and --script tools): the
+## container then lives in memory until load_from_disk() is called for an explicit (isolated)
+## directory, so no tool or test ever reads or writes the developer's real save.
+var persist_to_disk := true
+## The notice the title should show once ("" when none).
+var pending_notice := ""
+
+const CATALOG: StoryCatalog = preload("res://data/campaign/story_catalog.tres")
 
 
 func _ready() -> void:
+	if Engine.get_main_loop().get_script() != null:
+		persist_to_disk = false
+		data = default_container()
+		load_status = "new"
+		return
 	load_from_disk()
+
+
+## The notice for the title, once.
+func take_notice() -> String:
+	var n := pending_notice
+	pending_notice = ""
+	return n
+
+
+func _raise(kind: String) -> void:
+	pending_notice = kind
+	notice_raised.emit(kind)
 
 
 # --- Defaults -----------------------------------------------------------------------------------
@@ -76,18 +107,7 @@ static func default_settings() -> Dictionary:
 
 
 static func default_campaign() -> Dictionary:
-	return {
-		"version": 2,
-		"completed": [],
-		"meters": {"commozione": 20, "supervillain": 10, "grace": 70, "standing": 50},
-		"flags": {},
-		"book": {"marvels": [], "items": [], "values": [], "remembered": [], "shards": []},
-		"abilities": [],
-		"coins": 0,
-		"playTime": 0,
-		"savedAt": null,
-		"notice": null,
-	}
+	return CampaignSchema.new_campaign()
 
 
 static func default_container() -> Dictionary:
@@ -98,17 +118,7 @@ static func default_container() -> Dictionary:
 		"records": {},
 		"legacy_arcade_coins": {"present": false, "value": 0},
 		"campaign": default_campaign(),
-		"legacy_import": {
-			"status": "not_attempted",
-			"source": "capacitor_webview",
-			"attempt_count": 0,
-			"attempted_at_unix_ms": null,
-			"payload_sha256": null,
-			"keys_present": [],
-			"keys_imported": [],
-			"keys_failed": [],
-			"error_code": null,
-		},
+		"legacy_import": CampaignSchema.default_legacy_import(),
 	}
 
 
@@ -186,16 +196,9 @@ static func validate_container(raw: Variant) -> Dictionary:
 	var lc: Variant = r.get("legacy_arcade_coins")
 	if lc is Dictionary and lc.get("present") is bool and _is_num(lc.get("value")):
 		out["legacy_arcade_coins"] = {"present": lc["present"], "value": maxi(0, int(floor(float(lc["value"]))))}
-	# Campaign: preserved when it is a v2 object (full schema validation is milestone M4).
-	var camp: Variant = r.get("campaign")
-	if camp is Dictionary and int(camp.get("version", 0)) == 2:
-		out["campaign"] = camp.duplicate(true)
-	var li: Variant = r.get("legacy_import")
-	if li is Dictionary and LEGACY_IMPORT_STATUSES.has(li.get("status")):
-		var merged: Dictionary = out["legacy_import"]
-		for k: String in merged:
-			if li.has(k):
-				merged[k] = li[k]
+	# Campaign v2 and the legacy-import metadata: every field normalized (CampaignSchema).
+	out["campaign"] = CampaignSchema.normalize(r.get("campaign"), CATALOG.ids())["data"]
+	out["legacy_import"] = CampaignSchema.normalize_legacy_import(r.get("legacy_import"))
 	return {"ok": true, "data": out}
 
 
@@ -206,9 +209,10 @@ func _path(name: String) -> String:
 
 
 func _read_json(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
+	if not file_ops.exists(path):
 		return {"exists": false}
-	var text := FileAccess.get_file_as_string(path)
+	var read := file_ops.read_bytes(path)
+	var text := (read["bytes"] as PackedByteArray).get_string_from_utf8() if read["ok"] else ""
 	# JSON.new().parse reports a corrupt file through its return code without logging an error.
 	var json := JSON.new()
 	var parsed: Variant = json.data if json.parse(text) == OK else null
@@ -216,11 +220,13 @@ func _read_json(path: String) -> Dictionary:
 
 
 func load_from_disk() -> void:
+	persist_to_disk = true
+	pending_notice = ""
 	write_blocked = false
 	last_error = ""
 	future_files.clear()
 	future_copy_errors.clear()
-	DirAccess.make_dir_recursive_absolute(base_dir)
+	file_ops.make_dir(base_dir)
 	var files := {}
 	var valid := {}
 	for name: String in [FILE_NAME, TEMP_NAME, BACKUP_NAME]:
@@ -251,6 +257,7 @@ func load_from_disk() -> void:
 			save_failed.emit(reason)
 		data = default_container() if future_files.has(FILE_NAME) or best_name == "" else valid[best_name]
 		load_status = "future_version"
+		_raise("future_blocked")
 		return
 	var main: Dictionary = files[FILE_NAME]
 	if main["exists"] and not valid.has(FILE_NAME):
@@ -258,15 +265,23 @@ func load_from_disk() -> void:
 	if best_name == "":
 		data = default_container()
 		load_status = "corrupt" if main["exists"] else "new"
-		DirAccess.remove_absolute(_path(TEMP_NAME))
+		if file_ops.exists(_path(TEMP_NAME)):
+			file_ops.remove(_path(TEMP_NAME))
+		if main["exists"]:
+			_raise("corrupt_reset")
 		return
 	data = valid[best_name]
 	if best_name == FILE_NAME:
 		load_status = "loaded"
 		# A leftover temp is either invalid or older than main: never trusted.
-		DirAccess.remove_absolute(_path(TEMP_NAME))
+		if file_ops.exists(_path(TEMP_NAME)):
+			file_ops.remove(_path(TEMP_NAME))
 		return
 	load_status = "recovered_from_temp" if best_name == TEMP_NAME else "recovered_from_backup"
+	# The player hears about a recovery when the main save was unreadable or missing and the backup
+	# or temp was used; a temp newer than a valid main is an interrupted write, recovered silently.
+	if best_name == BACKUP_NAME or not valid.has(FILE_NAME):
+		_raise("recovered_backup" if best_name == BACKUP_NAME else "recovered_temp")
 	write_to_disk()
 
 
@@ -276,36 +291,30 @@ func load_from_disk() -> void:
 ## file; the original is never touched).
 func _preserve_future(name: String) -> String:
 	var failed := "future_copy_failed:" + name
-	var bytes := FileAccess.get_file_as_bytes(_path(name))
-	if bytes.is_empty() and FileAccess.get_open_error() != OK:
+	var read := file_ops.read_bytes(_path(name))
+	if not read["ok"]:
 		return failed
+	var bytes: PackedByteArray = read["bytes"]
 	var keep := _path(FUTURE_COPY[name])
-	if FileAccess.file_exists(keep):
-		if FileAccess.get_file_as_bytes(keep) == bytes:
+	if file_ops.exists(keep):
+		if file_ops.read_bytes(keep)["bytes"] == bytes:
 			return ""
 		var ctx := HashingContext.new()
 		ctx.start(HashingContext.HASH_SHA256)
 		ctx.update(bytes)
 		keep = _path(FUTURE_COPY[name].get_basename() + "." + ctx.finish().hex_encode().substr(0, 12) + ".json")
-		if FileAccess.file_exists(keep) and FileAccess.get_file_as_bytes(keep) == bytes:
+		if file_ops.exists(keep) and file_ops.read_bytes(keep)["bytes"] == bytes:
 			return ""
-	var f := FileAccess.open(keep, FileAccess.WRITE)
-	if f == null:
-		return failed
 	var payload := bytes.slice(0, bytes.size() / 2) if fault_future_copy.has(name) else bytes
-	var stored := f.store_buffer(payload)
-	f.close()
-	if not stored or FileAccess.get_file_as_bytes(keep) != bytes:
-		DirAccess.remove_absolute(keep)
+	var stored := file_ops.write_bytes(keep, payload)
+	if not stored or file_ops.read_bytes(keep)["bytes"] != bytes:
+		file_ops.remove(keep)
 		return failed
 	return ""
 
 
 func _keep_corrupt(text: String) -> void:
-	var f := FileAccess.open(_path("save_v3.corrupt.json"), FileAccess.WRITE)
-	if f:
-		f.store_string(text)
-		f.close()
+	file_ops.write_bytes(_path("save_v3.corrupt.json"), text.to_utf8_buffer())
 
 
 func _fail(reason: String) -> bool:
@@ -322,41 +331,39 @@ func write_to_disk() -> bool:
 	# Strictly increasing so "newest valid file" is well defined even within one millisecond.
 	var now := int(Time.get_unix_time_from_system() * 1000.0)
 	data["written_at_unix_ms"] = maxi(now, int(data.get("written_at_unix_ms", 0)) + 1)
+	if not persist_to_disk:
+		last_error = ""
+		return true
 	var text := JSON.stringify(data, "  ", true)
 	var tmp := _path(TEMP_NAME)
-	var f := FileAccess.open(tmp, FileAccess.WRITE)
-	if f == null:
-		return _fail("open_temp_failed")
 	if fault_after == "temp_partial":
-		f.store_string(text.substr(0, text.length() / 2))
-		f.close()
+		file_ops.write_bytes(tmp, text.substr(0, text.length() / 2).to_utf8_buffer())
 		return _fail("simulated_crash_during_temp_write")
-	f.store_string(text)
-	f.flush()
-	f.close()
+	if not file_ops.write_bytes(tmp, text.to_utf8_buffer()):
+		return _fail("open_temp_failed")
 	if fault_after == "temp_written":
 		return _fail("simulated_crash_after_temp_written")
 	var check := _read_json(tmp)
 	if not check["exists"] or not validate_container(check["parsed"])["ok"]:
-		DirAccess.remove_absolute(tmp)
+		file_ops.remove(tmp)
 		return _fail("temp_validation_failed")
 	if fault_after == "temp_validated":
 		return _fail("simulated_crash_after_temp_validated")
 	var main := _path(FILE_NAME)
-	if FileAccess.file_exists(main):
+	if file_ops.exists(main):
 		var current := _read_json(main)
 		if validate_container(current["parsed"])["ok"]:
-			if FileAccess.file_exists(_path(BACKUP_NAME)) and DirAccess.remove_absolute(_path(BACKUP_NAME)) != OK:
+			if file_ops.exists(_path(BACKUP_NAME)) and file_ops.remove(_path(BACKUP_NAME)) != OK:
 				return _fail("backup_remove_failed")
-			if DirAccess.rename_absolute(main, _path(BACKUP_NAME)) != OK:
+			if file_ops.rename(main, _path(BACKUP_NAME)) != OK:
 				return _fail("backup_rotation_failed")
 		else:
 			_keep_corrupt(current["text"])
-			if DirAccess.remove_absolute(main) != OK:
+			if file_ops.remove(main) != OK:
 				return _fail("corrupt_main_remove_failed")
 	if fault_after == "backup_rotated":
 		return _fail("simulated_crash_after_backup_rotated")
-	if DirAccess.rename_absolute(tmp, main) != OK:
+	if file_ops.rename(tmp, main) != OK:
 		return _fail("rename_failed")
 	last_error = ""
 	return true
@@ -396,3 +403,36 @@ func save_record(level_id: String, rec: Dictionary) -> Dictionary:
 	}
 	records[level_id] = normalize_record(merged)
 	return {"new_best": new_best, "saved": write_to_disk()}
+
+
+# --- Campaign and legacy import -------------------------------------------------------------------
+
+## A deep copy of the saved campaign.
+func get_campaign() -> Dictionary:
+	return (data["campaign"] as Dictionary).duplicate(true)
+
+
+## Stores a campaign at a source-equivalent campaign save (source saveCampaign): savedAt becomes
+## `now_ms`, the object is normalized and the container written. Returns the write result.
+func save_campaign(state: Dictionary, now_ms: int) -> bool:
+	var st := state.duplicate(true)
+	st["savedAt"] = now_ms
+	data["campaign"] = CampaignSchema.normalize(st, CATALOG.ids())["data"]
+	return write_to_disk()
+
+
+func legacy_coins() -> Dictionary:
+	return (data["legacy_arcade_coins"] as Dictionary).duplicate()
+
+
+func legacy_import_state() -> Dictionary:
+	return (data["legacy_import"] as Dictionary).duplicate(true)
+
+
+## Runs the Capacitor import through `source` (see campaign/legacy_import.gd).
+func run_legacy_import(source: Object, now_ms: int, force: bool = false) -> Dictionary:
+	return LegacyImport.run(self, source, now_ms, force)
+
+
+func legacy_dir() -> String:
+	return _path("legacy")

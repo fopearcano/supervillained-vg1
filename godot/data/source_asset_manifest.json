@@ -2039,6 +2039,11 @@
    "bytes": 2858
   },
   {
+   "target": "data/campaign/story_catalog.json",
+   "sha256": "360f8d5ae7106881f6893791e37498e3959fd7400a488c68cc21dc30c7a737ad",
+   "bytes": 4295
+  },
+  {
    "target": "data/characters/bagnaskizEmperor_sheet.json",
    "sha256": "a491fc233766a49e654a17fde3e0616d06a37f87e40ddb41cccf204a2d244d8c",
    "bytes": 2160
@@ -2320,8 +2325,8 @@
   },
   {
    "target": "tests/fixtures/source_reference.json",
-   "sha256": "20f8c6be46763972b317f15277d5175db6210e66e970c68d74801868cd690fcb",
-   "bytes": 620653
+   "sha256": "77ee5f2fa450e79cf2bae52fe8429036efe718082fdfa02ac978928f3c659998",
+   "bytes": 638696
   },
   {
    "target": "tests/fixtures/source_story_maps.json",

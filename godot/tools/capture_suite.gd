@@ -43,6 +43,9 @@ func _hold(x: float, y: float, run: bool, frames: int) -> void:
 
 
 func _run() -> void:
+	if _mode == "shell":
+		await _shell()
+		return
 	if _mode == "run":
 		await _full_run()
 		return
@@ -50,6 +53,7 @@ func _run() -> void:
 		await _diagnostic()
 		return
 	_main = load("res://main/main.tscn").instantiate()
+	_main.set("start_target", "walk")
 	root.add_child(_main)
 	var input := root.get_node("InputService")
 	await _frames(40)
@@ -89,6 +93,7 @@ func _run() -> void:
 ## Plays the whole level in real time with the real-input driver and captures key moments.
 func _full_run() -> void:
 	_main = load("res://main/main.tscn").instantiate()
+	_main.set("start_target", "walk")
 	root.add_child(_main)
 	var input := root.get_node("InputService")
 	await _frames(20)
@@ -184,6 +189,7 @@ const DIAG := [
 
 func _diagnostic() -> void:
 	_main = load("res://main/main.tscn").instantiate()
+	_main.set("start_target", "walk")
 	root.add_child(_main)
 	await _frames(5)
 	var world = _main.change_scene(load("res://world/world_2d.tscn"))
@@ -196,4 +202,51 @@ func _diagnostic() -> void:
 		world.render(1.0 / 60.0)
 		await process_frame
 	await _shot("20_diagnostic_deep_water_walls_story_grounds")
+	quit(0)
+
+
+## M4 shell at the minimum, target and maximum logical widths (windows 384, 432 and 540 px wide at
+## 2x): the title, the COUCH card (a campaign after the walk, with a Green Zone best), the GLOSSARY
+## card with its ring drawn; OPTIONS, CONTROLS and the level list at the target width. The save is
+## in memory (a --script tool never touches a real save).
+func _shell() -> void:
+	var save := root.get_node("SaveService")
+	var camp: Dictionary = save.call("get_campaign")
+	camp["completed"] = ["1.0"]
+	camp["coins"] = 25
+	camp["playTime"] = 75.5
+	save.call("save_campaign", camp, 1795608000000)
+	save.call("save_record", "level1", {"score": 6360, "stars": 3.5, "time": 60.7})
+	for win: Vector2i in [Vector2i(384, 768), Vector2i(432, 864), Vector2i(540, 1080)]:
+		root.size = win
+		await _frames(5)
+		_main = load("res://main/main.tscn").instantiate()
+		root.add_child(_main)
+		await _frames(90)
+		var w: int = _main.call("logical_size").x
+		await _shot("30_title_w%d" % w)
+		_main.call("open_couch")
+		await _frames(30)
+		await _shot("31_couch_w%d" % w)
+		_main.call("clear_overlays")
+		_main.call("open_glossary")
+		await _frames(80)
+		await _shot("32_glossary_w%d" % w)
+		_main.call("clear_overlays")
+		if w == 216:
+			_main.call("open_options")
+			await _frames(20)
+			await _shot("33_options_w216")
+			var o = _main.call("top_overlay")
+			o.call("activate", 3)
+			await _frames(20)
+			await _shot("34_controls_w216")
+			_main.call("clear_overlays")
+			_main.call("open_levels")
+			await _frames(20)
+			await _shot("35_levels_w216")
+			_main.call("clear_overlays")
+		root.remove_child(_main)
+		_main.free()
+	root.get_node("AudioService").stop_all()
 	quit(0)

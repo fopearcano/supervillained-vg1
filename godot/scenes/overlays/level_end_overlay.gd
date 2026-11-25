@@ -111,7 +111,9 @@ func draw_content() -> void:
 		T.draw_spans(self, Vector2(tx, top + 168), [["STAR BONUS".rpad(14), T.CYAN], [("+%d" % r["star_bonus"]).lpad(9), T.WHITE]], 1, Color.BLACK)
 	if t > after + 0.3:
 		T.draw_spans(self, Vector2(tx, top + 186), [["SCORE".rpad(14), T.YELLOW], [ScoringRules.format_score(r["total"]).lpad(9), T.YELLOW]], 1, Color.BLACK)
-	if not r.get("record_saved", true) and t > after + 0.5:
+	if r.get("replay", false) and t > after + 0.5:
+		T.draw_centered(self, w / 2.0, top + 206, "REPLAY: NOTHING SAVED", T.CYAN, 1, T.SHADOW)
+	elif not r.get("record_saved", true) and t > after + 0.5:
 		# The record could not be written (blocked or failed save): say so instead of NEW BEST.
 		T.draw_centered(self, w / 2.0, top + 206, "RECORD NOT SAVED", T.RED, 1, T.SHADOW)
 	elif r["new_best"] and t > after + 0.5 and int(floor(time * 3.0)) % 2 == 0:

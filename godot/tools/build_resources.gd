@@ -56,6 +56,7 @@ func _initialize() -> void:
 		_build_characters()
 		_build_title()
 		_build_sfx_silence()
+		_build_story_catalog()
 	if _failures.is_empty():
 		if _check:
 			print("build_resources check (%s): OK, %d outputs identical" % [phase, _checked])
@@ -111,6 +112,23 @@ func _save_resource(res: Resource, res_path: String) -> void:
 	var text := FileAccess.get_file_as_string(tmp_abs).replace(tmp, res_path)
 	DirAccess.remove_absolute(tmp_abs)
 	_write_if_changed(res_path, text.to_utf8_buffer())
+
+
+## The story catalog (ids and titles from the source CHAPTERS) as an exported Resource.
+func _build_story_catalog() -> void:
+	var j := _json("res://data/campaign/story_catalog.json")
+	if j.is_empty():
+		_failures.append("story catalog JSON missing (run the extractor)")
+		return
+	var cat := StoryCatalog.new()
+	var chapters: Array = []
+	for ch: Dictionary in j["chapters"]:
+		var subs: Array = []
+		for sub: Dictionary in ch["subLevels"]:
+			subs.append({"id": String(sub["id"]), "title": String(sub["title"]), "green_zone": int(sub["greenZone"])})
+		chapters.append({"number": int(ch["number"]), "title": String(ch["title"]), "menu_title": String(ch["menuTitle"]), "sub_levels": subs})
+	cat.chapters = chapters
+	_save_resource(cat, "res://data/campaign/story_catalog.tres")
 
 
 ## The recorded effects' leading silence as an exported Resource (the JSON stays out of exports).

@@ -271,6 +271,55 @@ class Supervillained:
 	const SKIP_AFTER := 0.45
 
 
+## The title page (src/scenes/overlays.ts TitleScene).
+class Title:
+	const DOG_WIDTH := 0.46
+	const DOG_ASPECT := 1.35
+	const DOG_CROP_MARGIN := [0.05, 0.03]
+	const TOP := 0.07
+	const DOG_MENU_GAP := 6
+	const INSERT_BRAIN_GAP := 12
+	const BLOCK_MIN_MARGIN := 8
+	const SHINE_EVERY := [1.4, 3.6]
+	const SHINE_TIME := 1.6
+	const SHINE_WIDTH := 14
+	const SHINE_SLANT := 7
+	const SHINE_ALPHA := 0.45
+	const INSERT_BRAIN_BLINK := 1
+	const TEXT_GLITCH_EVERY := [1.8, 4.5]
+	const TEXT_GLITCH_TIME := [0.06, 0.2]
+	const TEXT_GLITCH_BURST := [0.45, 1]
+	const TEXT_GLITCH_IDLE := 0.35
+	const FOOTER_GLOW_ALPHA := [0.05, 0.75]
+	const FOOTER_GLOW_SPEED := 1.2
+	const FOOTER_GLOW_BLUR := 3
+	const FOOTER_GLOW_COLOR := "#c8ffb8"
+	const PUBLISHER_URL := "https://supervoideditions.com/"
+	const GLITCH_BURST := [0.25, 0.6]
+	const GLITCH_IDLE := 0.12
+	const GLITCH_EVERY := [3.5, 8]
+	const GLITCH_TIME := [0.08, 0.22]
+	const FILM := {"GRAIN": 0.085, "FPS": 18, "FLICKER": 0.035, "SEPIA": 0.22, "VIGNETTE": 0.5, "SCRATCHES": 0.55, "DUST": 0.045, "WEAVE": 1}
+
+
+## The COUCH card (src/scenes/couchScene.ts).
+class Couch:
+	const CARD_WIDTH := 204
+	const DIM := 0.72
+	const BAR_WIDTH := 50
+
+
+## The GLOSSARY card (src/scenes/glossaryScene.ts).
+class Glossary:
+	const CARD_WIDTH := 200
+	const DIM := 0.72
+	const RING_PAD_X := 10
+	const RING_PAD_Y := 7
+	const RING_OVERSHOOT := 9
+	const RING_DELAY := 0.35
+	const RING_TIME := 0.55
+
+
 ## Maps the source config group names to the inner classes above (CFG-001 parity test).
 static func groups() -> Dictionary:
 	return {
@@ -279,5 +328,5 @@ static func groups() -> Dictionary:
 		"TREAT": Treat, "DIGESTION": Digestion, "POOP": Poop, "BLADDER": Bladder,
 		"POLLUTION": Pollution, "ZONE": Zone, "LIVES": Lives, "SCORE": Score, "BARK": Bark,
 		"FX": Fx, "CAT": Cat, "BALL": Ball, "ATTACK": Attack, "BAGNASKIZ": Bagnaskiz,
-		"SUPERVILLAINED": Supervillained,
+		"SUPERVILLAINED": Supervillained, "TITLE": Title, "COUCH": Couch, "GLOSSARY": Glossary,
 	}

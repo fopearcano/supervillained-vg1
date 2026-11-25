@@ -17,6 +17,8 @@ var menu_item_width := 0.0
 var menu_item_height := 17.0
 var menu_gap := 5.0
 var menu_hidden := false
+## Back / Esc / Android Back (InputService "menu" or "back"), when the overlay has one.
+var back_action: Callable = Callable()
 var _item_rects: Array[Rect2] = []
 
 
@@ -26,8 +28,24 @@ func _ready() -> void:
 	InputService.clear_pending()
 
 
+## Only the topmost overlay of its host takes input (source overlays pause the scenes below).
+func is_top() -> bool:
+	var p := get_parent()
+	return p == null or p.get_child(p.get_child_count() - 1) == self
+
+
 func _process(delta: float) -> void:
 	time += delta
+	if not is_top():
+		queue_redraw()
+		return
+	if back_action.is_valid() and time > 0.1:
+		# Esc queues both "menu" and "back": consume both so one press backs out once.
+		var m := InputService.consume(&"menu")
+		var bk := InputService.consume(&"back")
+		if m or bk:
+			back_action.call()
+			return
 	if not items.is_empty():
 		if Input.is_action_just_pressed(&"move_up"):
 			selected = (selected + items.size() - 1) % items.size()
@@ -37,6 +55,19 @@ func _process(delta: float) -> void:
 			activate(selected)
 			return
 	queue_redraw()
+
+
+## Android Back routed here by Main (the same as Esc).
+func back() -> bool:
+	if back_action.is_valid():
+		back_action.call()
+		return true
+	return false
+
+
+## The menu rows' rectangles as last drawn (tests and touch).
+func item_rects() -> Array[Rect2]:
+	return _item_rects
 
 
 func activate(index: int) -> void:

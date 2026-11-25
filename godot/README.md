@@ -4,12 +4,13 @@ Native Godot 4.7.2 (GDScript, GL Compatibility renderer) port of the PixiJS game
 root. The PixiJS/TypeScript source is untouched and remains the reference implementation
 (audited commit `95b69c0`). Architecture, milestones and the test plan live in `docs/porting/`.
 
-Current state: **M1 Partial, M2 Partial** (their manual checks deferred by the owner for prototype
-development: not passed, not cancelled), **M3 prototype implemented, pending review** — the
-complete Green Zone 1.0 is playable: hunger, digestion and poop, bladder and pee, marking, scoring,
-cats and coins, magnet balls and the forced fetch, the three pollution waves, Under Attack with
-Bagnaskiz, briefing → play ⇄ pause → Supervillained snap → level end (CONTINUE hands
-`{result, time, coins}` to a stub receiver; the story is not ported) or game over → retry. See
+Current state: **M1, M2 and M3 Partial** (their manual checks deferred by the owner for prototype
+development: not passed, not cancelled, release-blocking), **M4 implemented, pending review** — the
+game starts at the title (NEW GAME, CONTINUE, COUCH, OPTIONS with CONTROLS and LEVELS (REPLAY),
+GLOSSARY, QUIT) over the format-3 save (`user://save_v3.json`: settings, independent records,
+passive legacy coins, the campaign v2, legacy-import metadata; atomic writes with recovery). The
+complete Green Zone 1.0 is playable from NEW GAME; its record saves at completion, its coins, time
+and 1.0 completion on CONTINUE, after which 1.1 is shown as not in this build (the story is M5). See
 `docs/porting/IMPLEMENTATION_LOG.md` for evidence and deviations and the status section of
 `docs/porting/FEATURE_MATRIX.md` for the acceptance IDs claimed and satisfied.
 
@@ -27,7 +28,12 @@ Bagnaskiz, briefing → play ⇄ pause → Supervillained snap → level end (CO
 ```bash
 godot --path godot                      # desktop window 432×864 (logical 216×432 at 2×)
 godot --path godot -- --as=sbrimbrulon  # developer playable-profile override: zampano, sbrimbrulon, bagnaskiz
+godot --path godot -- --skip=game       # straight into the Green Zone walk, outside the story (source ?skip=game)
 ```
+
+The save lives in `user://save_v3.json` (with `.tmp`/`.bak` during and after writes, and
+`user://legacy/` for an imported Capacitor payload). The test runner and `--script` tools keep the
+save in memory or in `user://test_runs/<pid>/`, never in the real save.
 
 Controls: WASD/arrows move, Shift or K run, Space pee, J/X or B bark, Esc/P menu. With a mouse the
 touch controls are emulated (left side: floating joystick; right: PEE / BARK / RUN; MENU top-right).
@@ -55,7 +61,10 @@ errors/warnings, orphan nodes and timeouts, writes `test-results/results.json` a
 a PCK with the same binary and starts it as a packed runtime (`test_export_pack.gd`). Every case runs isolated (input, audio, a per-case
 save directory, app state and renderable IDs are reset first).
 
-Focused M3 suites: `--file test_threats` (threat helpers, director, the source threats run, the
+Focused M4 suites: `--file test_save_m4` (format 3, campaign session, crash windows through
+injected file operations, the legacy import, the Couch summary, flow policy) and `--file test_shell`
+(title, options, controls, Couch, Glossary, NEW GAME / CONTINUE, the Green Zone persistence order,
+recovery notices, replays, navigation and Back). Focused M3 suites: `--file test_threats` (threat helpers, director, the source threats run, the
 forced-fetch overlap) and `--file test_green_zone_m3` (AUTO-001 real-input run, cues, radar/banner,
 level end). AUTO-001 alone: `--suite integration --file test_green_zone_m3 --case AUTO_001`.
 
@@ -73,6 +82,8 @@ xvfb-run -a godot --path godot --rendering-driver opengl3 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures            # scripted tour
 xvfb-run -a godot --path godot --rendering-driver opengl3 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode run # full real-input run (M3 shots 20-23)
+xvfb-run -a godot --path godot --rendering-driver opengl3 \
+  --script res://tools/capture_suite.gd -- --out /tmp/captures --mode shell # M4 title, Couch, Glossary, options
 xvfb-run -a godot --path godot --rendering-driver opengl3 --resolution 800x600 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode diagnostic --size 800x600
 ```
@@ -224,8 +235,9 @@ world/       TileCatalog, AsciiMapLoader, WorldMapModel, IsoWorld scene, runtime
 entities/    PlayableDog, props, treat/poop views, critter controllers (cat, ball, Bagnaskiz) + views
 systems/     needs, Green Zone rules, threats (cats, balls, waves, attack director, Bagnaskiz, bark),
              threat helpers, scoring, lives, placement
-scenes/      Green Zone scene, native overlays (briefing, pause, Supervillained snap, level end, game over)
-campaign/    save migration rules; the Green Zone → 1.1 handoff contract and its stub receiver
+scenes/      title, shell overlays (confirm, message, options, controls, Couch, Glossary, levels),
+             Green Zone scene, its overlays (briefing, pause, Supervillained snap, level end, game over)
+campaign/    campaign schema/rules/flow/summary, v1 migration, legacy import, the walk's handoff data
 fx/          world text, glitch shader (transition and the Under Attack look)
 ui/          HUD, attack banner, touch controls, pixel text
 data/        generated Resources + layout data (from the source manifests)

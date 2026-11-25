@@ -1623,6 +1623,7 @@ func _main_restart(fps: int) -> Dictionary:
 	Engine.max_fps = fps
 	InputService.clear_injection()
 	var main: Node = MAIN_SCENE.instantiate()
+	main.set("start_target", "walk")
 	var a: Dictionary = await _main_first_frame(main)
 	var out := {"record": "main_restart", "requested_fps": fps, "checks": {}}
 	var checks: Dictionary = out["checks"]

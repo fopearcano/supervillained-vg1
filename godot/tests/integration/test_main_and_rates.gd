@@ -28,6 +28,7 @@ func after_each() -> void:
 func _main_playing(window: Vector2i, safe: Rect2i) -> void:
 	tree.root.size = window
 	main = MAIN.instantiate()
+	main.start_target = "walk"
 	tree.root.add_child(main)
 	main.viewport_controller.safe_rect_override = safe
 	main.viewport_controller.apply()
@@ -261,6 +262,7 @@ func test_P_DOG_008a_restart_canvas_snapped_before_first_draw() -> void:
 	InputService.auto_update = true
 	tree.root.size = Vector2i(432, 864)
 	main = MAIN.instantiate()
+	main.start_target = "walk"
 	tree.root.add_child(main)
 	await tree.process_frame
 	var gz: GreenZoneScene = main.current_scene
@@ -330,6 +332,7 @@ func test_P_DOG_008a_main_restart_resets_interpolation_and_run_state() -> void:
 	InputService.auto_update = true
 	tree.root.size = Vector2i(432, 864)
 	main = MAIN.instantiate()
+	main.start_target = "walk"
 	tree.root.add_child(main)
 	await tree.process_frame
 	var gz: GreenZoneScene = main.current_scene
@@ -456,6 +459,7 @@ func _main_started() -> GreenZoneScene:
 	InputService.auto_update = true
 	tree.root.size = Vector2i(432, 864)
 	main = MAIN.instantiate()
+	main.start_target = "walk"
 	tree.root.add_child(main)
 	await tree.process_frame
 	var gz: GreenZoneScene = main.current_scene
@@ -548,7 +552,7 @@ func test_FLOW_003_restart_from_dirty_run_is_clean_and_keeps_settings() -> void:
 	assert_eq(fresh.world.player.speed_mul, LivesRules.lives_speed(4), "lives-for-speed from the settings")
 
 
-## FLOW-005 (partial: the 1.1 receiver is a stub until M4/M5): an idle dog starves through both
+## FLOW-005 (partial: the 1.1 story scene is M5): an idle dog starves through both
 ## lives (refill to 50 and invulnerability after the first), GAME OVER follows 1.1 s later with no
 ## record; RETRY starts a clean run straight into play; at the exit the Supervillained snap and the
 ## result card follow, and CONTINUE hands {from 1.0, to 1.1, result, time, coins} to Main's stub
@@ -600,6 +604,11 @@ func test_P_FLOW_005_starvation_game_over_retry_and_continue_handoff() -> void:
 	var h: Dictionary = main.campaign.last()
 	assert_eq([h["from"], h["to"], h["coins"], h["result"]["state"]], ["1.0", "1.1", int(fresh.rules.stats["coins"]), "complete"], "handoff data")
 	assert_near(h["time"], fresh.rules.stats["time"], 1e-9, "walk time handed over")
+	# M4: CONTINUE saved the walk into the campaign (coins, time, 1.0 complete) at once.
+	var camp := SaveService.get_campaign()
+	assert_eq([camp["completed"], int(camp["coins"])], [["1.0"], int(fresh.rules.stats["coins"])], "1.0 complete, coins handed over")
+	assert_near(float(camp["playTime"]), fresh.rules.stats["time"], 1e-9, "walk time handed over")
 	var fid := fresh.get_instance_id()
-	assert_true(await _frames_until(func() -> bool: return main.current_scene.get_instance_id() != fid, 5000), "after the glitch the stub returns to the start")
-	assert_true(main.current_scene._overlay is BriefingOverlay, "the briefing stands in for the title")
+	assert_true(await _frames_until(func() -> bool: return main.current_scene.get_instance_id() != fid, 5000), "the glitch leads on")
+	assert_true(main.current_scene is TitleScreen and main.top_overlay() is MessageOverlay, "1.1 is shown honestly as not in this build, over the title")
+	assert_eq((main.top_overlay() as MessageOverlay).paragraphs[0][0], "LEVEL 1: 1.1 A BUCKET ON HIS HEAD", "the next scene named")

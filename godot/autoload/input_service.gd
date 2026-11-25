@@ -35,6 +35,10 @@ var using_touch := false
 var buttons: Dictionary = {}
 var run_toggle := false
 var left_handed := false
+## Settings for the story's gestures and action switcher (OPTIONS > CONTROLS), applied at once by
+## AppState; the gesture recognizer that reads them arrives with the story controls (M5, D-09).
+var gesture_bindings := {"swipeUp": "sword", "swipeDown": "shield", "doubleTap": "bark"}
+var switcher_enabled := true
 var context: StringName = &"menu"
 ## When false, the owner calls update(dt) itself (deterministic tests).
 var auto_update := true
@@ -183,6 +187,8 @@ func reset_for_tests() -> void:
 	buttons.clear()
 	run_toggle = false
 	left_handed = false
+	gesture_bindings = {"swipeUp": "sword", "swipeDown": "shield", "doubleTap": "bark"}
+	switcher_enabled = true
 	context = &"menu"
 	_run_latched = false
 	_set_move(0.0, 0.0)

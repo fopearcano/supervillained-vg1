@@ -1,0 +1,247 @@
+{
+ "audited_commit": "95b69c04c5c3b9626e49719f8f916a44659cd265",
+ "source": "src/campaign/chapters/index.ts CHAPTERS (numbers, titles, menu titles, sub-level ids and titles, greenZone)",
+ "chapters": [
+  {
+   "number": 1,
+   "title": "The Greenzone",
+   "menuTitle": "The Greenzone",
+   "subLevels": [
+    {
+     "id": "1.0",
+     "title": "The Green Zone",
+     "greenZone": 1
+    },
+    {
+     "id": "1.1",
+     "title": "A bucket on his head",
+     "greenZone": 0
+    },
+    {
+     "id": "1.2",
+     "title": "Under the Professor's desk",
+     "greenZone": 0
+    },
+    {
+     "id": "1.3",
+     "title": "The toll at the bowl",
+     "greenZone": 0
+    },
+    {
+     "id": "1.4",
+     "title": "Santina wants her ball back",
+     "greenZone": 0
+    },
+    {
+     "id": "1.5",
+     "title": "A cross of rag",
+     "greenZone": 0
+    }
+   ]
+  },
+  {
+   "number": 2,
+   "title": "On the edge of dreams",
+   "menuTitle": "Edge of dreams",
+   "subLevels": [
+    {
+     "id": "2.1",
+     "title": "One step from Jerusalem",
+     "greenZone": 0
+    },
+    {
+     "id": "2.2",
+     "title": "Names on a list",
+     "greenZone": 0
+    },
+    {
+     "id": "2.3",
+     "title": "A coat of mail too big",
+     "greenZone": 0
+    }
+   ]
+  },
+  {
+   "number": 3,
+   "title": "Venice",
+   "menuTitle": "Venice",
+   "subLevels": [
+    {
+     "id": "3.1",
+     "title": "Look at those ships",
+     "greenZone": 0
+    },
+    {
+     "id": "3.2",
+     "title": "The price of passage",
+     "greenZone": 0
+    },
+    {
+     "id": "3.3",
+     "title": "The art of weeping",
+     "greenZone": 0
+    },
+    {
+     "id": "3.4",
+     "title": "Nobody leaves the Lido",
+     "greenZone": 0
+    }
+   ]
+  },
+  {
+   "number": 4,
+   "title": "The sea",
+   "menuTitle": "The sea",
+   "subLevels": [
+    {
+     "id": "4.1",
+     "title": "Veni Creator",
+     "greenZone": 0
+    },
+    {
+     "id": "4.2",
+     "title": "Horses below deck",
+     "greenZone": 0
+    },
+    {
+     "id": "4.3",
+     "title": "Rumours on deck",
+     "greenZone": 0
+    }
+   ]
+  },
+  {
+   "number": 5,
+   "title": "Zara",
+   "menuTitle": "Zara",
+   "subLevels": [
+    {
+     "id": "5.1",
+     "title": "A small favor for Venice",
+     "greenZone": 0
+    },
+    {
+     "id": "5.2",
+     "title": "A cross above the wall",
+     "greenZone": 0
+    },
+    {
+     "id": "5.3",
+     "title": "Whose orders?",
+     "greenZone": 0
+    },
+    {
+     "id": "5.4",
+     "title": "A letter for Rome",
+     "greenZone": 0
+    },
+    {
+     "id": "5.5",
+     "title": "Winter at Zara",
+     "greenZone": 0
+    }
+   ]
+  },
+  {
+   "number": 6,
+   "title": "The long winter",
+   "menuTitle": "The long winter",
+   "subLevels": [
+    {
+     "id": "6.1",
+     "title": "Short rations",
+     "greenZone": 0
+    },
+    {
+     "id": "6.2",
+     "title": "A prince on credit",
+     "greenZone": 0
+    },
+    {
+     "id": "6.3",
+     "title": "On their knees at Corfu",
+     "greenZone": 0
+    }
+   ]
+  },
+  {
+   "number": 7,
+   "title": "Constantinople",
+   "menuTitle": "Constantinople",
+   "subLevels": [
+    {
+     "id": "7.1",
+     "title": "Looking both ways",
+     "greenZone": 0
+    },
+    {
+     "id": "7.2",
+     "title": "The Doge's banner",
+     "greenZone": 0
+    },
+    {
+     "id": "7.3",
+     "title": "Stay beside Pierre",
+     "greenZone": 0
+    },
+    {
+     "id": "7.4",
+     "title": "A city to visit",
+     "greenZone": 0
+    },
+    {
+     "id": "7.5",
+     "title": "Unpaid promises",
+     "greenZone": 0
+    },
+    {
+     "id": "7.6",
+     "title": "A third Alexios",
+     "greenZone": 0
+    },
+    {
+     "id": "7.7",
+     "title": "The hole in the wall",
+     "greenZone": 0
+    },
+    {
+     "id": "7.8",
+     "title": "Whose street was it?",
+     "greenZone": 0
+    },
+    {
+     "id": "7.9",
+     "title": "The common pile",
+     "greenZone": 0
+    }
+   ]
+  },
+  {
+   "number": 8,
+   "title": "Back to the Greenzone",
+   "menuTitle": "Back to Greenzone",
+   "subLevels": [
+    {
+     "id": "8.1",
+     "title": "Falling to pieces",
+     "greenZone": 0
+    },
+    {
+     "id": "8.2",
+     "title": "What he can tell",
+     "greenZone": 0
+    },
+    {
+     "id": "8.3",
+     "title": "The vanguard of the lawn",
+     "greenZone": 0
+    },
+    {
+     "id": "8.4",
+     "title": "At Santina's gate, again",
+     "greenZone": 0
+    }
+   ]
+  }
+ ]
+}

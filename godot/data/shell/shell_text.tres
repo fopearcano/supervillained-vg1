@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ShellText" format=3]
+
+[ext_resource type="Script" path="res://core/resources/shell_text.gd" id="1_shelltext"]
+
+[resource]
+script = ExtResource("1_shelltext")
+strings = {
+"boundary_body": "THIS SCENE IS NOT IN THIS BUILD YET: THE STORY SCENES ARRIVE WITH A LATER MILESTONE.",
+"boundary_saved": "YOUR PROGRESS IS SAVED.",
+"boundary_title": "NOT IN THIS BUILD",
+"book_body": "THE MERAVIGLIA BOOK OPENS WITH THE STORY SCENES, IN A LATER MILESTONE.",
+"costume_cross": "RAG CROSS",
+"costume_knight": "ARMOUR",
+"costume_none": "NONE",
+"edition": "CRUSADER",
+"ending_alpha": "THE WITNESS",
+"ending_knight": "THE KNIGHT",
+"levels_subtitle": "SUPERVILLAINED: CRUSADER",
+"meter_commozione": "COMMOZIONE",
+"meter_grace": "GRACE",
+"meter_standing": "STANDING",
+"meter_supervillain": "SUPERVILLAIN",
+"notice_body": "ZAMPANO NOW DREAMS ONE STORY: THE FOURTH CRUSADE, FROM VENICE TO CONSTANTINOPLE, AS A SMALL KNIGHT SEES IT. YOUR WALK IN THE GREEN ZONE AND THE NEIGHBORHOOD SCENES YOU PLAYED ARE KEPT, WITH YOUR COINS AND PLAY TIME. THE STORY STARTS AGAIN FROM 1.1, WITH FRESH METERS, BOOK AND COSTUMES.",
+"notice_foot": "YOUR OLD SAVE IS KEPT ASIDE, UNTOUCHED.",
+"notice_title": "THE DREAM HAS BEEN REWRITTEN",
+"save_corrupt_reset": "THE SAVE COULD NOT BE READ. A NEW ONE WAS STARTED; THE UNREADABLE FILE IS KEPT AS SAVE_V3.CORRUPT.JSON.",
+"save_future_blocked": "THIS SAVE WAS WRITTEN BY A NEWER VERSION OF THE GAME. IT IS KEPT UNTOUCHED AND NOTHING WILL BE SAVED UNTIL YOU UPDATE.",
+"save_recovered_backup": "THE SAVE WAS DAMAGED AND HAS BEEN RESTORED FROM ITS BACKUP.",
+"save_recovered_temp": "THE LAST SAVE WAS INTERRUPTED AND HAS BEEN RESTORED.",
+"replay_note": "REPLAYS DO NOT CHANGE THE CAMPAIGN",
+"legacy_blocked": "THE SAVE FROM THE PREVIOUS VERSION COULD NOT BE IMPORTED. ITS DATA IS KEPT AS IT WAS; NOTHING WAS LOST.",
+"legacy_retry": "THE SAVE FROM THE PREVIOUS VERSION COULD NOT BE READ YET. THE GAME WILL TRY AGAIN NEXT TIME."
+}

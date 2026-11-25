@@ -674,7 +674,7 @@ const { Emitter } = await importSource('core/events.ts');
 const { animationFrame, animationDuration } = await importSource('assets/animationTiming.ts');
 
 const fx = { audited_commit: AUDITED_COMMIT, note: 'Generated from the audited TypeScript; do not hand-edit or regenerate to match a Godot mismatch.' };
-const PICK = ['DISPLAY', 'LOOP', 'ISO', 'CAMERA', 'PLAYER', 'ENERGY', 'INPUT', 'OCCLUSION', 'HUNGER', 'TREAT', 'DIGESTION', 'POOP', 'BLADDER', 'POLLUTION', 'ZONE', 'LIVES', 'SCORE', 'BARK', 'FX', 'CAT', 'BALL', 'ATTACK', 'BAGNASKIZ', 'SUPERVILLAINED'];
+const PICK = ['DISPLAY', 'LOOP', 'ISO', 'CAMERA', 'PLAYER', 'ENERGY', 'INPUT', 'OCCLUSION', 'HUNGER', 'TREAT', 'DIGESTION', 'POOP', 'BLADDER', 'POLLUTION', 'ZONE', 'LIVES', 'SCORE', 'BARK', 'FX', 'CAT', 'BALL', 'ATTACK', 'BAGNASKIZ', 'SUPERVILLAINED', 'TITLE', 'COUCH', 'GLOSSARY'];
 fx.config = Object.fromEntries(PICK.map((k) => [k, config[k]]));
 fx.config.AUDIO = config.AUDIO;
 
@@ -1205,6 +1205,90 @@ fx.rules_overlap = rulesScenario((t, c) => {
     Math.random = savedRandom;
   }
   fx.rules_fetch = { trace, events: log, treats: treats.slice(0, 1), fountain: [fountain.x, fountain.y], exit: [m.exit.x, m.exit.y] };
+}
+
+// M4: the story catalog as data (level numbers and titles, sub-level ids and titles, the Green
+// Zone marker; no scripts or prose), and the COUCH summary executed from src/campaign/summary.ts.
+// formatSavedAt reads local time: during this block the Date local accessors are bound to their
+// UTC versions so the fixture does not depend on the host's time zone (the port takes the offset
+// as a parameter and is compared at offset 0).
+{
+  const { CHAPTERS } = await importSource('campaign/chapters/index.ts');
+  const summaryTs = await importSource('campaign/summary.ts');
+  const stateTs = await importSource('campaign/state.ts');
+  const catalog = {
+    audited_commit: AUDITED_COMMIT,
+    source: 'src/campaign/chapters/index.ts CHAPTERS (numbers, titles, menu titles, sub-level ids and titles, greenZone)',
+    chapters: CHAPTERS.map((c) => ({ number: c.number, title: c.title, menuTitle: c.menuTitle ?? c.title, subLevels: c.subLevels.map((s) => ({ id: s.id, title: s.title, greenZone: s.greenZone ?? 0 })) })),
+  };
+  emit('data/campaign/story_catalog.json', stableJson(catalog));
+  const D = Date.prototype;
+  const local = ['getDate', 'getMonth', 'getFullYear', 'getHours', 'getMinutes'];
+  const saved = Object.fromEntries(local.map((k) => [k, D[k]]));
+  for (const k of local) D[k] = D['getUTC' + k.slice(3)];
+  try {
+    const NOW = Date.UTC(2026, 10, 25, 12, 0, 0);
+    const ids = CHAPTERS.flatMap((c) => c.subLevels.map((s) => s.id));
+    const base = stateTs.newCampaign;
+    const walked = base();
+    stateTs.markComplete(walked, '1.0');
+    stateTs.applyEffects(walked, { coins: 25 });
+    walked.playTime = 75.5;
+    walked.savedAt = Date.UTC(2026, 10, 17, 18, 52, 0);
+    const mid = base();
+    for (const id of ['1.0', '1.1', '1.2', '1.3', '1.4', '1.5', '2.1', '2.2']) stateTs.markComplete(mid, id);
+    stateTs.applyEffects(mid, { commozione: 35, supervillain: -4, grace: -12, standing: 9, marvel: ['A LION OF STONE', 'A GOLDEN HORSE'], item: 'THE FRESCO', value: 'Comradeship', shard: 'A FLEET BOUGHT ON CREDIT', unlock: 'cross', coins: 40 });
+    mid.playTime = 3905.2;
+    mid.savedAt = Date.UTC(2025, 1, 3, 7, 5, 0);
+    const knight = base();
+    for (const id of ids) stateTs.markComplete(knight, id);
+    knight.flags.oath = 'enforced';
+    stateTs.applyEffects(knight, { unlock: 'knight', grace: 30, standing: 60 });
+    knight.playTime = 45;
+    knight.savedAt = NOW - 60000;
+    const witness = base();
+    for (const id of ids) stateTs.markComplete(witness, id);
+    witness.flags.oath = 'silent';
+    witness.savedAt = null;
+    const states = { fresh: base(), walked, mid, knight, witness };
+    fx.couch = {
+      now: NOW,
+      cases: Object.entries(states).map(([name, st]) => ({ name, state: JSON.parse(JSON.stringify(st)), summary: summaryTs.progressSummary(st, CHAPTERS), playTime: summaryTs.formatPlayTime(st.playTime), savedAt: summaryTs.formatSavedAt(st.savedAt, NOW) })),
+      play_time: [0, 0.9, 45.9, 60, 61, 3599, 3600, 3905.2, 36000].map((s) => [s, summaryTs.formatPlayTime(s)]),
+      saved_at: [null, NOW, Date.UTC(2026, 0, 1, 0, 0, 0), Date.UTC(2025, 11, 31, 23, 59, 0), Date.UTC(2026, 10, 17, 9, 3, 0)].map((ms) => [ms, summaryTs.formatSavedAt(ms, NOW)]),
+      next_label: Object.entries(states).map(([name, st]) => {
+        for (const ch of CHAPTERS) for (const sub of ch.subLevels) if (!stateTs.isComplete(st, sub.id)) return [name, `LEVEL ${ch.number}: ${sub.id} ${sub.title.toUpperCase()}`];
+        return [name, null];
+      }),
+    };
+  } finally {
+    for (const k of local) D[k] = saved[k];
+  }
+}
+
+// M4 SAV-007: campaign effects executed from src/campaign/state.ts (applyEffects, markComplete):
+// clamped meters, first-occurrence book/ability arrays, coins never below zero, change labels.
+{
+  const stateTs = await importSource('campaign/state.ts');
+  const st = stateTs.newCampaign();
+  const steps = [
+    { commozione: 95, supervillain: -50, grace: 40, standing: 0 },
+    { marvel: ['A LION OF STONE', 'A GOLDEN HORSE', 'A LION OF STONE'], item: 'THE FRESCO', value: 'Comradeship' },
+    { item: 'THE FRESCO', value: 'Comradeship', remembered: 'THERE WAS A GATE.', shard: 'A FLEET BOUGHT ON CREDIT' },
+    { remembered: 'THERE WAS A GATE.', shard: 'A FLEET BOUGHT ON CREDIT', unlock: 'cross' },
+    { unlock: 'cross', coins: 25, flags: { oath: 'undecided', vow: true } },
+    { coins: -40, commozione: -200, flags: { oath: 'enforced', shortfall: 36000 } },
+    { unlock: 'knight', grace: 0, marvel: 'A GOLDEN HORSE' },
+  ];
+  const out = [];
+  for (const fxStep of steps) {
+    const changes = stateTs.applyEffects(st, fxStep);
+    out.push({ effects: fxStep, changes, state: JSON.parse(JSON.stringify(st)) });
+  }
+  stateTs.markComplete(st, '1.0');
+  stateTs.markComplete(st, '1.0');
+  stateTs.markComplete(st, '1.1');
+  fx.effects = { steps: out, completed: [...st.completed] };
 }
 
 // AST-012/013: the environment banks against the game's native frame contract. The native entries

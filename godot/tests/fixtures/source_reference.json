@@ -237,6 +237,85 @@
    "HOLD": 2.4,
    "SKIP_AFTER": 0.45
   },
+  "TITLE": {
+   "DOG_WIDTH": 0.46,
+   "DOG_ASPECT": 1.35,
+   "DOG_CROP_MARGIN": [
+    0.05,
+    0.03
+   ],
+   "TOP": 0.07,
+   "DOG_MENU_GAP": 6,
+   "INSERT_BRAIN_GAP": 12,
+   "BLOCK_MIN_MARGIN": 8,
+   "SHINE_EVERY": [
+    1.4,
+    3.6
+   ],
+   "SHINE_TIME": 1.6,
+   "SHINE_WIDTH": 14,
+   "SHINE_SLANT": 7,
+   "SHINE_ALPHA": 0.45,
+   "INSERT_BRAIN_BLINK": 1,
+   "TEXT_GLITCH_EVERY": [
+    1.8,
+    4.5
+   ],
+   "TEXT_GLITCH_TIME": [
+    0.06,
+    0.2
+   ],
+   "TEXT_GLITCH_BURST": [
+    0.45,
+    1
+   ],
+   "TEXT_GLITCH_IDLE": 0.35,
+   "FOOTER_GLOW_ALPHA": [
+    0.05,
+    0.75
+   ],
+   "FOOTER_GLOW_SPEED": 1.2,
+   "FOOTER_GLOW_BLUR": 3,
+   "FOOTER_GLOW_COLOR": "#c8ffb8",
+   "PUBLISHER_URL": "https://supervoideditions.com/",
+   "GLITCH_BURST": [
+    0.25,
+    0.6
+   ],
+   "GLITCH_IDLE": 0.12,
+   "GLITCH_EVERY": [
+    3.5,
+    8
+   ],
+   "GLITCH_TIME": [
+    0.08,
+    0.22
+   ],
+   "FILM": {
+    "GRAIN": 0.085,
+    "FPS": 18,
+    "FLICKER": 0.035,
+    "SEPIA": 0.22,
+    "VIGNETTE": 0.5,
+    "SCRATCHES": 0.55,
+    "DUST": 0.045,
+    "WEAVE": 1
+   }
+  },
+  "COUCH": {
+   "CARD_WIDTH": 204,
+   "DIM": 0.72,
+   "BAR_WIDTH": 50
+  },
+  "GLOSSARY": {
+   "CARD_WIDTH": 200,
+   "DIM": 0.72,
+   "RING_PAD_X": 10,
+   "RING_PAD_Y": 7,
+   "RING_OVERSHOOT": 9,
+   "RING_DELAY": 0.35,
+   "RING_TIME": 0.55
+  },
   "AUDIO": {
    "DEFAULT_VOLUME": 0.7,
    "MUSIC_VOLUME": 0.32,
@@ -38320,6 +38399,1051 @@
   "exit": [
    4.5,
    4.5
+  ]
+ },
+ "couch": {
+  "now": 1795608000000,
+  "cases": [
+   {
+    "name": "fresh",
+    "state": {
+     "version": 2,
+     "completed": [],
+     "meters": {
+      "commozione": 20,
+      "supervillain": 10,
+      "grace": 70,
+      "standing": 50
+     },
+     "flags": {},
+     "book": {
+      "marvels": [],
+      "items": [],
+      "values": [],
+      "remembered": [],
+      "shards": []
+     },
+     "abilities": [],
+     "coins": 0,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    },
+    "summary": {
+     "started": false,
+     "done": 0,
+     "total": 37,
+     "levels": [
+      {
+       "number": 1,
+       "done": 0,
+       "total": 6
+      },
+      {
+       "number": 2,
+       "done": 0,
+       "total": 3
+      },
+      {
+       "number": 3,
+       "done": 0,
+       "total": 4
+      },
+      {
+       "number": 4,
+       "done": 0,
+       "total": 3
+      },
+      {
+       "number": 5,
+       "done": 0,
+       "total": 5
+      },
+      {
+       "number": 6,
+       "done": 0,
+       "total": 3
+      },
+      {
+       "number": 7,
+       "done": 0,
+       "total": 9
+      },
+      {
+       "number": 8,
+       "done": 0,
+       "total": 4
+      }
+     ],
+     "next": {
+      "level": 1,
+      "id": "1.0",
+      "title": "The Green Zone"
+     },
+     "ending": null,
+     "meters": {
+      "commozione": 20,
+      "supervillain": 10,
+      "grace": 70,
+      "standing": 50
+     },
+     "values": 0,
+     "marvels": 0,
+     "items": 0,
+     "shards": 0,
+     "coins": 0,
+     "costume": null,
+     "abilities": [],
+     "playTime": 0,
+     "savedAt": null
+    },
+    "playTime": "0S",
+    "savedAt": "NEVER"
+   },
+   {
+    "name": "walked",
+    "state": {
+     "version": 2,
+     "completed": [
+      "1.0"
+     ],
+     "meters": {
+      "commozione": 20,
+      "supervillain": 10,
+      "grace": 70,
+      "standing": 50
+     },
+     "flags": {},
+     "book": {
+      "marvels": [],
+      "items": [],
+      "values": [],
+      "remembered": [],
+      "shards": []
+     },
+     "abilities": [],
+     "coins": 25,
+     "playTime": 75.5,
+     "savedAt": 1794941520000,
+     "notice": null
+    },
+    "summary": {
+     "started": true,
+     "done": 1,
+     "total": 37,
+     "levels": [
+      {
+       "number": 1,
+       "done": 1,
+       "total": 6
+      },
+      {
+       "number": 2,
+       "done": 0,
+       "total": 3
+      },
+      {
+       "number": 3,
+       "done": 0,
+       "total": 4
+      },
+      {
+       "number": 4,
+       "done": 0,
+       "total": 3
+      },
+      {
+       "number": 5,
+       "done": 0,
+       "total": 5
+      },
+      {
+       "number": 6,
+       "done": 0,
+       "total": 3
+      },
+      {
+       "number": 7,
+       "done": 0,
+       "total": 9
+      },
+      {
+       "number": 8,
+       "done": 0,
+       "total": 4
+      }
+     ],
+     "next": {
+      "level": 1,
+      "id": "1.1",
+      "title": "A bucket on his head"
+     },
+     "ending": null,
+     "meters": {
+      "commozione": 20,
+      "supervillain": 10,
+      "grace": 70,
+      "standing": 50
+     },
+     "values": 0,
+     "marvels": 0,
+     "items": 0,
+     "shards": 0,
+     "coins": 25,
+     "costume": null,
+     "abilities": [],
+     "playTime": 75.5,
+     "savedAt": 1794941520000
+    },
+    "playTime": "1M",
+    "savedAt": "17 NOV 18:52"
+   },
+   {
+    "name": "mid",
+    "state": {
+     "version": 2,
+     "completed": [
+      "1.0",
+      "1.1",
+      "1.2",
+      "1.3",
+      "1.4",
+      "1.5",
+      "2.1",
+      "2.2"
+     ],
+     "meters": {
+      "commozione": 55,
+      "supervillain": 6,
+      "grace": 58,
+      "standing": 59
+     },
+     "flags": {},
+     "book": {
+      "marvels": [
+       "A LION OF STONE",
+       "A GOLDEN HORSE"
+      ],
+      "items": [
+       "THE FRESCO"
+      ],
+      "values": [
+       "Comradeship"
+      ],
+      "remembered": [],
+      "shards": [
+       "A FLEET BOUGHT ON CREDIT"
+      ]
+     },
+     "abilities": [
+      "cross"
+     ],
+     "coins": 40,
+     "playTime": 3905.2,
+     "savedAt": 1738566300000,
+     "notice": null
+    },
+    "summary": {
+     "started": true,
+     "done": 8,
+     "total": 37,
+     "levels": [
+      {
+       "number": 1,
+       "done": 6,
+       "total": 6
+      },
+      {
+       "number": 2,
+       "done": 2,
+       "total": 3
+      },
+      {
+       "number": 3,
+       "done": 0,
+       "total": 4
+      },
+      {
+       "number": 4,
+       "done": 0,
+       "total": 3
+      },
+      {
+       "number": 5,
+       "done": 0,
+       "total": 5
+      },
+      {
+       "number": 6,
+       "done": 0,
+       "total": 3
+      },
+      {
+       "number": 7,
+       "done": 0,
+       "total": 9
+      },
+      {
+       "number": 8,
+       "done": 0,
+       "total": 4
+      }
+     ],
+     "next": {
+      "level": 2,
+      "id": "2.3",
+      "title": "A coat of mail too big"
+     },
+     "ending": null,
+     "meters": {
+      "commozione": 55,
+      "supervillain": 6,
+      "grace": 58,
+      "standing": 59
+     },
+     "values": 1,
+     "marvels": 2,
+     "items": 1,
+     "shards": 1,
+     "coins": 40,
+     "costume": "cross",
+     "abilities": [
+      "cross"
+     ],
+     "playTime": 3905.2,
+     "savedAt": 1738566300000
+    },
+    "playTime": "1H 05M",
+    "savedAt": "3 FEB 2025"
+   },
+   {
+    "name": "knight",
+    "state": {
+     "version": 2,
+     "completed": [
+      "1.0",
+      "1.1",
+      "1.2",
+      "1.3",
+      "1.4",
+      "1.5",
+      "2.1",
+      "2.2",
+      "2.3",
+      "3.1",
+      "3.2",
+      "3.3",
+      "3.4",
+      "4.1",
+      "4.2",
+      "4.3",
+      "5.1",
+      "5.2",
+      "5.3",
+      "5.4",
+      "5.5",
+      "6.1",
+      "6.2",
+      "6.3",
+      "7.1",
+      "7.2",
+      "7.3",
+      "7.4",
+      "7.5",
+      "7.6",
+      "7.7",
+      "7.8",
+      "7.9",
+      "8.1",
+      "8.2",
+      "8.3",
+      "8.4"
+     ],
+     "meters": {
+      "commozione": 20,
+      "supervillain": 10,
+      "grace": 100,
+      "standing": 100
+     },
+     "flags": {
+      "oath": "enforced"
+     },
+     "book": {
+      "marvels": [],
+      "items": [],
+      "values": [],
+      "remembered": [],
+      "shards": []
+     },
+     "abilities": [
+      "knight"
+     ],
+     "coins": 0,
+     "playTime": 45,
+     "savedAt": 1795607940000,
+     "notice": null
+    },
+    "summary": {
+     "started": true,
+     "done": 37,
+     "total": 37,
+     "levels": [
+      {
+       "number": 1,
+       "done": 6,
+       "total": 6
+      },
+      {
+       "number": 2,
+       "done": 3,
+       "total": 3
+      },
+      {
+       "number": 3,
+       "done": 4,
+       "total": 4
+      },
+      {
+       "number": 4,
+       "done": 3,
+       "total": 3
+      },
+      {
+       "number": 5,
+       "done": 5,
+       "total": 5
+      },
+      {
+       "number": 6,
+       "done": 3,
+       "total": 3
+      },
+      {
+       "number": 7,
+       "done": 9,
+       "total": 9
+      },
+      {
+       "number": 8,
+       "done": 4,
+       "total": 4
+      }
+     ],
+     "next": null,
+     "ending": "knight",
+     "meters": {
+      "commozione": 20,
+      "supervillain": 10,
+      "grace": 100,
+      "standing": 100
+     },
+     "values": 0,
+     "marvels": 0,
+     "items": 0,
+     "shards": 0,
+     "coins": 0,
+     "costume": "knight",
+     "abilities": [
+      "knight"
+     ],
+     "playTime": 45,
+     "savedAt": 1795607940000
+    },
+    "playTime": "45S",
+    "savedAt": "25 NOV 11:59"
+   },
+   {
+    "name": "witness",
+    "state": {
+     "version": 2,
+     "completed": [
+      "1.0",
+      "1.1",
+      "1.2",
+      "1.3",
+      "1.4",
+      "1.5",
+      "2.1",
+      "2.2",
+      "2.3",
+      "3.1",
+      "3.2",
+      "3.3",
+      "3.4",
+      "4.1",
+      "4.2",
+      "4.3",
+      "5.1",
+      "5.2",
+      "5.3",
+      "5.4",
+      "5.5",
+      "6.1",
+      "6.2",
+      "6.3",
+      "7.1",
+      "7.2",
+      "7.3",
+      "7.4",
+      "7.5",
+      "7.6",
+      "7.7",
+      "7.8",
+      "7.9",
+      "8.1",
+      "8.2",
+      "8.3",
+      "8.4"
+     ],
+     "meters": {
+      "commozione": 20,
+      "supervillain": 10,
+      "grace": 70,
+      "standing": 50
+     },
+     "flags": {
+      "oath": "silent"
+     },
+     "book": {
+      "marvels": [],
+      "items": [],
+      "values": [],
+      "remembered": [],
+      "shards": []
+     },
+     "abilities": [],
+     "coins": 0,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    },
+    "summary": {
+     "started": true,
+     "done": 37,
+     "total": 37,
+     "levels": [
+      {
+       "number": 1,
+       "done": 6,
+       "total": 6
+      },
+      {
+       "number": 2,
+       "done": 3,
+       "total": 3
+      },
+      {
+       "number": 3,
+       "done": 4,
+       "total": 4
+      },
+      {
+       "number": 4,
+       "done": 3,
+       "total": 3
+      },
+      {
+       "number": 5,
+       "done": 5,
+       "total": 5
+      },
+      {
+       "number": 6,
+       "done": 3,
+       "total": 3
+      },
+      {
+       "number": 7,
+       "done": 9,
+       "total": 9
+      },
+      {
+       "number": 8,
+       "done": 4,
+       "total": 4
+      }
+     ],
+     "next": null,
+     "ending": "alpha",
+     "meters": {
+      "commozione": 20,
+      "supervillain": 10,
+      "grace": 70,
+      "standing": 50
+     },
+     "values": 0,
+     "marvels": 0,
+     "items": 0,
+     "shards": 0,
+     "coins": 0,
+     "costume": null,
+     "abilities": [],
+     "playTime": 0,
+     "savedAt": null
+    },
+    "playTime": "0S",
+    "savedAt": "NEVER"
+   }
+  ],
+  "play_time": [
+   [
+    0,
+    "0S"
+   ],
+   [
+    0.9,
+    "0S"
+   ],
+   [
+    45.9,
+    "45S"
+   ],
+   [
+    60,
+    "1M"
+   ],
+   [
+    61,
+    "1M"
+   ],
+   [
+    3599,
+    "59M"
+   ],
+   [
+    3600,
+    "1H 00M"
+   ],
+   [
+    3905.2,
+    "1H 05M"
+   ],
+   [
+    36000,
+    "10H 00M"
+   ]
+  ],
+  "saved_at": [
+   [
+    null,
+    "NEVER"
+   ],
+   [
+    1795608000000,
+    "25 NOV 12:00"
+   ],
+   [
+    1767225600000,
+    "1 JAN 00:00"
+   ],
+   [
+    1767225540000,
+    "31 DEC 2025"
+   ],
+   [
+    1794906180000,
+    "17 NOV 09:03"
+   ]
+  ],
+  "next_label": [
+   [
+    "fresh",
+    "LEVEL 1: 1.0 THE GREEN ZONE"
+   ],
+   [
+    "walked",
+    "LEVEL 1: 1.1 A BUCKET ON HIS HEAD"
+   ],
+   [
+    "mid",
+    "LEVEL 2: 2.3 A COAT OF MAIL TOO BIG"
+   ],
+   [
+    "knight",
+    null
+   ],
+   [
+    "witness",
+    null
+   ]
+  ]
+ },
+ "effects": {
+  "steps": [
+   {
+    "effects": {
+     "commozione": 95,
+     "supervillain": -50,
+     "grace": 40,
+     "standing": 0
+    },
+    "changes": [
+     {
+      "label": "+80 COMMOZIONE",
+      "positive": true
+     },
+     {
+      "label": "-10 SUPERVILLAIN",
+      "positive": false
+     },
+     {
+      "label": "+30 GRACE",
+      "positive": true
+     }
+    ],
+    "state": {
+     "version": 2,
+     "completed": [],
+     "meters": {
+      "commozione": 100,
+      "supervillain": 0,
+      "grace": 100,
+      "standing": 50
+     },
+     "flags": {},
+     "book": {
+      "marvels": [],
+      "items": [],
+      "values": [],
+      "remembered": [],
+      "shards": []
+     },
+     "abilities": [],
+     "coins": 0,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    }
+   },
+   {
+    "effects": {
+     "marvel": [
+      "A LION OF STONE",
+      "A GOLDEN HORSE",
+      "A LION OF STONE"
+     ],
+     "item": "THE FRESCO",
+     "value": "Comradeship"
+    },
+    "changes": [
+     {
+      "label": "MARVEL: A LION OF STONE",
+      "positive": true
+     },
+     {
+      "label": "MARVEL: A GOLDEN HORSE",
+      "positive": true
+     },
+     {
+      "label": "GOT: THE FRESCO",
+      "positive": true
+     },
+     {
+      "label": "VALUE: COMRADESHIP",
+      "positive": true
+     }
+    ],
+    "state": {
+     "version": 2,
+     "completed": [],
+     "meters": {
+      "commozione": 100,
+      "supervillain": 0,
+      "grace": 100,
+      "standing": 50
+     },
+     "flags": {},
+     "book": {
+      "marvels": [
+       "A LION OF STONE",
+       "A GOLDEN HORSE"
+      ],
+      "items": [
+       "THE FRESCO"
+      ],
+      "values": [
+       "Comradeship"
+      ],
+      "remembered": [],
+      "shards": []
+     },
+     "abilities": [],
+     "coins": 0,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    }
+   },
+   {
+    "effects": {
+     "item": "THE FRESCO",
+     "value": "Comradeship",
+     "remembered": "THERE WAS A GATE.",
+     "shard": "A FLEET BOUGHT ON CREDIT"
+    },
+    "changes": [
+     {
+      "label": "SCRAP: A FLEET BOUGHT ON CREDIT",
+      "positive": true
+     }
+    ],
+    "state": {
+     "version": 2,
+     "completed": [],
+     "meters": {
+      "commozione": 100,
+      "supervillain": 0,
+      "grace": 100,
+      "standing": 50
+     },
+     "flags": {},
+     "book": {
+      "marvels": [
+       "A LION OF STONE",
+       "A GOLDEN HORSE"
+      ],
+      "items": [
+       "THE FRESCO"
+      ],
+      "values": [
+       "Comradeship"
+      ],
+      "remembered": [
+       "THERE WAS A GATE."
+      ],
+      "shards": [
+       "A FLEET BOUGHT ON CREDIT"
+      ]
+     },
+     "abilities": [],
+     "coins": 0,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    }
+   },
+   {
+    "effects": {
+     "remembered": "THERE WAS A GATE.",
+     "shard": "A FLEET BOUGHT ON CREDIT",
+     "unlock": "cross"
+    },
+    "changes": [
+     {
+      "label": "UNLOCKED: CROSS",
+      "positive": true
+     }
+    ],
+    "state": {
+     "version": 2,
+     "completed": [],
+     "meters": {
+      "commozione": 100,
+      "supervillain": 0,
+      "grace": 100,
+      "standing": 50
+     },
+     "flags": {},
+     "book": {
+      "marvels": [
+       "A LION OF STONE",
+       "A GOLDEN HORSE"
+      ],
+      "items": [
+       "THE FRESCO"
+      ],
+      "values": [
+       "Comradeship"
+      ],
+      "remembered": [
+       "THERE WAS A GATE."
+      ],
+      "shards": [
+       "A FLEET BOUGHT ON CREDIT"
+      ]
+     },
+     "abilities": [
+      "cross"
+     ],
+     "coins": 0,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    }
+   },
+   {
+    "effects": {
+     "unlock": "cross",
+     "coins": 25,
+     "flags": {
+      "oath": "undecided",
+      "vow": true
+     }
+    },
+    "changes": [
+     {
+      "label": "+25 COINS",
+      "positive": true
+     }
+    ],
+    "state": {
+     "version": 2,
+     "completed": [],
+     "meters": {
+      "commozione": 100,
+      "supervillain": 0,
+      "grace": 100,
+      "standing": 50
+     },
+     "flags": {
+      "oath": "undecided",
+      "vow": true
+     },
+     "book": {
+      "marvels": [
+       "A LION OF STONE",
+       "A GOLDEN HORSE"
+      ],
+      "items": [
+       "THE FRESCO"
+      ],
+      "values": [
+       "Comradeship"
+      ],
+      "remembered": [
+       "THERE WAS A GATE."
+      ],
+      "shards": [
+       "A FLEET BOUGHT ON CREDIT"
+      ]
+     },
+     "abilities": [
+      "cross"
+     ],
+     "coins": 25,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    }
+   },
+   {
+    "effects": {
+     "coins": -40,
+     "commozione": -200,
+     "flags": {
+      "oath": "enforced",
+      "shortfall": 36000
+     }
+    },
+    "changes": [
+     {
+      "label": "-100 COMMOZIONE",
+      "positive": false
+     },
+     {
+      "label": "-40 COINS",
+      "positive": false
+     }
+    ],
+    "state": {
+     "version": 2,
+     "completed": [],
+     "meters": {
+      "commozione": 0,
+      "supervillain": 0,
+      "grace": 100,
+      "standing": 50
+     },
+     "flags": {
+      "oath": "enforced",
+      "vow": true,
+      "shortfall": 36000
+     },
+     "book": {
+      "marvels": [
+       "A LION OF STONE",
+       "A GOLDEN HORSE"
+      ],
+      "items": [
+       "THE FRESCO"
+      ],
+      "values": [
+       "Comradeship"
+      ],
+      "remembered": [
+       "THERE WAS A GATE."
+      ],
+      "shards": [
+       "A FLEET BOUGHT ON CREDIT"
+      ]
+     },
+     "abilities": [
+      "cross"
+     ],
+     "coins": 0,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    }
+   },
+   {
+    "effects": {
+     "unlock": "knight",
+     "grace": 0,
+     "marvel": "A GOLDEN HORSE"
+    },
+    "changes": [
+     {
+      "label": "UNLOCKED: KNIGHT",
+      "positive": true
+     }
+    ],
+    "state": {
+     "version": 2,
+     "completed": [],
+     "meters": {
+      "commozione": 0,
+      "supervillain": 0,
+      "grace": 100,
+      "standing": 50
+     },
+     "flags": {
+      "oath": "enforced",
+      "vow": true,
+      "shortfall": 36000
+     },
+     "book": {
+      "marvels": [
+       "A LION OF STONE",
+       "A GOLDEN HORSE"
+      ],
+      "items": [
+       "THE FRESCO"
+      ],
+      "values": [
+       "Comradeship"
+      ],
+      "remembered": [
+       "THERE WAS A GATE."
+      ],
+      "shards": [
+       "A FLEET BOUGHT ON CREDIT"
+      ]
+     },
+     "abilities": [
+      "cross",
+      "knight"
+     ],
+     "coins": 0,
+     "playTime": 0,
+     "savedAt": null,
+     "notice": null
+    }
+   }
+  ],
+  "completed": [
+   "1.0",
+   "1.1"
   ]
  }
 }
