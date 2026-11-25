@@ -225,9 +225,10 @@ func test_COM_001_004_bark_area_push_never_parried_small_stagger() -> void:
 	var f := _foe(s, "f")
 	var b := _foe(s, "b")
 	var far := _foe(s, "far")
-	f.foe.cooldown = 99.0
-	b.foe.cooldown = 99.0
-	far.foe.cooldown = 99.0
+	# Closed (a parrying foe would parry the sword now) and out of their attack range: no swing.
+	for a: StoryActor in [f, b, far]:
+		a.foe.cooldown = 0.5
+		assert_false(CombatRules.is_open(a.foe), a.handle + " is closed")
 	var before := [Vector2(f.gx, f.gy), Vector2(b.gx, b.gy), Vector2(far.gx, far.gy)]
 	InputService.trigger(&"bark")
 	_ticks(s, 1)

@@ -136,6 +136,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 ## Level 2 — On the edge of dreams (dream)
 
 ### 2.1 One step from Jerusalem
+- **Rewritten (M6-B)**: same ID, purpose and consequences; prose rewritten; the gate recedes twice (rule `receding`); the leaders' Babylon/Egypt is heard behind a door (source-tagged, REVIEW REQUIRED wording).
 - **Titles**: One step from Jerusalem → (unchanged; rewrite in Level 2).
 - **Purpose**: the dream's prologue image; the helmet that slips (the bucket).
 - **History/place**: the leaders' real objective was Egypt; the people were told "overseas"
@@ -144,9 +145,10 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Cast**: Zampanò. **Setup → payoff**: Jerusalem never loads (7.9 "LOADING…").
 - **Effects**: — (the dream skin begins: coat of mail, no arms).
 - **Status**: keep. **Refs**: Villehardouin p. 8; Clari XIII. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ### 2.2 Names on a list
+- **Rewritten (M6-B)**: the vow in the sermon's lulls (rule `lull`), the counts, the ranked list (two answers), the marshal. REVIEW REQUIRED: Fulk on the tournament field; "A KNIGHT OF PICARDY".
 - **Titles**: Names on a list → (unchanged).
 - **Purpose**: taking the cross; being counted at the bottom of the list.
 - **History/place**: Fulk of Neuilly's preaching; the tourney of Écri; the counts take the cross;
@@ -156,9 +158,10 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Setup → payoff**: the vow → Grace's forms (5.1, 7.7).
 - **Effects**: `unlock: sermon`, Grace +5, `vow`.
 - **Status**: keep. **Refs**: Villehardouin pp. 1–4. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ### 2.3 A coat of mail too big
+- **Rewritten (M6-B)**: the bark-only road fight, the three pickups then `knight`, the charge in heavy mail, sparring with parrying squires (knockdown resets), following Pierre.
 - **Titles**: A coat of mail too big → (unchanged).
 - **Purpose**: first fight (bark only), the borrowed arms, falling in behind Pierre.
 - **History/place**: Pierre d'Amiens is Clari's lord, Aleaume his brother, a clerk (attested:
@@ -169,20 +172,22 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Setup → payoff**: the arms → fights in 5.3, 7.2; Pierre → 7.3.
 - **Effects**: `unlock: knight`, Supervillain +8.
 - **Status**: keep. **Refs**: Clari 75–76, 120. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ## Level 3 — Venice (dream)
 
 ### 3.1 Look at those ships
+- **Rewritten (M6-C)**: the quay with the harbour bell (rule `sounder`), LOOK at three marvels, MERAVIGLIA received, the empty berths.
 - **Titles**: unchanged. **Purpose**: Meraviglia opens; the empty berths.
 - **History/place**: far fewer came than the fleet was built for (Clari XI, a claim in its
   numbers); horse transports (Clari 13); other ports (Villehardouin pp. 13–16).
 - **Play**: follow Pierre on the quay; LOOK at transports, galleys, great ships; count empty berths.
 - **Cast**: Pierre, Zampanò. **Setup → payoff**: marvels → 8.2's study furniture.
 - **Effects**: marvels. **Status**: keep. **Refs**: Clari XI, 13; Villehardouin pp. 13–16.
-- **Open**: — **Impl**: reference_only · draft_reference.
+- **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ### 3.2 The price of passage
+- **Rewritten (M6-C)**: two collections with the bowl carried; Clari's 50,000/36,000 on cards, the marshal's 34,000 spoken; never merged.
 - **Titles**: unchanged. **Purpose**: the debt; two counts kept side by side.
 - **History/place**: the treaty, 85,000 marks; collections; 34,000 (Villehardouin) vs 36,000
   (Clari) still owed (kept disagreement).
@@ -190,49 +195,54 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Cast**: the marshal, crowd. **Setup → payoff**: `shortfall` → 5.5's board.
 - **Effects**: `shortfall` = 36000. **Status**: keep.
 - **Refs**: Villehardouin pp. 6–7, 15–16; Clari XI–XII. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ### 3.3 The art of weeping
+- **Rewritten (M6-C)**: the recollection; weeping in the trumpets' lulls; the square answers. The unused weeping() minigame is not restored.
 - **Titles**: unchanged. **Purpose**: the envoys' 1201 plea, played as a recollection.
 - **History/place**: "knelt at the feet of the people, weeping many tears" (Villehardouin p. 8).
 - **Play**: kneel, wait for quiet, weep; the square answers. **Cast**: envoys, crowd.
 - **Setup → payoff**: weeping → Commozione; 6.3's kneeling chiefs. **Effects**: `weptWell`.
 - **Status**: keep. **Refs**: Villehardouin pp. 7–8. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ### 3.4 Nobody leaves the Lido
+- **Rewritten (M6-C)**: the stealth follow (guard cone, bushes placed as hiding spots, checkpoint), the listen gauge, the gangplank by ear, the Doge's cross. REVIEW REQUIRED: the ZARA card paraphrase.
 - **Titles**: unchanged. **Purpose**: the deal for Zara, overheard.
 - **History/place**: the island, the food threat, Zara, secrecy (Clari 10–13 / XI–XIII); the Doge
   takes the cross on his cotton hat (Villehardouin pp. 16–17).
 - **Play**: follow a bread seller unseen to the council awning; overhear.
 - **Cast**: the Doge, the marshal, a bread seller. **Setup → payoff**: `zaraDeal` → 4.3, 5.1.
 - **Effects**: `zaraDeal`. **Status**: keep. **Refs**: Clari XI–XIII; Villehardouin pp. 16–17.
-- **Open**: — **Impl**: reference_only · draft_reference.
+- **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ## Level 4 — The sea (dream)
 
 ### 4.1 Veni Creator
+- **Rewritten (M6-D)**: the deck walk with Watson, the parade rhythm (won/lost effects), the sail. REVIEW REQUIRED: the trumpets answering from ship to ship.
 - **Titles**: unchanged. **Purpose**: the fleet leaves Venice. **History/place**: *Veni Creator*
   from the ships' castles (Clari 13); sailing October 1202 (Villehardouin p. 19).
 - **Play**: walk the deck with Watson; raise shields on the beat (rhythm minigame).
 - **Cast**: Watson. **Setup → payoff**: marvel of the fleet. **Effects**: a marvel.
 - **Status**: keep. **Refs**: Clari 13; Villehardouin p. 19. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ### 4.2 Horses below deck
+- **Rewritten (M6-D)**: the skiff minigame, three horses fed, Watson's bucket out of reach.
 - **Titles**: unchanged. **Purpose**: connective scene. **History/place**: horse transports exist
   (Clari 10, 13); the task is adaptation.
 - **Play**: ease a skiff alongside; feed three horses; Watson drags the bucket out of reach.
 - **Cast**: Watson. **Setup → payoff**: Watson's bucket echo of 1.3. **Effects**: —
-- **Status**: keep. **Refs**: Clari 10, 13. **Open**: — **Impl**: reference_only · draft_reference.
+- **Status**: keep. **Refs**: Clari 10, 13. **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ### 4.3 Rumours on deck
+- **Rewritten (M6-D)**: four rumours, the marshal names Zara, the rowing rhythm (won/lost effects). REVIEW REQUIRED: "KEEP THE HOST TOGETHER. THAT IS THE WHOLE ART." framed as his view.
 - **Titles**: unchanged. **Purpose**: where is the fleet going? **History/place**: Zara and the
   arrival on the eve of Saint Martin (Villehardouin pp. 16, 19–20; Clari 13–14).
 - **Play**: ask four men; the marshal says Zara; row into the harbour (rhythm minigame).
 - **Cast**: the marshal, men on deck. **Effects**: `heardZara`.
 - **Status**: keep. **Refs**: Villehardouin pp. 16, 19–20; Clari 13–14. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M6, report 32; `data/story/scenes/<id>.tres`).
 
 ## Level 5 — Zara (dream)
 

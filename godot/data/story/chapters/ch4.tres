@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StoryChapterData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_chapter_data.gd" id="1_storychapterdata"]
+[ext_resource type="Resource" path="res://data/story/scenes/4_1.tres" id="s4_1"]
+[ext_resource type="Resource" path="res://data/story/scenes/4_2.tres" id="s4_2"]
+[ext_resource type="Resource" path="res://data/story/scenes/4_3.tres" id="s4_3"]
+
+[resource]
+script = ExtResource("1_storychapterdata")
+number = 4
+scenes = [ExtResource("s4_1"), ExtResource("s4_2"), ExtResource("s4_3")]
+content_version = 1
+review_status = "draft_implemented_review_pending"
+title = "The sea"
+menu_title = "The sea"
+intro = "THE FLEET LEAVES VENICE IN THE AUTUMN OF 1202. EVERY SHIP IS SINGING, EVERY HORSE IS SEASICK, AND EVERY MAN ON DECK HAS HEARD A DIFFERENT NAME FOR WHERE THEY ARE GOING."
+cast_note = "WATSON AS A VENETIAN SAILOR; BAGNASKIZ AS THE MARSHAL; JACK, SPREADING RUMOURS"
+music = "level4"
+professor_aside = "NOT EVERY MAN IN THE HOST KNEW THE PLAN, CLARI SAYS: ONLY THE MEN OF HIGHEST ESTATE. HE WRITES IT DOWN QUITE CALMLY, YOU UNDERSTAND, AS IF IT WERE THE WEATHER."
+review_notes = PackedStringArray("Draft implemented; narrative review pending for the whole level (OD-01: prototype deferral, not approval).", "The aside paraphrases Clari 13 (\"none save the men of highest estate\", docs/STORY-SOURCES.md); it is the Professor's framing, not a quotation.")

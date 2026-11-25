@@ -235,7 +235,29 @@ with its parameters validated in `ObjectiveStep.check`.
 - `tools/story_review_export.tscn`: writes every player-visible line of a chapter in play order
   (the owner's narrative-review package).
 
-## 9. Adding a scene (Levels 2–8, not started)
+## 8a. M6: combat, stealth, minigames, the book
+
+- **Costume and capability** (RD-32): `StorySceneData.costume()` → `PlayableDog.set_costume()` at every
+  stage; `StoryContext.armed()` gates SWORD/SHIELD (router modes; U/I and swipes route directly; without
+  it `CombatController` shows a one-time no-arms notice).
+- **Combat** (`story/combat/`): `CombatRules` (pure: `Foe`, `in_arc`, `damage_foe`, `stagger_foe`,
+  `step_foe`, `is_open`, `shield_blocks`); `CombatController` (one per walk, `ctx.combat`: `bark()`,
+  `strike()`, `raise_shield()`, `update(dt, guard_held)`, `reset()`, `stop()`, `events`); a fight is
+  `ObjectiveStep.fight` (`foes`, `hp`, `speed`, `radius`, `leash`, `health`, `parry`, `rout`; lines
+  `rule_lines.rout`) with kind `fight`; a knockdown is the walk's interrupt (card, reset).
+  `StoryFxView` draws rings, the arc, the bark ring, the shield and HP pips.
+- **Actors**: `StoryActor` behaviours idle, goto, follow (with a side), patrol, chase, flee, wander;
+  `foe`, `hostile`, `sight_range`/`sight_half_angle`/`alert`, knockback. `ActorStep` actions patrol,
+  chase, flee, wander, emote, with `sight_range`, `hostile`.
+- **Stealth** (`StorySight`): range, cone, line of sight, bush and hiding-spot cover (`PropStep.hides`);
+  `ObjectiveStep.caught = "restart"` with `caught_text`; checkpoints become the restart point.
+- **Rules**: `receding` (2.1), `lull` (2.2, 3.3), `listen` (3.4), `sounder` (3.1's bell; `hidden`: a
+  goal found by ear). The HUD gauge: `StoryHud.set_mode(label, value, color)`.
+- **Minigames** (RD-35): `MiniGameStep` (`game`: parade, rowing, boat; `lines`; `won_effects`,
+  `lost_effects`; `params`) over `RhythmGame` / `BoatGame` (pure), drawn by `MiniGameView`.
+- **The book**: `MeravigliaOverlay` (Main `open_book()`).
+
+## 9. Adding a scene (Levels 5–8; Levels 2–4 done in M6)
 
 1. Record the rewrite in the matrix and the decisions log (spec §3) first.
 2. Author `data/story/scenes/<id>.tres` (a `StageStep` first, a `CompleteStep` last) and add it to

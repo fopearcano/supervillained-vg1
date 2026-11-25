@@ -13,7 +13,7 @@ const DT := 1.0 / 60.0
 const NOW := 1795608000000
 const CB := GameConfig.Combat
 ## Every M6 scene in catalog order (this build's).
-const IDS := ["2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "3.4"]
+const IDS := ["2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "3.4", "4.1", "4.2", "4.3"]
 ## Choices a run takes (choice id -> option id) and the branches the snapshots cover.
 const BRANCHES := {"2.2": [{"s13": "glad"}, {"s13": "proud"}]}
 ## What each scene commits on top of its entry state: meter deltas, flags, abilities, how many book
@@ -27,6 +27,9 @@ const SNAP := {
 	"3.2": {"meters": {}, "flags": {"shortfall": 36000}, "abilities": [], "book": {"remembered": 1}},
 	"3.3": {"meters": {"commozione": 10}, "flags": {"weptWell": true}, "abilities": [], "book": {"remembered": 1}},
 	"3.4": {"meters": {}, "flags": {"zaraDeal": true}, "abilities": [], "book": {"remembered": 1}},
+	"4.1": {"meters": {"commozione": 8}, "flags": {}, "abilities": [], "book": {"marvels": 1, "remembered": 1}},
+	"4.2": {"meters": {"commozione": 4}, "flags": {}, "abilities": [], "book": {"remembered": 1}},
+	"4.3": {"meters": {"commozione": 4}, "flags": {"heardZara": true}, "abilities": [], "book": {"remembered": 1}},
 }
 
 var main: Node
@@ -544,6 +547,11 @@ func test_STY_304_stealth_detection_checkpoint_recovery_and_the_deal() -> void:
 	var held := Vector2(seller.gx, seller.gy)
 	_ticks(s, 30)
 	assert_vec_near(Vector2(seller.gx, seller.gy), held, 0.01, "and stays put while he lags")
+	s.world.player.set_grid_position(seller.gx + 0.9, seller.gy)
+	_ticks(s, 2)
+	assert_eq([bool(s.runner.st["waiting"]), seller.behavior], [false, "goto"], "he catches up: the seller walks on")
+	_ticks(s, 20)
+	assert_true(Vector2(seller.gx, seller.gy).distance_to(held) > 0.2, "and moves")
 	# The checkpoint: once passed it is where a capture sends him.
 	var cp := s.ctx.marker("1")
 	s.world.player.set_grid_position(cp.x, cp.y)
@@ -645,6 +653,287 @@ func test_SLICE_meraviglia_book_opens_pages_and_persists() -> void:
 	main.open_options()
 	(main.top_overlay() as OptionsOverlay).actions["book"].call()
 	assert_true(main.top_overlay() is MeravigliaOverlay, "and from OPTIONS")
+
+
+# --- Level 4 and the minigames ------------------------------------------------------------------------
+
+const RS := GameConfig.Story
+
+
+## MINI-001 (rules): beats are deterministic (k × 60/bpm, from −START_DELAY); a press within the
+## window of an unjudged beat is a hit, a second press on the same beat is "too early" (no double
+## count), a press away from every beat is "too early", an unpressed beat is a miss once its window
+## has passed; the result comes RESULT_AFTER the last beat: won with `need` hits, otherwise lost.
+func test_MINI_001_rhythm_windows_errors_and_result() -> void:
+	var g := RhythmGame.new().setup(4, 60.0, 3)
+	assert_eq([g.time, g.beat_at(0), g.beat_at(3)], [-RS.RHYTHM_START_DELAY, 0.0, 3.0], "deterministic beats")
+	var step := 1.0 / 60.0
+	var r := ""
+	var pressed := {}
+	var early_done := false
+	while r != "won" and r != "lost":
+		var press := false
+		var n := g.nearest()
+		var k := int(n[0])
+		if k == 0 and not pressed.has(0) and absf(g.time + step - g.beat_at(0)) <= RS.RHYTHM_WINDOW - 0.02:
+			press = true
+			pressed[0] = true
+		elif k == 0 and pressed.has(0) and not pressed.has("again") and g.judged.has(0):
+			press = true
+			pressed["again"] = true
+		elif not early_done and g.time > 0.5 and g.time < 0.6:
+			press = true
+			early_done = true
+		elif (k == 2 or k == 3) and not pressed.has(k) and absf(g.time + step - g.beat_at(k)) <= 0.02:
+			press = true
+			pressed[k] = true
+		r = g.update(step, press)
+	assert_eq([g.judged, g.hits], [{0: true, 1: false, 2: true, 3: true}, 3], "hit, miss (unpressed), hit, hit; no double count")
+	assert_eq(r, "won", "three hits of four: won")
+	assert_true(g.time >= g.beat_at(3) + RhythmGame.RESULT_AFTER, "the result after the last beat")
+	var lost := RhythmGame.new().setup(4, 60.0, 3)
+	var lr := ""
+	while lr != "won" and lr != "lost":
+		lr = lost.update(step, false)
+	assert_eq([lr, lost.hits, lost.judged.values().count(false)], ["lost", 0, 4], "no presses: four misses, lost")
+
+
+func _mini_run(id: String, plays: bool, policy: Dictionary = {}) -> Dictionary:
+	var s := _scene(id, _entry(id))
+	var out := {"scene": s}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	var d := StoryDriver.new(s, policy)
+	d.plays_minigames = plays
+	var views := 0
+	for k in 60 * 200:
+		if out.has("r"):
+			break
+		if s.runner.current is MiniGameStep and s.hud.get_parent().has_node("MiniGameView"):
+			views = maxi(views, s.hud.get_parent().get_children().filter(func(c: Node) -> bool: return c is MiniGameView).size())
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	out["views"] = views
+	out["left"] = s.hud.get_parent().get_children().filter(func(c: Node) -> bool: return c is MiniGameView).size()
+	return out
+
+
+## MINI-002: 4.1's parade (VENI CREATOR, RAISE on every beat): played on the beat it is won
+## (Commozione +8 and the fleet's marvel); with no press it is lost (Commozione +2 and the marvel):
+## each result's effects once, and the scene goes on either way.
+func test_MINI_002_parade_rhythm_won_and_lost_effects() -> void:
+	var entry := _entry("4.1")
+	var won := _mini_run("4.1", true)
+	var lost := _mini_run("4.1", false)
+	for pair: Array in [[won, 8.0, "won"], [lost, 2.0, "lost"]]:
+		var out: Dictionary = pair[0]
+		if not assert_true(out.has("r"), "4.1 %s: completes" % pair[2]):
+			continue
+		var st: Dictionary = out["r"]["state"]
+		assert_eq([st["meters"]["commozione"] - entry["meters"]["commozione"], st["book"]["marvels"].count("THE FLEET LEAVING VENICE")], [pair[1], 1], "4.1 %s: its effects, once" % pair[2])
+		assert_eq(((out["scene"] as StoryScene).ctx.metrics["minis"] as Array), ["parade:" + String(pair[2])], "4.1 %s: one game, one result" % pair[2])
+
+
+## MINI-003: 4.3's rowing (ROW, 8 BPM slower than the parade): won +4, lost +1; `heardZara` is set
+## either way before it; the scene goes on to Zara.
+func test_MINI_003_rowing_rhythm_won_and_lost_effects() -> void:
+	var entry := _entry("4.3")
+	var won := _mini_run("4.3", true)
+	var lost := _mini_run("4.3", false)
+	var row := (StoryLibrary.scene("4.3").steps.filter(func(x: StoryStep) -> bool: return x is MiniGameStep)[0] as MiniGameStep).rhythm()
+	assert_eq([row.bpm, row.beats, row.need], [RS.PARADE_BPM - RS.ROWING_BPM_DROP, RS.PARADE_BEATS, RS.PARADE_NEED], "the rowing's numbers")
+	for pair: Array in [[won, 4.0, "won"], [lost, 1.0, "lost"]]:
+		var out: Dictionary = pair[0]
+		if not assert_true(out.has("r"), "4.3 %s: completes" % pair[2]):
+			continue
+		var st: Dictionary = out["r"]["state"]
+		assert_eq([st["meters"]["commozione"] - entry["meters"]["commozione"], st["flags"].get("heardZara")], [pair[1], true], "4.3 %s: its effect once; heardZara" % pair[2])
+		assert_eq((out["scene"] as StoryScene).runner.trace.count("s09"), 1, "4.3 %s: the game ran once (no automatic retry)" % pair[2])
+
+
+## MINI-004: the game's view and result are cleaned up on a win and on a loss (no view left, no
+## second result); a loss advances once; a restart from the pause in the middle of a game removes its
+## view and plays it again from the start, nothing applied twice; the dormant weeping() game is absent.
+func test_MINI_004_cleanup_loss_continuation_and_restart() -> void:
+	var lost := _mini_run("4.1", false)
+	assert_eq([lost["views"], lost["left"]], [1, 0], "one view while it runs, none after")
+	var s := _scene("4.1", _entry("4.1"))
+	if not _to_step(s, "s07"):
+		return
+	_ticks(s, 120)
+	var g: RhythmGame = s.runner.st["game"]
+	assert_true(g.time > 0.0, "the game is running")
+	s.open_pause()
+	s.restart()
+	assert_eq(s.hud.get_parent().get_children().filter(func(c: Node) -> bool: return c is MiniGameView).size(), 0, "restart removed the view")
+	var out := {}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	var d := StoryDriver.new(s)
+	for k in 60 * 120:
+		if out.has("r"):
+			break
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	assert_true(out.has("r"), "4.1 completes after the restart")
+	if out.has("r"):
+		assert_eq([out["r"]["state"]["meters"]["commozione"] - _entry("4.1")["meters"]["commozione"], s.ctx.metrics["minis"]], [8.0, ["parade:won"]], "one result, applied once")
+	for path in ["res://story/minigames/weeping_game.gd", "res://story/minigames/tug_game.gd", "res://story/minigames/ladders_game.gd", "res://story/minigames/letter_game.gd", "res://story/minigames/rumour_game.gd"]:
+		assert_false(ResourceLoader.exists(path), path + " is not implemented in M6")
+	assert_eq(MiniGameStep.GAMES, ["parade", "rowing", "boat"], "only the parade, the rowing and the boat")
+
+
+## MINI-005: 4.2's skiff: strokes closer than BOAT_MIN_GAP slosh water in; a full boat swamps it (half
+## the distance lost, BOAT_SWAMP_TIME without strokes); gentle strokes bring it alongside: won,
+## Commozione +4 once; there is no lost result.
+func test_MINI_005_boat_alignment_objective_and_result() -> void:
+	var b := BoatGame.new()
+	var step := 1.0 / 60.0
+	b.update(step, 1)
+	assert_eq([b.events, b.progress], [["stroke"], RS.BOAT_STROKE], "a stroke moves it closer")
+	b.update(step, 1)
+	assert_eq([b.events, b.water], [["splash"], RS.BOAT_SPLASH - RS.BOAT_DRAIN * step], "too soon: water in")
+	for k in 4:
+		b.update(step, 1)
+	assert_true(b.events.has("swamped") or b.swamped_t > 0.0, "a full boat swamps")
+	assert_true(b.progress < RS.BOAT_STROKE and b.swamped_t > 0.0, "half the distance lost, a pause")
+	var before := b.progress
+	b.update(step, 1)
+	assert_eq(b.progress, before, "no strokes while swamped")
+	var g := BoatGame.new()
+	var r := ""
+	var t := 0.0
+	var next := 0.0
+	while r != "won" and t < 60.0:
+		var n := 0
+		if t >= next:
+			n = 1
+			next = t + RS.BOAT_MIN_GAP * 1.1
+		r = g.update(step, n)
+		t += step
+	assert_eq([r, g.water], ["won", 0.0], "gentle strokes: alongside, dry")
+	var out := _mini_run("4.2", true)
+	assert_true(out.has("r"), "4.2 completes")
+	if out.has("r"):
+		assert_eq(out["r"]["state"]["meters"]["commozione"] - _entry("4.2")["meters"]["commozione"], 4.0, "Commozione +4 once")
+		assert_eq(((out["scene"] as StoryScene).ctx.metrics["minis"] as Array), ["boat:won"], "won")
+	var data := StoryLibrary.scene("4.2")
+	var mg: MiniGameStep = data.steps.filter(func(x: StoryStep) -> bool: return x is MiniGameStep)[0]
+	assert_eq([mg.game, mg.lines["objective"], mg.lost_effects], ["boat", "EASE THE SKIFF ALONGSIDE THE TRANSPORT WITHOUT SWAMPING IT", {}], "the objective; no lost result")
+
+
+## STY-401–403: 4.1 Watson walks beside him to the bow before the parade; 4.2 the three horses are
+## fed (three spots), the hay and water carried and dropped, and Watson's bucket moves out of reach
+## with its CLONG; 4.3 four rumours asked, the marshal names Zara, `heardZara`, the rowing, the eve
+## of Saint Martin.
+func test_STY_401_403_deck_horses_bucket_and_rumours() -> void:
+	var s := _scene("4.1", _entry("4.1"))
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s04"), "the deck walk")
+	_ticks(s, 90)
+	var w: StoryActor = s.actors["watson"]
+	assert_eq(w.behavior, "follow", "Watson walks with him")
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current is MiniGameStep), "to the parade")
+	assert_true(s.ctx.player_pos().distance_to(s.ctx.marker("3")) < 1.0, "at the bow")
+	var h := _scene("4.2", _entry("4.2"))
+	assert_true(_drive_until(h, func() -> bool: return h.runner.current != null and h.runner.current.id == "s08"), "feeding")
+	assert_eq([h.ctx.carrying, h.props.has("horse1"), h.props.has("horse2"), h.props.has("horse3")], ["HAY AND WATER", true, true, true], "carrying hay and water; three horses")
+	assert_true(_drive_until(h, func() -> bool: return h.runner.current != null and h.runner.current.id == "s11"), "fed")
+	assert_eq(h.ctx.carrying, "", "dropped")
+	var bucket: StoryProp = h.props["bucket"]
+	var at := Vector2(bucket.gx, bucket.gy)
+	assert_true(_drive_until(h, func() -> bool: return h.runner.current != null and h.runner.current.id == "s13"), "Watson moves it")
+	assert_vec_near(Vector2(bucket.gx, bucket.gy), at + Vector2(1.6, 0.8), 1e-6, "just out of reach")
+	assert_true(h.hud.floats.any(func(f: Dictionary) -> bool: return f["text"] == "CLONG."), "CLONG.")
+	var r := _scene("4.3", _entry("4.3"))
+	var out := {}
+	r.completed.connect(func(x: Dictionary) -> void: out["r"] = x)
+	var d := StoryDriver.new(r)
+	for k in 60 * 120:
+		if out.has("r"):
+			break
+		d.drive(DT)
+		InputService.update(DT)
+		r.tick(DT)
+	var rumours := (r.data.steps.filter(func(x: StoryStep) -> bool: return x.id == "s03")[0] as ObjectiveStep).pickups.map(func(p: StoryPickup) -> String: return p.text)
+	var heard := rumours.filter(func(t: String) -> bool: return (r.ctx.metrics["notices"] as Array).has(t))
+	assert_eq([rumours.size(), heard.size()], [4, 4], "four rumours, each heard: %s" % [heard])
+	assert_true(out.has("r") and out["r"]["state"]["flags"].get("heardZara") == true, "Zara named: heardZara")
+
+
+# --- The campaign: 1.1 to 4.3 ----------------------------------------------------------------------------
+
+## The scripted smoke through the whole build: 1.1 to 4.3 in catalog order on one campaign, each
+## scene's result committed (one save each) before the next starts from the saved state.
+func test_SLICE_scripted_smoke_1_1_through_4_3() -> void:
+	var st := CampaignSchema.new_campaign()
+	st["completed"] = ["1.0"]
+	SaveService.save_campaign(st, NOW - 1000)
+	var policies := {"1.3": {"s16": "paw"}, "1.5": {"s08": "one"}, "2.2": {"s13": "glad"}}
+	var order := ["1.1", "1.2", "1.3", "1.4", "1.5"] + IDS
+	for id: String in order:
+		assert_eq(String(AppState.continue_target()["id"]), id, "CONTINUE points at " + id)
+		var out := _play(id, AppState.story_entry_state(), policies.get(id, {}), true)
+		if not assert_true(out.has("result"), "%s completes (%s)" % [id, out.get("error", "")]):
+			return
+		var r := AppState.commit_scene(id, out["result"]["state"], float(out["result"]["play_time"]))
+		assert_true(r["saved"], id + ": saved")
+	var camp := SaveService.get_campaign()
+	assert_eq(String(AppState.continue_target()["id"]), "5.1", "then 5.1 (this build's boundary)")
+	assert_eq([camp["abilities"], camp["flags"].get("vow"), camp["flags"].get("shortfall"), camp["flags"].get("weptWell"), camp["flags"].get("zaraDeal"), camp["flags"].get("heardZara")],
+		[["cross", "sermon", "knight"], true, 36000, true, true, true], "every ability and flag of Levels 1–4, once")
+	assert_eq((camp["book"]["remembered"] as Array).size(), 15, "fifteen remembered lines")
+	assert_eq((camp["book"]["marvels"] as Array).size(), 4, "four marvels")
+
+
+## Real-input autoplay through the real Main from 2.1 to 4.3: CONTINUE, each scene card, every scene
+## played by the InputService driver (no teleports, no skips), each completion one save, each level's
+## end (the Supervillained snap, the Professor's aside), and after 4.3 the explicit boundary of 5.1.
+## The rewritten titles reach the cards, the level list, the chapter lists and the Couch.
+func test_SLICE_real_input_autoplay_2_1_through_4_3_through_main() -> void:
+	var st := _entry("2.1")
+	SaveService.save_campaign(st, NOW - 1000)
+	await _main_start()
+	await _settle()
+	(main.current_scene as TitleScreen).time = 1.0
+	(main.current_scene as TitleScreen).activate(1)
+	var asides := []
+	for id: String in IDS:
+		var s := await _enter_card(id)
+		if s == null:
+			return
+		assert_eq(s.data.title, StoryLibrary.scene(id).title, id + ": the Resource's title")
+		if not assert_true(_drive_to_end(s, BRANCHES.get(id, [{}])[0]), id + ": played to the end by real input"):
+			return
+		assert_eq([s.ctx.metrics["caught"], s.ctx.metrics["knockdowns"]], [[], []], id + ": never caught, never knocked down")
+		var level := int(id.get_slice(".", 0))
+		if id == "2.3" or id == "3.4" or id == "4.3":
+			assert_true(await _until(func() -> bool: return main.top_overlay() is SupervillainedOverlay), id + ": the snap at the level's end")
+			(main.top_overlay() as SupervillainedOverlay).step(GameConfig.Supervillained.HOLD + 0.05)
+			assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().has_meta(&"professor_aside")), id + ": the aside")
+			var aside := main.top_overlay() as MessageOverlay
+			assert_eq(aside.paragraphs[0][0], StoryLibrary.chapter(level).professor_aside, "Level %d's aside" % level)
+			asides.append(level)
+			aside.time = 1.0
+			aside.on_tap(Vector2(5, 5))
+		assert_true((SaveService.get_campaign()["completed"] as Array).has(id), id + ": saved")
+	assert_eq(asides, [2, 3, 4], "three level ends")
+	assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).heading == "NOT IN THIS BUILD"), "after 4.3: the 5.1 boundary")
+	assert_eq((main.top_overlay() as MessageOverlay).paragraphs[0][0], "LEVEL 5: 5.1 A SMALL FAVOR FOR VENICE", "names 5.1")
+	# Titles in the menus come from the Resources.
+	await _settle()
+	main.clear_overlays()
+	main.open_levels()
+	for n in range(2, 5):
+		(main.top_overlay() as LevelListOverlay).activate(n)
+		var ch := main.top_overlay() as ChapterListOverlay
+		var listed := []
+		for it: Dictionary in ch.items:
+			if it.has("id"):
+				listed.append(String(it["id"]))
+		var want := StoryLibrary.chapter(n).scenes.map(func(x: StorySceneData) -> String: return x.id)
+		assert_eq(listed, want, "Level %d's list" % n)
+		main.pop_overlay(ch)
+	assert_true((SaveService.get_campaign()["completed"] as Array).has("4.3"), "the campaign has 4.3")
 
 
 # --- Restart, replay, force-close -----------------------------------------------------------------

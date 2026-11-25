@@ -13,7 +13,10 @@ complete Green Zone 1.0 is playable from NEW GAME; its record saves at completio
 and 1.0 completion on CONTINUE. **M5R implemented, pending review**: CONTINUE launches the rewritten
 Level 1 (1.1–1.5) on the native story engine (`StoryScene`, `StoryRunner`, typed step Resources;
 `docs/porting/STORY_ENGINE_API.md`); each scene is one atomic save at its completion; after 1.5 the
-Professor's aside and an explicit "not in this build" card for 2.1 (Levels 2–8 are not started).
+Professor's aside, then Level 2. **M6 implemented, pending review**: Levels 2–4 (2.1–4.3) with the dream
+costume, combat (BARK, SWORD, SHIELD), stealth, the Meraviglia book and the parade, rowing and skiff
+minigames; after 4.3 an explicit "not in this build" card for 5.1 (Levels 5–8 are not started). All
+story prose is a draft (owner decision OD-01: prototype deferral, not approval).
 The Level 1 prose is a rewritten draft, **narrative review pending** (`docs/porting/STORY_REWRITE_SPEC.md`;
 the owner's review package: `docs/porting/manual_evidence/m5r_level1_narrative_review/`, written by
 `res://tools/story_review_export.tscn`). In story walks: J/X the action button's mode, Space the
@@ -97,6 +100,7 @@ xvfb-run -a godot --path godot --rendering-driver opengl3 \
 xvfb-run -a godot --path godot --rendering-driver opengl3 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode shell # M4 title, Couch, Glossary, options
 xvfb-run -a godot --path godot --rendering-driver opengl3   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode story # M5R Level 1 (shots 40-51)
+xvfb-run -a godot --path godot --rendering-driver opengl3   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode m6    # M6 Levels 2-4 (shots 60-70)
 xvfb-run -a godot --path godot --rendering-driver opengl3 --resolution 800x600 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode diagnostic --size 800x600
 ```

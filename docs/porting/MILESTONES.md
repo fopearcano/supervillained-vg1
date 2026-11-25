@@ -359,6 +359,8 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 **Objective:** complete the reusable dream mechanics, first combat, stealth, Meraviglia, and early minigames across Levels 2–4. Each level is first rewritten under the M5R authority (`STORY_REWRITE_SPEC.md`: matrix rows, decisions, Resources); prose is not ported verbatim.
 
+**Status (M6, report 32; commits M6-A `bd2896d`, M6-B `20af417`, M6-C `ccfd347`, M6-D):** implemented and technically complete for Levels 2–4, pending independent review; all prose `draft_implemented_review_pending` (OD-01: prototype deferral, not approval). The automated evidence is in report 32 (COM-001–014, WALK-010–017, MINI-001–005, STY-201–203, STY-301–304, STY-401–403, DOG-009; scripted smoke 1.1→4.3; real-input autoplay 2.1→4.3 through Main). WALK-001–006, NPC-001–006 and COLL-005b stay Partial. Manual gameplay, device, audio and narrative checks are not executed. Level 5 is not begun.
+
 **Source systems involved**
 
 - `src/campaign/chapters/ch2.ts`–`ch4.ts`, story maps/themes, helpers.

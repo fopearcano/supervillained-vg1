@@ -1,0 +1,298 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=33 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="4_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="5_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="6_storypickup"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="7_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="8_effectstep"]
+[ext_resource type="Script" path="res://story/steps/minigame_step.gd" id="9_minigamestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="10_cardstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="11_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "m1"
+role = "knight"
+at = "8"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "m2"
+role = "pilgrim"
+at = "1"
+point = Vector2(0.0, 0.0)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "jack"
+role = "jack"
+at = "2"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_storyactorspec")
+name = "m4"
+role = "knight"
+at = "7"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("3_storyactorspec")
+name = "marshal"
+role = "bagnaskizMarshal"
+at = "3"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "ship"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5")]
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("4_narrationstep")
+id = "s02"
+text = "A CROWDED DECK. EVERYONE KNOWS WHERE THE FLEET IS GOING. NOBODY AGREES."
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("6_storypickup")
+id = "sergeant"
+at = ""
+point = Vector2(8.5, 6.9)
+kind = "spot"
+label = "A SERGEANT"
+text = "BABYLON, WHICH IS EGYPT. MY COUSIN SAYS SO."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("6_storypickup")
+id = "pilgrim"
+at = ""
+point = Vector2(8.5, 9.9)
+kind = "spot"
+label = "A PILGRIM"
+text = "ALEXANDRIA. THE RICHEST PORT IN THE WORLD."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("6_storypickup")
+id = "jack"
+at = ""
+point = Vector2(11.5, 9.9)
+kind = "spot"
+label = "JACK"
+text = "JERUSALEM! BY TUESDAY! A COOK TOLD ME!"
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("6_storypickup")
+id = "knight"
+at = ""
+point = Vector2(11.5, 11.9)
+kind = "spot"
+label = "A KNIGHT"
+text = "NOWHERE, UNTIL THE DEBT IS PAID."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("5_objectivestep")
+id = "s03"
+objective = "ASK THEM WHERE THE FLEET IS GOING"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("5_objectivestep")
+id = "s04"
+objective = "ASK THE MARSHAL AT THE BOW"
+objective_kind = "reach"
+goal_marker = "3"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE MARSHAL"
+goal_radius = 1.1
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("7_dialoguestep")
+id = "s05"
+speaker = "marshal"
+text = "ZARA. A CITY ON THIS COAST THAT THE KING OF HUNGARY TOOK FROM VENICE. WE TAKE IT BACK FOR THE DOGE, AND HE WAITS FOR HIS MONEY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("7_dialoguestep")
+id = "s06"
+speaker = "zampano"
+text = "AND JERUSALEM?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("7_dialoguestep")
+id = "s07"
+speaker = "marshal"
+text = "IF THE HOST BREAKS UP, NOBODY GOES ANYWHERE. KEEP THE HOST TOGETHER. THAT IS THE WHOLE ART."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("8_effectstep")
+id = "s08"
+effects = {
+"flags": {
+"heardZara": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("9_minigamestep")
+id = "s09"
+game = "rowing"
+lines = {
+"title": "INTO THE HARBOUR",
+"objective": "ROW ON THE BEAT",
+"cue": "ROW",
+"hit": "STROKE!",
+"miss": "OUT OF TIME",
+"won": "THE GALLEY SLIDES INTO THE HARBOUR",
+"lost": "THE GALLEY GETS THERE ANYWAY, CROOKED"
+}
+won_effects = {
+"commozione": 4
+}
+lost_effects = {
+"commozione": 1
+}
+params = {}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("10_cardstep")
+id = "s10"
+big = "ZARA"
+small = "THE EVE OF SAINT MARTIN, 1202"
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("7_dialoguestep")
+id = "s11"
+speaker = "zampano"
+text = "THERE WERE FOUR DESTINATIONS, AND WE WENT TO A FIFTH."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("11_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "4.3"
+content_version = 1
+title = "Rumours on deck"
+old_title = "Rumours on deck"
+level = 4
+summary = "ON A CROWDED DECK EVERY MAN HAS HEARD A DIFFERENT DESTINATION: EGYPT, ALEXANDRIA, JERUSALEM BY TUESDAY. ASK THEM ALL. AT THE BOW THE MARSHAL NAMES THE ONE THAT COUNTS: ZARA, A CITY THE VENETIANS WANT BACK. THEN ROW THE FLEET INTO THE HARBOUR ON THE EVE OF SAINT MARTIN."
+map = "ship"
+music = "level4"
+cast = PackedStringArray("zampano", "marshal")
+steps = [SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21")]
+entry_conditions = {
+"requires_completed": ["4.2"]
+}
+persistent_effects = PackedStringArray("flags.heardZara", "meter.commozione", "book.remembered")
+completion = {
+"boundary": "chapter_end",
+"requires_flags": ["heardZara"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the Adriatic, autumn 1202", "rumours of the destination", "Zara, held by the king of Hungary", "arrival on the eve of Saint Martin")
+source_refs = PackedStringArray("Villehardouin p. 8 (the leaders' objective: Babylon, that is Egypt)", "Villehardouin pp. 16, 19-20 (Zara, held by the king of Hungary; arrival on the eve of Saint Martin, 10 November 1202)", "Clari 13-14: winter; Zara; arrival on the night of Saint Martin", "docs/STORY.md 4.3", "src/campaign/chapters/ch4.ts 4.3 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The four rumours and the rowing are adaptation; the marshal names Zara (Villehardouin p. 16).", "REVIEW REQUIRED: the marshal's \"KEEP THE HOST TOGETHER. THAT IS THE WHOLE ART.\" characterizes Villehardouin's stated concern for keeping the host together; confirm it is framed as his view, not a quotation.")
+technical_status = "technically_complete"

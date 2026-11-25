@@ -210,6 +210,41 @@ only within 0.05 tiles of its target; `ActorStep.arrival_timeout` (validated pos
 with an explicit story error when exceeded. Level 1's clear paths are unchanged (4 s for Jack in 1.2,
 12 s per leg of the Professor's walk). Saves: none.
 
+### Recorded in M6 (implementer decisions, review pending)
+
+**RD-32 — The costume follows `reality`; the arms are a separate capability.** `StorySceneData.costume()`
+is "normal" in a reality scene and "armoured" in a dream scene, decided by `reality` alone; the stage
+applies the profile's own mapping (Sbrimbrulòn and Bagnaskiz included). The sword and the shield are
+`StoryContext.armed()`: a dream scene with `knight` held in the working copy (2.3 unlocks it after the
+third pickup, mid-scene). Saves: none.
+
+**RD-33 — Combat is the source's, non-lethal.** `CombatRules` ports `systems/combat.ts` exactly
+(numbers in `GameConfig.Combat`); `CombatController` ports `story/combat.ts` into the story context.
+A knockdown shows its card and resets the fight (positions, hearts, HP) with nothing persistent
+touched; routed foes flee. Fights exist only where the reference has them (2.3's two in this batch).
+The bark is an area (no cone), as in the source. Saves: none.
+
+**RD-34 — Levels 2–4 are drawn with the Green Zone art bank (prototype).** Their maps are copied
+verbatim from the executed-source fixture; the chapters' own banks (`ch02_*`, `ch03_venice`,
+`ch04_sea`) need TileSets and sprite catalogues that are M8 work, like RD-14. Topology, markers and
+collisions are unchanged. Saves: none.
+
+**RD-35 — Three minigames, no framework, no retry.** `MiniGameStep` runs the parade (4.1), the rowing
+(4.3) and the skiff (4.2) only; a result applies its exact effects once and the scene goes on;
+restarting the scene is the retry path; the skiff cannot be lost (the source has no lost result).
+Tug, ladders, letter, rumour ordering and the unused `weeping()` are not implemented. Saves: none.
+
+**RD-36 — Story hiding spots.** The maps are verbatim (the Lido has no bush), so 3.4 places two bush
+props marked as hiding spots (`PropStep.hides`); `StorySight` treats them like a map bush. Saves: none.
+
+**RD-37 — A scene's randomness is seeded.** The lull's talk and quiet lengths come from a generator
+seeded by the scene ID (a run and its restart draw the same); wandering and cornered fleeing actors
+use one seeded by their handle; the rhythm games are deterministic. Saves: none.
+
+**RD-38 — The Meraviglia book viewer.** The level list's and OPTIONS's MERAVIGLIA BOOK opens a paged
+viewer of the committed campaign (meters, things, marvels, values, scraps, remembered lines), as the
+source's BookScene; replays never add to it. Saves: none.
+
 ## Owner decisions
 
 - **OD-01 (2026-11-25) — Level 1 draft: DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT.** The
@@ -246,6 +281,18 @@ with an explicit story error when exceeded. Level 1's clear paths are unchanged 
 | ~~"A PIECE OF CLOTH, SEWN ON THE SHOULDER."~~ — resolved by RD-25 ("A CROSS OF CLOTH, SEWN ON THEIR CLOTHES.") | 1.5 | Villehardouin pp. 1–4 for the cloth cross |
 | "IN THE SPRING THEY SET OFF FOR VENICE." | 1.5 | not itemised |
 | "CLARI … A SMALL KNIGHT FROM PICARDY" (Level 1 aside) | Level 1 | Clari 120 ("Robert of Clari, knight"); Picardy not itemised |
+
+### REVIEW REQUIRED items (Levels 2–4, M6)
+
+| Item | Scene | Basis in the repository |
+|---|---|---|
+| "(BEHIND A DOOR) ...BABYLON FIRST. EGYPT. KEEP IT FROM THE MEN..." | 2.1 | Villehardouin p. 8 (the council's objective); compressed |
+| Fulk preaching on the tournament field | 2.2 | Villehardouin pp. 1–4 has the preaching and the tourney separately |
+| "A KNIGHT OF PICARDY" | 2.2 | as OQ-09 |
+| Level 2 aside: "ONE OF THE SIX MEN WHO SIGNED FOR THE SHIPS" | Level 2 | Villehardouin pp. 4–7 |
+| "WINTER IS COMING. TAKE BACK ZARA FOR VENICE, AND THE DEBT CAN WAIT." (card) | 3.4 | Clari XIII; Villehardouin p. 16 (paraphrase, not a quotation) |
+| "THE TRUMPETS ANSWER FROM SHIP TO SHIP" | 4.1 | Clari 13 (trumpets) |
+| "KEEP THE HOST TOGETHER. THAT IS THE WHOLE ART." | 4.3 | the marshal's view, not a quotation |
 
 Attested (as listed in `docs/STORY-SOURCES.md`, not re-verified in M5R): the fleet contract of
 85,000 marks (Villehardouin pp. 6–7); Villehardouin among the six envoys (pp. 1–4); "No one in the

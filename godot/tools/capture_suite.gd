@@ -49,6 +49,9 @@ func _run() -> void:
 	if _mode == "story":
 		await _story()
 		return
+	if _mode == "m6":
+		await _m6()
+		return
 	if _mode == "run":
 		await _full_run()
 		return
@@ -363,6 +366,95 @@ func _story() -> void:
 	_main.call("show_boundary", "2.1")
 	await _frames(40)
 	await _shot("51_level_2_not_in_this_build")
+	root.get_node("InputService").set("auto_update", true)
+	root.get_node("AudioService").call("stop_all")
+	quit(0)
+
+
+## M6 (Levels 2–4), representative captures at the target width: one per level (2.1's card, the
+## marvels of 3.1, the parade of 4.1) and one per major mechanic (the receding gate and helmet, the
+## vow in a lull, the bark-only fight, sparring with the shield and the wind-up ring, stealth with
+## the guard's cone, the Meraviglia book, the skiff), and the 5.1 boundary after Level 4. Played by
+## the real-input driver from the campaign each scene is entered with. The save is in memory.
+func _m6() -> void:
+	root.size = Vector2i(432, 864)
+	await _frames(5)
+	_main = load("res://main/main.tscn").instantiate()
+	root.add_child(_main)
+	await _frames(30)
+	var order := ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "3.4", "4.1", "4.2", "4.3"]
+	var gains := {"1.5": ["cross"], "2.2": ["sermon"], "2.3": ["knight"]}
+	var campaign := func(id: String) -> Dictionary:
+		var st: Dictionary = load("res://campaign/campaign_schema.gd").call("new_campaign")
+		st["coins"] = 12
+		for k: String in order:
+			if k == id:
+				break
+			st["completed"].append(k)
+			for a: String in gains.get(k, []):
+				st["abilities"].append(a)
+		if order.find(id) > order.find("3.1"):
+			st["book"]["marvels"] = ["THE HORSE TRANSPORTS", "THE GALLEYS", "THE GREAT SHIPS"]
+			st["book"]["items"] = ["MERAVIGLIA, THE BOOK OF MARVELS"]
+		return st
+	var input := root.get_node("InputService")
+	var still := func(frames: int) -> void:
+		for k in frames:
+			input.call("inject_move", 0.0, 0.0)
+			input.call("update", 1.0 / 60.0)
+			_story_scene.call("tick", 1.0 / 60.0)
+			await process_frame
+	_main.call("show_story_card", "2.1")
+	await _frames(40)
+	await _shot("60_story_card_2_1")
+	await _start_story("2.1", campaign.call("2.1"))
+	await _story_until(func() -> bool: return _current_id() == "s06")
+	await _story_until(func() -> bool: return int(_story_scene.get("runner").get("st").get("receded", 0)) >= 1)
+	await still.call(70)
+	await _shot("61_2_1_receding_gate_and_helmet")
+	await _start_story("2.2", campaign.call("2.2"), {"s13": "glad"})
+	await _story_until(func() -> bool: return _current_id() == "s04" and int(_story_scene.get("runner").get("st").get("good", 0)) >= 1 and String(_story_scene.get("hud").get("mode_label")) != "")
+	await _shot("62_2_2_vow_in_the_lull")
+	await _start_story("2.3", campaign.call("2.3"))
+	await _story_until(func() -> bool: return _current_id() == "s10" and _story_scene.get("ctx").get("combat") != null and (_story_scene.get("ctx").get("combat").get("events") as Array).has("bark_hit"))
+	await _frames(4)
+	await _shot("63_2_3_bark_only_fight")
+	await _story_until(func() -> bool:
+		if _current_id() != "s29":
+			return false
+		for a: Node in (_story_scene.get("actors") as Dictionary).values():
+			var f: Variant = a.get("foe")
+			if f != null and float(f.get("windup")) > 0.2:
+				return bool(_story_scene.get("ctx").get("combat").get("guarding"))
+		return false, 60 * 120)
+	await _shot("64_2_3_sparring_shield_and_ring")
+	await _start_story("3.1", campaign.call("3.1"))
+	await _story_until(func() -> bool: return _current_id() == "s04" and (_story_scene.get("runner").get("st").get("picked", []) as Array).size() >= 1)
+	await _frames(10)
+	await _shot("65_3_1_marvels_and_meraviglia")
+	await _start_story("3.4", campaign.call("3.4"))
+	await _story_until(func() -> bool:
+		if _current_id() != "s11":
+			return false
+		var g: Node = (_story_scene.get("actors") as Dictionary).get("g1")
+		var p: Node = _story_scene.get("world").get("player")
+		return g != null and Vector2(float(g.get("gx")), float(g.get("gy"))).distance_to(Vector2(float(p.get("gx")), float(p.get("gy")))) < 4.5, 60 * 60)
+	await _shot("66_3_4_stealth_guard_cone_and_bushes")
+	_main.call("clear_overlays")
+	_main.call("open_book")
+	await _frames(30)
+	await _shot("67_meraviglia_book")
+	_main.call("clear_overlays")
+	await _start_story("4.1", campaign.call("4.1"))
+	await _story_until(func() -> bool: return _current_id() == "s07" and float(_story_scene.get("runner").get("st").get("game").get("time")) > 2.2)
+	await _shot("68_4_1_parade_rhythm")
+	await _start_story("4.2", campaign.call("4.2"))
+	await _story_until(func() -> bool: return _current_id() == "s03" and float(_story_scene.get("runner").get("st").get("game").get("progress")) > 0.4)
+	await _shot("69_4_2_easing_the_skiff")
+	_main.call("clear_overlays")
+	_main.call("show_boundary", "5.1")
+	await _frames(40)
+	await _shot("70_level_5_not_in_this_build")
 	root.get_node("InputService").set("auto_update", true)
 	root.get_node("AudioService").call("stop_all")
 	quit(0)

@@ -249,6 +249,25 @@ func set_controls(on: bool) -> void:
 		world.player.set_intent(0.0, 0.0)
 
 
+## The logical view size (the minigames' tap band).
+func view_size() -> Vector2i:
+	return _view
+
+
+## A minigame's view over the stage, beneath the HUD (MiniGameStep); removed with hide_minigame.
+func show_minigame(v: Control) -> void:
+	var canvas := hud.get_parent()
+	canvas.add_child(v)
+	canvas.move_child(v, hud.get_index())
+	v.size = Vector2(_view)
+
+
+func hide_minigame(v: Control) -> void:
+	if is_instance_valid(v):
+		v.get_parent().remove_child(v)
+		v.queue_free()
+
+
 ## The thing he carries: its label on the HUD and its sprite on his back ("" = drop).
 func set_carried(label: String, sprite: String) -> void:
 	hud.carry_label = label

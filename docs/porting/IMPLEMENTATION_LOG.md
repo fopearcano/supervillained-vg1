@@ -6,14 +6,251 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. M5R correction report 31 is current. Erratum for the historical reports: their
+in progress report 5. M6 report 32 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## M5R correction report 31: story action routing and gestures, distance-only arrival with timeouts, the Resources as display authority, run-time entry conditions, strengthened acceptance evidence and the owner's review package (M1–M4 Partial; M5 implemented, pending review) — current
+## M6 report 32: dream foundation, costume/capability routing, combat, stealth, the Meraviglia book, the three minigames and the rewritten Levels 2–4 (M1–M4 Partial; M5 implemented, pending review; M6 implemented, pending review) — current
+
+Scope: the architect's M6 batch on top of correction 31 (`d2a6b10`), in four sequential commits:
+M6-A `bd2896d` (dream foundation, costume/capability routing, combat; with the Phase 0 cleanup),
+M6-B `20af417` (Level 2), M6-C `ccfd347` (Level 3, stealth, the Meraviglia book) and M6-D (this
+commit: Level 4, the minigames, and the batched documentation and evidence). The final `godot/` tree
+is `cf0eb9e0a74f802e5212473fc768c670b3a435b6`. The PixiJS, Capacitor and iOS sources are unchanged. Level 5 is not begun.
+
+### Owner decision recorded
+
+**OD-01 (2026-11-25): DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT** — recorded in
+`STORY_REWRITE_DECISIONS.md`, `MILESTONES.md`, `FEATURE_MATRIX.md` and the Level 1 review package
+(its outcome ticked, its record filled; the test now checks that outcome and that every Level 1 scene
+stays `draft_implemented_review_pending`). It is not narrative approval: Level 1 and all later prose
+stay draft and release-blocking; narrative review no longer blocks prototype implementation. The
+Godot Resources are the narrative authority; the PixiJS source served for mechanics, state
+consequences and historical sources only (every M6 line is rewritten, not copied).
+
+### Phase 0 — correction-31 cleanup (in M6-A)
+
+1. The click cue plays whenever the action button's mode changes (Q/Tab, the switcher button, a
+   SWITCH gesture); `test_COM_009_012_…` counts the cue on every change.
+2. FEATURE_MATRIX: the obsolete "M4 … pending architect review; not counted" heading now records the
+   24 M4 IDs as accepted, and the correction-31 tree `e5413d4` (commit `d2a6b10`, 268 passed on a
+   fresh clone of `4c966e7`) is named.
+3. The owner's deferral recorded (above).
+4. Costume selection is routed explicitly through `StorySceneData.reality`
+   (`StorySceneData.costume()` → `PlayableDog.set_costume()` at every stage build).
+
+### M6-A — dream foundation, costume/capability and combat
+
+- **Costume versus capability (RD-32).** Reality scenes always show the normal costume; every dream
+  scene shows the coat of mail from 2.1; Sbrimbrulòn and Bagnaskiz (debug profiles) use their own
+  normal/armoured mappings without changing the campaign or the prose. The sword and the shield are
+  `StoryContext.armed()`: a dream scene with `knight` held in the working copy (2.3 unlocks it after
+  the third pickup). Replaying Level 1 after later unlocks stays plain and unarmed.
+- **StoryActionRouter.** BARK stays; SWORD and SHIELD are offered as modes only with the capability;
+  U/I and the default swipes route the sword and the shield directly (without the capability, a
+  one-time no-arms notice and no swing); the switcher cycles only the offered modes, with the click;
+  edges pressed during a line or card are never performed in the next walk.
+- **Combat (RD-33).** `CombatRules` (pure port of `systems/combat.ts`, numbers in
+  `GameConfig.Combat`) and `CombatController` (port of `story/combat.ts` in the story context, which
+  it holds weakly): bark area and push, never parried, a short stagger that does not
+  stop a coming swing, its cooldown; sword cooldown, arc and aim help, parry by a closed foe, a blow
+  that interrupts a swing and consumes the opening; foe chase, wind-up (the red ring), blow, cooldown,
+  recovery window; shield pulse or hold, front arc, the bash on raising, a blocked blow's stagger, the
+  open rear; routed foes flee (non-lethal); at no hearts the KNOCKED DOWN card, then the fight and he
+  are back where they started with nothing persistent touched. `StoryFxView` draws the rings, the
+  arc, the bark ring, the shield and the HP pips. PlayableDog and the grid solver are reused;
+  distances are authoritative grid distances.
+- **Actors.** `StoryActor` gains patrol (with the source's look-around), chase (radius, home, leash),
+  flee and wander (seeded per handle: reproducible), knockback, a fighter's state, a sight cone and an
+  alert level; `ActorStep` gains patrol/chase/flee/wander/emote and `sight_range`/`hostile`. Flail and
+  fly stay deferred (no scene in this batch uses them).
+- **Walk systems.** `ObjectiveStep` gains the `fight` and `rule` kinds, stealth (`caught`), working
+  checkpoints, a walking-speed modifier and the receding, lull, listen and sounder rules; the HUD
+  gains a gauge (`set_mode`). `StorySight`: range, cone, line of sight (walls and tall props),
+  cover in a bush or by a hiding spot a scene places (RD-36).
+
+### M6-B — Level 2 (2.1–2.3), rewritten and implemented
+
+2.1 One step from Jerusalem (the receding gate, the helmet, the voice behind the door naming
+Babylon/Egypt — Jerusalem only as the preached destination); 2.2 Names on a list (the vow in the
+sermon's lulls, the counts, the ranked list with two answers, the marshal; `sermon`, Grace +5,
+`vow`); 2.3 A coat of mail too big (the bark-only road fight, the sword, belt and shield, `knight`
+only after the third pickup, the charge in heavy mail, sparring with parrying squires, following
+Pierre). The jerusalem, fair and road maps are copied from the executed-source fixture; Levels 2–4
+are drawn with the Green Zone art bank as a prototype (RD-34). Speakers added: Fulk, a clerk, the
+marshal, the Doge, a knight, a pilgrim.
+
+### M6-C — Level 3 (3.1–3.4), stealth and the Meraviglia book
+
+3.1 Look at those ships (the quay and the bell; LOOK; three marvels awarded once; MERAVIGLIA; the
+empty berths); 3.2 The price of passage (two collections with the bowl carried; Clari's 50,000 and
+36,000 on the cards, the marshal's 34,000 in his line, never merged; `shortfall` = 36000 as
+authored); 3.3 The art of weeping (the recollection; weeping in the trumpets' lulls; the square
+answers; `weptWell`; the unused `weeping()` game is not restored); 3.4 Nobody leaves the Lido (the
+stealth follow past a patrolling guard, two bushes as hiding spots, the caught card and the
+checkpoint restart; the listen gauge; the gangplank found by the bell's sound; `zaraDeal` in the
+working copy, saved only with the completion; the Doge's cross). The book: a paged viewer of the
+committed campaign (RD-38) from the level list and OPTIONS.
+
+### M6-D — Level 4 (4.1–4.3) and the three minigames
+
+4.1 Veni Creator (the deck walk with Watson; the parade rhythm: won Commozione +8, lost +2, the
+fleet's marvel either way; Level 4 music); 4.2 Horses below deck (the skiff: strokes, splashes,
+swamping; three horses fed; Watson's bucket out of reach); 4.3 Rumours on deck (four rumours; the
+marshal names Zara; `heardZara`; the rowing rhythm: won +4, lost +1; the eve of Saint Martin).
+`MiniGameStep` (RD-35) runs only the parade, the rowing and the skiff (`RhythmGame` and `BoatGame`
+pure, `MiniGameView` presentation); a result applies its exact effects once and the scene goes on;
+there is no automatic retry (restarting the scene is the retry); the skiff has no lost result, as
+in the source. After 4.3: the snap, the Level 4 aside, the explicit 5.1 boundary.
+
+### Defects found and fixed during M6 (each covered by a test)
+
+- A reference cycle between the walk's combat controller and the story context leaked when a scene
+  was freed mid-walk ("resources still in use at exit"); the controller now holds the context weakly.
+- The swipe-routing case of correction 31 expected no sword at all; under M6 the swipe routes to
+  SWORD and, in reality, shows only the no-arms notice (the case now asserts that).
+- The test driver kept its pressed beats across a scene restart (a restart mid-game then lost the
+  replayed game); it now starts from nothing with each new game (FLOW-008 caught it).
+- The bark case's foes were "open" (a high cooldown means just after a swing), so a parried bark
+  would have passed; the mutation check found it; the foes are now closed and asserted so.
+- The stealth case now asserts the leader's catch-up (WALK-014) explicitly.
+
+### Tests and mutation checks
+
+New: `tests/unit/test_combat_rules.gd` (3), `tests/integration/test_story_combat.gd` (9),
+`tests/integration/test_story_m6.gd` (26). Changed: `test_story_level1.gd` (the build now ends at
+4.3: `BUILD_LAST`; after 1.5 comes 2.1's card; the owner's decision), `test_story_input.gd` (the
+swipe routes SWORD), `test_save_m4.gd` (the example scene without Resources is 5.1),
+`tests/automation/story_driver.gd` (fights, lulls, listening, sounds by ear, stealth, beat games,
+the skiff). Mutation checks (`mutate_m6.py`, each defect injected into a byte copy and restored, the
+named case run): all 22 caught (the first run caught 21: the bark-parry mutation passed because the bark case's foes
+  were open; the case was strengthened and the mutation then caught). The defects: a bark parried
+  like the sword; no sword cooldown; a blow that does not consume the opening; a shield that covers
+  the rear; a knockdown that leaves the foes where they were; the coat of mail in reality; the arms
+  without `knight`; no click on a mode change; a vow under the sermon that counts; a gate that never
+  recedes; a bush that hides nobody; walls that do not block sight; nobody ever caught; a marvel
+  awarded twice; `shortfall` set to the marshal's count; a lost beat game that retries automatically;
+  a result applied twice; hard strokes that never splash; the game view left behind; a press out of
+  the window that still hits; mail that does not slow the walk; the book without the remembered lines.
+  Log: `mutation_m6.log` (session scratchpad).
+
+### Completion reports and captures
+
+Real-input completion of every M6 scene (InputService path: joystick, action, bark, U, I held,
+confirms, choice taps; never caught, never knocked down), ticks at 60 Hz:
+
+| Scene | Ticks | Game time | What real input did |
+|---|---|---|---|
+| 2.1 | 519 | 8.7 s | walked to the gate as it stepped back twice |
+| 2.2 (glad) | 975 | 16.3 s | three vows, each in a lull; the clerk's answer by a tap |
+| 2.3 | 1775 | 29.6 s | barked the three off; the arms; the charge; sparred (shield on the red ring, sword on the reel); followed Pierre |
+| 3.1 | 1266 | 21.1 s | followed Pierre; three marvels; three berths |
+| 3.2 | 942 | 15.7 s | eleven tents with the bowl; the marshal |
+| 3.3 | 665 | 11.1 s | the front; two sobs in lulls |
+| 3.4 | 1390 | 23.2 s | followed the seller unseen; overheard 5 s; the gangplank by ear |
+| 4.1 | 1023 | 17.1 s | the deck; the parade won on the beat |
+| 4.2 | 551 | 9.2 s | the skiff alongside; three horses |
+| 4.3 | 1127 | 18.8 s | four rumours; the marshal; the rowing won |
+
+The branch runs (2.2 proud) and the Main autoplay 2.1→4.3 (with the snaps and asides of Levels 2–4
+and the 5.1 boundary) pass in the same suite; none was caught or knocked down. Partial COLL-005b
+targets checked per scene: 2.1 1, 2.2 1, 2.3 7, 3.1 10, 3.2 12, 3.3 2, 3.4 5, 4.1 1, 4.2 3, 4.3 5.
+
+Representative captures (`docs/porting/captures/m6_levels_2_4/`, `capture_suite.gd --mode m6`,
+432 × 864, real-input driver): 60 the 2.1 card (Level 2), 61 the receding gate and the slipped
+helmet, 62 the vow in a lull, 63 the bark-only fight, 64 sparring with the shield and a wind-up ring,
+65 the marvels (Level 3), 66 the stealth walk with the guard, 67 the Meraviglia book, 68 the parade
+rhythm (Level 4), 69 the skiff, 70 the 5.1 boundary. The m5r Level 1 captures are unchanged.
+
+### Commands executed and results
+
+On a fresh Windows clone of the local verification commit `43dae1d` (`godot/` tree as above), each
+step's output and exit code logged:
+
+| Command | Exit | Result |
+|---|---|---|
+| `git clone --branch claude/gallant-keller-rbvtvy <session clone> <fresh dir>`; `npm ci`; `npx playwright install chromium` | 0 / 0 / 0 | fresh clone of the verification commit; `godot/` tree as above |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (asset and resource generation, deterministic check) | 0 | asset check OK: 208 outputs identical (73 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12); build_resources check (all): OK, 56 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | 0 | 0 ERROR/WARNING lines; `git status --porcelain` afterwards empty: yes |
+| `… --script res://tests/test_runner.gd -- --suite all` (complete suite) | 0 | 306 passed, 0 failed, 306 total (160.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_story_schema` (schema and validation) | 0 | 5 passed, 0 failed, 5 total (0.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_combat_rules` (pure combat rules, eight directions) | 0 | 3 passed, 0 failed, 3 total (0.1 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_combat` (combat, costume/capability, inputs, NPC states) | 0 | 9 passed, 0 failed, 9 total (1.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6` (Levels 2–4) | 0 | 26 passed, 0 failed, 26 total (33.4 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_combat --case COM_` (COM-001–014) | 0 | 5 passed, 0 failed, 5 total (0.8 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_combat --case DOG_009` (costume versus capability) | 0 | 1 passed, 0 failed, 1 total (0.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case WALK_` (WALK-010–017) | 0 | 2 passed, 0 failed, 2 total (1.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case STY_20` (STY-201–203) | 0 | 4 passed, 0 failed, 4 total (1.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case STY_30` (STY-301–304) | 0 | 4 passed, 0 failed, 4 total (1.8 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case STY_40` (STY-401–403) | 0 | 1 passed, 0 failed, 1 total (1.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case MINI_` (MINI-001–005) | 0 | 5 passed, 0 failed, 5 total (1.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case scripted_smoke_1_1` (scripted smoke 1.1→4.3, one campaign) | 0 | 1 passed, 0 failed, 1 total (2.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case real_input_autoplay` (real input 2.1→4.3 through Main) | 0 | 1 passed, 0 failed, 1 total (6.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case m6_real_input` (every M6 scene and branch, snapshots) | 0 | 1 passed, 0 failed, 1 total (2.4 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6 --case meraviglia` (the book) | 0 | 2 passed, 0 failed, 2 total (1.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine`, `test_story_level1`, `test_story_input` (M5R regressions) | 0 | 19 passed, 0 failed, 19 total (2.0 s), Godot 4.7.2-stable (official); 25 passed, 0 failed, 25 total (16.5 s), Godot 4.7.2-stable (official); 6 passed, 0 failed, 6 total (7.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save` (M4 save: test_save and test_save_m4) | 0 | 47 passed, 0 failed, 47 total (3.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell` (M4 shell) | 0 | 23 passed, 0 failed, 23 total (9.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_main_and_rates` (M4 flow) | 0 | 8 passed, 0 failed, 8 total (21.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3 --case AUTO_001`, twice (deterministic AUTO-001) | 0 / 0 | identical lines: yes — `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame launch at the title) | 0 | 0 ERROR/WARNING lines |
+| `<console exe> --headless --path godot --quit-after 120 --verbose`, filtered for the first scene loaded | 0 | Completed load for: 'res://scenes/title/title_screen.tscn' remapped 'res://scenes/title/title_screen.tscn' at thread -1 |
+| `… -- --suite integration --file test_export_pack` (hermetic PCK smoke) | 0 | 1 passed, 0 failed, 1 total (18.0 s), Godot 4.7.2-stable (official) |
+| `npm test` (PixiJS) | 0 | Tests  248 passed (248) |
+| `npm run build` (PixiJS) | 0 | built in 307ms |
+| `git status --porcelain` after the checks | 0 | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check --format=` of M6-A `bd2896d`, M6-B `20af417`, M6-C `ccfd347` and the verification commit | 0 / 0 | no output |
+| `bash godot/tools/source_tree_guard.sh` | 0 | source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265 |
+| `git diff --stat 95b69c0 HEAD -- src public assets android ios package.json package-lock.json` | 0 | empty (PixiJS untouched) |
+| `git status --porcelain` after all steps | 0 | empty |
+
+### Acceptance IDs
+
+- **Accepted (counted, 144):** unchanged from correction report 31.
+- **Claimed by full suite cases, pending review (M6):** COM-001–014 (the bark is an area, as in the
+  source: no cone); DOG-009; WALK-010–017; MINI-001–005; STY-201–203, STY-301–304, STY-401–403;
+  CONTENT-001–005, FLOW-007, FLOW-008 and FLOW-011 extended to the M6 scenes. The M5R claims of
+  reports 30 and 31 stay pending as they were.
+- **Partial:** WALK-001–006 (survive objectives absent); NPC-001–006 (idle, goto, follow, patrol,
+  chase, flee, wander done; flail and fly absent); COLL-005b (the scripted targets of 1.1–4.3; the
+  aggregate is M7); FLOW-009 (the snaps after 1.0, 1.5, 2.3, 3.4 and 4.3; Levels 5–8 later);
+  FLOW-012 (no SKIP SCENE, OQ-11); SAV-009, SAV-010, CAMP-001–014, UI-023–030 (Levels 1–4 portions).
+- **SLICE (port behaviour without a plan ID):** scripted smoke 1.1→4.3; real-input autoplay
+  2.1→4.3 through Main; costume routing by `reality`; the Meraviglia viewer; story hiding spots; no
+  input leaks; restart mid-fight and mid-game.
+
+### Unresolved narrative and history questions
+
+- OQ-01–OQ-11 (unchanged; still unanswered under OD-01).
+- `REVIEW REQUIRED` (Levels 2–4, `STORY_REWRITE_DECISIONS.md`): the door line's "BABYLON FIRST"
+  (2.1); Fulk on the tournament field and "A KNIGHT OF PICARDY" (2.2); the Level 2 aside's "one of the
+  six men who signed"; the ZARA card's paraphrase (3.4); the trumpets answering from ship to ship
+  (4.1); "KEEP THE HOST TOGETHER. THAT IS THE WHOLE ART." (4.3). No quotation or citation was
+  invented; the attested quotations used are those `docs/STORY-SOURCES.md` lists.
+- Narrative status of every scene 1.1–4.3: `draft_implemented_review_pending`.
+
+### Known prototype debts
+
+- Levels 2–4 are drawn with the Green Zone art bank, not their chapters' banks (RD-34, M8).
+- Combat, stealth cones, rhythm and skiff presentation are functional, not final (the source's
+  particles and some flourishes are absent; M8). No gesture streak or on-screen gesture hints (M8).
+- The Watson "bob" in 4.2 moves only his sprite; the bucket is moved by a prop step.
+- The book shows text only (no icons); 8.2's payoff is M7.
+- Manual gameplay, physical-device, Android and audio checks are not executed; no narrative approval.
+
+### Remaining gaps
+
+Levels 5–8 (M7), flail/fly actors, survive objectives, scrambled controls, fire and its
+checkpoints, ladders, tug, the letter, rumour ordering, companions; SKIP SCENE (OQ-11); M8 polish.
+
+---
+
+## Historical — M5R correction report 31 (`d2a6b10`): story action routing and gestures, distance-only arrival with timeouts, the Resources as display authority, run-time entry conditions, strengthened acceptance evidence and the owner's review package (M1–M4 Partial; M5 implemented, pending review)
+
+> Superseded by M6 report 32 (the current tree is its). Its claims stand; the Level 1 review package now records the owner's decision (OD-01, prototype deferral) and the swipe-routing case routes SWORD (with the no-arms notice in reality).
 
 Scope: the architect's M5R correction 31 on top of M5R-B (`d503938`, report 30). Changed:
 `godot/autoload/input_service.gd`, `godot/project.godot` (the Q/Tab, U and I keys),

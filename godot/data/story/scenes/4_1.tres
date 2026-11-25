@@ -1,0 +1,187 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="5_actorstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="7_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="8_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/minigame_step.gd" id="9_minigamestep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="10_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "watson"
+role = "watson"
+at = "7"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "ship"
+player_at = "4"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_cardstep")
+id = "s02"
+big = "A FAMILIAR FACE"
+small = "WATSON IS A VENETIAN SAILOR HERE. HE STILL SAYS \"MAN\"."
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_actorstep")
+id = "s03"
+actor = "watson"
+action = "follow"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.6
+run = false
+wait_arrival = false
+side = 0.8
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_objectivestep")
+id = "s04"
+objective = "WALK THE LENGTH OF THE DECK"
+objective_kind = "reach"
+goal_marker = "3"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE BOW"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("7_dialoguestep")
+id = "s05"
+speaker = "watson"
+text = "WHEN THEY SING, MAN, YOU RAISE THE SHIELD. ON THE BEAT. I AM RIGHT HERE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("8_narrationstep")
+id = "s06"
+text = "THE PRIESTS AND THE CLERKS CLIMB INTO THE CASTLES OF THE SHIPS AND SING VENI CREATOR SPIRITUS. THE TRUMPETS ANSWER FROM SHIP TO SHIP."
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("9_minigamestep")
+id = "s07"
+game = "parade"
+lines = {
+"title": "VENI CREATOR",
+"objective": "RAISE SHIELDS AND BANNERS ON THE BEAT",
+"cue": "RAISE",
+"hit": "ON THE BEAT!",
+"miss": "THE SAILOR PUTS HIM RIGHT",
+"won": "THE WHOLE DECK RAISES WITH HIM",
+"lost": "THE SAILOR HOLDS HIS SHIELD UP FOR HIM"
+}
+won_effects = {
+"commozione": 8,
+"marvel": "THE FLEET LEAVING VENICE"
+}
+lost_effects = {
+"commozione": 2,
+"marvel": "THE FLEET LEAVING VENICE"
+}
+params = {}
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("4_cardstep")
+id = "s08"
+big = "THE SAIL FILLS"
+small = "AND CRACKS LIKE A RAG IN THE WIND"
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("7_dialoguestep")
+id = "s09"
+speaker = "zampano"
+text = "WHERE ARE WE GOING?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_dialoguestep")
+id = "s10"
+speaker = "watson"
+text = "WHERE THE DOGE STEERS, MAN."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("7_dialoguestep")
+id = "s11"
+speaker = "zampano"
+text = "THERE WAS A SHIP, AND IT WAS SINGING."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("10_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "4.1"
+content_version = 1
+title = "Veni Creator"
+old_title = "Veni Creator"
+level = 4
+summary = "THE PRIESTS CLIMB INTO THE CASTLES OF THE SHIPS AND SING VENI CREATOR SPIRITUS; THE TRUMPETS ANSWER. WALK THE LENGTH OF THE DECK WITH WATSON, THEN RAISE SHIELDS AND BANNERS ON THE BEAT. MISS ONE AND THE SAILOR BESIDE ZAMPANO QUIETLY PUTS HIM RIGHT. THE SAIL FILLS AND CRACKS LIKE A RAG IN THE WIND."
+map = "ship"
+music = "level4"
+cast = PackedStringArray("zampano", "watson")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13")]
+entry_conditions = {
+"requires_completed": ["3.4"]
+}
+persistent_effects = PackedStringArray("meter.commozione", "book.marvels", "book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the fleet leaves Venice, October 1202", "Veni Creator from the ships' castles")
+source_refs = PackedStringArray("Clari 13 (De Re Militari): the priests and clerks go up into the castles of the ships and chant the \"Veni Creator Spiritus\"; trumpets; banners", "Villehardouin p. 19: the fleet sails in October 1202", "docs/STORY.md 4.1", "src/campaign/chapters/ch4.ts 4.1 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The sailor and the rhythm are adaptation; the fleet is a marvel whatever the result (Commozione +8 on the beat, +2 otherwise).", "REVIEW REQUIRED: \"THE TRUMPETS ANSWER FROM SHIP TO SHIP\" elaborates Clari 13's trumpets; confirm the wording.")
+technical_status = "technically_complete"

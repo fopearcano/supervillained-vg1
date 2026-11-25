@@ -449,6 +449,10 @@ The 96×96 redesigned Green Zone and its generated topology/treat placement must
 
 ## 13. Campaign and story architecture
 
+M6 note: combat is `story/combat/combat_rules.gd` (pure) + `combat_controller.gd` (scene side); stealth
+sight is `story/combat/story_sight.gd`; the three minigames are `story/minigames/` (pure) driven by
+`MiniGameStep` and drawn by `ui/story/minigame_view.gd` (STORY_ENGINE_API.md §8a).
+
 `CampaignState` is a pure RefCounted model. `CampaignCatalog` exposes eight typed `ChapterDefinition`s and exactly 37 `SubLevelDefinition`s. `ChapterDefinition` owns number, title, theme, music, cast metadata, intro, Professor aside and its ordered sublevels. `SubLevelDefinition` owns only ID, title, happens/summary, source metadata, optional Green Zone dispatch and a fresh script factory. Do not duplicate chapter theme/music/intro data across sublevels.
 
 **Story engine (M5R).** `StoryScene` (`scenes/story/story_scene.tscn`) instantiates the shared

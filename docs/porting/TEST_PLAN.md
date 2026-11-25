@@ -294,7 +294,7 @@ Additional input assertions:
 | WALK-014–017 | leader waits/catches up, lull opens/closes, hidden sound goal, no-run/speed modifiers. |
 | WALK-018 | scrambled input rotation and settling match 8.1 fixture. |
 | WALK-019–021 | fire spread/push, safe checkpoints, restart state. |
-| NPC-001–006 | idle/patrol/chase/flee/follow/wander/flail/goto/fly state transitions and collision. **Partial** until every state is used and tested: M5R evidence covers the Level 1 scope (idle, goto, follow on the grid solver; arrival is distance only and blocked actors time out explicitly, correction 31); patrol, chase, flee, wander, flail and fly arrive with the chapters that use them. |
+| NPC-001–006 | idle/patrol/chase/flee/follow/wander/flail/goto/fly state transitions and collision. **Partial** until every state is used and tested: M5R evidence covers the Level 1 scope (idle, goto, follow on the grid solver; arrival is distance only and blocked actors time out explicitly, correction 31); M6 adds patrol, chase, flee and wander (Levels 2–4, `test_NPC_001_006_patrol_chase_flee_wander_on_the_grid`); flail and fly arrive with the chapters that use them (M7). |
 | NPC-007 | on-stage idle human performs one speaking gesture then resumes behavior. |
 | NPC-008–011 | 7.3 and 8.3 exact companion fall-in/wait/rejoin/pace effects. |
 

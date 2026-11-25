@@ -33,6 +33,12 @@ var _path: Array = []
 var _goal := Vector2(-99, -99)
 var _repath := 0.0
 var _lull_acted := false
+## Beat games: the beats already pressed for; the skiff: the next stroke time.
+var _pressed_beats := {}
+var _next_stroke := 0.0
+var _game: Object = null
+## Minigames: false = never press (the loss path of the tests).
+var plays_minigames := true
 
 
 func _init(p_scene: StoryScene, p_policy: Dictionary = {}, p_gate: String = "bark", p_scripted: bool = false) -> void:
@@ -54,7 +60,9 @@ func drive(dt: float) -> void:
 		return
 	if not step is ObjectiveStep:
 		InputService.guard_hold_injected = false
-	if step is ObjectiveStep:
+	if step is MiniGameStep:
+		_mini(step as MiniGameStep, st)
+	elif step is ObjectiveStep:
 		_objective(step as ObjectiveStep, st)
 	elif step is ChoiceStep and st.get("phase", "") == "choosing":
 		_choose(step as ChoiceStep, st)
@@ -201,6 +209,34 @@ func _fight(pos: Vector2) -> void:
 			scene.world.player.set_grid_position(to.x, to.y)
 		else:
 			_steer(pos, to, [])
+
+
+## A minigame, from what a player sees: a beat game's cue reaching the hit line (press on it, once
+## per beat); the skiff's gentle strokes (slower than the splash gap, none while swamped).
+func _mini(step: MiniGameStep, st: Dictionary) -> void:
+	if not plays_minigames or String(st.get("result", "")) != "" or not st.has("game"):
+		return
+	# A new game (another step, or the same one after a restart) starts from nothing.
+	if st["game"] != _game:
+		_game = st["game"]
+		_pressed_beats.clear()
+		_next_stroke = 0.0
+	if step.game == "boat":
+		var b: BoatGame = st["game"]
+		if b.swamped_t <= 0.0 and t >= _next_stroke:
+			_next_stroke = t + GameConfig.Story.BOAT_MIN_GAP * 1.15
+			InputService.trigger(&"action")
+			actions += 1
+		return
+	var g: RhythmGame = st["game"]
+	for k in g.beats:
+		if g.judged.has(k) or _pressed_beats.has(k):
+			continue
+		if absf(g.time + DT - g.beat_at(k)) <= 0.04:
+			_pressed_beats[k] = true
+			InputService.trigger(&"action")
+			actions += 1
+		break
 
 
 ## Where `sound` was last seen floating (the place a hidden goal is heard from), else `fallback`.

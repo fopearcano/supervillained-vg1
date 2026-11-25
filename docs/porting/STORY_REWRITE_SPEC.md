@@ -222,12 +222,13 @@ logic is in the step's script; all player-visible text is in the Resource's fiel
 | `NarrationStep` | a narrator line (no speaker) | `text` |
 | `DialogueStep` | a speaker's line; optional `remembered` (one per scene) and effects | `text` |
 | `ChoiceStep` | a prompt and options; costs, locks, effects, follow-up steps; `once_each` mode | `prompt`, `prompt_again`, option `label`/`said` |
-| `ObjectiveStep` | a walk objective: reach/collect/follow (a positive `leader_leg_timeout`, RD-31), pickups, no-run, the walk's own action (routed by StoryActionRouter, RD-28), an optional scene rule (bucket visor, Jack's gate, the cut-off path) | `objective`, `goal_label`, `action_label`/`action_text`, pickup labels/texts, leader and rule lines |
+| `ObjectiveStep` | a walk objective: reach/collect/follow (a positive `leader_leg_timeout`, RD-31)/fight/rule, pickups (spot, shard, coin, marvel), no-run and a walking-speed modifier, the walk's own action (routed by StoryActionRouter, RD-28), a fight (`fight`, RD-33), stealth (`caught`, checkpoints), an optional scene rule (bucket visor, Jack's gate, the cut-off path, receding, lull, listen, sounder) | `objective`, `goal_label`, `action_label`/`action_text`, pickup labels/texts, leader and rule lines |
 | `EffectStep` | persistent campaign effects | — |
 | `CardStep` / `WaitStep` | a big centred card (timed or tap) / a pause | `big`, `small` |
 | `CueStep` | sound, shake, flash, visor, a floating line | `float_text` |
 | `PropStep` | place or move a story prop (bowl, ball) | `float_text` |
 | `CarryStep` | carry a thing (shown on his back) or drop it | `label` |
+| `MiniGameStep` | a focused minigame: parade, rowing, boat (RD-35); won/lost effects once, no retry | `lines` (title, objective, cue, hit, miss, won, lost) |
 | `CompleteStep` | the scene's completion boundary (one per scene, last) | — |
 
 ## 6. Validation (automated)
@@ -286,5 +287,24 @@ The full old→new comparison is in `STORY_CONTENT_MATRIX.md` ("Level 1 side by 
 | 1.4 | Santina wants her ball back | the performance; the ball stays on his side (8.4 setup) | `santinaBall`, remembered line | scene |
 | 1.5 | A cross of rag | the cloth cross; the sleep boundary | `unlock: cross` (+3 Supervillain or +3 Commozione), remembered line | sleep, then the Level 1 end |
 
-After 1.5: the Supervillained snap, the Professor's Level 1 aside, then the explicit "next chapter
-not in this build" boundary (Level 2 is not implemented).
+After 1.5: the Supervillained snap, the Professor's Level 1 aside, then 2.1's scene card (M6).
+
+## 10. Levels 2–4 — rewritten draft (summary, M6)
+
+Prose in `godot/data/story/scenes/2_1.tres`–`4_3.tres`; every scene `draft_implemented_review_pending`
+(OD-01) with its `REVIEW REQUIRED` notes; titles unchanged from the compatibility catalog.
+
+| ID | Interaction | Persistent effects | Boundary |
+|---|---|---|---|
+| 2.1 | the receding gate; the helmet slips; the door names Babylon/Egypt | remembered line | scene |
+| 2.2 | the vow in the sermon's lulls; the clerk's list (two answers) | `sermon`, Grace +5, `vow`, Commozione, the answer's meters, remembered line | scene |
+| 2.3 | bark-only fight; sword, belt, shield; charge; sparring; follow Pierre | `knight`, Supervillain +8, remembered line | chapter_end |
+| 3.1 | follow Pierre (the bell); LOOK at three marvels; MERAVIGLIA; empty berths | three marvels, Commozione +9, the book, remembered line | scene |
+| 3.2 | two collections with the bowl; both counts kept | `shortfall` = 36000, remembered line | scene |
+| 3.3 | kneel and weep in the trumpets' lulls | Commozione +10, `weptWell`, remembered line | scene |
+| 3.4 | stealth follow; overhear; the gangplank by ear | `zaraDeal`, remembered line | chapter_end |
+| 4.1 | deck walk with Watson; the parade rhythm | the fleet marvel, Commozione +8 / +2, remembered line | scene |
+| 4.2 | the skiff; three horses; the bucket | Commozione +4, remembered line | scene |
+| 4.3 | four rumours; Zara named; the rowing rhythm | `heardZara`, Commozione +4 / +1, remembered line | chapter_end |
+
+After 4.3: the snap, the Level 4 aside, then the explicit "not in this build" boundary of 5.1.

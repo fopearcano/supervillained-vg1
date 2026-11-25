@@ -1,0 +1,256 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=30 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/minigame_step.gd" id="5_minigamestep"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="6_carrystep"]
+[ext_resource type="Script" path="res://story/steps/prop_step.gd" id="7_propstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="8_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="9_storypickup"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="10_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "watson"
+role = "watson"
+at = "5"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "ship"
+player_at = "1"
+player_point = Vector2(0.0, 0.0)
+player_face = "E"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "watson"
+text = "THE HORSES ARE IN THE UISSIERS, MAN, AND THEY ARE THIRSTY. THE SKIFF IS LOADED ALREADY. GENTLY NOW."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_minigamestep")
+id = "s03"
+game = "boat"
+lines = {
+"title": "THE SKIFF",
+"objective": "EASE THE SKIFF ALONGSIDE THE TRANSPORT WITHOUT SWAMPING IT",
+"won": "ALONGSIDE"
+}
+won_effects = {
+"commozione": 4
+}
+lost_effects = {}
+params = {
+"bob": "watson"
+}
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_carrystep")
+id = "s04"
+label = "HAY AND WATER"
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("7_propstep")
+id = "s05"
+prop = "horse1"
+sprite = "horse_0"
+action = "place"
+at = "8"
+point = Vector2(0.0, 0.0)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_propstep")
+id = "s06"
+prop = "horse2"
+sprite = "horse_1"
+action = "place"
+at = "2"
+point = Vector2(0.0, 0.0)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("7_propstep")
+id = "s07"
+prop = "horse3"
+sprite = "horse_2"
+action = "place"
+at = "7"
+point = Vector2(0.0, 0.0)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("9_storypickup")
+id = "grey"
+at = "8"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "A GREY HORSE"
+text = "HE EATS FROM THE PAW, THEN BITES IT, A LITTLE."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("9_storypickup")
+id = "bay"
+at = "2"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "A BAY HORSE"
+text = "TOO SICK TO EAT. HE DRINKS."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("9_storypickup")
+id = "chestnut"
+at = "7"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "PIERRE'S HORSE"
+text = "TALLER THAN EVERYONE. HE LOOKS DOWN AT THE DOG."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("8_objectivestep")
+id = "s08"
+objective = "FEED THE HORSES BELOW DECK"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("6_carrystep")
+id = "s09"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("7_propstep")
+id = "s10"
+prop = "bucket"
+sprite = "bowl_0"
+action = "place"
+at = ""
+point = Vector2(0.8, 0.4)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+near_player = true
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("4_dialoguestep")
+id = "s11"
+speaker = "zampano"
+text = "(NOW HE IS THIRSTY TOO.)"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("7_propstep")
+id = "s12"
+prop = "bucket"
+sprite = ""
+action = "move"
+at = ""
+point = Vector2(1.6, 0.8)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = "CLONG."
+float_color = Color(0.784313725, 0.815686275, 1.0, 1)
+sound = "hit"
+near_player = true
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("4_dialoguestep")
+id = "s13"
+speaker = "watson"
+text = "(HE MOVES THE BUCKET JUST OUT OF REACH.) OOPS, MAN."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("4_dialoguestep")
+id = "s14"
+speaker = "zampano"
+text = "THERE WAS A BUCKET, AND IT WAS ALWAYS JUST OUT OF REACH."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("10_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "4.2"
+content_version = 1
+title = "Horses below deck"
+old_title = "Horses below deck"
+level = 4
+summary = "THE HORSES ARE IN THE TRANSPORTS, SEASICK AND THIRSTY. EASE A SKIFF OF HAY AND WATER ALONGSIDE WITHOUT SWAMPING IT, THEN FEED THE THREE HORSES BELOW DECK. NOBODY THANKS HIM. WATSON MOVES THE WATER BUCKET JUST OUT OF REACH, EXACTLY LIKE THE BOWL AT HOME."
+map = "ship"
+music = "level4"
+cast = PackedStringArray("zampano", "watson")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19")]
+entry_conditions = {
+"requires_completed": ["4.1"]
+}
+persistent_effects = PackedStringArray("meter.commozione", "book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the horse transports at sea", "a connective scene (adaptation)")
+source_refs = PackedStringArray("Clari 10 and 13: the transports that carry the horses (each great man has his own)", "docs/STORY-SOURCES.md \"Period words\": UISSIERS (Watson, 4.2)", "docs/STORY.md 4.2", "src/campaign/chapters/ch4.ts 4.2 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "An invented connective scene: nothing here is claimed as something Clari records himself doing.", "The skiff cannot be lost (the source has no lost result): swamped, he loses half the distance and tries again.")
+technical_status = "technically_complete"

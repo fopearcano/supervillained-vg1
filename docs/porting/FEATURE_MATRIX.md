@@ -12,7 +12,7 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 
 Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. **From M5R, story prose and scene beats follow the rewrite authority** (`STORY_REWRITE_SPEC.md`: the Godot story Resources, the content matrix, the decision log); the PixiJS story and `docs/STORY.md` are draft/reference material and the story rows below no longer require their exact text. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
-## Godot implementation status — M1, M2, M3, M4 Partial (manual checks owner-deferred or not executed; their automated IDs accepted), M5R implemented (Level 1 draft; pending review)
+## Godot implementation status — M1, M2, M3, M4 Partial (manual checks owner-deferred or not executed; their automated IDs accepted), M5R implemented (Level 1 draft; pending review), M6 implemented (Levels 2–4 draft; pending review)
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. The M1 Android
@@ -88,14 +88,32 @@ NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT** (OD-01) — not approval: all sto
 and release-blocking, and narrative review no longer blocks prototype implementation. **Gestures and action modes:**
 implemented and tested — the right-hand double tap and swipes (pointer ownership kept: a button or
 joystick touch never becomes a gesture), their CONTROLS bindings (OFF, ACTION BUTTON, BARK, SWITCH,
-RUN ON/OFF), the mode switcher (button, Q/Tab, a gesture), modes "scene" and "bark"; routed but not
-offered before M6's combat — SWORD and SHIELD (U/I, the default swipes do nothing in Level 1); no
-gesture streak or on-screen gesture hints yet (M8). Not done: SKIP SCENE (RD-23, OQ-11), the study's
+RUN ON/OFF), the mode switcher (button, Q/Tab, a gesture), modes "scene" and "bark"; SWORD and
+SHIELD (U/I, the default swipes, the switcher) are offered and work only with the knight's
+capability in the dream (M6; in reality and before 2.3's pickups only a no-arms notice); no gesture
+streak or on-screen gesture hints yet (M8). Not done: SKIP SCENE (RD-23, OQ-11), the study's
 own art bank (M8, RD-14), Levels 2–8. M5R's manual checks (playing 1.0–1.5 by hand on a device, both
 1.3 choices, failing Jack's gate, pause at every step family, the gestures on a phone) are not
 executed.
 Evidence: reports 30 and 31 in the log, `docs/porting/captures/m5r_level1/` (12 PNGs, regenerated in
 correction report 31).
+**M6 (dream foundation and Levels 2–4): implemented, pending independent review; all new prose is
+draft (OD-01).** M6-A (`bd2896d`): the costume follows `StorySceneData.reality` (the coat of mail in
+every dream scene from 2.1, plain in reality whatever is held; debug profiles use their own mappings)
+and the sword and shield are the separate `knight` capability; `CombatRules` (pure) and
+`CombatController` (bark area and push, never parried; sword cooldown, arc, parry and the opening a
+blow consumes; foe wind-up ring and stagger; shield front arc, bash, block and rear vulnerability;
+routing; a knockdown resets the fight without death or state change); NPC patrol, chase, flee and
+wander; sight cones, line of sight, bush and hiding-spot cover, contact, the caught card and
+checkpoint restart; the receding, lull and listen rules. M6-B (`20af417`): Level 2 (2.1–2.3). M6-C
+(`ccfd347`): Level 3 (3.1–3.4) with stealth and the Meraviglia book viewer. M6-D (report 32): Level 4
+(4.1–4.3) and the three minigames this batch needs (parade and rowing rhythm, the skiff). Scripted
+smoke 1.1→4.3 and real-input autoplay 2.1→4.3 through Main pass; after 4.3 the explicit 5.1
+boundary. Levels 2–4 are drawn with the Green Zone art bank as a prototype (RD-34). Not done: flail
+and fly actors, survive objectives, scrambled controls, fire, ladders, tug, letter and rumour
+ordering (M7); gesture streak and hints, the chapters' own art banks, combat and minigame
+presentation polish (M8); Levels 5–8 (M7). Manual, device and audio checks are not executed.
+Evidence: report 32, `docs/porting/captures/m6_levels_2_4/` (11 PNGs).
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title captures: `…_49` and `…_98` of commit `16b5619`; `…_00`
 regenerated as rendered frame 0 in correction report 22 after the `title_capture.gd` fix; the earlier
@@ -162,7 +180,7 @@ report 26 (GZ-001, GZ-016, GZ-017, GZ-031, GZ-032, GZ-034–036, GZ-037, GZ-038�
 DOG-005b, FLOW-003, FLOW-004, AUTO-001) were accepted by the architect after that report (recorded
 in correction report 28); correction report 28's 24 M4 IDs and ARCH-001b were accepted after
 reports 28 and 30 (recorded in correction report 31); the earlier 98 are unchanged. The M5R IDs
-claimed in reports 30 and 31 are pending review and not counted here.
+claimed in reports 30 and 31, and the M6 IDs claimed in report 32, are pending review and not counted here.
 
 **Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
 ARCH-001a (M2, satisfied on combined evidence) + ARCH-001b (M5, production story scene, satisfied on
@@ -386,14 +404,14 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Stable depth sorting | Slice | DEPTH-001–003 | — |
 | Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |
 | Animated terrain and pollution presentation | Slice | WORLD-004, WORLD-005 (engine TileData), captures 10/11/20 | three layers, approved in ARCHITECTURE §7 |
-| ASCII maps and markers | Slice | MAP-001–007 (all twenty story maps parse like the source) | `neighborhood` and `study` played by Level 1 (M5R-B); the others with their levels |
+| ASCII maps and markers | Slice | MAP-001–007 (all twenty story maps parse like the source) | `neighborhood` and `study` played by Level 1 (M5R-B); `jerusalem`, `fair`, `road`, `venice`, `lido` and `ship` by Levels 2–4 (M6); the others with their levels |
 | Deep water and walls | Slice | COLL-004; SLICE diagnostic rendering case; capture 20 | — |
 | Contact shapes (InteractionProbe/Hurtbox) | Partial (pre-M3 contract) | SLICE: projected grid ellipses on the foot point, broad phase only, exact grid distance decides; real Area2D overlap; SLICE: probe reaches prop centres at rule distance + prop radius (tree/pole/fountain ±1e-9 boundaries, 16 directions, exact edge-distance decision authoritative) | consumers arrive with M3 |
 | Zampanò state controller | Slice | DOG-001–004, DOG-005a, DOG-005b (M3, accepted), DOG-006, DOG-007; DOG-008a on combined evidence, accepted on review of `386184b` (`test_CORE_002` spawn/teleport/camera-snap resets and test-hook defaults; the restart reset through the real Main flow, two `test_P_DOG_008a` cases; the renderer-backed probe: 30/60/90/120 FPS presentation and the first frame after spawn, teleport, camera snap and RESTART, with the camera-snap no-reset control isolated in correction report 19) | DOG-008b claimed in M5R-B (pending review) |
 | Zampanò normal art | Slice | AST-002–005 (every playable skin) | — |
 | Playable profiles (cross, armour, Sbrimbrulòn, Bagnaskiz) | Slice | AST-006–009; SLICE: the dog scene references no profile, the world injects the `--as` choice before `add_child()` (all three), lazy Zampanò fallback only for an unconfigured dog | arms capability DOG-009 (M6); ALT-001–003 (M8) |
 | Story cast art | Slice | AST-011 (23 delivered, 17 frozen procedural roles + cat) | Level 1 actors on stage (M5R-B; the Professor drawn as his legs, RD-13); the other casts with their levels |
-| Color Ink environments | Partial | AST-012, AST-013, AST-014, AST-015, AST-016 | story TileSets per bank: Level 1 draws with the `ch01_greenzone` bank; the study's own bank is M8 (RD-14) |
+| Color Ink environments | Partial | AST-012, AST-013, AST-014, AST-015, AST-016 | story TileSets per bank: Level 1 draws with the `ch01_greenzone` bank; the study's own bank is M8 (RD-14); Levels 2–4 draw with it too as a prototype, their own banks M8 (RD-34) |
 | Procedural art frozen, no fallback | Slice | AST-017, AST-018; AST-019 command evidence | — |
 | Title animation conversion | Slice | AST-010; 3 review images (frame 0 regenerated in correction report 22) | title scene M4; image and memory-report approval pending (C-* fields of the M1 package) |
 | Redesigned 96×96 park/topology | Slice | MAP-007 | — |
@@ -412,7 +430,7 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Under Attack | Slice (M3, accepted) | GZ-038–041; banner, alarm, siren loop, duck, pause/resume (SLICE cue case); capture 22 | screen look approximate (D-19) |
 | Bagnaskiz | Slice (M3, accepted) | GZ-042–045 | — |
 | Pollution waves | Slice (M3, accepted) | GZ-037; one shared threat RNG drawn in the source order (GZ-001) | — |
-| HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006 (M3: threat radar dots, attack banner and hints, button state); SLICE multi-touch routing; captures; story walks (correction 31): action button by mode, switcher, double tap and swipes with their bindings, pointer ownership (SLICE, `test_story_input.gd`) | gesture streak and hints (M8); SWORD/SHIELD modes (M6); device safe area |
+| HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006 (M3: threat radar dots, attack banner and hints, button state); SLICE multi-touch routing; captures; story walks (correction 31): action button by mode, switcher, double tap and swipes with their bindings, pointer ownership (SLICE, `test_story_input.gd`) | gesture streak and hints (M8); device safe area (SWORD/SHIELD modes: M6, below) |
 | Briefing/level end/game over | Partial | FLOW-001–004 (FLOW-003, FLOW-004 accepted from M3); P: FLOW-005; Supervillained snap; glitch transition; CONTINUE → stub handoff; the level frozen under the terminal overlays (SLICE, correction report 26); captures 23, 14 | title (M4); the 1.1 receiver implemented (M5R-B, STY-100) |
 | Green Zone automated full-play coverage | Slice (M3, accepted) | AUTO-001 (seeded real-input run with an attack); SLICE reproducibility | MAN-GZ manual runs |
 | Press Start 2P pixel font | Slice | AST-020 (glyphs, metrics, wrapping, fallback, IPA, schwa); OFL exported | glow (D-06) |
@@ -423,7 +441,13 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Legacy Capacitor converter | Partial | P: MIG-005 (M4 half; an existing raw backup preserved or left alone), MIG-006–010 (fixtures, statuses, notices, one transactional commit with retry) | real WebView acquisition, MIG-001–004, M9 half of MIG-005 (M9) |
 | Title, NEW GAME, CONTINUE, Couch, Options, Controls, Glossary, Goodbye | Slice (M4, accepted) | UI-007, UI-008, UI-010, UI-011, UI-012, UI-013, UI-015–021, UI-022; P: UI-009, UI-014; save-error card (SLICE); captures `m4_shell/` | title film/glitch/lettering and the title visible under OPTIONS, the confirmation and Goodbye (M8, D-21); the level card before 1.0 (D-22 narrowed to it, OQ-02); UI-014 historical UTC offsets |
 | Replay and flow-policy shell | Slice (M4, accepted) | FLOW-006, FLOW-010, FLOW-011; P: FLOW-007–009, FLOW-012; the walk handoff one atomic, idempotent save (SLICE) | story scenes: see the next row |
-| Story engine and rewritten Level 1 (1.1–1.5) | Partial (M5R, pending review) | claimed (correction 31's strengthened cases): CONTENT-001–005, STY-100–105, DLG-001–009, WALK-007–009, NPC-007, DOG-008b, FLOW-007, FLOW-008 and FLOW-011 (Level 1); ARCH-001b accepted (combined); P: WALK-001–006 (Level 1 reach/collect/action/follow and Jack's gate failure/recovery; survive and the later failure systems with later levels), NPC-001–006 (idle, goto, follow; patrol, chase, flee, wander, flail and fly with later chapters), COLL-005b, FLOW-009, FLOW-012, SAV-009, SAV-010, CAMP-001–014 (Level 1 portions), UI-023–030; SLICE: action routing and gestures, arrival timeouts, entry conditions, display authority; captures `m5r_level1/`; owner review package | narrative review (owner); SKIP SCENE (RD-23, OQ-11); SWORD/SHIELD (M6); Levels 2–8 (M6–M7) |
+| Story engine and rewritten Level 1 (1.1–1.5) | Partial (M5R, pending review) | claimed (correction 31's strengthened cases): CONTENT-001–005, STY-100–105, DLG-001–009, WALK-007–009, NPC-007, DOG-008b, FLOW-007, FLOW-008 and FLOW-011 (Level 1); ARCH-001b accepted (combined); P: WALK-001–006 (Level 1 reach/collect/action/follow and Jack's gate failure/recovery; survive and the later failure systems with later levels), NPC-001–006 (idle, goto, follow; patrol, chase, flee, wander, flail and fly with later chapters), COLL-005b, FLOW-009, FLOW-012, SAV-009, SAV-010, CAMP-001–014 (Level 1 portions), UI-023–030; SLICE: action routing and gestures, arrival timeouts, entry conditions, display authority; captures `m5r_level1/`; owner review package | narrative review (owner; deferred for prototype development, OD-01); SKIP SCENE (RD-23, OQ-11); Levels 5–8 (M7) |
+| Rewritten Levels 2–4 (2.1–4.3) | Partial (M6, pending review) | claimed: STY-201–203, STY-301–304, STY-401–403; CONTENT-001–005, FLOW-007, FLOW-008 and FLOW-011 extended to the M6 scenes (`test_story_m6.gd`); P: COLL-005b (the M6 scenes' scripted targets), FLOW-009 (the snaps after 2.3, 3.4 and 4.3), SAV-009, SAV-010, CAMP-001–014 (Levels 2–4 portions), UI-023–030; SLICE: scripted smoke 1.1→4.3, real-input autoplay 2.1→4.3 through Main (never caught, never knocked down), state snapshots of every branch; captures `m6_levels_2_4/` | narrative review (OD-01); the chapters' own art banks (M8, RD-34); Levels 5–8 (M7) |
+| Dream costume and arms capability | Partial (M6, pending review) | claimed: DOG-009 (`test_DOG_009_…`: costume by `reality`, arms only with `knight` in the dream, the debug profiles' own mappings) | the cross/armour presentation details of M8 |
+| Story combat (BARK, SWORD, SHIELD) | Partial (M6, pending review) | claimed: COM-001–014 (`test_combat_rules.gd`, `test_story_combat.gd`; the bark is an area, never parried); SLICE: all eight directions, keys/touch/gestures, no input leaks, restart mid-fight | fights of Levels 5–7 (M7); presentation polish (M8) |
+| Walk systems: stealth, leaders, lulls, sounds, modifiers | Partial (M6, pending review) | claimed: WALK-010–017; P: WALK-001–006 (survive objectives absent), NPC-001–006 (idle, goto, follow, patrol, chase, flee, wander; flail and fly absent) | WALK-018–021, survive, flail, fly (M7) |
+| Minigames: parade, rowing, the skiff | Partial (M6, pending review) | claimed: MINI-001–005 (a loss applies its exact effect once and goes on; no automatic retry; restart is the retry) | ladders, tug, letter, rumour ordering (M7, MINI-006–012); presentation polish (M8) |
+| Meraviglia book | Partial (M6, pending review) | SLICE: the paged viewer of the committed campaign (level list, OPTIONS), marvels awarded once and kept across replays; P: CAMP-007–011, UI-023–030 | 8.2's payoff (M7); book art and icons (M8) |
 | Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15, 16 and 17; accepted on review of `8f8dcb6`); M4: the format-3 converter, SaveService integration and the fixture/simulated half of MIG-005 implemented (M4 report 27); production lineage, two WebView/device versions and MIG-001–010 proof M9 |
 | Everything else in this matrix | — | — | later milestones |
 
