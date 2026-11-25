@@ -10,7 +10,7 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 - **Retired** — deliberately removed by the canonical Fourth Crusade rewrite.
 - **Unverified on device** — code/config exists but this audit did not execute it on Android hardware.
 
-Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
+Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. **From M5R, story prose and scene beats follow the rewrite authority** (`STORY_REWRITE_SPEC.md`: the Godot story Resources, the content matrix, the decision log); the PixiJS story and `docs/STORY.md` are draft/reference material and the story rows below no longer require their exact text. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
 ## Godot implementation status — M1, M2, M3 Partial (manual checks owner-deferred; M3 automated IDs accepted), M4 Partial (save system and product shell, pending review)
 
@@ -63,6 +63,12 @@ converts into an isolated candidate and never overwrites an unpreserved raw back
 unreadable main is copied and verified before any repair, or left untouched with a read-only
 session; the story notice is taken only after its saved clear; a covered title takes no touch.
 Evidence: correction report 28, three save-error captures in `docs/porting/captures/m4_shell/`.
+**M5R (story rewrite foundation): in progress.** M5R-A (report 29): the architect's decision that
+the campaign is rewritten as native Godot content is recorded in `STORY_REWRITE_SPEC.md`,
+`STORY_CONTENT_MATRIX.md` and `STORY_REWRITE_DECISIONS.md`; the story Resource schema, the content
+validator and the Level 1 maps and cast exist; future-format copies never overwrite an earlier copy
+(SAV-022 strengthened). The story engine and the rewritten Level 1 are M5R-B. Narrative status of
+every rewritten line: draft, narrative review pending.
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title captures: `…_49` and `…_98` of commit `16b5619`; `…_00`
 regenerated as rendered frame 0 in correction report 22 after the `title_capture.gd` fix; the earlier
@@ -507,13 +513,13 @@ All source entries below are implemented. “Ported” means script, map, actors
 
 | Target | Feature | Source status and evidence | Godot parity requirement | Milestone / tests |
 |---|---|---|---|---|
-| [ ] | Canonical Fourth Crusade narrative | Implemented: `docs/STORY.md`, chapter code | Exact English text, sources metadata, scene order and boundaries | M5–M7 / CONTENT-001–004 |
+| [ ] | Canonical Fourth Crusade narrative | Implemented as a draft: `docs/STORY.md`, chapter code (reference) | Rewritten under `STORY_REWRITE_SPEC.md`: Resources hold the text; invariants, IDs, consequences, sources metadata, scene order and boundaries preserved | M5–M7 / CONTENT-001–004 |
 | [ ] | Dialogue/typewriter/cards/choices | Implemented | Native UI, text speeds, costly locks, no dead-end choices | M5 / DLG-001–007 |
 | [ ] | Names and period-word colors | Implemented and tested | Same lists/spans/colors while typing and after completion | M5 / DLG-008–009 |
 | [ ] | Four campaign meters | Implemented | Exact starts, clamps, effects, fades, costs and display | M5–M7 / CAMP-001–006 |
 | [ ] | Meraviglia/book/home mapping | Implemented | Exact marvel/item/value/remembered/shard collections and 8.2 mapping | M5–M7 / CAMP-007–011 |
 | [ ] | Costumes/abilities | Implemented | Reality rag carry, dream armour from 2.1, arms ability at 2.3 | M5–M6 / CAMP-012–014 |
-| [ ] | Progression/autosave | Implemented | Sequential chapter unlock, per-effect/per-scene saves | M4–M7 / FLOW-006–009 |
+| [ ] | Progression/autosave | Implemented | Sequential chapter unlock, one atomic save per scene completion (RD-05) | M4–M7 / FLOW-006–009 |
 | [ ] | Replay | Implemented on copied state | Finished-scene replay changes no persistent campaign data | M4–M5 / FLOW-010–011 |
 | [ ] | Story pause `SKIP SCENE` | Implemented; marks scene complete | Preserve as current parity behavior | M5 / FLOW-012 |
 | [ ] | THE KNIGHT ending | Implemented through 7.8 oath call | Exact flag, cards, notes and final flow | M7 / END-001 |

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StoryMapData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_map_data.gd" id="1_map"]
+
+[resource]
+script = ExtResource("1_map")
+id = "study"
+rows = PackedStringArray("%%%%%%%%%%%%%%", "%___K___K__K__", "%_____________", "%__D0_________", "%K__++++++2___", "%___++1+++____", "%___+++++7____", "%K__+6++++____", "%___++++++_3__", "%__5++++++____", "%_________S___", "%_A____4______", "%___________X_", "%_____________")
+base = "_"
+theme = "study"
+environment = "ch01_greenzone"

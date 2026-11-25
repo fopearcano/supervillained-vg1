@@ -530,6 +530,54 @@ func test_SLICE_future_copy_failures_are_reported_and_writes_stay_blocked() -> v
 	_svc.load_from_disk()
 
 
+static func _sha12(bytes: PackedByteArray) -> String:
+	var ctx := HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	ctx.update(bytes)
+	return ctx.finish().hex_encode().substr(0, 12)
+
+
+## SAV-022: an earlier preservation copy is never written over. A first copy with other or
+## unreadable bytes stays and the new payload goes to its hash-suffixed name; when that name already
+## holds other or unreadable bytes it is a conflict (future_copy_conflict:<file>, writes blocked)
+## and nothing is written. The original future save and every earlier copy stay byte-identical.
+func test_SAV_022_future_copies_never_overwrite_an_earlier_copy() -> void:
+	var hashed := "save_v3.future.%s.json" % _sha12(FUTURE_BYTES.to_utf8_buffer())
+	var cases := [
+		{"what": "hashed copy holds other bytes", "first": "EARLIER COPY A", "hashed": "OTHER BYTES B", "unreadable": "", "error": "future_copy_conflict:save_v3.json"},
+		{"what": "hashed copy unreadable", "first": "EARLIER COPY A", "hashed": "UNREADABLE C", "unreadable": hashed, "error": "future_copy_conflict:save_v3.json"},
+		{"what": "first copy unreadable, no hashed copy", "first": "EARLIER COPY D", "hashed": "", "unreadable": "save_v3.future.json", "error": ""},
+		{"what": "first copy differs, no hashed copy", "first": "EARLIER COPY E", "hashed": "", "unreadable": "", "error": ""},
+	]
+	for c: Dictionary in cases:
+		var what: String = c["what"]
+		_clear()
+		_write("save_v3.json", FUTURE_BYTES)
+		_write("save_v3.future.json", c["first"])
+		if c["hashed"] != "":
+			_write(hashed, c["hashed"])
+		var before := _files()
+		var f := FaultyFileOps.new()
+		f.fail = {"read_bytes": c["unreadable"]} if c["unreadable"] != "" else {}
+		_svc.file_ops = f
+		_svc.load_from_disk()
+		var r: Dictionary = _svc.save_record("level1", {"score": 9, "stars": 0, "time": 1})
+		_svc.file_ops = SaveFileOps.new()
+		var errors: Array = Array(_svc.future_copy_errors)
+		assert_eq([_svc.load_status, _svc.write_blocked, r["saved"]], ["future_version", true, false], what + ": blocked either way")
+		assert_eq(errors, [c["error"]] if c["error"] != "" else [], what + ": reported")
+		var after := _files()
+		for name: String in before:
+			assert_eq(after.get(name), before[name], "%s: %s byte-identical" % [what, name])
+		if c["hashed"] == "":
+			assert_eq(after.get(hashed), FUTURE_BYTES.to_utf8_buffer(), what + ": the new payload under its hash name")
+			assert_eq(after.size(), before.size() + 1, what + ": only that copy was added")
+		else:
+			assert_eq(after.size(), before.size(), what + ": nothing added")
+	_clear()
+	_svc.load_from_disk()
+
+
 # --- Campaign v1 -> v2 (src/campaign/state.ts, fixtures from the executed source) ---------------
 
 func _migration() -> Dictionary:

@@ -59,7 +59,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 **Manual tests**
 
-- Document review against `docs/STORY.md`, source code, and asset manifests.
+- Document review against `docs/STORY.md`, source code, and asset manifests (from M5R, story prose is reviewed against `STORY_REWRITE_SPEC.md` instead).
 
 **Dependencies:** none.
 
@@ -299,9 +299,9 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 ---
 
-## M5 — Story engine and Level 1 reality (1.1–1.5)
+## M5 — M5R: Godot-native story rewrite foundation, story engine and rewritten Level 1 (1.1–1.5)
 
-**Objective:** prove the campaign framework, native story UI, replay semantics, actors, and reality-to-dream boundary on a complete chapter.
+**Objective:** establish the rewrite authority (`STORY_REWRITE_SPEC.md`, `STORY_CONTENT_MATRIX.md`, `STORY_REWRITE_DECISIONS.md`) and prove the campaign framework, native story UI, replay semantics, actors and the reality-to-dream boundary on the rewritten Level 1. The PixiJS story and `docs/STORY.md` are draft/reference material: Level 1's prose is rewritten (draft implemented, narrative review pending), not ported verbatim. Level 2 does not begin until independent architectural review accepts the engine and the owner has reviewed the Level 1 draft.
 
 **Source systems involved**
 
@@ -320,18 +320,18 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 **Functional acceptance criteria**
 
-- 1.0 hands off to 1.1; 1.1–1.5 play in canonical order with exact reality/dream boundary.
-- Dialogue, choices, costly/locked policy, effects, flags, scraps, remembered lines, carry, actor movement, gate puzzle and cards match source.
-- Save occurs after effects/completion; restart does not double-fade/apply effects.
-- Story pause/menu/book/text speed/skip/replay behavior matches source.
-- Finished-scene replay changes no persisted byte.
-- Names/period-word markup infrastructure works even though most period words arrive later.
+- 1.0 CONTINUE launches 1.1 from the saved M4 handoff; 1.1–1.5 play in catalog order and save correctly, with the exact reality/dream boundary at the last card of 1.5; no armour or dream-only capability in reality.
+- Dialogue, choices, costly/locked policy, effects, flags, scraps, remembered lines, carry, actor movement, Jack's gate (success and failure/recovery) and cards behave as the rewrite specification and its decisions define (not verbatim draft wording).
+- Each scene is one save transaction (RD-05): effects apply before the completion save; restart or force-close never applies an effect, meter change or reward twice.
+- Story pause (resume, restart, skip), text speed and replay behave as specified; finished-scene replay changes no persistent byte.
+- The end of 1.5 reaches the Supervillained snap, the Level 1 Professor aside and an explicit "next chapter not implemented" boundary.
+- Names markup infrastructure works even though most period words arrive later; all story text is in Resources.
 
 **Automated tests**
 
-- `CAMP-001–014`, `DLG-001–009`, `WALK-001–009`, `NPC-001–007`, `CONTENT-001–005` for Level 1.
+- `CONTENT-001–005` (the new Resources, rewrite metadata, Chapter 1 order), `DLG-001–009`, `WALK-001–009` (Level 1 objectives and interactions), `NPC-001–007` (actors and gestures), the Level 1 portions of `CAMP-001–014`.
 - `ARCH-001b` (production story scene shares the world), `DOG-008b` (stage change resets interpolation); `test_P_COLL_005b_…` partial evidence for Level 1's scripted spatial objectives.
-- `STY-101–105` scripted smoke and real-input completion.
+- `STY-101–105` scripted smoke and real-input completion, validating the rewritten specification and implemented gameplay, not old wording; both 1.3 choices; Jack's gate success and failure/recovery; pause/restart at every step family; replay byte-identity; force-close/reload at each save boundary; validation of missing markers/resources/actors/steps.
 - Map marker validation and “missing marker fails” test.
 - Restart/replay/persistence and sleep-boundary tests.
 
@@ -346,15 +346,16 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 **Expected deliverables**
 
-- Complete Level 1 campaign flow.
-- Reusable story engine/API documentation.
-- Story smoke and input-autopilot reports for 1.1–1.5.
+- The rewrite specification, content matrix and decision log; rewritten Chapter 1 Resources; a side-by-side old→new summary for 1.1–1.5; the unresolved narrative questions.
+- Complete Level 1 campaign flow; reusable story engine and its API documentation.
+- Story smoke and real-input completion reports for 1.1–1.5; gameplay and dialogue captures.
+- Narrative status "draft implemented, narrative review pending" until the owner reviews historical accuracy, tone and characterization, every dialogue and choice, Level 1 pacing and the setup for both endings.
 
 ---
 
 ## M6 — Dream foundation and Levels 2–4
 
-**Objective:** complete the reusable dream mechanics, first combat, stealth, Meraviglia, and early minigames across Levels 2–4.
+**Objective:** complete the reusable dream mechanics, first combat, stealth, Meraviglia, and early minigames across Levels 2–4. Each level is first rewritten under the M5R authority (`STORY_REWRITE_SPEC.md`: matrix rows, decisions, Resources); prose is not ported verbatim.
 
 **Source systems involved**
 
@@ -409,7 +410,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 ## M7 — Levels 5–8, both endings, and complete campaign
 
-**Objective:** port all remaining canonical content, advanced walks, companions, minigames, and both endings.
+**Objective:** rewrite and implement all remaining content under the M5R authority (`STORY_REWRITE_SPEC.md`), advanced walks, companions, minigames, and both endings.
 
 **Source systems involved**
 

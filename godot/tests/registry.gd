@@ -11,6 +11,7 @@ const SUITES := {
 		"res://tests/unit/test_dog.gd",
 		"res://tests/unit/test_save.gd",
 		"res://tests/unit/test_save_m4.gd",
+		"res://tests/unit/test_story_schema.gd",
 		"res://tests/unit/test_isolation.gd",
 	],
 	"content": [

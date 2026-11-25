@@ -101,11 +101,11 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | RNG-001 | Deterministic RNG first-N outputs match source fixture for multiple seeds including 0 and max 32-bit. |
 | RNG-002 | Same seed reproduces treat/decor/spawn choices byte-for-byte. |
 | RNG-003 | Different seeds produce different sequences without global RNG leakage. |
-| CONTENT-001 | Catalog contains exactly eight chapters and 37 entries with exact IDs/counts/order. |
-| CONTENT-002 | Every non-Green-Zone sublevel builds a fresh nonempty step list; 1.0 has the exact Green Zone dispatch and an intentionally empty story script; no retired scene ID is registered. |
-| CONTENT-003 | Every source/reference metadata field is present and canonical titles match `docs/STORY.md`. |
-| CONTENT-004 | All dialogue/card text snapshots match approved source exports, including punctuation/case. |
-| CONTENT-005 | CAST/SOURCE metadata is available to tools but absent from player-facing cards. |
+| CONTENT-001 | Catalog contains exactly eight chapters and 37 entries with exact IDs/counts/order; every implemented chapter's story Resources list their scenes in catalog order (Chapter 1: 1.1–1.5). |
+| CONTENT-002 | Every implemented scene Resource builds a fresh, nonempty, validated step list (valid step types, unique step ids, known speakers/maps/markers/actors/sprites/music/sounds, reachable choices, no all-locked choice, a final completion step whose required state every branch produces); 1.0 keeps the exact Green Zone dispatch; a scene without Resources is shown as a boundary; no retired scene ID is registered. |
+| CONTENT-003 | Every scene and chapter Resource carries the rewrite metadata (stable ID, content version, title, level, map, music, cast, entry conditions, persistent effects, completion boundary, historical/source tags, review status) and its titles equal the catalog's. |
+| CONTENT-004 | All player-visible story text lives in the story Resources (none in execution scripts); every effect is a known meter/ability/book key/flag with a valid value and declared in the scene's `persistent_effects`; a text change raises the scene's `content_version`. Verbatim parity with the PixiJS draft is not required (`STORY_REWRITE_SPEC.md`). |
+| CONTENT-005 | CAST/SOURCE/review metadata is available to tools but absent from player-facing cards. |
 | REL-001 | Runtime asset manifest has an owner-provided provenance/license disposition for every distributable non-code asset before public release. |
 
 ## 6. Viewport, isometry, movement, collision, depth, and camera
@@ -326,6 +326,10 @@ Additional input assertions:
 
 ## 11. Scene-by-scene campaign acceptance
 
+From M5R the expected content of each scene is the rewrite authority (`STORY_REWRITE_SPEC.md`, the
+content matrix and the decision log), not the PixiJS draft's wording; state snapshots compare with
+the rewrite's branch fixtures.
+
 Each `STY-*` case has three layers:
 
 1. **Build smoke:** load map/theme/resources, construct every step, advance with debug skip, and fail on any error/warning/missing key.
@@ -337,7 +341,7 @@ IDs and essential assertions:
 | IDs | Coverage |
 |---|---|
 | STY-100 | Full Green Zone 1.0 handoff, time/coins and completion. |
-| STY-101–105 | Level 1 reality, flags/scraps/cross, exact sleep boundary. |
+| STY-101–105 | Level 1 reality as rewritten (`STORY_REWRITE_SPEC.md` §9 and the matrix): flags/scraps/cross, both 1.3 choices, Jack's gate success and failure/recovery, the exact sleep boundary; validated against the rewrite, not the draft's wording. |
 | STY-201–203 | Receding Jerusalem, vow/list, bark fight/arms/parry/follow. |
 | STY-301–304 | Venice marvels/debt disagreement/weeping/stealth deal. |
 | STY-401–403 | Fleet rhythm, horses/boat, rumours/rowing. |
@@ -365,8 +369,8 @@ Full-campaign policies:
 | END-003 | Grace tier produces exact approved line at both boundaries and near-boundary values. |
 | END-004 | Standing tier produces exact approved line at both boundaries and near-boundary values. |
 | FLOW-006 | Sequential completion unlocks next scene/chapter only as source does. |
-| FLOW-007 | Save occurs after persistent effects and scene completion. |
-| FLOW-008 | Restart does not double-fade Commozione or duplicate awards. |
+| FLOW-007 | Save occurs after persistent effects and scene completion (from M5R: one atomic save at the scene's completion, RD-05). |
+| FLOW-008 | Restart (and force-close) never applies an effect, meter change, fade or award twice. |
 | FLOW-009 | Supervillained boundaries are exact: after 1.0 before its score card; again after 1.5 before the Level 1 Professor aside; after the final sublevel of Levels 2–8 before the aside/ending flow; never after a completed-scene replay. |
 | FLOW-010 | Finished-scene replay starts from a deep copy. |
 | FLOW-011 | Replay completion/restart/choice changes no persistent save field. |
@@ -386,7 +390,7 @@ Full-campaign policies:
 | SAV-006 | New campaign exact default snapshot. |
 | SAV-007 | Campaign effects deduplicate book/ability arrays and clamp meters. |
 | SAV-008 | Exact Green Zone order: record saves at level completion; campaign time/coins and 1.0 completion save only on CONTINUE; retry, result-screen quit and game over do not hand them off. |
-| SAV-009 | Per-effect/per-scene autosave points match source; settings/container writes do not change nested campaign `savedAt`. |
+| SAV-009 | Autosave points: per scene completion (M5R decision RD-05 replaces the source's per-effect saves); settings/container writes do not change nested campaign `savedAt`. |
 | SAV-010 | Play time excludes replays and save time uses Unix milliseconds. |
 | SAV-011 | Replay state is a deep independent copy. |
 | SAV-012 | Known flags obey `CampaignFlagSchema`; unknown v2 scalar flags pass through, invalid known values/unknown composites are omitted after raw backup, and v1 `santinaBall` compatibility values survive. |

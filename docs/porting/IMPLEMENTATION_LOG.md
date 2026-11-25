@@ -6,14 +6,106 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 28 is current. Erratum for the historical reports: their
+in progress report 5. M5R report 29 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 28: M4 persistence safety — exact versions, transactional writes, atomic handoff, non-destructive recovery (M1, M2, M3 Partial; M4 Partial) — current
+## M5R report 29 (M5R-A): story rewrite authority, content schema and validation (M1, M2, M3 Partial; M4 Partial; M5 in progress) — current
+
+Scope: the first of the two M5R commits after `cd37a07` (correction report 28). The owner's M5R
+instruction: the architect's decision that the campaign is rewritten as native Godot content (the
+PixiJS story and `docs/STORY.md` become draft/reference material), Phase 0 (one M4 hardening edge),
+Phase 1 (the rewrite authority) and the content schema and validation. No story engine and no
+Chapter 1 Resources yet (M5R-B). The PixiJS, Capacitor and iOS sources are unchanged.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1, M2, M3 Partial** (manual and device checks owner-deferred, release-blocking); **M4 Partial** (24 IDs claimed, pending review); **M5 (M5R) in progress**: authority, schema and validator in this commit; engine and Level 1 in M5R-B; nothing claimed here |
+| Base | `cd37a07` (correction report 28; `godot/` tree `69eba9b`) |
+| `godot/` tree | `9d171f3a09e8d21691b5840c3b5074a4f8bad23d` (this commit) |
+| Host | Windows 11 Pro N for Workstations 25H2, Godot 4.7.2 console build |
+
+### Phase 0 — future-format copies never overwrite an earlier copy
+
+`SaveService._preserve_future()` kept a hash-suffixed copy name when the first copy differed, but
+then wrote over that name even when it already held other or unreadable bytes, and could remove it
+after a failed write. Now an earlier first copy with other or unreadable bytes is kept and the new
+payload goes to its hash name; a hash name already holding other or unreadable bytes is a conflict
+(`future_copy_conflict:<file>`, writes stay blocked) and nothing is written or removed; only a copy
+the call itself created is removed on failure — matching the corrupt-save and legacy-backup rules.
+Test: `test_SAV_022_future_copies_never_overwrite_an_earlier_copy` (four cases: a hash copy with
+other bytes, an unreadable hash copy, an unreadable first copy, a different first copy); the
+original future save and every earlier copy stay byte-identical. The old code fails it (it wrote
+over, and once removed, the earlier hash copy).
+
+### Phase 1 — the rewrite authority
+
+- `docs/porting/STORY_REWRITE_SPEC.md`: authority order, narrative invariants (eight levels, IDs
+  1.0–8.4 and the 37-entry catalog, both endings, history and the three witnesses, Zampanò's point
+  of view, reality and dream, faces, themes, canonical systems), rewrite policy, status vocabulary
+  (technical vs narrative; only the owner approves), the Resource schema, validation, save/restart/
+  replay boundaries, the owner's narrative review, and the Level 1 summary.
+- `docs/porting/STORY_CONTENT_MATRIX.md`: one entry per scene 1.1–8.4 (old/proposed title, purpose,
+  history/place, play, cast, setup→payoff, effects, status, references, open question, technical ·
+  narrative status) and the Level 1 side-by-side old→new table. Facts the repository's sources do
+  not support are marked `REVIEW REQUIRED`.
+- `docs/porting/STORY_REWRITE_DECISIONS.md`: RD-01–RD-04 (architect) and RD-05–RD-22 (implementer
+  proposals for Level 1, review pending) with old→new mappings and save consequences; open owner
+  questions OQ-01–OQ-10; the Level 1 `REVIEW REQUIRED` list. RD-05: a scene is one save
+  transaction (saved once at its completion); restart and force-close never apply an effect twice.
+- ARCHITECTURE.md (§1 narrative authority, §4 decisions 7 and 10, §13 the story engine and its save
+  boundaries), MILESTONES.md (M5 is M5R; M6/M7 rewrite first), TEST_PLAN.md (CONTENT-001–005,
+  FLOW-007/008, SAV-009, STY-101–105 and §11 follow the rewrite, not the draft's wording) and
+  FEATURE_MATRIX.md (precedence and story rows) no longer require verbatim parity with the draft.
+
+### Schema and validation
+
+- `godot/story/data/`: `StorySceneData`, `StoryChapterData`, `StoryCast`, `StoryMapData`,
+  `StoryActorSpec`, `StoryChoiceOption`, `StoryPickup`.
+- `godot/story/steps/`: `StoryStep` and fourteen typed steps (stage, actor, move, narration,
+  dialogue, choice, objective, effect, card, wait, cue, prop, carry, complete), data and schema
+  hooks only (execution arrives in M5R-B).
+- `godot/story/story_validator.gd`: IDs/titles/levels/order against the catalog, step types and
+  ids, speakers, maps, markers per stage, actors placed before use, roles with SpriteFrames,
+  sprite/sound/music keys, reachable choices and no all-locked state, effects (known keys,
+  CampaignFlagSchema flags and values, declared writes), one final completion whose required state
+  every branch produces, metadata, and a scan of the story engine's scripts for player text.
+- `godot/data/story/`: `cast.tres` (Level 1 speakers, names and colours of `src/story/ui.ts`) and
+  `maps/neighborhood.tres`, `maps/study.tres` (rows verbatim from the executed-source fixture).
+- `tests/unit/test_story_schema.gd` (5 cases): a valid scene passes; 30 defect variants each fail
+  with an explicit message (missing marker, map, actor, role, sprite, sound, music; unknown or
+  out-of-cast speaker; duplicate step id; no or misplaced completion; all-locked choice and an
+  unreachable locked branch; unknown effect key, unknown flag, invalid flag value, undeclared write,
+  unknown ability, zero meter change; every metadata field; a branch that skips a required flag;
+  a stage change inside a branch); chapter order and title; the maps equal the executed source and
+  the cast has portrait art; the scan finds no player text in the engine and does find a planted line.
+
+### Commands executed and results (local clone, before committing)
+
+| Command | Result |
+|---|---|
+| `<console exe> --headless --path godot --import` | exit 0, no ERROR/WARNING line |
+| `… --script res://tests/test_runner.gd -- --suite all` | 218 passed, 0 failed |
+| `… -- --suite unit --file test_story_schema` | 5 passed |
+| `… -- --suite unit --file test_save --case SAV_022` | 2 passed |
+| mutation: the old hash-copy write restored | `test_SAV_022_future_copies_never_overwrite_an_earlier_copy` FAILS (copy overwritten, then removed) |
+| `git diff --check`, `git show --check`, source-tree guard, clean status | clean before the commit (git diff --cached --check, source-tree guard, status); git show --check is run on the commit afterwards (report 30) |
+
+The fresh-clone verification of the whole M5R list runs on M5R-B (report 30).
+
+### Remaining gaps
+
+- The story engine, Chapter 1 Resources, Level 1 tests, captures and the fresh-clone checks: M5R-B.
+- Every M5R narrative item stays *draft, narrative review pending*; OQ-01–OQ-10 wait for the owner.
+
+---
+
+## Historical — correction report 28: M4 persistence safety — exact versions, transactional writes, atomic handoff, non-destructive recovery (`cd37a07`; M1, M2, M3 Partial; M4 Partial)
+
+> Superseded by M5R report 29 (the current tree is its). Its M4 claims, the M3 acceptance it recorded and its gaps stand.
 
 Scope: the owner's narrow M4 persistence-safety correction after `5c593d6`. Changed: `godot/autoload/`
 (`save_service.gd`, `app_state.gd`), `godot/campaign/` (`campaign_schema.gd`, `legacy_import.gd`),

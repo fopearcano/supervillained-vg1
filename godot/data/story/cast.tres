@@ -1,0 +1,62 @@
+[gd_resource type="Resource" script_class="StoryCast" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_cast.gd" id="1_cast"]
+
+[resource]
+script = ExtResource("1_cast")
+speakers = {
+"zampano": {
+"color": Color(1, 1, 1, 1),
+"gesture": false,
+"name": "ZAMPANO",
+"portrait": "zampano"
+},
+"watson": {
+"color": Color(0.847058824, 0.831372549, 0.784313725, 1),
+"gesture": false,
+"name": "WATSON",
+"portrait": "watson"
+},
+"confusione": {
+"color": Color(1, 0.62745098, 0.250980392, 1),
+"gesture": false,
+"name": "CONFUSIONE",
+"portrait": "confusione"
+},
+"professor": {
+"color": Color(0.941176471, 0.847058824, 0.62745098, 1),
+"gesture": true,
+"name": "THE PROFESSOR",
+"portrait": "professor"
+},
+"jack": {
+"color": Color(1, 0.541176471, 0.721568627, 1),
+"gesture": false,
+"name": "JACK",
+"portrait": "jack"
+},
+"bagnaskiz": {
+"color": Color(1, 0.603921569, 0.121568627, 1),
+"gesture": false,
+"name": "BAGNASKIZ",
+"portrait": "bagnaskiz"
+},
+"sbrimbrulon": {
+"color": Color(0.878431373, 0.533333333, 0.282352941, 1),
+"gesture": false,
+"name": "SBRIMBRULON",
+"portrait": "sbrimbrulon"
+},
+"santina": {
+"color": Color(1, 0.352941176, 0.839215686, 1),
+"gesture": false,
+"name": "SANTINA",
+"portrait": "santina"
+},
+"lady": {
+"color": Color(0.847058824, 0.658823529, 0.941176471, 1),
+"gesture": false,
+"name": "A LADY",
+"portrait": "lady"
+}
+}

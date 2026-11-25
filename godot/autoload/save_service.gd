@@ -341,9 +341,11 @@ func load_from_disk() -> void:
 
 
 ## Copies a future-format file byte-for-byte next to it and reads the copy back. Returns "" on
-## success or "future_copy_failed:<file>". An identical copy is not rewritten; a different earlier
-## copy is kept and the new one gets a hash suffix. A short or failed copy is removed (it is our own
-## file; the original is never touched).
+## success, "future_copy_failed:<file>" or "future_copy_conflict:<file>". An identical copy is not
+## rewritten; a different (or unreadable) earlier copy is kept and the new one gets a hash suffix;
+## a hash-suffixed name already holding other (or unreadable) bytes is a conflict: nothing is
+## written over it. Only a copy this call created is removed when it fails (the original and every
+## earlier copy are never touched).
 func _preserve_future(name: String) -> String:
 	var failed := "future_copy_failed:" + name
 	var read := file_ops.read_bytes(_path(name))
@@ -352,11 +354,15 @@ func _preserve_future(name: String) -> String:
 	var bytes: PackedByteArray = read["bytes"]
 	var keep := _path(FUTURE_COPY[name])
 	if file_ops.exists(keep):
-		if file_ops.read_bytes(keep)["bytes"] == bytes:
+		var first := file_ops.read_bytes(keep)
+		if first["ok"] and first["bytes"] == bytes:
 			return ""
 		keep = _path(FUTURE_COPY[name].get_basename() + "." + _sha12(bytes) + ".json")
-		if file_ops.exists(keep) and file_ops.read_bytes(keep)["bytes"] == bytes:
-			return ""
+		if file_ops.exists(keep):
+			var same := file_ops.read_bytes(keep)
+			if same["ok"] and same["bytes"] == bytes:
+				return ""
+			return "future_copy_conflict:" + name
 	var payload := bytes.slice(0, bytes.size() / 2) if fault_future_copy.has(name) else bytes
 	var stored := file_ops.write_bytes(keep, payload)
 	if not stored or file_ops.read_bytes(keep)["bytes"] != bytes:

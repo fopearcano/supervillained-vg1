@@ -17,6 +17,15 @@ When source materials disagree, use this order:
 4. `README.md` and `CLAUDE.md` for player-facing behavior and current architecture.
 5. `SPEC.md` for the Green Zone design only; its engine prohibition and original single-level scope do not apply to this migration.
 
+**Narrative content (M5R architect decision).** For story prose, scene beats and story content the
+authority is the Godot-native rewrite: the versioned story Resources under `godot/data/story/`, then
+`docs/porting/STORY_REWRITE_SPEC.md`, `STORY_CONTENT_MATRIX.md` and `STORY_REWRITE_DECISIONS.md`.
+For narrative text, items 1 and 2 above (the PixiJS chapter code and `docs/STORY.md`) are draft and
+reference material; reviews do not require verbatim parity with them. The order above still governs
+mechanics, maps, assets and saves, and the rewrite preserves the invariants of
+`STORY_REWRITE_SPEC.md` §2 (eight levels, IDs 1.0–8.4 and the 37-entry catalog, both endings, the
+reality/dream boundary, meters, abilities, flags, choices and consequences, Green Zone 1.0).
+
 The canonical campaign has **37 entries: 1.0 plus 36 scripted scenes**:
 
 | Level | Entries | Count |
@@ -75,10 +84,10 @@ These decisions are binding for the first implementation pass.
 4. **Shared world stack.** Green Zone and story stages instantiate the same isometric world, player, camera, depth, collision, and animation components.
 5. **Authoritative grid semantics.** Gameplay values remain in continuous grid coordinates and tiles/second. Rendering and Godot physics positions are projections of that model.
 6. **Native Godot UI.** All menus, HUD, dialogue, book, virtual joystick, buttons, and overlays use `Control`, `CanvasLayer`, `Theme`, and input events. No embedded web UI.
-7. **Typed code for dynamic story logic.** Resources hold stable metadata/tuning; GDScript step factories and scene controllers hold conditional and real-time behavior. Do not flatten bespoke chapter closures into an unvalidated JSON DSL.
+7. **Typed data for story content, typed code for its execution (amended in M5R).** Each scene is a `StorySceneData` Resource whose ordered steps are typed `StoryStep` Resources holding all player-visible text; step classes and small scene rule classes hold execution logic only and are parameterised by the Resource fields. Every step type and field is validated (`STORY_REWRITE_SPEC.md` §6): this is not an unvalidated JSON DSL. No narrative text in runner, step, rule or scene scripts.
 8. **Editor-time asset conversion.** Sprite sheets, environment atlases, title animation, procedural fallbacks, and synthesized audio are converted before shipping. Runtime atlas packing and WebAudio synthesis are eliminated.
 9. **Versioned atomic saves.** Godot uses one validated JSON container under `user://`, plus backup and raw legacy-import files.
-10. **Parity before cleanup.** Port current behavior, including oddities documented as current, before proposing redesigns.
+10. **Parity before cleanup.** Port current behavior, including oddities documented as current, before proposing redesigns. Story prose and scene beats are the exception: they follow the rewrite authority (§1, §13), with every change recorded in `STORY_REWRITE_DECISIONS.md`.
 11. **Compatibility renderer first.** Use Godot's `gl_compatibility` renderer for this 2D, min-SDK-24 Android target. A renderer change requires capture and device-performance evidence; it is not a casual project-setting change.
 
 ## 5. Proposed project layout
@@ -442,14 +451,28 @@ The 96×96 redesigned Green Zone and its generated topology/treat placement must
 
 `CampaignState` is a pure RefCounted model. `CampaignCatalog` exposes eight typed `ChapterDefinition`s and exactly 37 `SubLevelDefinition`s. `ChapterDefinition` owns number, title, theme, music, cast metadata, intro, Professor aside and its ordered sublevels. `SubLevelDefinition` owns only ID, title, happens/summary, source metadata, optional Green Zone dispatch and a fresh script factory. Do not duplicate chapter theme/music/intro data across sublevels.
 
-`StoryRunner` executes typed `StoryStep` objects using `await` and signals. Required step families:
+**Story engine (M5R).** `StoryScene` (`scenes/story/story_scene.tscn`) instantiates the shared
+`IsoWorld` like `GreenZoneScene`, owns a `StoryRunner` and the story HUD (dialogue box with
+typewriter, portraits and speaker names, choice list with locked/costly options, cards, notices,
+objective line, carry line, touch joystick and action button, MENU) and ticks at the fixed 60 Hz
+logic rate. `StoryRunner` runs the scene Resource's ordered `StoryStep`s: each step has `begin(ctx)`,
+`tick(ctx, dt) -> bool` (true when done) and `end(ctx)` and may insert follow-up steps (a choice's
+branch); the runner emits local signals (`step_started`, `completed`), never a global bus.
+`StoryContext` is the only API steps use: the stage (map, markers, actors, props), the player, the
+HUD, the campaign working copy and effects, audio, and the input service. Step families: stage,
+actor, scripted move, narration, dialogue, choice, objective (reach/collect/follow with pickups,
+no-run, an action button and an optional scene rule), effect, card, wait, cue (sound/shake/flash/
+visor/floating line), prop, carry and completion. Scene rules (the 1.1 visor, the 1.2 gate, the 1.3
+cut-off) are small classes parameterised by their step's Resource fields. Actors (`StoryActor`, a
+`CharacterBody2D` like `PlayableDog`) move on the shared `WorldMapModel` grid solver with explicit
+idle/goto/follow behaviours; objective markers are `Area2D` rings whose completion test is the
+authoritative grid distance.
 
-- card, say, ask/choice, effect, branch/insert;
-- stage load, spawn/despawn, move/action, carry;
-- walk objective, minigame, transition/FX, resume;
-- custom scene step for behavior that cannot be represented cleanly by a generic step.
-
-Chapter GDScript factories mirror `src/campaign/chapters/ch1.ts`–`ch8.ts`. They may create scene-specific callbacks/controllers for 7.3, 8.3, and similar bespoke logic. This is preferable to a stringly typed universal DSL.
+Save, restart and replay boundaries (`STORY_REWRITE_SPEC.md` §7, decision RD-05): a scene is one
+transaction — effects apply to a working copy at once and the campaign is saved once, atomically,
+at the scene's completion; restart and force-close discard the uncommitted copy; replays run on
+AppState's deep copy and save nothing. Level 1 is in `godot/data/story/`; Levels 2–8 are rewritten
+and implemented the same way in later milestones.
 
 `StoryWalkController` supports the currently used reach/collect/action/survive objectives, pickups, marvels/shards/coins, carry state, sight cones and line of sight, bushes, contact/restart, checkpoints, no-run, scramble, spreading fire, fights, and helper-authored follow/lull sequences. Generic legacy `pace` and `thirst` hooks are not required unless a current scene uses them; current 7.3 and 8.3 bespoke pace logic must be ported directly.
 

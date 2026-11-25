@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StoryMapData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_map_data.gd" id="1_map"]
+
+[resource]
+script = ExtResource("1_map")
+id = "neighborhood"
+rows = PackedStringArray("##########################", "#H..T..#..3.,..T.,#.T.#.B#", "#H...,.J......7...J...#..#", "#.S====2=====1====5==8J9.#", "#......J..........J...#0.#", "#..T...#.,.4....T.#,..#.T#", "############6#######.#####", "#.....,.....=#######=.,..#", "#.T.,....T..=####====....#", "#......B...,=####=....T..#", "#..T.T....B.===E==...,...#", "#.......T..........T...T.#", "##########################")
+base = "."
+theme = "greenzone"
+environment = "ch01_greenzone"
