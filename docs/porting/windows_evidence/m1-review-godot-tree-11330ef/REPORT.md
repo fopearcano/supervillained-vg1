@@ -26,12 +26,16 @@ OpenGL 3.3 Compatibility renderer, 60 Hz display; Godot 4.7.2 console build; por
 | n review station export | `step_n_m1_review_export.txt` | exit 0: `"ok":true`, 21 checks, none failed, 363 fields, 25 expected files verified (`artifact_problems` and `write_errors` empty), content fingerprint `406f3728…4994`; its files are the package in `docs/porting/manual_evidence/m1-godot-tree-2ffca5f/` |
 | n2 failure control: the export target is a file | `step_n2_export_failure_target_is_a_file.txt` | **exit 1 (expected)**: `"ok":false`, write error "cannot create the folder … (the path exists and is not a folder)", `export FAILED` |
 | n3 failure control: a file named `contact_sheets` in the export folder | `step_n3_export_failure_contact_sheets_blocked.txt` | **exit 1 (expected)**: `"ok":false`, one write error and the 12 contact sheets reported missing; the other 13 files were written and verified |
-| n4 station self-test | `step_n4_station_selftest.txt`, `station_selftest.json` | exit 0: `M1SELFTEST` 37 checks, none failed (the two ERROR lines are the expected save-failure checks, announced in the log) |
+| n4 station self-test | `step_n4_station_selftest.txt`, `station_selftest.json` | exit 0: `M1SELFTEST` 37 checks, none failed (three ERROR records from the two expected save-failure checks, announced in the log: the folder-creation check prints the engine's "Could not create directory" and the station's "decisions NOT saved", the unwritable-file check the station's "decisions NOT saved")\* |
 | o fixed `tools/title_capture.gd` | `step_o_title_capture.txt` | exit 0: three images, each with the portraits on the requested frame (0, 49, 98) |
 | o2 title capture vs the station's stills | `step_o2_title_hash_compare.txt` | exit 0: all three byte-identical (SHA-256 `728ff267…615f`, `95840694…6712`, `c0f46e0f…7aa4`) |
 | p review station start-up smoke (`--quit-after 600`) | `step_p_station_smoke.txt` | exit 0, engine banner only; nothing decided, so no decisions folder was created |
 | p2 station start-up with a progress-report-21 decisions file | `step_p2_station_old_format.txt` | exit 0; the file (no schema version) was renamed to `m1_owner_decisions.stale-<time>.json` and nothing was resumed or saved |
 | q `git status --porcelain` after all steps | `step_q_git_status_after.txt` | empty |
+
+\* Corrected in correction report 23: this row first said "the two ERROR lines are the expected
+save-failure checks"; `step_n4_station_selftest.txt` has three ERROR records from those two checks.
+The logs themselves are unchanged.
 
 No manual check was executed: nobody watched the animations, listened to the audio or judged the
 title for a decision; the self-test plays with the master bus at volume 0. Not run here: Linux,

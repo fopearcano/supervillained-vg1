@@ -16,6 +16,7 @@
       "duration_delta_s": 0.000299804687500682,
       "duration_exact_s": 63.3927001953125,
       "duration_s": 63.393,
+      "enter_gain": 0.55,
       "fixture_channels": 2,
       "fixture_duration_s": 63.393,
       "format": "MPEG-1 layer 3",
@@ -31,7 +32,19 @@
       "sha256": "652a4c33eb9c23115628b96aa5704eea72040d5e08239b5bf292993f778b42cc",
       "source": "MUSIC_FILES.intro; setTrack('intro')",
       "source_file": "assets/music/intro-music.mp3",
-      "use": "Reading screens: title, briefing and story pages."
+      "use": "Reading screens: title, briefing and story pages.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.55,
+          "id": "track",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "MUSIC_FILES.intro; setTrack('intro')",
+          "volume": 1.0,
+          "where": "Reading screens: title, briefing and story pages."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -42,6 +55,7 @@
       "duration_delta_s": 0.0000427246093863687,
       "duration_exact_s": 177.700042724609,
       "duration_s": 177.7,
+      "enter_gain": 0.55,
       "fixture_channels": 2,
       "fixture_duration_s": 177.7,
       "format": "MPEG-1 layer 3",
@@ -57,7 +71,19 @@
       "sha256": "709817c4efa5c1d44f40d18fc25e081d044c3a82c3065b8ae37dfedf56f1a639",
       "source": "MUSIC_FILES.greenzone; setTrack('greenzone')",
       "source_file": "assets/music/greenzone-music.mp3",
-      "use": "Green Zone level music."
+      "use": "Green Zone level music.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.55,
+          "id": "track",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "MUSIC_FILES.greenzone; setTrack('greenzone')",
+          "volume": 1.0,
+          "where": "Green Zone level music."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -68,6 +94,7 @@
       "duration_delta_s": 0.000486572265629093,
       "duration_exact_s": 374.607513427734,
       "duration_s": 374.608,
+      "enter_gain": 0.319,
       "fixture_channels": 2,
       "fixture_duration_s": 374.608,
       "format": "MPEG-1 layer 3",
@@ -83,7 +110,19 @@
       "sha256": "b2a0919d2960920ac9935a4365ad187ccce82e7a00a9098f8cb068764ff9a4fe",
       "source": "MUSIC_FILES.level2; chapter music",
       "source_file": "assets/music/Level-2_SLY-Disco-Weapon.mp3",
-      "use": "Level 2, On the edge of dreams."
+      "use": "Level 2, On the edge of dreams.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.319,
+          "id": "track",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "MUSIC_FILES.level2; chapter music",
+          "volume": 1.0,
+          "where": "Level 2, On the edge of dreams."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -94,6 +133,7 @@
       "duration_delta_s": 0.000141845703126364,
       "duration_exact_s": 346.660858154297,
       "duration_s": 346.661,
+      "enter_gain": 0.462,
       "fixture_channels": 2,
       "fixture_duration_s": 346.661,
       "format": "MPEG-1 layer 3",
@@ -109,7 +149,19 @@
       "sha256": "83c3cb7424fd44d7ba85ff914be482cfc8db5f3f6de2409bf11dc4c17f8d234a",
       "source": "MUSIC_FILES.level3; chapter music",
       "source_file": "assets/music/Level-3_HM-Plenty-Good-Lovin.mp3",
-      "use": "Level 3, Venice."
+      "use": "Level 3, Venice.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.462,
+          "id": "track",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "MUSIC_FILES.level3; chapter music",
+          "volume": 1.0,
+          "where": "Level 3, Venice."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -120,6 +172,7 @@
       "duration_delta_s": 0.000302490234389552,
       "duration_exact_s": 396.258697509766,
       "duration_s": 396.259,
+      "enter_gain": 0.275,
       "fixture_channels": 2,
       "fixture_duration_s": 396.259,
       "format": "MPEG-1 layer 3",
@@ -135,7 +188,19 @@
       "sha256": "1bfc7c01023e8702f0994353a4ae3542a3e1c1c4aaabb44977e0bdbadcac3f8e",
       "source": "MUSIC_FILES.level4; chapter music",
       "source_file": "assets/music/Level-4_CRI-Brother-Sister-(RM-Remix).mp3",
-      "use": "Level 4, The sea."
+      "use": "Level 4, The sea.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.275,
+          "id": "track",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "MUSIC_FILES.level4; chapter music",
+          "volume": 1.0,
+          "where": "Level 4, The sea."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -146,6 +211,7 @@
       "duration_delta_s": 0.000387717247009256,
       "duration_exact_s": 1.14938771724701,
       "duration_s": 1.149,
+      "enter_gain": 0.9,
       "fixture_channels": 2,
       "fixture_duration_s": 1.149,
       "format": "MPEG-1 layer 3",
@@ -161,7 +227,19 @@
       "sha256": "12cf5bfa2d535e5b150652cf1c3ff4390996e65c2cfff794f9ac545d1eea6df2",
       "source": "SOUND_FILES.bark; event bark (rate 0.95-1.05)",
       "source_file": "assets/sounds/dog-bark.mp3",
-      "use": "Zampanò barks."
+      "use": "Zampanò barks.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "bark",
+          "port_call": "AudioService.play(&\"bark\", 1.0, 0.95 + randf() * 0.1)",
+          "rate": 1.0,
+          "source": "src/fx/gameAudio.ts: events.on('bark') -> play('bark', {rate: 0.95 + Math.random() * 0.1}); the station plays the middle rate 1.0",
+          "volume": 1.0,
+          "where": "Zampanò barks"
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -172,6 +250,7 @@
       "duration_delta_s": 0.0002040839195252,
       "duration_exact_s": 0.809795916080475,
       "duration_s": 0.81,
+      "enter_gain": 0.9,
       "fixture_channels": 1,
       "fixture_duration_s": 0.81,
       "format": "MPEG-2 layer 3",
@@ -187,7 +266,19 @@
       "sha256": "90d8c51993c878297a0387e0a0cad76fbbc016d76dbac9a96ccae7911ad4d9ce",
       "source": "SOUND_FILES.treat; event treat",
       "source_file": "assets/sounds/food-collect.mp3",
-      "use": "A treat is eaten."
+      "use": "A treat is eaten.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.treat; event treat",
+          "volume": 1.0,
+          "where": "A treat is eaten."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -198,6 +289,7 @@
       "duration_delta_s": 0.000210896015167217,
       "duration_exact_s": 0.852789103984833,
       "duration_s": 0.853,
+      "enter_gain": 1.08,
       "fixture_channels": 2,
       "fixture_duration_s": 0.853,
       "format": "MPEG-1 layer 3",
@@ -213,7 +305,19 @@
       "sha256": "f46419f3666240e119121e685f4e95ac3ba7e1bbaa0bd299a1565a49566e9f8f",
       "source": "SOUND_FILES.poop; event poop",
       "source_file": "assets/sounds/poos.mp3",
-      "use": "Zampanò poops."
+      "use": "Zampanò poops.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 1.08,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.poop; event poop",
+          "volume": 1.0,
+          "where": "Zampanò poops."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -224,6 +328,7 @@
       "duration_delta_s": 0.000448971271514886,
       "duration_exact_s": 0.367551028728485,
       "duration_s": 0.368,
+      "enter_gain": 0.9,
       "fixture_channels": 1,
       "fixture_duration_s": 0.368,
       "format": "MPEG-1 layer 3",
@@ -239,7 +344,19 @@
       "sha256": "bb55e5b7088049be992a1225de1fa748a94a2afd7bc359569b33bacfcbb4be3f",
       "source": "SOUND_FILES.pee; event pee",
       "source_file": "assets/sounds/pees-drop.mp3",
-      "use": "Zampanò pees."
+      "use": "Zampanò pees.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.pee; event pee",
+          "volume": 1.0,
+          "where": "Zampanò pees."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -251,6 +368,7 @@
       "duration_delta_s": 0.000417233560090491,
       "duration_exact_s": 2.03641723356009,
       "duration_s": 2.036,
+      "enter_gain": 0.9,
       "fixture_channels": 2,
       "fixture_duration_s": 2.036,
       "format": "WAV PCM",
@@ -266,7 +384,19 @@
       "sha256": "4d4babc0433e64062979d79a97b89228b3a6e0d8b22bf2a8c551a1f41ee9911c",
       "source": "SOUND_FILES.drink; event drink",
       "source_file": "assets/sounds/pees-collect.wav",
-      "use": "Zampanò drinks."
+      "use": "Zampanò drinks.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.drink; event drink",
+          "volume": 1.0,
+          "where": "Zampanò drinks."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -277,6 +407,7 @@
       "duration_delta_s": 0.000233576774597122,
       "duration_exact_s": 1.6772335767746,
       "duration_s": 1.677,
+      "enter_gain": 0.63,
       "fixture_channels": 2,
       "fixture_duration_s": 1.677,
       "format": "MPEG-1 layer 3",
@@ -292,7 +423,29 @@
       "sha256": "fe5c4f992618d811031f7fecf758a1d0366c87cd8aedefd194bdfe4b91aad0f7",
       "source": "SOUND_FILES.splash; event splash (volume 0.7)",
       "source_file": "assets/sounds/water.mp3",
-      "use": "Zampanò splashes into water."
+      "use": "Zampanò splashes into water.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.63,
+          "id": "green_zone_water",
+          "port_call": "AudioService.play(&\"splash\", 0.7)",
+          "rate": 1.0,
+          "source": "src/fx/gameAudio.ts: events.on('splash') -> play('splash', {volume: 0.7})",
+          "volume": 0.7,
+          "where": "Green Zone: Zampanò steps into water"
+        },
+        {
+          "control": "V",
+          "effective_gain": 0.45,
+          "id": "story_boat",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "src/story/minigames/action.ts (boat minigame, a stroke too hard) -> play('splash', {volume: 0.5})",
+          "volume": 0.5,
+          "where": "Story boat minigame: water comes into the boat (not in the port yet)"
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -303,6 +456,7 @@
       "duration_delta_s": 0.000188215255737312,
       "duration_exact_s": 0.617188215255737,
       "duration_s": 0.617,
+      "enter_gain": 0.99,
       "fixture_channels": 2,
       "fixture_duration_s": 0.617,
       "format": "MPEG-1 layer 3",
@@ -318,7 +472,19 @@
       "sha256": "dcf53ce6b3300db646c251524ac69f1b492f663b47091e4484cd2f424ad01a52",
       "source": "SOUND_FILES.meow; event cat",
       "source_file": "assets/sounds/cat-meow.mp3",
-      "use": "A cat is met (the coin follows after a short delay)."
+      "use": "A cat is met (the coin follows after a short delay).",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.99,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.meow; event cat",
+          "volume": 1.0,
+          "where": "A cat is met (the coin follows after a short delay)."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -329,6 +495,7 @@
       "duration_delta_s": 0.000185911178588682,
       "duration_exact_s": 3.04181408882141,
       "duration_s": 3.042,
+      "enter_gain": 2.16,
       "fixture_channels": 2,
       "fixture_duration_s": 3.042,
       "format": "MPEG-1 layer 3",
@@ -344,7 +511,29 @@
       "sha256": "d874735e27c15b3547f3a15ca73cac3b4bf3b757694f3e5c8d5040a4e4d36a58",
       "source": "SOUND_FILES.coin; events cat (delayed) and poopCleaned (rate 1.5, volume 0.5)",
       "source_file": "assets/sounds/cash-after-cat.mp3",
-      "use": "Cash after the cat; a cleaned-up poop."
+      "use": "Cash after the cat; a cleaned-up poop.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 2.16,
+          "id": "cat_cash",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "src/fx/gameAudio.ts: events.on('cat') -> play('coin', {delay: CASH_DELAY})",
+          "volume": 1.0,
+          "where": "Cash after a caught cat (the station plays it without the 0.35 s delay)"
+        },
+        {
+          "control": "V",
+          "effective_gain": 1.08,
+          "id": "poop_cleaned",
+          "port_call": "AudioService.play(&\"coin\", 0.5, 1.5)",
+          "rate": 1.5,
+          "source": "src/fx/gameAudio.ts: events.on('poopCleaned') -> play('coin', {rate: 1.5, volume: 0.5})",
+          "volume": 0.5,
+          "where": "A poop is cleaned up"
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -355,6 +544,7 @@
       "duration_delta_s": 0.000369632720947255,
       "duration_exact_s": 0.887369632720947,
       "duration_s": 0.887,
+      "enter_gain": 0.9,
       "fixture_channels": 2,
       "fixture_duration_s": 0.887,
       "format": "MPEG-1 layer 3",
@@ -370,7 +560,19 @@
       "sha256": "c8daa713f7eb253fbf3205798492161676b01f315dedebb41fe7534b90d82735",
       "source": "SOUND_FILES.ball; event ballSpawn",
       "source_file": "assets/sounds/ball.mp3",
-      "use": "A ball appears."
+      "use": "A ball appears.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.ball; event ballSpawn",
+          "volume": 1.0,
+          "where": "A ball appears."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -381,6 +583,7 @@
       "duration_delta_s": 0.000204029083252344,
       "duration_exact_s": 4.31020402908325,
       "duration_s": 4.31,
+      "enter_gain": 0.9,
       "fixture_channels": 1,
       "fixture_duration_s": 4.31,
       "format": "MPEG-2 layer 3",
@@ -396,7 +599,19 @@
       "sha256": "92456c3acfe52a479edd8f394bf096e0df2c78d78af05024825e604c07914f34",
       "source": "SOUND_FILES.alarm; event attackStart",
       "source_file": "assets/sounds/alarm-greenzone-under-attack.mp3",
-      "use": "The Green Zone is under attack."
+      "use": "The Green Zone is under attack.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.alarm; event attackStart",
+          "volume": 1.0,
+          "where": "The Green Zone is under attack."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -407,6 +622,7 @@
       "duration_delta_s": 0.000442123413086026,
       "duration_exact_s": 3.47455787658691,
       "duration_s": 3.475,
+      "enter_gain": 0.54,
       "fixture_channels": 1,
       "fixture_duration_s": 3.475,
       "format": "MPEG-1 layer 3",
@@ -422,7 +638,19 @@
       "sha256": "2118ac6c10a8ec8fd5bf9544670b14a89e61a2cb4bfef128824447659edd4a51",
       "source": "SOUND_FILES.siren; event attackStart: play('alarm') and loop('siren', {volume: SIREN_VOLUME, delay: SIREN_DELAY}) until attackEnd, levelComplete or gameOver (src/fx/gameAudio.ts); story fire: play('siren') once (src/story/walk.ts)",
       "source_file": "assets/sounds/siren.mp3",
-      "use": "Green Zone attack: after the alarm the siren loops, quieter, until the attack ends ([E] attack event). A story walk's fire plays it once (game path, one-shot)."
+      "use": "Green Zone attack: after the alarm the siren loops, quieter, until the attack ends ([E] attack event). A story walk's fire plays it once (game path, one-shot).",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.54,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.siren; event attackStart: play('alarm') and loop('siren', {volume: SIREN_VOLUME, delay: SIREN_DELAY}) until attackEnd, levelComplete or gameOver (src/fx/gameAudio.ts); story fire: play('siren') once (src/story/walk.ts)",
+          "volume": 1.0,
+          "where": "Green Zone attack: after the alarm the siren loops, quieter, until the attack ends ([E] attack event). A story walk's fire plays it once (game path, one-shot)."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-001-004",
@@ -433,6 +661,7 @@
       "duration_delta_s": 0.0000476286411285609,
       "duration_exact_s": 0.460952371358871,
       "duration_s": 0.461,
+      "enter_gain": 1.17,
       "fixture_channels": 1,
       "fixture_duration_s": 0.461,
       "format": "MPEG-1 layer 3",
@@ -448,7 +677,19 @@
       "sha256": "db17db85ee5004246d5ae504c61df7787ee10a327d420356383f3d782e368ee3",
       "source": "SOUND_FILES.laser (laser-eyes.mp3); event bump (src/systems/threats.ts: Bagnaskiz runs into Zampanò, who is knocked back and hurt)",
       "source_file": "assets/sounds/laser-eyes.mp3",
-      "use": "Bagnaskiz's laser eyes hit Zampanò and knock him back."
+      "use": "Bagnaskiz's laser eyes hit Zampanò and knock him back.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 1.17,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUND_FILES.laser (laser-eyes.mp3); event bump (src/systems/threats.ts: Bagnaskiz runs into Zampanò, who is knocked back and hurt)",
+          "volume": 1.0,
+          "where": "Bagnaskiz's laser eyes hit Zampanò and knock him back."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -460,6 +701,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 13.8461678004535,
       "duration_s": 13.846,
+      "enter_gain": 0.32,
       "fixture_duration_s": 13.8461678004535,
       "format": "WAV PCM",
       "game_gain": 0.32,
@@ -473,7 +715,19 @@
       "sample_rate": 22050,
       "sha256": "38963958a112e9d000f2938991274bb8c13a11159c08a719e0dee2a335863ccb",
       "source": "src/fx/sounds.ts renderMedievalMusic(); chapters 5-7 music",
-      "use": "Dream-chapter music loop (restarts from 0 on every switch)."
+      "use": "Dream-chapter music loop (restarts from 0 on every switch).",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.32,
+          "id": "track",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "src/fx/sounds.ts renderMedievalMusic(); chapters 5-7 music",
+          "volume": 1.0,
+          "where": "Dream-chapter music loop (restarts from 0 on every switch)."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -485,6 +739,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.360045351473923,
       "duration_s": 0.36,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.360045351473923,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -498,7 +753,19 @@
       "sample_rate": 22050,
       "sha256": "79650149e3a9065f11d2517df1d2687234ac7f23486be5e10d0a5e18d0ab0b7c",
       "source": "SOUNDS.fetch; event fetch",
-      "use": "The ball is fetched."
+      "use": "The ball is fetched.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.fetch; event fetch",
+          "volume": 1.0,
+          "where": "The ball is fetched."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -510,6 +777,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.245079365079365,
       "duration_s": 0.245,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.245079365079365,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -523,7 +791,29 @@
       "sample_rate": 22050,
       "sha256": "7e5b0edc706acae993b7c0b50c293339818c54cfb20cab07c46ed89f00e38851",
       "source": "SOUNDS.warning; events digestWarning and pollutionSurge (rate 0.82, volume 0.75)",
-      "use": "Digestion warning; pollution surge."
+      "use": "Digestion warning; pollution surge.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "digest_warning",
+          "port_call": "AudioService.play(&\"warning\")",
+          "rate": 1.0,
+          "source": "src/fx/gameAudio.ts: events.on('digestWarning') -> play('warning')",
+          "volume": 1.0,
+          "where": "Digestion warning"
+        },
+        {
+          "control": "V",
+          "effective_gain": 0.675,
+          "id": "pollution_surge",
+          "port_call": "AudioService.play(&\"warning\", 0.75, 0.82)",
+          "rate": 0.82,
+          "source": "src/fx/gameAudio.ts: events.on('pollutionSurge') -> play('warning', {rate: 0.82, volume: 0.75})",
+          "volume": 0.75,
+          "where": "Pollution surge"
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -535,6 +825,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.165079365079365,
       "duration_s": 0.165,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.165079365079365,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -548,7 +839,29 @@
       "sample_rate": 22050,
       "sha256": "7bad4105f509fa7b9eee937fd0edd0a4199342e059678d57570a86f970d3ed4c",
       "source": "SOUNDS.empty; events peeEmpty and tired (rate 0.8)",
-      "use": "Pee tank empty; Zampanò is tired."
+      "use": "Pee tank empty; Zampanò is tired.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "pee_empty",
+          "port_call": "AudioService.play(&\"empty\")",
+          "rate": 1.0,
+          "source": "src/fx/gameAudio.ts: events.on('peeEmpty') -> play('empty')",
+          "volume": 1.0,
+          "where": "Pee tank empty"
+        },
+        {
+          "control": "V",
+          "effective_gain": 0.9,
+          "id": "tired",
+          "port_call": "AudioService.play(&\"empty\", 1.0, 0.8)",
+          "rate": 0.8,
+          "source": "src/fx/gameAudio.ts: events.on('tired') -> play('empty', {rate: 0.8})",
+          "volume": 1.0,
+          "where": "Zampanò is tired"
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -560,6 +873,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.302086167800454,
       "duration_s": 0.302,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.302086167800454,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -573,7 +887,19 @@
       "sample_rate": 22050,
       "sha256": "91474cc3fecf4a11d9909c3219237f0f95d947834d1e539dd8fa79aad467ae78",
       "source": "SOUNDS.hurt; event lifeLost, combat and minigame damage",
-      "use": "A life is lost; Zampanò is hurt."
+      "use": "A life is lost; Zampanò is hurt.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.hurt; event lifeLost, combat and minigame damage",
+          "volume": 1.0,
+          "where": "A life is lost; Zampanò is hurt."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -585,6 +911,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.172063492063492,
       "duration_s": 0.172,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.172063492063492,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -598,7 +925,19 @@
       "sample_rate": 22050,
       "sha256": "26d62781e70c5b81339dd2bd372e6a39f5545afdc080b97201003320e8058fe9",
       "source": "SOUNDS.hit; event barkHit, combat hits",
-      "use": "A bark or a blow hits."
+      "use": "A bark or a blow hits.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.hit; event barkHit, combat hits",
+          "volume": 1.0,
+          "where": "A bark or a blow hits."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -610,6 +949,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.150068027210884,
       "duration_s": 0.15,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.150068027210884,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -623,7 +963,19 @@
       "sample_rate": 22050,
       "sha256": "fd99f4c6f6c67e94605e33e72dd03a25ad9f4eff202c877f1b75c10d5356b35a",
       "source": "SOUNDS.swish; story combat",
-      "use": "Sword swing."
+      "use": "Sword swing.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.swish; story combat",
+          "volume": 1.0,
+          "where": "Sword swing."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -635,6 +987,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.371065759637188,
       "duration_s": 0.371,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.371065759637188,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -648,7 +1001,19 @@
       "sample_rate": 22050,
       "sha256": "4df64cea2fc1f2bad1270becfd8d751d9c7bdedb80345a3b8fd872bdf56417a9",
       "source": "SOUNDS.clang; story combat",
-      "use": "Sword or shield clang."
+      "use": "Sword or shield clang.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.clang; story combat",
+          "volume": 1.0,
+          "where": "Sword or shield clang."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -660,6 +1025,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.460045351473923,
       "duration_s": 0.46,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.460045351473923,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -673,7 +1039,19 @@
       "sample_rate": 22050,
       "sha256": "f48d86416b1598ec7de0061c91b226314fec34e40a625851c09545d3ba570edf",
       "source": "SOUNDS.flee; event bagnaskizFled, combat",
-      "use": "A foe runs away."
+      "use": "A foe runs away.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.flee; event bagnaskizFled, combat",
+          "volume": 1.0,
+          "where": "A foe runs away."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -685,6 +1063,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.605079365079365,
       "duration_s": 0.605,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.605079365079365,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -698,7 +1077,19 @@
       "sample_rate": 22050,
       "sha256": "4df99d9374440453dd29c219e86b6c496d5248b828c328d4a3d5bd3dd21dd645",
       "source": "SOUNDS.saved; event attackEnd",
-      "use": "The attack is repelled."
+      "use": "The attack is repelled.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.saved; event attackEnd",
+          "volume": 1.0,
+          "where": "The attack is repelled."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -710,6 +1101,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.312063492063492,
       "duration_s": 0.312,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.312063492063492,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -723,7 +1115,19 @@
       "sample_rate": 22050,
       "sha256": "e55fb9549147c801ff87dd738144e4069b0eb1095af3450bbd09dc268e96e3b3",
       "source": "SOUNDS.star; marking pee (+0.12 s), end-screen stars",
-      "use": "A star or marking reward."
+      "use": "A star or marking reward.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.star; marking pee (+0.12 s), end-screen stars",
+          "volume": 1.0,
+          "where": "A star or marking reward."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -735,6 +1139,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 1.3150566893424,
       "duration_s": 1.315,
+      "enter_gain": 0.9,
       "fixture_duration_s": 1.3150566893424,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -748,7 +1153,19 @@
       "sample_rate": 22050,
       "sha256": "a06aa0199b804afbd2c64f80f5e3f9dc1cc49b409278774f25abfbfced32be0e",
       "source": "SOUNDS.jingle; event levelComplete",
-      "use": "Level complete."
+      "use": "Level complete.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.jingle; event levelComplete",
+          "volume": 1.0,
+          "where": "Level complete."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -760,6 +1177,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 1.59006802721088,
       "duration_s": 1.59,
+      "enter_gain": 0.9,
       "fixture_duration_s": 1.59006802721088,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -773,7 +1191,19 @@
       "sample_rate": 22050,
       "sha256": "b0c56eb2b18635c24ca3b442f69ed1225c8d391d2a8d982c299648b8951b2865",
       "source": "SOUNDS.gameover; event gameOver",
-      "use": "Game over."
+      "use": "Game over.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.gameover; event gameOver",
+          "volume": 1.0,
+          "where": "Game over."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -785,6 +1215,7 @@
       "duration_delta_s": 0.0,
       "duration_exact_s": 0.0360544217687075,
       "duration_s": 0.036,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.0360544217687075,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -798,7 +1229,19 @@
       "sample_rate": 22050,
       "sha256": "93f7b2061bec39d9dfe47c5805a1958fb59e457ff0aeb0950fbe0a98245d344b",
       "source": "SOUNDS.click; menus and buttons",
-      "use": "UI click."
+      "use": "UI click.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.click; menus and buttons",
+          "volume": 1.0,
+          "where": "UI click."
+        }
+      ]
     },
     {
       "aud_ids": "AUD-005-008",
@@ -810,6 +1253,7 @@
       "duration_delta_s": 0.0000000000000000277555756156289,
       "duration_exact_s": 0.20108843537415,
       "duration_s": 0.201,
+      "enter_gain": 0.9,
       "fixture_duration_s": 0.20108843537415,
       "format": "WAV PCM",
       "game_gain": 0.9,
@@ -823,7 +1267,19 @@
       "sample_rate": 22050,
       "sha256": "9095d769a5384f24b894c5f0daecf9e8780c08514d6db46a00555b78f59ad62f",
       "source": "SOUNDS.glitch; glitch transitions",
-      "use": "Glitch transition."
+      "use": "Glitch transition.",
+      "uses": [
+        {
+          "control": "Enter",
+          "effective_gain": 0.9,
+          "id": "default",
+          "port_call": "",
+          "rate": 1.0,
+          "source": "SOUNDS.glitch; glitch transitions",
+          "volume": 1.0,
+          "where": "Glitch transition."
+        }
+      ]
     }
   ],
   "master_volume_at_start": 0.25,
@@ -842,5 +1298,6 @@
     "start_s": 0.0,
     "stop": "gain to 0 with time constant 0.08 s, stopped after 0.4 s (source stopLoop)",
     "volume": 0.45
-  }
+  },
+  "source_uses_note": "every item's 'uses': the source use(s) the station plays, with volume and rate multipliers and the effective gain (SFX volume x file gain x use volume for effects; music_level for music), before the master volume; [Enter] plays the first use, [V] the second"
 }

@@ -6,14 +6,227 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 22 is current. Erratum for the historical reports: their
+in progress report 5. Correction report 23 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 22: M1 review package hardened before owner use; owner decisions not yet requested (M1 Partial, M2 Partial) — current
+## Correction report 23: M1 review station hardened before owner use (second pass); owner decisions not yet requested (M1 Partial, M2 Partial) — current
+
+Scope: the architect's correction 23 after `6dc585a`: final hardening of the M1 owner-review station,
+in one commit of review-tool, evidence and documentation corrections. Changed:
+`godot/tools/m1_review.gd`, `godot/README.md` (review section), this log, FEATURE_MATRIX.md, the
+regenerated package `docs/porting/manual_evidence/m1-godot-tree-2ffca5f/`, a marked wording
+correction in `docs/porting/windows_evidence/m1-review-godot-tree-11330ef/REPORT.md` and the host
+logs `docs/porting/windows_evidence/m1-review-godot-tree-c9de0e5/`. No shipping gameplay, asset,
+`AudioService`, save, touch-control, Android or PixiJS file changed (`AudioService` is only read and
+fingerprinted). Every human decision is NOT EXECUTED. The owner is not asked to review until this
+correction passes independent review; M2 manual validation and M3 are not started.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither milestone completion accepted); every automated M1 and M2 acceptance ID is satisfied; the M1 manual checks are prepared and **not executed**; the M2 desktop and touch play checks are open |
+| Base | `6dc585a` (correction report 22; `godot/` tree `11330ef`) |
+| Current `godot/` tree | `c9de0e5e662edd739f3969d40bbf0c97ee2a2323` = `11330ef` with `tools/m1_review.gd` and `README.md` changed; every runtime, test and asset file identical to `2ffca5f`'s; verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090 (driver 610.47), OpenGL 3.3 Compatibility renderer, 60 Hz display; GUI and audio output available; Linux not rerun |
+| Android | not rerun (no device claim); the accepted M1 spike evidence is correction report 17's, on emulators `sv_m1_api36` (`emulator-5554`, Android 16 / API 36), `sv_m1_api34` (`emulator-5556`, Android 14 / API 34) and `sv_m1_api24` (`emulator-5558`, Android 7.0 / API 24); no physical device |
+
+### Manual decisions received
+
+**None.** No owner decision has been requested or returned: all 363 fields of
+`manual_evidence/m1-godot-tree-2ffca5f/M1_MANUAL_CHECKLIST.md` are NOT EXECUTED and the final
+decision is NOT DECIDED. Nothing here is a visual or audio PASS; inventories, hashes, the content
+fingerprint and review contract, contact sheets, stills, screen captures and the station's self-test
+are supporting facts only. The self-test's decision files exist only in its scratch folder (not
+committed).
+
+### Corrections (architect's items 1-8)
+
+1. **Transactional owner evidence.** `_save()` now commits `m1_owner_decisions.json` and `.md` as one
+   transaction (`_commit_pair`): (1, 2) both copies are written as `.json.new` / `.md.new` and read
+   back byte for byte, (3) the pair is verified (the JSON parses and both carry the same new save
+   ID), (4) the current pair is kept as `m1_owner_decisions.previous.json` / `.md`, (5) the new pair
+   is renamed into place. Any failure runs `_rollback`: the promoted new copies are removed, the kept
+   earlier pair is renamed back, the new files that were not promoted are removed, and the status
+   line and sign-off summary show NOT SAVED in red (with "ROLLBACK INCOMPLETE" if an undo step itself
+   failed). On start a pair is resumed only when its schema, review contract and content fingerprint
+   match and its two copies carry the same save ID; a pair whose copies disagree (a save stopped
+   between its renames) is set aside and the `.previous` pair is resumed; leftover `.new` files are
+   never read and are removed by the next save. Self-test (scratch folder): with an earlier valid pair
+   A on disk, a JSON-first failure (a folder named `m1_owner_decisions.json.new` in the way), a
+   Markdown-second failure (a folder named `m1_owner_decisions.md.new`, after the new JSON copy was
+   written) and two promotion failures (the Markdown rename after the JSON rename, and the JSON
+   rename; injected by the self-test because a real rename failure between two successful renames
+   cannot be provoked deterministically) each leave A byte-identical, no `.new` or `.previous` file,
+   NOT SAVED in red, and A (not the new pair) is what resumes; the following successful save keeps A
+   byte-identical as `.previous`; a pair with mismatched save IDs is set aside and A resumed from
+   `.previous`; leftover `.new` files are not resumed and are replaced. The real-obstacle failures
+   from correction 22 stay: the folder cannot be created, and (now a real promotion failure) a folder
+   named `m1_owner_decisions.json` blocks the rename; neither leaves a new file.
+2. **Decision binding.** Decisions schema 3. The content fingerprint now also covers
+   `tools/m1_review.gd`, `tools/m1_review.tscn` and `autoload/audio_service.gd` (88 files) and ends with
+   the line `review-contract <SHA-256>`: the canonical review contract (JSON with sorted keys) of
+   `GameConfig.Audio`'s constants, the project settings `audio/buses/default_bus_layout`,
+   `audio/driver/mix_rate`, `display/window/stretch/mode` and
+   `rendering/textures/canvas_textures/default_texture_filter`, `AudioService`'s music/effect/synth
+   tables, restarting tracks, live leading-silence offsets, same-cue gap and pool size, every item's
+   bus, start and source uses with effective gains, the siren event, the stop-loop constants, the safe
+   volume, the duration tolerance, the title widths, the window sizes and the 363 field IDs. Saved
+   files carry `review_contract_sha256` as well; a file whose contract differs is set aside with the
+   reason "made under another review contract". Self-test: moving `AudioService`'s splash start offset
+   by 0.001 s (a live playback parameter) and changing the splash game-path volume from 0.7 to 0.71
+   (a source use) each change the contract and the fingerprint and make a saved pair be set aside, not
+   resumed; undoing the change restores both values. A file with the right fingerprint but another
+   contract digest, and files of schema 1 (progress report 21) and schema 2 (correction report 22),
+   are set aside. Fingerprint of this package: `67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d`; review contract `2fa10012e6a4d500548bca84f9debfe6df9cc9583a3d1f3409c67e0039a06404`.
+3. **Splash playback.** Enter plays an effect with its source use's volume and rate. Splash: the Green
+   Zone use `play('splash', {volume: 0.7})` (effective gain 0.9 x 0.7 = 0.63), and **V** plays the
+   story boat use `play('splash', {volume: 0.5})` (0.45; not in the port yet). The same table gives V
+   for the other `gameAudio.ts` variants: coin (poopCleaned, volume 0.5, rate 1.5), warning
+   (pollutionSurge, 0.75, 0.82) and empty (tired, rate 0.8); bark's random source rate (0.95-1.05) is
+   documented and played at 1.0. `audio_inventory.json` records every item's `uses` (volume, rate,
+   effective gain, source call, the port's call) and `enter_gain`; the checklist lists them. The export
+   checks the gains and that every use the port has equals its call in
+   `scenes/green_zone/green_zone_scene.gd`; the self-test plays each use through the station's
+   controls and reads the volume and pitch of `AudioService`'s own player (splash -4.013 dB and
+   -6.936 dB at pitch 1.0; coin's V at pitch 1.5).
+4. **Title-tab layout.** Every tab scrolls inside the window (title and sign-off tabs whole, the
+   animation and audio tabs' right-hand panels) and the status line wraps instead of widening the
+   window, so it stays at the bottom. The title tab is compacted: the facts and memory report sit
+   beside the portrait strip, so at 1320 x 900 it fits without scrolling. The supported minimum is
+   1280 x 720 (the window's minimum size). The export and the self-test check at both sizes that the
+   status line lies inside the window on all four tabs and that each of the 61 interactive controls
+   can be scrolled wholly into view, naming the title tab's eight decisions (C-MEMORY included) and
+   its notes. Captures regenerated at 1320 x 900, plus `tab_4_title_1280x720_end.png`.
+5. **Siren loop check.** The "still looping 30 s later" check (state stepped by 30 s) is replaced by
+   a real wrap test: the looping siren is played from 0.3 s before its end and sampled every frame
+   for up to 1.5 s of real time; it must wrap to its loop start in mixer time and keep playing (on
+   the verification clone: started at 3.1746 s of 3.4746 s, wrapped after 0.317 s of real time, at
+   0.608 s when sampling ended after 0.901 s). The structural check is now named as such ("a private
+   copy … has looping on …"), and the other state-machine checks say the time they step.
+6. **Evidence wording.** `windows_evidence/m1-review-godot-tree-11330ef/REPORT.md` step n4 now says
+   three ERROR records from the two expected save-failure checks, with a marked correction note; the
+   logs are unchanged. This correction's self-test prints seven ERROR records from its six expected
+   save-failure checks (one each, plus the engine's "Could not create directory" in the
+   folder-creation check), announced in the log.
+7. **Package and evidence regenerated** on the verification clone; every human decision is
+   NOT EXECUTED.
+8. **Checks rerun** (below).
+
+Mutation check of the self-test (session script, not committed; the tool restored byte-for-byte after
+each run): a rollback that does not put the earlier pair back, a rollback that leaves the new files,
+not comparing the Markdown copy's save ID on resume, leaving the review contract out of the
+fingerprint, playing the splash game path at volume 1.0 (correction 22's behaviour), tabs that do not
+scroll, and a siren copy that does not loop each made `--selftest` exit 1, each with its own check
+among the failures (respectively the promotion-failure checks, the Markdown-second and promotion
+checks, the mismatched-save-ID check, both binding checks, the splash, coin, warning and empty
+source-use checks, the 1280 x 720 layout check, and the real-playback wrap check with the structural
+and fade checks).
+
+### Commands executed and results
+
+| Command | Result |
+|---|---|
+| Fresh `git clone` of the commit with the tool changes (local `eb0a372`, `core.autocrlf=true`; tested `godot/` tree `c9de0e5e662edd739f3969d40bbf0c97ee2a2323` = `git rev-parse HEAD:godot` of this commit; only docs and the evidence folders were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | exit 0: 206 + 55 outputs identical |
+| `<console exe> --headless --path godot --import`; `git status --porcelain` | exit 0, no ERROR/WARNING line; status empty |
+| `… --script res://tests/test_runner.gd -- --suite all` | exit 0: **139 passed, 0 failed, 139 total** |
+| `<console exe> --headless --path godot --quit-after 600` | exit 0, engine banner only |
+| `… --suite integration --file test_export_pack` (hermetic PCK smoke) | exit 0: 32,906,024 bytes, **254** runtime resources, **512** packed files, 18 source-only paths unresolved, control resolved 18; no `tools/` file packed |
+| `npm test`; `npm run build` | exit 0: 30 files, 248 tests passed; build OK |
+| `git status --porcelain`; `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty (HEAD: `eb0a372`, folded into this commit with the same `godot/` tree) |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --name-status 6dc585a HEAD -- godot` | `M godot/README.md`, `M godot/tools/m1_review.gd` |
+| `<console exe> --path godot --rendering-driver opengl3 --quit-after 6000 res://tools/m1_review.tscn -- --export <dir>` (`--quit-after` only as a safety net; the tool quits itself) | exit 0: `M1REVIEW {"artifact_problems":[],"artifacts_expected":26,"checks":25,…,"failed":[],"fields":363,"ok":true,"write_errors":[]}`; content fingerprint `67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d`, review contract `2fa10012e6a4d500548bca84f9debfe6df9cc9583a3d1f3409c67e0039a06404`; the captures at 1320 x 900 and the title tab's end at 1280 x 720; both layout checks: status line inside the window on every tab, 61 of 61 controls reachable, the title's 8 decisions and notes named; contact sheets, stills, `animation_inventory.json` and `title_facts.json` byte-identical to correction report 22's |
+| the same with `--export <a regular file>` (failure control) | **exit 1 (expected)**: `"ok":false`, write error "cannot create the folder … (the path exists and is not a folder)" |
+| the same into a folder holding a file named `contact_sheets` (failure control) | **exit 1 (expected)**: `"ok":false`, one write error, the 12 contact sheets reported missing, the other 14 files verified |
+| `… res://tools/m1_review.tscn -- --selftest <dir>` | exit 0: `M1SELFTEST {"checks":59,…,"failed":[],…,"ok":true,…,"schema_version":3}`; seven ERROR records from the six expected save-failure checks, announced in the log |
+| `<console exe> --path godot --rendering-driver opengl3 --script res://tools/title_capture.gd -- --out <dir>` | exit 0; portraits on frames 0, 49 and 98; the three images byte-identical to the export's `title_stills/` (`728ff267…`, `95840694…`, `c0f46e0f…`) |
+| `… --quit-after 600 res://tools/m1_review.tscn -- --decisions <empty dir>` | exit 0, engine banner only; no decisions folder created (nothing decided) |
+| the same with a correction-22 decisions pair (schema 2) in the folder | exit 0; both files were renamed to `m1_owner_decisions.stale-<time>.json` / `.md`; nothing resumed or saved |
+| `git status --porcelain` after all steps | empty |
+| `git diff --cached --check 6dc585a` (this commit, staged) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 94 checks` |
+
+Evidence: `docs/porting/windows_evidence/m1-review-godot-tree-c9de0e5/` (REPORT.md, every step's log,
+`exit_codes.txt`, the self-test result) and the package above. Not run: Linux; Android; the rendered
+probe (no rendering, camera, interpolation or presentation change); any manual check.
+
+Host evidence: current tree `c9de0e5` above (139 passed). Previous Windows trees: `11330ef`
+(correction report 22, 139 passed), `4ac0aed` (progress report 21, 139 passed), `2ffca5f` (correction
+report 19, 139 passed), `366eb3b` (correction report 18, 139 passed), `51ad8b3` (correction report 17,
+138 passed), `591e2df` (correction report 16, 138 passed), `cd87171` (correction report 15, 138
+passed), `ef6c318` (progress report 14, 138 passed), `9bbe179` (correction report 12, 138 passed),
+`a06b1df` (correction report 11, 138 passed), `1532143` (correction report 10, 137 passed), `6a3c53b`
+(correction report 9, 137 passed), `b1c3595` (correction report 8, 137 passed), `b8535ab` (correction
+report 7 addendum, 137 passed), `81906cd` / `fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction
+report 6, 134 passed). Linux: the prior tree `d12bedd`, 128 passed (progress report 5). Correction 6
+was not rerun on Linux, and neither were correction 7's addendum, corrections 8 to 13, progress
+report 14, correction reports 15 to 19, progress report 21, correction report 22 and this report.
+
+### Development attempts (kept as found)
+
+- The first working-clone runs of the corrected station (self-test 59 of 59, export 25 checks and 26
+  files) passed. Its screen captures showed that effects without a second source use repeated their
+  expected use and source in a "source use 'default'" line; that line was shortened, and the audio-tab
+  capture now shows the splash instead of the first track. The next working-clone self-test (59 of 59)
+  and the verification clone gave the same results.
+- The seven mutation runs above were made in the working clone; the tool file was restored from a byte
+  copy after each and then committed unchanged as the verification commit.
+
+### Legacy-save plan (unchanged; MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike: executed and hardened, accepted by the architect on review of
+   `8f8dcb6`.** The throwaway native migration plugin under `/godot/platform/android/` read the five
+   legacy keys of a controlled same-package/same-signature lineage on three emulators. The
+   native-bridge versus staged-Capacitor decision stands: `native_bridge_viable_for_controlled_lineage`
+   (controlled lineage, emulators, test key; not a production approval).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005 (raw five-key payload written exactly with timestamp and SHA-256 before any parsing).
+3. **M9 — production proof:** the installed lineage and signing certificate, representative real
+   user data, two WebView/device versions, end-to-end MIG-001–010.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017) and the accepted M1 spike found the native bridge viable for a controlled lineage. Remaining: the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005; the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | M1 migration spike done on emulators (API 36, 34, 24) with a throwaway key, accepted by the architect on review of `8f8dcb6`; physical devices and the production lineage are M9 |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **Independent review of this correction**, then the owner's decisions for the M1 manual checks
+  (package README, "Owner: running the review"): the animation review (192 cells and A-FILTER), the
+  listening review on a computer with speakers or headphones (160 fields including the siren's
+  attack event and the effects' second source uses, B-MUTE, B-VOLUME), the title review (8 fields
+  including C-MEMORY) and the sign-off (name, date, equipment). A FAIL is recorded with exact
+  reproduction steps and stops the M1 sign-off; nothing is repaired in the evidence commit.
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 22: M1 review package hardened before owner use; owner decisions not yet requested (`6dc585a`; M1 Partial, M2 Partial)
+
+> Historical record of `6dc585a`, superseded by correction report 23 (text below kept as
+> submitted). **Supersession:** the review station was hardened again before the owner used it:
+> transactional owner evidence (both copies written, verified and promoted together; the earlier pair
+> kept and put back on failure), decisions schema 3 bound to a review contract and to the station's
+> own code, the splash game path at the source's 0.7 with the story boat's 0.5 on [V], scrolling tabs
+> with layout checks at 1280 x 720, and a real siren loop-wrap test. Its evidence report's step-n4
+> wording was corrected (three ERROR records from two checks). Its current tree `11330ef` is
+> superseded by `c9de0e5` (runtime files identical). No owner decision was returned; the owner is
+> asked only after the independent review of correction report 23.
 
 Scope: the architect's correction 22 after `10eec20`: harden the M1 manual-review package before the
 owner uses it, in one commit of development-tool, capture, evidence and documentation corrections.

@@ -1,6 +1,6 @@
 {
-  "algorithm": "SHA-256 of the sorted '<res path> <file sha256>' lines, LF-terminated",
-  "file_count": 85,
+  "algorithm": "SHA-256 of the sorted '<res path> <file sha256>' lines followed by 'review-contract <sha256>', LF-terminated; the review contract's SHA-256 is of its JSON with sorted keys and no indentation plus LF",
+  "file_count": 88,
   "files": [
     [
       "res://assets/audio/recorded/alarm-greenzone-under-attack.mp3",
@@ -299,6 +299,10 @@
       "7caa0c9832d0980abfcf80654866011804461054c380ecd728e3e56f00aaa99f"
     ],
     [
+      "res://autoload/audio_service.gd",
+      "01ba40f4291d6664e3d6908085d48fda138359f1cbdec662d4ec3236bff60258"
+    ],
+    [
       "res://data/audio/default_bus_layout.tres",
       "a096ac71dcf358435b23bea48216ad05329edb59f842c387e61670785b5a95c4"
     ],
@@ -335,6 +339,14 @@
       "7040b5cfc374325b7e7c6600f0213409a0349fafcd7e559ceea70b551b673ba2"
     ],
     [
+      "res://tools/m1_review.gd",
+      "dc2161cbad1688c9152e092cbc954eb2a5063cf528c79423425f7bceedf3e9e8"
+    ],
+    [
+      "res://tools/m1_review.tscn",
+      "77e464beefbbf6a895419e797f44fd088bb7148b7b901a19179d0f5a36b0f117"
+    ],
+    [
       "res://ui/title/title_portrait.gd",
       "81ce77ebccd4104b21f6f71da7908d27b7d2264b423d3a23414b80f616fa5bac"
     ],
@@ -343,6 +355,1154 @@
       "40a13b9dad3d9bd96bd85deb7b5523af6cfb0efd9c158525e1c0bb1be2a73304"
     ]
   ],
-  "schema_version": 2,
-  "sha256": "406f37285e283d40a123cbd5135f6430ea85b4f569565d900cf58eef54f24994"
+  "review_contract": {
+    "audio_service": {
+      "leading_silence_offsets": {
+        "alarm": 0.573833,
+        "ball": 0.168375,
+        "bark": 0.094708,
+        "coin": 0.396958,
+        "drink": 0.279896,
+        "laser": 0.0,
+        "meow": 0.0,
+        "pee": 0.007521,
+        "poop": 0.0,
+        "siren": 0.0,
+        "splash": 0.0,
+        "treat": 0.040375
+      },
+      "music": {
+        "greenzone": "res://assets/audio/recorded/greenzone-music.mp3",
+        "intro": "res://assets/audio/recorded/intro-music.mp3",
+        "level2": "res://assets/audio/recorded/level2-music.mp3",
+        "level3": "res://assets/audio/recorded/level3-music.mp3",
+        "level4": "res://assets/audio/recorded/level4-music.mp3",
+        "medieval": "res://assets/audio/synth/medieval.wav"
+      },
+      "pool_size": 8,
+      "restarting_tracks": [
+        "medieval"
+      ],
+      "same_cue_gap_s": 0.045,
+      "sfx": {
+        "alarm": "res://assets/audio/recorded/alarm-greenzone-under-attack.mp3",
+        "ball": "res://assets/audio/recorded/ball.mp3",
+        "bark": "res://assets/audio/recorded/dog-bark.mp3",
+        "coin": "res://assets/audio/recorded/cash-after-cat.mp3",
+        "drink": "res://assets/audio/recorded/pees-collect.wav",
+        "laser": "res://assets/audio/recorded/laser-eyes.mp3",
+        "meow": "res://assets/audio/recorded/cat-meow.mp3",
+        "pee": "res://assets/audio/recorded/pees-drop.mp3",
+        "poop": "res://assets/audio/recorded/poos.mp3",
+        "siren": "res://assets/audio/recorded/siren.mp3",
+        "splash": "res://assets/audio/recorded/water.mp3",
+        "treat": "res://assets/audio/recorded/food-collect.mp3"
+      },
+      "synth": [
+        "fetch",
+        "warning",
+        "empty",
+        "hurt",
+        "hit",
+        "swish",
+        "clang",
+        "flee",
+        "saved",
+        "star",
+        "jingle",
+        "gameover",
+        "click",
+        "glitch"
+      ]
+    },
+    "duration_tolerance_s": 0.001,
+    "fields": [
+      "A-normal-idle-n",
+      "A-normal-idle-ne",
+      "A-normal-idle-e",
+      "A-normal-idle-se",
+      "A-normal-idle-s",
+      "A-normal-idle-sw",
+      "A-normal-idle-w",
+      "A-normal-idle-nw",
+      "A-normal-walk-n",
+      "A-normal-walk-ne",
+      "A-normal-walk-e",
+      "A-normal-walk-se",
+      "A-normal-walk-s",
+      "A-normal-walk-sw",
+      "A-normal-walk-w",
+      "A-normal-walk-nw",
+      "A-normal-run-n",
+      "A-normal-run-ne",
+      "A-normal-run-e",
+      "A-normal-run-se",
+      "A-normal-run-s",
+      "A-normal-run-sw",
+      "A-normal-run-w",
+      "A-normal-run-nw",
+      "A-normal-sniff-n",
+      "A-normal-sniff-ne",
+      "A-normal-sniff-e",
+      "A-normal-sniff-se",
+      "A-normal-sniff-s",
+      "A-normal-sniff-sw",
+      "A-normal-sniff-w",
+      "A-normal-sniff-nw",
+      "A-normal-pee-n",
+      "A-normal-pee-ne",
+      "A-normal-pee-e",
+      "A-normal-pee-se",
+      "A-normal-pee-s",
+      "A-normal-pee-sw",
+      "A-normal-pee-w",
+      "A-normal-pee-nw",
+      "A-normal-poop-n",
+      "A-normal-poop-ne",
+      "A-normal-poop-e",
+      "A-normal-poop-se",
+      "A-normal-poop-s",
+      "A-normal-poop-sw",
+      "A-normal-poop-w",
+      "A-normal-poop-nw",
+      "A-normal-eat-n",
+      "A-normal-eat-ne",
+      "A-normal-eat-e",
+      "A-normal-eat-se",
+      "A-normal-eat-s",
+      "A-normal-eat-sw",
+      "A-normal-eat-w",
+      "A-normal-eat-nw",
+      "A-normal-bark-n",
+      "A-normal-bark-ne",
+      "A-normal-bark-e",
+      "A-normal-bark-se",
+      "A-normal-bark-s",
+      "A-normal-bark-sw",
+      "A-normal-bark-w",
+      "A-normal-bark-nw",
+      "A-normal-fetch-n",
+      "A-normal-fetch-ne",
+      "A-normal-fetch-e",
+      "A-normal-fetch-se",
+      "A-normal-fetch-s",
+      "A-normal-fetch-sw",
+      "A-normal-fetch-w",
+      "A-normal-fetch-nw",
+      "A-normal-hurt-n",
+      "A-normal-hurt-ne",
+      "A-normal-hurt-e",
+      "A-normal-hurt-se",
+      "A-normal-hurt-s",
+      "A-normal-hurt-sw",
+      "A-normal-hurt-w",
+      "A-normal-hurt-nw",
+      "A-normal-sit-n",
+      "A-normal-sit-ne",
+      "A-normal-sit-e",
+      "A-normal-sit-se",
+      "A-normal-sit-s",
+      "A-normal-sit-sw",
+      "A-normal-sit-w",
+      "A-normal-sit-nw",
+      "A-normal-tired-n",
+      "A-normal-tired-ne",
+      "A-normal-tired-e",
+      "A-normal-tired-se",
+      "A-normal-tired-s",
+      "A-normal-tired-sw",
+      "A-normal-tired-w",
+      "A-normal-tired-nw",
+      "A-armoured-idle-n",
+      "A-armoured-idle-ne",
+      "A-armoured-idle-e",
+      "A-armoured-idle-se",
+      "A-armoured-idle-s",
+      "A-armoured-idle-sw",
+      "A-armoured-idle-w",
+      "A-armoured-idle-nw",
+      "A-armoured-walk-n",
+      "A-armoured-walk-ne",
+      "A-armoured-walk-e",
+      "A-armoured-walk-se",
+      "A-armoured-walk-s",
+      "A-armoured-walk-sw",
+      "A-armoured-walk-w",
+      "A-armoured-walk-nw",
+      "A-armoured-run-n",
+      "A-armoured-run-ne",
+      "A-armoured-run-e",
+      "A-armoured-run-se",
+      "A-armoured-run-s",
+      "A-armoured-run-sw",
+      "A-armoured-run-w",
+      "A-armoured-run-nw",
+      "A-armoured-sniff-n",
+      "A-armoured-sniff-ne",
+      "A-armoured-sniff-e",
+      "A-armoured-sniff-se",
+      "A-armoured-sniff-s",
+      "A-armoured-sniff-sw",
+      "A-armoured-sniff-w",
+      "A-armoured-sniff-nw",
+      "A-armoured-pee-n",
+      "A-armoured-pee-ne",
+      "A-armoured-pee-e",
+      "A-armoured-pee-se",
+      "A-armoured-pee-s",
+      "A-armoured-pee-sw",
+      "A-armoured-pee-w",
+      "A-armoured-pee-nw",
+      "A-armoured-poop-n",
+      "A-armoured-poop-ne",
+      "A-armoured-poop-e",
+      "A-armoured-poop-se",
+      "A-armoured-poop-s",
+      "A-armoured-poop-sw",
+      "A-armoured-poop-w",
+      "A-armoured-poop-nw",
+      "A-armoured-eat-n",
+      "A-armoured-eat-ne",
+      "A-armoured-eat-e",
+      "A-armoured-eat-se",
+      "A-armoured-eat-s",
+      "A-armoured-eat-sw",
+      "A-armoured-eat-w",
+      "A-armoured-eat-nw",
+      "A-armoured-bark-n",
+      "A-armoured-bark-ne",
+      "A-armoured-bark-e",
+      "A-armoured-bark-se",
+      "A-armoured-bark-s",
+      "A-armoured-bark-sw",
+      "A-armoured-bark-w",
+      "A-armoured-bark-nw",
+      "A-armoured-fetch-n",
+      "A-armoured-fetch-ne",
+      "A-armoured-fetch-e",
+      "A-armoured-fetch-se",
+      "A-armoured-fetch-s",
+      "A-armoured-fetch-sw",
+      "A-armoured-fetch-w",
+      "A-armoured-fetch-nw",
+      "A-armoured-hurt-n",
+      "A-armoured-hurt-ne",
+      "A-armoured-hurt-e",
+      "A-armoured-hurt-se",
+      "A-armoured-hurt-s",
+      "A-armoured-hurt-sw",
+      "A-armoured-hurt-w",
+      "A-armoured-hurt-nw",
+      "A-armoured-sit-n",
+      "A-armoured-sit-ne",
+      "A-armoured-sit-e",
+      "A-armoured-sit-se",
+      "A-armoured-sit-s",
+      "A-armoured-sit-sw",
+      "A-armoured-sit-w",
+      "A-armoured-sit-nw",
+      "A-armoured-tired-n",
+      "A-armoured-tired-ne",
+      "A-armoured-tired-e",
+      "A-armoured-tired-se",
+      "A-armoured-tired-s",
+      "A-armoured-tired-sw",
+      "A-armoured-tired-w",
+      "A-armoured-tired-nw",
+      "A-FILTER",
+      "B-intro-AUDIBLE",
+      "B-intro-INTENT",
+      "B-intro-START",
+      "B-intro-END",
+      "B-intro-CLEAN",
+      "B-greenzone-AUDIBLE",
+      "B-greenzone-INTENT",
+      "B-greenzone-START",
+      "B-greenzone-END",
+      "B-greenzone-CLEAN",
+      "B-level2-AUDIBLE",
+      "B-level2-INTENT",
+      "B-level2-START",
+      "B-level2-END",
+      "B-level2-CLEAN",
+      "B-level3-AUDIBLE",
+      "B-level3-INTENT",
+      "B-level3-START",
+      "B-level3-END",
+      "B-level3-CLEAN",
+      "B-level4-AUDIBLE",
+      "B-level4-INTENT",
+      "B-level4-START",
+      "B-level4-END",
+      "B-level4-CLEAN",
+      "B-bark-AUDIBLE",
+      "B-bark-INTENT",
+      "B-bark-START",
+      "B-bark-END",
+      "B-bark-CLEAN",
+      "B-treat-AUDIBLE",
+      "B-treat-INTENT",
+      "B-treat-START",
+      "B-treat-END",
+      "B-treat-CLEAN",
+      "B-poop-AUDIBLE",
+      "B-poop-INTENT",
+      "B-poop-START",
+      "B-poop-END",
+      "B-poop-CLEAN",
+      "B-pee-AUDIBLE",
+      "B-pee-INTENT",
+      "B-pee-START",
+      "B-pee-END",
+      "B-pee-CLEAN",
+      "B-drink-AUDIBLE",
+      "B-drink-INTENT",
+      "B-drink-START",
+      "B-drink-END",
+      "B-drink-CLEAN",
+      "B-splash-AUDIBLE",
+      "B-splash-INTENT",
+      "B-splash-START",
+      "B-splash-END",
+      "B-splash-CLEAN",
+      "B-meow-AUDIBLE",
+      "B-meow-INTENT",
+      "B-meow-START",
+      "B-meow-END",
+      "B-meow-CLEAN",
+      "B-coin-AUDIBLE",
+      "B-coin-INTENT",
+      "B-coin-START",
+      "B-coin-END",
+      "B-coin-CLEAN",
+      "B-ball-AUDIBLE",
+      "B-ball-INTENT",
+      "B-ball-START",
+      "B-ball-END",
+      "B-ball-CLEAN",
+      "B-alarm-AUDIBLE",
+      "B-alarm-INTENT",
+      "B-alarm-START",
+      "B-alarm-END",
+      "B-alarm-CLEAN",
+      "B-siren-AUDIBLE",
+      "B-siren-INTENT",
+      "B-siren-START",
+      "B-siren-END",
+      "B-siren-CLEAN",
+      "B-laser-AUDIBLE",
+      "B-laser-INTENT",
+      "B-laser-START",
+      "B-laser-END",
+      "B-laser-CLEAN",
+      "B-medieval-AUDIBLE",
+      "B-medieval-INTENT",
+      "B-medieval-START",
+      "B-medieval-END",
+      "B-medieval-CLEAN",
+      "B-fetch-AUDIBLE",
+      "B-fetch-INTENT",
+      "B-fetch-START",
+      "B-fetch-END",
+      "B-fetch-CLEAN",
+      "B-warning-AUDIBLE",
+      "B-warning-INTENT",
+      "B-warning-START",
+      "B-warning-END",
+      "B-warning-CLEAN",
+      "B-empty-AUDIBLE",
+      "B-empty-INTENT",
+      "B-empty-START",
+      "B-empty-END",
+      "B-empty-CLEAN",
+      "B-hurt-AUDIBLE",
+      "B-hurt-INTENT",
+      "B-hurt-START",
+      "B-hurt-END",
+      "B-hurt-CLEAN",
+      "B-hit-AUDIBLE",
+      "B-hit-INTENT",
+      "B-hit-START",
+      "B-hit-END",
+      "B-hit-CLEAN",
+      "B-swish-AUDIBLE",
+      "B-swish-INTENT",
+      "B-swish-START",
+      "B-swish-END",
+      "B-swish-CLEAN",
+      "B-clang-AUDIBLE",
+      "B-clang-INTENT",
+      "B-clang-START",
+      "B-clang-END",
+      "B-clang-CLEAN",
+      "B-flee-AUDIBLE",
+      "B-flee-INTENT",
+      "B-flee-START",
+      "B-flee-END",
+      "B-flee-CLEAN",
+      "B-saved-AUDIBLE",
+      "B-saved-INTENT",
+      "B-saved-START",
+      "B-saved-END",
+      "B-saved-CLEAN",
+      "B-star-AUDIBLE",
+      "B-star-INTENT",
+      "B-star-START",
+      "B-star-END",
+      "B-star-CLEAN",
+      "B-jingle-AUDIBLE",
+      "B-jingle-INTENT",
+      "B-jingle-START",
+      "B-jingle-END",
+      "B-jingle-CLEAN",
+      "B-gameover-AUDIBLE",
+      "B-gameover-INTENT",
+      "B-gameover-START",
+      "B-gameover-END",
+      "B-gameover-CLEAN",
+      "B-click-AUDIBLE",
+      "B-click-INTENT",
+      "B-click-START",
+      "B-click-END",
+      "B-click-CLEAN",
+      "B-glitch-AUDIBLE",
+      "B-glitch-INTENT",
+      "B-glitch-START",
+      "B-glitch-END",
+      "B-glitch-CLEAN",
+      "B-MUTE",
+      "B-VOLUME",
+      "C-CROP",
+      "C-ALPHA",
+      "C-SCALE",
+      "C-FIRST",
+      "C-MIDDLE",
+      "C-LAST",
+      "C-TIMING",
+      "C-MEMORY"
+    ],
+    "game_config_audio": {
+      "CASH_DELAY": 0.35,
+      "DEFAULT_VOLUME": 0.7,
+      "FILE_GAIN": {
+        "coin": 2.4,
+        "laser": 1.3,
+        "meow": 1.1,
+        "poop": 1.2,
+        "siren": 0.6
+      },
+      "MUSIC_FILE_GAIN": {
+        "level2": 0.58,
+        "level3": 0.84,
+        "level4": 0.5
+      },
+      "MUSIC_FILE_VOLUME": 0.55,
+      "MUSIC_VOLUME": 0.32,
+      "SFX_VOLUME": 0.9,
+      "SIREN_DELAY": 3.9,
+      "SIREN_VOLUME": 0.45,
+      "TRIM_LEVEL": 0.01
+    },
+    "master_volume_at_start": 0.25,
+    "playback": [
+      {
+        "bus": "Music",
+        "cue": "intro",
+        "kind": "music",
+        "path": "res://assets/audio/recorded/intro-music.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.55,
+            "id": "track",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "MUSIC_FILES.intro; setTrack('intro')",
+            "volume": 1.0,
+            "where": "Reading screens: title, briefing and story pages."
+          }
+        ]
+      },
+      {
+        "bus": "Music",
+        "cue": "greenzone",
+        "kind": "music",
+        "path": "res://assets/audio/recorded/greenzone-music.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.55,
+            "id": "track",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "MUSIC_FILES.greenzone; setTrack('greenzone')",
+            "volume": 1.0,
+            "where": "Green Zone level music."
+          }
+        ]
+      },
+      {
+        "bus": "Music",
+        "cue": "level2",
+        "kind": "music",
+        "path": "res://assets/audio/recorded/level2-music.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.319,
+            "id": "track",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "MUSIC_FILES.level2; chapter music",
+            "volume": 1.0,
+            "where": "Level 2, On the edge of dreams."
+          }
+        ]
+      },
+      {
+        "bus": "Music",
+        "cue": "level3",
+        "kind": "music",
+        "path": "res://assets/audio/recorded/level3-music.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.462,
+            "id": "track",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "MUSIC_FILES.level3; chapter music",
+            "volume": 1.0,
+            "where": "Level 3, Venice."
+          }
+        ]
+      },
+      {
+        "bus": "Music",
+        "cue": "level4",
+        "kind": "music",
+        "path": "res://assets/audio/recorded/level4-music.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.275,
+            "id": "track",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "MUSIC_FILES.level4; chapter music",
+            "volume": 1.0,
+            "where": "Level 4, The sea."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "bark",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/dog-bark.mp3",
+        "start_s": 0.0947083333333333,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "bark",
+            "port_call": "AudioService.play(&\"bark\", 1.0, 0.95 + randf() * 0.1)",
+            "rate": 1.0,
+            "source": "src/fx/gameAudio.ts: events.on('bark') -> play('bark', {rate: 0.95 + Math.random() * 0.1}); the station plays the middle rate 1.0",
+            "volume": 1.0,
+            "where": "Zampanò barks"
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "treat",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/food-collect.mp3",
+        "start_s": 0.040375,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.treat; event treat",
+            "volume": 1.0,
+            "where": "A treat is eaten."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "poop",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/poos.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 1.08,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.poop; event poop",
+            "volume": 1.0,
+            "where": "Zampanò poops."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "pee",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/pees-drop.mp3",
+        "start_s": 0.00752083333333333,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.pee; event pee",
+            "volume": 1.0,
+            "where": "Zampanò pees."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "drink",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/pees-collect.wav",
+        "start_s": 0.279895833333333,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.drink; event drink",
+            "volume": 1.0,
+            "where": "Zampanò drinks."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "splash",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/water.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.63,
+            "id": "green_zone_water",
+            "port_call": "AudioService.play(&\"splash\", 0.7)",
+            "rate": 1.0,
+            "source": "src/fx/gameAudio.ts: events.on('splash') -> play('splash', {volume: 0.7})",
+            "volume": 0.7,
+            "where": "Green Zone: Zampanò steps into water"
+          },
+          {
+            "control": "V",
+            "effective_gain": 0.45,
+            "id": "story_boat",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "src/story/minigames/action.ts (boat minigame, a stroke too hard) -> play('splash', {volume: 0.5})",
+            "volume": 0.5,
+            "where": "Story boat minigame: water comes into the boat (not in the port yet)"
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "meow",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/cat-meow.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.99,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.meow; event cat",
+            "volume": 1.0,
+            "where": "A cat is met (the coin follows after a short delay)."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "coin",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/cash-after-cat.mp3",
+        "start_s": 0.396958333333333,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 2.16,
+            "id": "cat_cash",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "src/fx/gameAudio.ts: events.on('cat') -> play('coin', {delay: CASH_DELAY})",
+            "volume": 1.0,
+            "where": "Cash after a caught cat (the station plays it without the 0.35 s delay)"
+          },
+          {
+            "control": "V",
+            "effective_gain": 1.08,
+            "id": "poop_cleaned",
+            "port_call": "AudioService.play(&\"coin\", 0.5, 1.5)",
+            "rate": 1.5,
+            "source": "src/fx/gameAudio.ts: events.on('poopCleaned') -> play('coin', {rate: 1.5, volume: 0.5})",
+            "volume": 0.5,
+            "where": "A poop is cleaned up"
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "ball",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/ball.mp3",
+        "start_s": 0.168375,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.ball; event ballSpawn",
+            "volume": 1.0,
+            "where": "A ball appears."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "alarm",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/alarm-greenzone-under-attack.mp3",
+        "start_s": 0.573833333333333,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.alarm; event attackStart",
+            "volume": 1.0,
+            "where": "The Green Zone is under attack."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "siren",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/siren.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.54,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.siren; event attackStart: play('alarm') and loop('siren', {volume: SIREN_VOLUME, delay: SIREN_DELAY}) until attackEnd, levelComplete or gameOver (src/fx/gameAudio.ts); story fire: play('siren') once (src/story/walk.ts)",
+            "volume": 1.0,
+            "where": "Green Zone attack: after the alarm the siren loops, quieter, until the attack ends ([E] attack event). A story walk's fire plays it once (game path, one-shot)."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "laser",
+        "kind": "effect",
+        "path": "res://assets/audio/recorded/laser-eyes.mp3",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 1.17,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUND_FILES.laser (laser-eyes.mp3); event bump (src/systems/threats.ts: Bagnaskiz runs into Zampanò, who is knocked back and hurt)",
+            "volume": 1.0,
+            "where": "Bagnaskiz's laser eyes hit Zampanò and knock him back."
+          }
+        ]
+      },
+      {
+        "bus": "Music",
+        "cue": "medieval",
+        "kind": "music",
+        "path": "res://assets/audio/synth/medieval.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.32,
+            "id": "track",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "src/fx/sounds.ts renderMedievalMusic(); chapters 5-7 music",
+            "volume": 1.0,
+            "where": "Dream-chapter music loop (restarts from 0 on every switch)."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "fetch",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/fetch.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.fetch; event fetch",
+            "volume": 1.0,
+            "where": "The ball is fetched."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "warning",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/warning.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "digest_warning",
+            "port_call": "AudioService.play(&\"warning\")",
+            "rate": 1.0,
+            "source": "src/fx/gameAudio.ts: events.on('digestWarning') -> play('warning')",
+            "volume": 1.0,
+            "where": "Digestion warning"
+          },
+          {
+            "control": "V",
+            "effective_gain": 0.675,
+            "id": "pollution_surge",
+            "port_call": "AudioService.play(&\"warning\", 0.75, 0.82)",
+            "rate": 0.82,
+            "source": "src/fx/gameAudio.ts: events.on('pollutionSurge') -> play('warning', {rate: 0.82, volume: 0.75})",
+            "volume": 0.75,
+            "where": "Pollution surge"
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "empty",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/empty.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "pee_empty",
+            "port_call": "AudioService.play(&\"empty\")",
+            "rate": 1.0,
+            "source": "src/fx/gameAudio.ts: events.on('peeEmpty') -> play('empty')",
+            "volume": 1.0,
+            "where": "Pee tank empty"
+          },
+          {
+            "control": "V",
+            "effective_gain": 0.9,
+            "id": "tired",
+            "port_call": "AudioService.play(&\"empty\", 1.0, 0.8)",
+            "rate": 0.8,
+            "source": "src/fx/gameAudio.ts: events.on('tired') -> play('empty', {rate: 0.8})",
+            "volume": 1.0,
+            "where": "Zampanò is tired"
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "hurt",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/hurt.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.hurt; event lifeLost, combat and minigame damage",
+            "volume": 1.0,
+            "where": "A life is lost; Zampanò is hurt."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "hit",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/hit.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.hit; event barkHit, combat hits",
+            "volume": 1.0,
+            "where": "A bark or a blow hits."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "swish",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/swish.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.swish; story combat",
+            "volume": 1.0,
+            "where": "Sword swing."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "clang",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/clang.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.clang; story combat",
+            "volume": 1.0,
+            "where": "Sword or shield clang."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "flee",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/flee.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.flee; event bagnaskizFled, combat",
+            "volume": 1.0,
+            "where": "A foe runs away."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "saved",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/saved.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.saved; event attackEnd",
+            "volume": 1.0,
+            "where": "The attack is repelled."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "star",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/star.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.star; marking pee (+0.12 s), end-screen stars",
+            "volume": 1.0,
+            "where": "A star or marking reward."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "jingle",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/jingle.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.jingle; event levelComplete",
+            "volume": 1.0,
+            "where": "Level complete."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "gameover",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/gameover.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.gameover; event gameOver",
+            "volume": 1.0,
+            "where": "Game over."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "click",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/click.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.click; menus and buttons",
+            "volume": 1.0,
+            "where": "UI click."
+          }
+        ]
+      },
+      {
+        "bus": "SFX",
+        "cue": "glitch",
+        "kind": "effect",
+        "path": "res://assets/audio/synth/glitch.wav",
+        "start_s": 0.0,
+        "uses": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "id": "default",
+            "port_call": "",
+            "rate": 1.0,
+            "source": "SOUNDS.glitch; glitch transitions",
+            "volume": 1.0,
+            "where": "Glitch transition."
+          }
+        ]
+      }
+    ],
+    "project_settings": {
+      "audio/buses/default_bus_layout": "res://data/audio/default_bus_layout.tres",
+      "audio/driver/mix_rate": 44100,
+      "display/window/stretch/mode": "disabled",
+      "rendering/textures/canvas_textures/default_texture_filter": 0
+    },
+    "schema_version": 3,
+    "siren_event": {
+      "bus": "SFX",
+      "delay_s": 3.9,
+      "file_gain": 0.6,
+      "gain": 0.243,
+      "loop": true,
+      "loop_offset_s": 0.0,
+      "path": "res://assets/audio/recorded/siren.mp3",
+      "sfx_volume": 0.9,
+      "start_s": 0.0,
+      "volume": 0.45
+    },
+    "stop_loop": {
+      "end_s": 0.4,
+      "tau_s": 0.08
+    },
+    "title": {
+      "display_scale": 2,
+      "memory_limit_bytes": 12000000,
+      "views_px": [
+        192,
+        216,
+        270
+      ],
+      "widths_px": [
+        88,
+        99,
+        124
+      ]
+    },
+    "window": {
+      "size": [
+        1320,
+        900
+      ],
+      "supported_min_size": [
+        1280,
+        720
+      ]
+    }
+  },
+  "review_contract_sha256": "2fa10012e6a4d500548bca84f9debfe6df9cc9583a3d1f3409c67e0039a06404",
+  "schema_version": 3,
+  "sha256": "67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d"
 }

@@ -1,6 +1,6 @@
 {
   "artifact_problems": [],
-  "artifacts_expected": 25,
+  "artifacts_expected": 26,
   "checks": [
     {
       "check": "res://data/characters/zampano_frames.tres: exactly the 12 required actions x 8 directions",
@@ -101,11 +101,12 @@
       "value": 363
     },
     {
-      "check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources)",
+      "check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources, the station's code and AudioService) and the review contract included",
       "ok": true,
       "value": {
-        "files": 85,
-        "sha256": "406f37285e283d40a123cbd5135f6430ea85b4f569565d900cf58eef54f24994"
+        "files": 88,
+        "review_contract_sha256": "2fa10012e6a4d500548bca84f9debfe6df9cc9583a3d1f3409c67e0039a06404",
+        "sha256": "67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d"
       }
     },
     {
@@ -128,12 +129,183 @@
       }
     },
     {
+      "check": "effect source uses: splash [Enter] is the Green Zone use (volume 0.7, gain 0.63) and [V] the story boat use (0.5, gain 0.45); every effective gain is SFX x file gain x use volume; each use the port has equals its call in res://scenes/green_zone/green_zone_scene.gd",
+      "ok": true,
+      "value": {
+        "bark": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "port_call": "AudioService.play(&\"bark\", 1.0, 0.95 + randf() * 0.1)",
+            "port_call_found": true,
+            "rate": 1.0,
+            "use": "bark",
+            "volume": 1.0
+          }
+        ],
+        "coin": [
+          {
+            "control": "Enter",
+            "effective_gain": 2.16,
+            "port_call": "none (not in the port yet)",
+            "port_call_found": true,
+            "rate": 1.0,
+            "use": "cat_cash",
+            "volume": 1.0
+          },
+          {
+            "control": "V",
+            "effective_gain": 1.08,
+            "port_call": "AudioService.play(&\"coin\", 0.5, 1.5)",
+            "port_call_found": true,
+            "rate": 1.5,
+            "use": "poop_cleaned",
+            "volume": 0.5
+          }
+        ],
+        "empty": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "port_call": "AudioService.play(&\"empty\")",
+            "port_call_found": true,
+            "rate": 1.0,
+            "use": "pee_empty",
+            "volume": 1.0
+          },
+          {
+            "control": "V",
+            "effective_gain": 0.9,
+            "port_call": "AudioService.play(&\"empty\", 1.0, 0.8)",
+            "port_call_found": true,
+            "rate": 0.8,
+            "use": "tired",
+            "volume": 1.0
+          }
+        ],
+        "splash": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.63,
+            "port_call": "AudioService.play(&\"splash\", 0.7)",
+            "port_call_found": true,
+            "rate": 1.0,
+            "use": "green_zone_water",
+            "volume": 0.7
+          },
+          {
+            "control": "V",
+            "effective_gain": 0.45,
+            "port_call": "none (not in the port yet)",
+            "port_call_found": true,
+            "rate": 1.0,
+            "use": "story_boat",
+            "volume": 0.5
+          }
+        ],
+        "warning": [
+          {
+            "control": "Enter",
+            "effective_gain": 0.9,
+            "port_call": "AudioService.play(&\"warning\")",
+            "port_call_found": true,
+            "rate": 1.0,
+            "use": "digest_warning",
+            "volume": 1.0
+          },
+          {
+            "control": "V",
+            "effective_gain": 0.675,
+            "port_call": "AudioService.play(&\"warning\", 0.75, 0.82)",
+            "port_call_found": true,
+            "rate": 0.82,
+            "use": "pollution_surge",
+            "volume": 0.75
+          }
+        ]
+      }
+    },
+    {
       "check": "title stills: frames 0, 49 and 98 saved after the portraits were ready (value: SHA-256 per file)",
       "ok": true,
       "value": {
         "title_frame_00_widths_88_99_124.png": "728ff2678e32fa81e7cbf2dc52d46e2377fef410c49066c32f5bc6720e15615f",
         "title_frame_49_widths_88_99_124.png": "95840694f79dca3af16f4d45248da680165c39055aa464863c93620a62156712",
         "title_frame_98_widths_88_99_124.png": "c0f46e0f0b854074731c5b5ad3161a5f3ec124dac854d3d44341b63f27347aa4"
+      }
+    },
+    {
+      "check": "review screen captures saved at their window sizes (1320 x 900; the title tab's end also at 1280 x 720)",
+      "ok": true,
+      "value": {
+        "tab_1_animations.png": [
+          1320,
+          900
+        ],
+        "tab_2_audio.png": [
+          1320,
+          900
+        ],
+        "tab_3_audio_siren.png": [
+          1320,
+          900
+        ],
+        "tab_4_title.png": [
+          1320,
+          900
+        ],
+        "tab_4_title_1280x720_end.png": [
+          1280,
+          720
+        ]
+      }
+    },
+    {
+      "check": "layout at 1320 x 900: the status line stays inside the window on every tab and every interactive control can be scrolled into view (title: the 8 decisions, C-MEMORY included, and the notes)",
+      "ok": true,
+      "value": {
+        "controls_checked": 61,
+        "status_inside": true,
+        "title_reached": [
+          "C-CROP",
+          "C-ALPHA",
+          "C-SCALE",
+          "C-FIRST",
+          "C-MIDDLE",
+          "C-LAST",
+          "C-TIMING",
+          "C-MEMORY",
+          "title notes"
+        ],
+        "unreachable": [],
+        "window": [
+          1320.0,
+          900.0
+        ]
+      }
+    },
+    {
+      "check": "layout at 1280 x 720: the status line stays inside the window on every tab and every interactive control can be scrolled into view (title: the 8 decisions, C-MEMORY included, and the notes)",
+      "ok": true,
+      "value": {
+        "controls_checked": 61,
+        "status_inside": true,
+        "title_reached": [
+          "C-CROP",
+          "C-ALPHA",
+          "C-SCALE",
+          "C-FIRST",
+          "C-MIDDLE",
+          "C-LAST",
+          "C-TIMING",
+          "C-MEMORY",
+          "title notes"
+        ],
+        "unreachable": [],
+        "window": [
+          1280.0,
+          720.0
+        ]
       }
     }
   ],

@@ -1,0 +1,5 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.47 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3090
+
+M1REVIEW {"artifact_problems":["contact_sheets/zampano_01_idle.png: missing","contact_sheets/zampano_02_walk.png: missing","contact_sheets/zampano_03_run.png: missing","contact_sheets/zampano_04_sniff.png: missing","contact_sheets/zampano_05_pee.png: missing","contact_sheets/zampano_06_poop.png: missing","contact_sheets/zampano_07_eat.png: missing","contact_sheets/zampano_08_bark.png: missing","contact_sheets/zampano_09_fetch.png: missing","contact_sheets/zampano_10_hurt.png: missing","contact_sheets/zampano_11_sit.png: missing","contact_sheets/zampano_12_tired.png: missing"],"artifacts_expected":26,"checks":25,"content_fingerprint":"67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d","failed":[],"fields":363,"ok":false,"write_errors":["cannot create the folder <scratch>\\logs_c23\\export_failure_contact_sheets_blocked/contact_sheets (the path exists and is not a folder)"]}
+m1_review: export FAILED (0 failed checks, 12 artifact problems, 1 write errors)

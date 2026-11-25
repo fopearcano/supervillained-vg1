@@ -9,29 +9,38 @@ extends Control
 ##     step; resource, animation, direction, frame number and authored duration on screen.
 ##   2 Audio: the five recorded tracks, twelve recorded effects, the generated medieval loop and the
 ##     fourteen generated cues (AUD-001-008), played through AudioService (the game path: leading
-##     silence skipped, gains, buses) or raw from 0 s, starting at a safe master volume. The siren
-##     also has the source's attack event (alarm, then the siren after AUDIO.SIREN_DELAY at
-##     AUDIO.SIREN_VOLUME, looping until Stop) on a review-only player: the shipping AudioService
-##     has no looping effect yet and is not changed for the station.
+##     silence skipped, gains, buses) or raw from 0 s, starting at a safe master volume. An effect's
+##     game path [Enter] uses the volume and rate of its source use (splash: the Green Zone's 0.7);
+##     a second source use, where the source has one, plays with [V] (splash: the story boat's 0.5).
+##     The siren also has the source's attack event (alarm, then the siren after
+##     AUDIO.SIREN_DELAY at AUDIO.SIREN_VOLUME, looping until Stop) on a review-only player: the
+##     shipping AudioService has no looping effect yet and is not changed for the station.
 ##   3 Title: the title portrait at the three review widths (TitlePortrait, x2 like the game), live
 ##     at the authored delays, with pause, frame step, first/middle/last and the memory report.
 ##   4 Sign-off: owner, date, equipment, environment, the reviewed-content fingerprint and the
 ##     final decision (APPROVED needs every field PASS and a nonblank owner, date and equipment).
-## Decisions are saved on every change to <decisions dir>/m1_owner_decisions.json and .md (resumed
-## on the next start only when their schema and content fingerprint match; otherwise they are set
-## aside as .stale-<time> files and every field starts NOT EXECUTED). A failed save is shown in red
-## and never reported as saved. Nothing is written to the game's save files.
+## Every tab scrolls inside the window, so the save-status line at the bottom stays visible and
+## every control is reachable down to SUPPORTED_MIN_SIZE.
+## Decisions are saved on every change to <decisions dir>/m1_owner_decisions.json and .md as one
+## transaction: both are written to .new files and verified, the current pair is kept as
+## m1_owner_decisions.previous.json/.md, and the new pair is promoted; any failure removes the new
+## files and puts the earlier pair back, and is shown in red as NOT SAVED. A pair is resumed on the
+## next start only when its schema, content fingerprint and review contract match this station and
+## its two files carry the same save ID; otherwise it is set aside as .stale-<time> files (an
+## interrupted save falls back to the .previous pair). Nothing is written to the game's save files.
 ##
 ##   godot --path godot res://tools/m1_review.tscn -- [--decisions <absolute dir>]
 ##   godot --path godot res://tools/m1_review.tscn -- --export <absolute dir>
 ##   godot --path godot res://tools/m1_review.tscn -- --selftest <absolute dir>
 ## --export writes the machine-readable inventories, the content fingerprint, the blank checklist,
 ## labelled contact sheets and captures of the review screens, runs automated self-checks (facts
-## only, never a manual decision), verifies that every expected file exists, is nonempty and
-## parses, and exits 0 only when everything holds (any write or check failure: ok:false, exit 1).
-## --selftest exercises the station itself in a scratch directory (save/resume, stale content,
-## save failure, approval and attribution refusal, the siren event mode, pausing on focus loss)
-## and exits 0 only when every check holds. All three need a renderer (not --headless).
+## only, never a manual decision, including the layout at SUPPORTED_MIN_SIZE), verifies that every
+## expected file exists, is nonempty and parses, and exits 0 only when everything holds (any write
+## or check failure: ok:false, exit 1).
+## --selftest exercises the station itself in a scratch directory (transactional save and its
+## failures, resume, stale content and contract, approval and attribution refusal, the effects'
+## source uses, the siren event mode with a real loop wrap, pausing on focus loss, the layout) and
+## exits 0 only when every check holds. All three need a renderer (not --headless).
 
 const PROFILE_PATH := "res://data/characters/zampano_profile.tres"
 const MANIFEST_PATH := "res://data/source_asset_manifest.json"
@@ -51,9 +60,48 @@ const ONE_SHOT_HOLD := 0.75
 ## Master volume at start (linear); the reviewer raises it only after a quiet first listen.
 const SAFE_VOLUME := 0.25
 ## Version of the decisions file layout and of the field list; saved decisions of another version
-## are set aside, never merged (version 1: progress report 21, no version key, 362 fields).
-const SCHEMA_VERSION := 2
+## are set aside, never merged (version 1: progress report 21, no version key, 362 fields;
+## version 2: correction report 22, 363 fields, content fingerprint; version 3: correction report
+## 23, save ID pairing, review contract, the station's code in the fingerprint).
+const SCHEMA_VERSION := 3
 const DECISIONS_FILE := "m1_owner_decisions"
+## The station's own code and the shipping playback code: part of the content fingerprint, so a
+## change to how anything is presented or played invalidates earlier decisions.
+const CODE_FILES: Array[String] = ["res://tools/m1_review.gd", "res://tools/m1_review.tscn", "res://autoload/audio_service.gd"]
+## Project settings that shape what the reviewer sees or hears (part of the review contract).
+const PROJECT_KEYS: Array[String] = ["audio/buses/default_bus_layout", "audio/driver/mix_rate", "display/window/stretch/mode",
+	"rendering/textures/canvas_textures/default_texture_filter"]
+## Source uses of an effect whose call options are not play(cue) alone: [use id, volume, rate,
+## source call, where it is heard, the port's own call ("" when the port has no such use yet)].
+## "Play, game path [Enter]" plays the first use and "Other source use [V]" the second. Every
+## other effect is played at volume 1.0 and rate 1.0, its source use (src/fx/gameAudio.ts and the
+## other play() calls listed in the item's source column).
+const SOURCE_USES := {
+	"splash": [["green_zone_water", 0.7, 1.0, "src/fx/gameAudio.ts: events.on('splash') -> play('splash', {volume: 0.7})",
+			"Green Zone: Zampanò steps into water", "AudioService.play(&\"splash\", 0.7)"],
+		["story_boat", 0.5, 1.0, "src/story/minigames/action.ts (boat minigame, a stroke too hard) -> play('splash', {volume: 0.5})",
+			"Story boat minigame: water comes into the boat (not in the port yet)", ""]],
+	"coin": [["cat_cash", 1.0, 1.0, "src/fx/gameAudio.ts: events.on('cat') -> play('coin', {delay: CASH_DELAY})",
+			"Cash after a caught cat (the station plays it without the 0.35 s delay)", ""],
+		["poop_cleaned", 0.5, 1.5, "src/fx/gameAudio.ts: events.on('poopCleaned') -> play('coin', {rate: 1.5, volume: 0.5})",
+			"A poop is cleaned up", "AudioService.play(&\"coin\", 0.5, 1.5)"]],
+	"warning": [["digest_warning", 1.0, 1.0, "src/fx/gameAudio.ts: events.on('digestWarning') -> play('warning')",
+			"Digestion warning", "AudioService.play(&\"warning\")"],
+		["pollution_surge", 0.75, 0.82, "src/fx/gameAudio.ts: events.on('pollutionSurge') -> play('warning', {rate: 0.82, volume: 0.75})",
+			"Pollution surge", "AudioService.play(&\"warning\", 0.75, 0.82)"]],
+	"empty": [["pee_empty", 1.0, 1.0, "src/fx/gameAudio.ts: events.on('peeEmpty') -> play('empty')",
+			"Pee tank empty", "AudioService.play(&\"empty\")"],
+		["tired", 1.0, 0.8, "src/fx/gameAudio.ts: events.on('tired') -> play('empty', {rate: 0.8})",
+			"Zampanò is tired", "AudioService.play(&\"empty\", 1.0, 0.8)"]],
+	"bark": [["bark", 1.0, 1.0, "src/fx/gameAudio.ts: events.on('bark') -> play('bark', {rate: 0.95 + Math.random() * 0.1}); the station plays the middle rate 1.0",
+			"Zampanò barks", "AudioService.play(&\"bark\", 1.0, 0.95 + randf() * 0.1)"]],
+}
+## The port's Green Zone scene, where the shipping calls of SOURCE_USES are checked.
+const GREEN_ZONE_SCENE_SCRIPT := "res://scenes/green_zone/green_zone_scene.gd"
+## The station window: 1320 x 900 where the screen allows (the captured size); every tab must keep
+## the status line visible and every control reachable down to SUPPORTED_MIN_SIZE.
+const WINDOW_SIZE := Vector2i(1320, 900)
+const SUPPORTED_MIN_SIZE := Vector2i(1280, 720)
 ## Source literals of the attack siren (src/config.ts AUDIO: SFX_VOLUME, FILE_GAIN.siren,
 ## SIREN_VOLUME, SIREN_DELAY) and of AudioEngine.stopLoop() (src/core/audio.ts: gain to 0 with
 ## time constant 0.08 s, source stopped 0.4 s later); the self-checks compare GameConfig with them.
@@ -128,8 +176,16 @@ const TITLE_OBS := [
 	["C-TIMING", "Playback timing matches the source animation (authored delays, smooth loop)"],
 	["C-MEMORY", "Memory report (shown on this tab): the title's frame memory and atlas pages are acceptable"],
 ]
-## Review screens captured by --export (review_ui/tab_<n>_<name>.png).
-const UI_TABS: Array[String] = ["animations", "audio", "audio_siren", "title"]
+## Review screens captured by --export: [file name, tab, audio cue shown, scrolled to the end,
+## window size]. The last one shows the title tab's end (C-MEMORY, notes, status line) at the
+## smallest supported size.
+const UI_CAPTURES := [
+	["tab_1_animations.png", 0, "intro", false, WINDOW_SIZE],
+	["tab_2_audio.png", 1, "splash", false, WINDOW_SIZE],
+	["tab_3_audio_siren.png", 1, "siren", false, WINDOW_SIZE],
+	["tab_4_title.png", 2, "intro", false, WINDOW_SIZE],
+	["tab_4_title_1280x720_end.png", 2, "intro", true, SUPPORTED_MIN_SIZE],
+]
 const FILTER_LABEL :="Nearest filtering: every animation's pixels stay crisp (no blur, no shimmer) at the review scale"
 const MUTE_LABEL := "Mute silences playback and unmuting restores it"
 const VOLUME_LABEL := "The volume control changes loudness; 0 % is silent"
@@ -160,11 +216,18 @@ var _load_message := ""
 ## True when stale decisions could not be set aside: saving would overwrite them, so it is refused.
 var _save_blocked := false
 var _status_note := ""
+## Self-test only: the save step made to fail on purpose ("promote.json", "promote.md"), standing
+## in for a rename the operating system refuses; empty in every other mode.
+var _fault := ""
+## Working copy of SOURCE_USES (the self-test changes it to prove the contract binds decisions).
+var _source_uses: Dictionary = {}
 var _export_errors := PackedStringArray()
 ## SHA-256 of each title still --export saved, by file name.
 var _still_hashes: Dictionary = {}
 var _status: Label
 var _tabs: TabContainer
+## The ScrollContainer of each tab (the animation and audio tabs scroll their right-hand panel).
+var _tab_scrolls: Array[ScrollContainer] = []
 
 # Animations tab.
 var _anim_list: ItemList
@@ -195,6 +258,7 @@ var _raw: AudioStreamPlayer
 var _audio_index := 0
 var _last_mode := "game"
 var _siren_button: Button
+var _alt_button: Button
 ## Review-only player of the siren attack event: idle, waiting (the delay), looping, fading (Stop).
 var _siren: AudioStreamPlayer
 var _siren_state := "idle"
@@ -234,6 +298,7 @@ func _ready() -> void:
 			_export_dir = args[k + 1]
 		elif args[k] == "--selftest" and k + 1 < args.size():
 			_selftest_dir = args[k + 1]
+	_source_uses = SOURCE_USES.duplicate(true)
 	_load_data()
 	_build_fields()
 	_reset_decisions()
@@ -314,6 +379,8 @@ func _load_data() -> void:
 		else:
 			it["game_gain"] = snappedf(GameConfig.Audio.SFX_VOLUME * float(GameConfig.Audio.FILE_GAIN.get(cue, 1.0)), 0.0001)
 			it["game_start_s"] = snappedf(float(AudioService.offsets.get(StringName(cue), 0.0)), 0.00001)
+		it["uses"] = _uses(it)
+		it["enter_gain"] = (it["uses"] as Array)[0]["effective_gain"]
 		var rel := path.trim_prefix("res://")
 		it["sha256"] = FileAccess.get_sha256(path)
 		it["manifest_sha256"] = String(_manifest_sha.get(rel, ""))
@@ -335,15 +402,69 @@ func _load_data() -> void:
 	_title_json = JSON.parse_string(FileAccess.get_file_as_string(TITLE_JSON_PATH))
 
 
+## The source uses of an audio item with their effective gain (bus gain before the master volume):
+## [{"id", "volume", "rate", "effective_gain", "source", "where", "port_call", "control"}]. Music
+## and effects without SOURCE_USES have one use at volume 1.0 and rate 1.0.
+func _uses(it: Dictionary) -> Array:
+	var cue := String(it["cue"])
+	var music: bool = it["kind"] == "music"
+	var base: float = AudioService.music_level(StringName(cue)) if music else GameConfig.Audio.SFX_VOLUME * float(GameConfig.Audio.FILE_GAIN.get(cue, 1.0))
+	var rows: Array = _source_uses.get(cue, [])
+	if rows.is_empty():
+		rows = [["track" if music else "default", 1.0, 1.0, String(it["source"]), String(it["use"]), ""]]
+	var out: Array = []
+	for k in rows.size():
+		var r: Array = rows[k]
+		out.append({"id": String(r[0]), "volume": float(r[1]), "rate": float(r[2]), "effective_gain": snappedf(base * float(r[1]), 0.000001),
+			"source": String(r[3]), "where": String(r[4]), "port_call": String(r[5]), "control": "Enter" if k == 0 else "V"})
+	return out
+
+
+## The canonical review contract: what the station presents and how it plays it, derived from the
+## live values (GameConfig.Audio, AudioService's tables and offsets, every item's source uses and
+## effective gains, the siren event, the project settings of PROJECT_KEYS, the title widths, the
+## field list). Its SHA-256 (of JSON with sorted keys) is part of the content fingerprint.
+func _review_contract() -> Dictionary:
+	var audio_cfg: GDScript = GameConfig.Audio
+	var cfg: Dictionary = audio_cfg.get_script_constant_map()
+	var offsets := {}
+	for k: StringName in AudioService.offsets:
+		offsets[String(k)] = snappedf(float(AudioService.offsets[k]), 0.000001)
+	var playback: Array = []
+	for it: Dictionary in _audio:
+		playback.append({"cue": it["cue"], "kind": it["kind"], "path": it["path"], "bus": it["bus"],
+			"start_s": float(AudioService.offsets.get(StringName(String(it["cue"])), 0.0)) if it["kind"] == "effect" else 0.0, "uses": _uses(it)})
+	var project := {}
+	for key in PROJECT_KEYS:
+		project[key] = ProjectSettings.get_setting(key)
+	var siren := _siren_config()
+	for k: String in ["alarm", "stop", "player"]:
+		siren.erase(k)
+	var ids := PackedStringArray()
+	for f: Dictionary in _fields:
+		ids.append(String(f["id"]))
+	return {"schema_version": SCHEMA_VERSION, "fields": ids, "game_config_audio": cfg, "project_settings": project,
+		"audio_service": {"music": AudioService.MUSIC, "sfx": AudioService.SFX, "synth": AudioService.SYNTH, "restarting_tracks": AudioService.RESTARTING_TRACKS,
+			"leading_silence_offsets": offsets, "same_cue_gap_s": AudioService.SAME_CUE_GAP, "pool_size": AudioService.POOL_SIZE},
+		"playback": playback, "siren_event": siren, "stop_loop": {"tau_s": STOP_LOOP_TAU, "end_s": STOP_LOOP_END},
+		"master_volume_at_start": SAFE_VOLUME, "duration_tolerance_s": DURATION_TOLERANCE,
+		"title": {"widths_px": TITLE_WIDTHS, "views_px": TITLE_VIEWS, "display_scale": 2, "memory_limit_bytes": TITLE_MEMORY_LIMIT},
+		"window": {"size": [WINDOW_SIZE.x, WINDOW_SIZE.y], "supported_min_size": [SUPPORTED_MIN_SIZE.x, SUPPORTED_MIN_SIZE.y]}}
+
+
 ## Deterministic fingerprint of the reviewed content: SHA-256 of the sorted "<res path> <sha256>"
 ## lines of the profile, both costume SpriteFrames, their sheet JSONs and every atlas page they use
 ## (with .import settings), the 32 audio files (with .import settings), the leading-silence and
-## bus-layout resources, and the title SpriteFrames, its JSON, atlas pages, portrait script and
-## shader. Any change to what the owner saw or heard changes it.
+## bus-layout resources, the title SpriteFrames, its JSON, atlas pages, portrait script and
+## shader, the station's own code and AudioService (CODE_FILES), followed by the line
+## "review-contract <SHA-256 of the review contract>". Any change to what the owner sees or hears,
+## or to how the station presents or plays it, changes it.
 func _content_fingerprint() -> Dictionary:
 	var paths := {PROFILE_PATH: true, "res://data/audio/sfx_leading_silence.tres": true,
 		"res://data/audio/default_bus_layout.tres": true, "res://data/title/title_animation.tres": true,
 		TITLE_JSON_PATH: true, "res://ui/title/title_portrait.gd": true, "res://ui/title/title_portrait.gdshader": true}
+	for p in CODE_FILES:
+		paths[p] = true
 	for c: Dictionary in _costumes:
 		paths[String(c["path"])] = true
 		paths[String(c["sheet_json"])] = true
@@ -368,9 +489,12 @@ func _content_fingerprint() -> Dictionary:
 		var sha := FileAccess.get_sha256(p) if FileAccess.file_exists(p) else ""
 		files.append([p, sha])
 		lines.append("%s %s" % [p, sha if sha != "" else "MISSING"])
+	var contract := _review_contract()
+	var contract_sha := (JSON.stringify(contract, "", true) + "\n").sha256_text()
+	lines.append("review-contract %s" % contract_sha)
 	var text := "\n".join(lines) + "\n"
-	return {"sha256": text.sha256_text(), "algorithm": "SHA-256 of the sorted '<res path> <file sha256>' lines, LF-terminated",
-		"schema_version": SCHEMA_VERSION, "file_count": files.size(), "files": files}
+	return {"sha256": text.sha256_text(), "algorithm": "SHA-256 of the sorted '<res path> <file sha256>' lines followed by 'review-contract <sha256>', LF-terminated; the review contract's SHA-256 is of its JSON with sorted keys and no indentation plus LF",
+		"schema_version": SCHEMA_VERSION, "file_count": files.size(), "files": files, "review_contract_sha256": contract_sha, "review_contract": contract}
 
 
 ## The title memory report (facts from title_frames.json, the SpriteFrames and the atlas import).
@@ -491,7 +615,8 @@ func _setup_window() -> void:
 	var w := get_window()
 	w.title = "SUPERVILLAINED - M1 manual review (development tool)"
 	var usable := DisplayServer.screen_get_usable_rect()
-	var size_wanted := Vector2i(mini(1320, usable.size.x), mini(900, usable.size.y))
+	var size_wanted := Vector2i(mini(WINDOW_SIZE.x, usable.size.x), mini(WINDOW_SIZE.y, usable.size.y))
+	w.min_size = Vector2i(mini(SUPPORTED_MIN_SIZE.x, size_wanted.x), mini(SUPPORTED_MIN_SIZE.y, size_wanted.y))
 	w.size = size_wanted
 	w.position = usable.position + (usable.size - size_wanted) / 2
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -522,8 +647,22 @@ func _build_ui() -> void:
 	_tabs.set_tab_title(2, "3 Title")
 	_tabs.set_tab_title(3, "4 Sign-off")
 	_tabs.tab_changed.connect(_on_tab_changed)
-	_status = _lbl("")
+	# The status line wraps instead of widening the window; the tabs above it scroll, so it always
+	# stays inside the window.
+	_status = _lbl("", true)
 	root.add_child(_status)
+
+
+## Wraps `content` in a vertical ScrollContainer that fills the space it is given.
+func _scroll(content: Control) -> ScrollContainer:
+	var s := ScrollContainer.new()
+	s.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	s.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	s.add_child(content)
+	_tab_scrolls.append(s)
+	return s
 
 
 func _btn(text: String, cb: Callable) -> Button:
@@ -601,8 +740,7 @@ func _build_animation_tab() -> Control:
 	_centre.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_stage.add_child(_centre)
 	var side := VBoxContainer.new()
-	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.add_child(side)
+	root.add_child(_scroll(side))
 	_anim_info = RichTextLabel.new()
 	_anim_info.bbcode_enabled = true
 	_anim_info.fit_content = true
@@ -642,8 +780,7 @@ func _build_audio_tab() -> Control:
 	_audio_list.item_selected.connect(_select_audio)
 	root.add_child(_audio_list)
 	var side := VBoxContainer.new()
-	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.add_child(side)
+	root.add_child(_scroll(side))
 	side.add_child(_lbl("Before the first sound: set the computer's own volume low. The station starts at 25 % master volume. Audio pauses while this window is not focused, like the game.", true))
 	_audio_info = RichTextLabel.new()
 	_audio_info.bbcode_enabled = true
@@ -652,8 +789,9 @@ func _build_audio_tab() -> Control:
 	side.add_child(_audio_info)
 	side.add_child(_row([_btn("Play, game path [Enter]", func() -> void: _play_audio("game")), _btn("Play raw file from 0 s [W]", func() -> void: _play_audio("raw")),
 		_btn("Music: last 6 s and loop [L]", func() -> void: _play_audio("seam"))]))
+	_alt_button = _btn("Other source use [V]", func() -> void: _play_audio("alt"))
 	_siren_button = _btn("Siren: attack event, loops until Stop [E]", func() -> void: _play_audio("siren"))
-	side.add_child(_siren_button)
+	side.add_child(_row([_alt_button, _siren_button]))
 	side.add_child(_row([_btn("Stop [S]", func() -> void: _stop_audio(true)), _btn("Replay [R]", func() -> void: _play_audio(_last_mode)),
 		_btn("< Previous [Up]", func() -> void: _move_audio(-1)), _btn("Next > [Down]", func() -> void: _move_audio(1))]))
 	_mute_box = CheckBox.new()
@@ -703,13 +841,17 @@ func _build_audio_tab() -> Control:
 	return root
 
 
+## The portrait strip with its facts beside it, then the controls, the eight decisions and the
+## notes, all in one scrolling column.
 func _build_title_tab() -> Control:
 	var root := VBoxContainer.new()
+	var top := HBoxContainer.new()
 	var cont := SubViewportContainer.new()
 	cont.stretch = true
 	cont.stretch_shrink = 2
 	cont.custom_minimum_size = Vector2(TITLE_SIZE * 2)
 	cont.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	cont.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	cont.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	var vp := SubViewport.new()
 	vp.size = TITLE_SIZE
@@ -724,18 +866,22 @@ func _build_title_tab() -> Control:
 		p.fit_width(float(TITLE_WIDTHS[k]))
 		p.position = Vector2(8 + k * (126 + 8), 8)
 		_portraits.append(p)
-	root.add_child(cont)
+	top.add_child(cont)
+	var facts := VBoxContainer.new()
+	facts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(facts)
+	root.add_child(top)
 	var widths := PackedStringArray()
 	for k in TITLE_WIDTHS.size():
 		widths.append("%d px wide (view %d px)" % [TITLE_WIDTHS[k], TITLE_VIEWS[k]])
-	root.add_child(_lbl("Left to right: " + ", ".join(widths) + "; shown at x2 like the game."))
+	facts.add_child(_lbl("Left to right: " + ", ".join(widths) + "; shown at x2 like the game.", true))
+	_title_info = _lbl("", true)
+	facts.add_child(_title_info)
+	facts.add_child(_lbl(_memory_report + " C-MEMORY below is your decision on this report.", true))
 	root.add_child(_row([_btn("Play / pause [Space]", _toggle_title), _btn("Replay [R]", _replay_title),
 		_btn("< Frame [Left]", func() -> void: _step_title(-1)), _btn("Frame > [Right]", func() -> void: _step_title(1)),
 		_btn("First [1]", func() -> void: _jump_title(0)), _btn("Middle [2]", func() -> void: _jump_title(_title_middle())),
 		_btn("Last [3]", func() -> void: _jump_title(_title_count() - 1))]))
-	_title_info = _lbl("")
-	root.add_child(_title_info)
-	root.add_child(_lbl(_memory_report + " C-MEMORY below is your decision on this report.", true))
 	var grid := GridContainer.new()
 	grid.columns = 2
 	for o: Array in TITLE_OBS:
@@ -749,7 +895,7 @@ func _build_title_tab() -> Control:
 	_title_notes.placeholder_text = "Notes for the title"
 	_title_notes.text_changed.connect(func(t: String) -> void: _set_note("C", t))
 	root.add_child(_title_notes)
-	return root
+	return _scroll(root)
 
 
 func _build_signoff_tab() -> Control:
@@ -779,12 +925,12 @@ func _build_signoff_tab() -> Control:
 	for k: String in _env:
 		env.append("%s: %s" % [k, _env[k]])
 	root.add_child(_lbl("Environment (recorded automatically):\n" + "\n".join(env), true))
-	root.add_child(_lbl("Reviewed content (decisions schema %d): fingerprint %s over %d files (the profile, both costume resources and sheets, the 32 audio files, the title resources). Saved decisions are resumed only for this exact content." % [
-		SCHEMA_VERSION, _fingerprint["sha256"], _fingerprint["file_count"]], true))
+	root.add_child(_lbl("Reviewed content (decisions schema %d): fingerprint %s over %d files (the profile, both costume resources and sheets, the 32 audio files, the title resources, this station's code and AudioService) and the review contract %s (how every item is presented and played). Saved decisions are resumed only for this exact content and contract." % [
+		SCHEMA_VERSION, _fingerprint["sha256"], _fingerprint["file_count"], _fingerprint["review_contract_sha256"]], true))
 	_summary = _lbl("", true)
 	root.add_child(_summary)
 	root.add_child(_row([_btn("Save now", _save_now), _btn("Open the decisions folder", func() -> void: OS.shell_open(ProjectSettings.globalize_path(_decisions_dir)))]))
-	return root
+	return _scroll(root)
 
 
 # --- Animations -----------------------------------------------------------------------------------
@@ -939,8 +1085,18 @@ func _select_audio(i: int) -> void:
 		"[b]File[/b] %s, %s channel(s), %s Hz%s, %s s, %d bytes" % [it["format"], it["channels"], it["sample_rate"], (", %s bit" % it["bits"]) if it.has("bits") else "", it["duration_s"], it["bytes"]],
 		"[b]Expected use[/b] %s" % it["use"],
 		"[b]Source[/b] %s" % it["source"],
-		"[b]Game path[/b] %s bus, gain %s, starts at %s s%s" % [it["bus"], it["game_gain"], it["game_start_s"], " (leading silence skipped)" if float(it["game_start_s"]) > 0.0 else ""],
+		"[b]Game path[/b] %s bus, base gain %s, starts at %s s%s" % [it["bus"], it["game_gain"], it["game_start_s"], " (leading silence skipped)" if float(it["game_start_s"]) > 0.0 else ""],
 	])
+	var uses := _uses(it)
+	if it["kind"] == "effect" and _source_uses.has(String(it["cue"])):
+		for u: Dictionary in uses:
+			lines.append("[b]%s[/b] source use '%s' (%s): volume x%s, rate %s, effective gain %s. %s" % [
+				"Play, game path [Enter]" if u["control"] == "Enter" else "Other source use [V]", u["id"], u["where"],
+				u["volume"], u["rate"], snappedf(float(u["effective_gain"]), 0.0001), u["source"]])
+	elif it["kind"] == "effect":
+		lines.append("[b]Play, game path [Enter][/b] volume x1.0, rate 1.0, effective gain %s (its source use, as above)." % snappedf(float(uses[0]["effective_gain"]), 0.0001))
+	_alt_button.disabled = uses.size() < 2
+	_alt_button.text = "Other source use: %s [V]" % uses[1]["id"] if uses.size() > 1 else "Other source use [V]"
 	if it["cue"] == "siren":
 		var s := _siren_config()
 		lines.append("[b]Game path [Enter][/b] is a generic one-shot effect (AudioService.play, like the story fire); it does not loop.")
@@ -969,13 +1125,17 @@ func _play_audio(mode: String) -> void:
 		mode = "raw"
 	if mode == "siren" and cue != &"siren":
 		return
+	var uses := _uses(it)
+	if mode == "alt" and uses.size() < 2:
+		return
 	_last_mode = mode
-	if mode == "game":
+	if mode == "game" or mode == "alt":
 		if music:
 			AudioService.track_positions.erase(cue)
 			AudioService.play_music(cue)
 		else:
-			AudioService.play(cue)
+			var u: Dictionary = uses[1 if mode == "alt" else 0]
+			AudioService.play(cue, float(u["volume"]), float(u["rate"]))
 		return
 	if mode == "siren":
 		_start_siren_event()
@@ -1305,50 +1465,94 @@ func _tag(group: String) -> String:
 	return "-" if passed == 0 else "%d/%d PASS" % [passed, total]
 
 
-## Resumes saved decisions only when their schema version and content fingerprint equal this
-## station's. Anything else (another version, other content, an unreadable file) is renamed to
-## m1_owner_decisions.stale-<time>.json/.md and every field starts NOT EXECUTED; if the rename
-## fails, saving is disabled so the old file is never overwritten.
+## Reads the pair <base>.json/.md: {"status": "none" | "ok" | "stale" | "broken", "reason",
+## "data", "save_id"}. "stale": another decisions schema, review contract or content fingerprint;
+## "broken": the JSON copy is missing or does not parse, or the Markdown copy is missing or carries
+## another save ID (a save that did not finish).
+func _read_pair(base: String) -> Dictionary:
+	var json_path := base + ".json"
+	var md_path := base + ".md"
+	if not FileAccess.file_exists(json_path):
+		if FileAccess.file_exists(md_path):
+			return {"status": "broken", "reason": "the JSON copy is missing"}
+		return {"status": "none", "reason": "no file"}
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(json_path))
+	if not (data is Dictionary):
+		return {"status": "broken", "reason": "the JSON copy is not a decisions file"}
+	var d: Dictionary = data
+	var schema := int(d.get("schema_version", 1))
+	if schema != SCHEMA_VERSION:
+		return {"status": "stale", "reason": "they were saved by decisions schema %d (this station: %d)" % [schema, SCHEMA_VERSION]}
+	var contract := String(d.get("review_contract_sha256", ""))
+	if contract != String(_fingerprint["review_contract_sha256"]):
+		return {"status": "stale", "reason": "they were made under another review contract, so something was presented or played differently (contract %s; this station: %s)" % [
+			contract.left(16) if contract != "" else "none", String(_fingerprint["review_contract_sha256"]).left(16)]}
+	var fp := String(d.get("content_fingerprint", ""))
+	if fp != String(_fingerprint["sha256"]):
+		return {"status": "stale", "reason": "they were made for other content (fingerprint %s; this station: %s)" % [fp.left(16) if fp != "" else "none", String(_fingerprint["sha256"]).left(16)]}
+	var save_id := String(d.get("save_id", ""))
+	if save_id == "" or not FileAccess.file_exists(md_path) or not FileAccess.get_file_as_string(md_path).contains(_save_id_line(save_id)):
+		return {"status": "broken", "reason": "the Markdown copy is missing or belongs to another save (the JSON copy's save ID: %s)" % (save_id if save_id != "" else "none")}
+	return {"status": "ok", "reason": "", "data": d, "save_id": save_id}
+
+
+## The Markdown row that pairs a checklist copy with its JSON copy.
+static func _save_id_line(save_id: String) -> String:
+	return "| Save ID (the same as in m1_owner_decisions.json) | `%s` |" % save_id
+
+
+## Resumes the saved pair only when _read_pair() finds it current and complete. A pair of another
+## schema, contract or content is set aside as m1_owner_decisions.stale-<time>.* (with the
+## .previous pair) and every field starts NOT EXECUTED. When the last pair is incomplete or missing
+## (a save that did not finish) and the .previous pair is current and complete, the last pair is
+## set aside and the previous one resumed. If a set-aside rename fails, saving is disabled so
+## nothing is overwritten.
 func _load_decisions() -> void:
 	_save_blocked = false
-	var path := _decisions_dir.path_join(DECISIONS_FILE + ".json")
-	if not FileAccess.file_exists(path):
+	var base := _decisions_dir.path_join(DECISIONS_FILE)
+	var last := _read_pair(base)
+	if last["status"] == "ok":
+		_apply_saved(last["data"])
+		_load_message = "Resumed the saved decisions (schema %d, fingerprint %s, save %s)." % [SCHEMA_VERSION, String(_fingerprint["sha256"]).left(16), last["save_id"]]
+		return
+	var prev := _read_pair(base + ".previous")
+	if last["status"] == "none" and prev["status"] == "none":
 		_load_message = "No saved decisions in this folder: every field starts NOT EXECUTED."
 		return
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-	var reason := ""
-	if not (data is Dictionary):
-		reason = "the file is not a decisions file"
-	else:
-		var schema := int((data as Dictionary).get("schema_version", 1))
-		var fp := String((data as Dictionary).get("content_fingerprint", ""))
-		if schema != SCHEMA_VERSION:
-			reason = "they were saved by decisions schema %d (this station: %d)" % [schema, SCHEMA_VERSION]
-		elif fp != String(_fingerprint["sha256"]):
-			reason = "they were made for other content (fingerprint %s; this station: %s)" % [fp.left(16) if fp != "" else "none", String(_fingerprint["sha256"]).left(16)]
-	if reason != "":
-		var stamp := Time.get_datetime_string_from_system().replace(":", "-")
-		var moved := PackedStringArray()
-		var failed := PackedStringArray()
-		for ext: String in [".json", ".md"]:
-			var from := _decisions_dir.path_join(DECISIONS_FILE + ext)
-			if not FileAccess.file_exists(from):
-				continue
-			var to := _decisions_dir.path_join("%s.stale-%s%s" % [DECISIONS_FILE, stamp, ext])
-			if DirAccess.rename_absolute(from, to) == OK and FileAccess.file_exists(to) and not FileAccess.file_exists(from):
-				moved.append(to.get_file())
-			else:
-				failed.append(from.get_file())
-		if not failed.is_empty():
-			_save_blocked = true
-			_save_message = "stale decisions (%s) could not be set aside (%s); nothing will be saved, so they are not overwritten" % [reason, ", ".join(failed)]
-			_load_message = "Saved decisions NOT resumed: " + _save_message + "."
-			_status_note = _load_message
-			return
-		_load_message = "Saved decisions NOT resumed: %s. They were set aside as %s; every field starts NOT EXECUTED." % [reason, ", ".join(moved)]
+	var recover: bool = prev["status"] == "ok" and last["status"] != "stale"
+	var suffixes: Array[String] = [".json", ".md"]
+	if not recover:
+		suffixes.append_array([".previous.json", ".previous.md"])
+	var stamp := Time.get_datetime_string_from_system().replace(":", "-")
+	var moved := PackedStringArray()
+	var failed := PackedStringArray()
+	for suffix in suffixes:
+		var from := base + suffix
+		if not FileAccess.file_exists(from):
+			continue
+		var to := _decisions_dir.path_join("%s.stale-%s%s" % [DECISIONS_FILE, stamp, suffix])
+		if DirAccess.rename_absolute(from, to) == OK and FileAccess.file_exists(to) and not FileAccess.file_exists(from):
+			moved.append(to.get_file())
+		else:
+			failed.append(from.get_file())
+	var reason := String(last["reason"]) if last["status"] != "none" else String(prev["reason"])
+	if not failed.is_empty():
+		_save_blocked = true
+		_save_message = "saved decisions that cannot be resumed (%s) could not be set aside (%s); nothing will be saved, so they are not overwritten" % [reason, ", ".join(failed)]
+		_load_message = "Saved decisions NOT resumed: " + _save_message + "."
 		_status_note = _load_message
 		return
-	var d: Dictionary = data
+	if recover:
+		_apply_saved(prev["data"])
+		_load_message = "Resumed the previous saved pair (m1_owner_decisions.previous.json/.md, save %s): the last pair could not be used (%s)%s." % [
+			prev["save_id"], reason if last["status"] != "none" else "it is missing", (" and was set aside as " + ", ".join(moved)) if not moved.is_empty() else ""]
+		_status_note = _load_message
+		return
+	_load_message = "Saved decisions NOT resumed: %s. They were set aside as %s; every field starts NOT EXECUTED." % [reason, ", ".join(moved)]
+	_status_note = _load_message
+
+
+func _apply_saved(d: Dictionary) -> void:
 	var saved: Dictionary = d.get("decisions", {})
 	for id: String in saved:
 		if _decisions.has(id) and DECISIONS.has(String(saved[id])):
@@ -1362,11 +1566,10 @@ func _load_decisions() -> void:
 			_owner_info[k] = String(o[k])
 	if _owner_info["final"] == "APPROVED" and not _approval_missing().is_empty():
 		_owner_info["final"] = "NOT DECIDED"
-	_load_message = "Resumed the saved decisions (schema %d, fingerprint %s)." % [SCHEMA_VERSION, String(_fingerprint["sha256"]).left(16)]
 
 
-## Saves the JSON and Markdown copies; returns false (and shows NOT SAVED) when any directory,
-## write or read-back fails.
+## Saves the JSON and Markdown copies as one transaction (_commit_pair); returns false and shows
+## NOT SAVED when anything fails, in which case the earlier pair is what is on disk.
 func _save() -> bool:
 	if _export_dir != "":
 		return true
@@ -1377,11 +1580,14 @@ func _save() -> bool:
 	if dir_error != "":
 		errors.append(dir_error)
 	else:
+		var save_id := "%s-%d" % [Time.get_datetime_string_from_system().replace(":", "-"), Time.get_ticks_usec()]
 		var data := {
 			"tool": "res://tools/m1_review.gd",
 			"schema_version": SCHEMA_VERSION,
+			"save_id": save_id,
 			"content_fingerprint": _fingerprint["sha256"],
 			"content_fingerprint_files": _fingerprint["file_count"],
+			"review_contract_sha256": _fingerprint["review_contract_sha256"],
 			"saved_at": Time.get_datetime_string_from_system(),
 			"environment": _env,
 			"owner": _owner_info,
@@ -1389,10 +1595,9 @@ func _save() -> bool:
 			"notes": _notes,
 			"summary": {"PASS": _count("PASS"), "FAIL": _count("FAIL"), "NOT EXECUTED": _count("NOT EXECUTED"), "fields": _fields.size()},
 		}
-		for pair: Array in [[DECISIONS_FILE + ".json", JSON.stringify(data, "  ", true) + "\n"], [DECISIONS_FILE + ".md", _markdown(false)]]:
-			var e := _write(_decisions_dir.path_join(String(pair[0])), String(pair[1]))
-			if e != "":
-				errors.append(e)
+		var e := _commit_pair(_decisions_dir.path_join(DECISIONS_FILE), JSON.stringify(data, "  ", true) + "\n", _markdown(false, save_id), save_id)
+		if e != "":
+			errors.append(e)
 	if errors.is_empty():
 		_save_state = "ok"
 		_save_message = Time.get_time_string_from_system()
@@ -1401,6 +1606,68 @@ func _save() -> bool:
 	_save_message = "; ".join(errors)
 	push_error("m1_review: decisions NOT saved: " + _save_message)
 	return false
+
+
+## The save transaction of <base>.json/.md: (1, 2) both new copies are written as <base>.json.new
+## and <base>.md.new and read back, (3) they are verified as a pair (the JSON parses, both carry
+## `save_id`), (4) the current pair is kept as <base>.previous.json/.md and (5) the new pair is
+## renamed into place. Any failure removes the new files and puts the earlier pair back; returns ""
+## or the failure.
+func _commit_pair(base: String, json_text: String, md_text: String, save_id: String) -> String:
+	var texts := {".json": json_text, ".md": md_text}
+	var created := PackedStringArray()
+	for ext: String in [".json", ".md"]:
+		var tmp := base + ext + ".new"
+		if FileAccess.file_exists(tmp):
+			DirAccess.remove_absolute(tmp)
+		var e := _write(tmp, String(texts[ext]))
+		if FileAccess.file_exists(tmp):
+			created.append(tmp)
+		if e != "":
+			return _rollback(base, PackedStringArray(), PackedStringArray(), created, "the new %s copy could not be written (%s)" % [ext.trim_prefix("."), e])
+	var check: Variant = JSON.parse_string(FileAccess.get_file_as_string(base + ".json.new"))
+	if not (check is Dictionary) or String((check as Dictionary).get("save_id", "")) != save_id \
+			or not FileAccess.get_file_as_string(base + ".md.new").contains(_save_id_line(save_id)):
+		return _rollback(base, PackedStringArray(), PackedStringArray(), created, "the new pair does not verify (save ID %s)" % save_id)
+	var kept := PackedStringArray()
+	for ext: String in [".json", ".md"]:
+		var current := base + ext
+		if not FileAccess.file_exists(current):
+			continue
+		var prev := base + ".previous" + ext
+		var err := DirAccess.remove_absolute(prev) if FileAccess.file_exists(prev) else OK
+		if err == OK:
+			err = DirAccess.rename_absolute(current, prev)
+		if err != OK or FileAccess.file_exists(current) or not FileAccess.file_exists(prev):
+			return _rollback(base, kept, PackedStringArray(), created, "the current %s copy could not be kept as %s (%s)" % [ext.trim_prefix("."), prev.get_file(), error_string(err)])
+		kept.append(ext)
+	var promoted := PackedStringArray()
+	for ext: String in [".json", ".md"]:
+		var err := ERR_CANT_CREATE if _fault == "promote" + ext else DirAccess.rename_absolute(base + ext + ".new", base + ext)
+		if err != OK or not FileAccess.file_exists(base + ext):
+			return _rollback(base, kept, promoted, created, "the new %s copy could not be put in place as %s (%s%s)" % [
+				ext.trim_prefix("."), (base + ext).get_file(), error_string(err), ", injected by the self-test" if _fault == "promote" + ext else ""])
+		promoted.append(ext)
+		created.remove_at(created.find(base + ext + ".new"))
+	return ""
+
+
+## Undoes a failed _commit_pair(): removes the promoted new copies, renames the kept earlier copies
+## back and removes the new files that were not promoted. Returns `reason` with what was undone.
+func _rollback(base: String, kept: PackedStringArray, promoted: PackedStringArray, created: PackedStringArray, reason: String) -> String:
+	var problems := PackedStringArray()
+	for ext in promoted:
+		if DirAccess.remove_absolute(base + ext) != OK:
+			problems.append("cannot remove the new " + (base + ext).get_file())
+	for ext in kept:
+		if DirAccess.rename_absolute(base + ".previous" + ext, base + ext) != OK:
+			problems.append("cannot put back " + (base + ext).get_file())
+	for p in created:
+		if FileAccess.file_exists(p) and DirAccess.remove_absolute(p) != OK:
+			problems.append("cannot remove " + p.get_file())
+	if not problems.is_empty():
+		return reason + "; ROLLBACK INCOMPLETE: " + "; ".join(problems)
+	return reason + "; nothing was changed (the new files were removed%s)" % (" and the earlier pair put back" if not kept.is_empty() else "")
 
 
 func _save_now() -> void:
@@ -1435,8 +1702,9 @@ static func _md(text: String) -> String:
 	return text.replace("|", "\\|").replace("\n", " ")
 
 
-## The checklist: blank (every field NOT EXECUTED, no owner data) or the current decisions.
-func _markdown(blank: bool) -> String:
+## The checklist: blank (every field NOT EXECUTED, no owner data) or the current decisions with
+## the save ID that pairs it with its JSON copy.
+func _markdown(blank: bool, save_id := "") -> String:
 	var dec := func(id: String) -> String: return "NOT EXECUTED" if blank else String(_decisions[id])
 	var note := func(group: String) -> String: return "" if blank else _md(String(_notes.get(group, "")))
 	var o := PackedStringArray()
@@ -1456,7 +1724,10 @@ func _markdown(blank: bool) -> String:
 		for k: String in _env:
 			o.append("| Environment: %s | %s |" % [k, _md(String(_env[k]))])
 	o.append("| Listening equipment and display | %s |" % ("" if blank else _md(String(_owner_info["equipment"]))))
-	o.append("| Reviewed content | decisions schema %d; content fingerprint `%s` (SHA-256 over %d files, listed in `content_fingerprint.json`) |" % [SCHEMA_VERSION, _fingerprint["sha256"], _fingerprint["file_count"]])
+	o.append("| Reviewed content | decisions schema %d; content fingerprint `%s` (SHA-256 over %d files and the review contract, listed in `content_fingerprint.json`); review contract `%s` |" % [
+		SCHEMA_VERSION, _fingerprint["sha256"], _fingerprint["file_count"], _fingerprint["review_contract_sha256"]])
+	if not blank:
+		o.append(_save_id_line(save_id))
 	o.append("| Final M1 manual decision (APPROVED only when every field is PASS and the owner name, date and equipment are filled in) | %s |" % ("NOT DECIDED" if blank else String(_owner_info["final"])))
 	o.append("")
 	o.append("Fields: %d (animations %d, audio %d, title %d)." % [_fields.size(), _section_size("A"), _section_size("B"), _section_size("C")]
@@ -1490,7 +1761,7 @@ func _markdown(blank: bool) -> String:
 	o.append("")
 	o.append("## B. Audio (AUD-001-008: recorded and generated cues at a safe volume)")
 	o.append("")
-	o.append("A cell's field ID is `B-<cue>-<observation>`: AUDIBLE (clearly audible at the safe volume), INTENT (right for its expected use), START (no late start or cut attack; recorded effects skip their leading silence in the game), END (ends or loops cleanly; music: loop seam and track switch), CLEAN (no obvious clipping, distortion or artifacts). The siren is judged on both of its game uses: the one-shot game path and the attack event ([E] in the station: the alarm, then the siren after %s s at SIREN_VOLUME, looping until Stop)." % _siren_config()["delay_s"])
+	o.append("A cell's field ID is `B-<cue>-<observation>`: AUDIBLE (clearly audible at the safe volume), INTENT (right for its expected use), START (no late start or cut attack; recorded effects skip their leading silence in the game), END (ends or loops cleanly; music: loop seam and track switch), CLEAN (no obvious clipping, distortion or artifacts). The siren is judged on both of its game uses: the one-shot game path and the attack event ([E] in the station: the alarm, then the siren after %s s at SIREN_VOLUME, looping until Stop). An effect's game path ([Enter]) plays its source use's volume and rate; where the source has a second use, [V] plays it (both listed below with their effective gains)." % _siren_config()["delay_s"])
 	o.append("")
 	o.append("| # | Cue | Provenance | Resource | Format | Ch | Rate (Hz) | Duration (s) | Expected use | AUDIBLE | INTENT | START | END | CLEAN | Notes |")
 	o.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
@@ -1504,6 +1775,17 @@ func _markdown(blank: bool) -> String:
 	o.append("|---|---|---|")
 	o.append("| B-MUTE | %s | %s |" % [MUTE_LABEL, dec.call("B-MUTE")])
 	o.append("| B-VOLUME | %s | %s |" % [VOLUME_LABEL, dec.call("B-VOLUME")])
+	o.append("")
+	o.append("Effects played with source call options (every other effect: volume x1.0, rate 1.0; effective gain = SFX volume x file gain x use volume, before the master volume):")
+	o.append("")
+	o.append("| Cue | Control | Source use | Volume | Rate | Effective gain | Source call |")
+	o.append("|---|---|---|---|---|---|---|")
+	for it: Dictionary in _audio:
+		if not _source_uses.has(String(it["cue"])):
+			continue
+		for u: Dictionary in _uses(it):
+			o.append("| %s | %s | %s (%s) | %s | %s | %s | %s |" % [it["cue"], "[Enter]" if u["control"] == "Enter" else "[V]", u["id"], _md(String(u["where"])),
+				u["volume"], u["rate"], snappedf(float(u["effective_gain"]), 0.0001), _md(String(u["source"]))])
 	o.append("")
 	o.append("## C. Title (AST-010 human part)")
 	o.append("")
@@ -1562,6 +1844,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				KEY_W: _play_audio("raw")
 				KEY_L: _play_audio("seam")
 				KEY_E: _play_audio("siren")
+				KEY_V: _play_audio("alt")
 				KEY_S: _stop_audio(true)
 				KEY_R: _play_audio(_last_mode)
 				KEY_UP: _move_audio(-1)
@@ -1593,8 +1876,8 @@ func _expected_export_files() -> PackedStringArray:
 		out.append("contact_sheets/zampano_%02d_%s.png" % [ai + 1, _actions[ai]])
 	for idx in _title_still_frames():
 		out.append("title_stills/" + _title_still_name(idx))
-	for t in UI_TABS.size():
-		out.append("review_ui/tab_%d_%s.png" % [t + 1, UI_TABS[t]])
+	for c: Array in UI_CAPTURES:
+		out.append("review_ui/" + String(c[0]))
 	return out
 
 
@@ -1645,13 +1928,16 @@ func _run_export() -> void:
 	checks.append({"check": "checklist fields: 192 animation cells + A-FILTER, 32 x 5 audio + B-MUTE + B-VOLUME, 8 title (C-MEMORY included)", "ok": _fields.size() == 192 + 1 + 160 + 2 + 8 and _fields.size() == 363, "value": _fields.size()})
 	checks.append(_fingerprint_check())
 	checks.append(_siren_config_check())
+	checks.append(_source_uses_check())
 	await _render_contact_sheets()
 	await _capture_title_stills()
 	var stills_ok := _still_hashes.size() == 3
 	for k: String in _still_hashes:
 		stills_ok = stills_ok and String(_still_hashes[k]).length() == 64
 	checks.append({"check": "title stills: frames 0, 49 and 98 saved after the portraits were ready (value: SHA-256 per file)", "ok": stills_ok, "value": _still_hashes})
-	await _capture_ui()
+	checks.append(await _capture_ui())
+	for win: Vector2i in [WINDOW_SIZE, SUPPORTED_MIN_SIZE]:
+		checks.append(await _layout_check(win))
 	_finish_export(checks)
 
 
@@ -1683,11 +1969,45 @@ func _finish_export(checks: Array[Dictionary]) -> void:
 func _fingerprint_check() -> Dictionary:
 	var again := _content_fingerprint()
 	var all_present := true
+	var listed := {}
 	for f: Array in (_fingerprint["files"] as Array):
 		all_present = all_present and String(f[1]).length() == 64
-	return {"check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources)",
-		"ok": again["sha256"] == _fingerprint["sha256"] and String(_fingerprint["sha256"]).length() == 64 and all_present and int(_fingerprint["file_count"]) > 40,
-		"value": {"sha256": _fingerprint["sha256"], "files": _fingerprint["file_count"]}}
+		listed[String(f[0])] = true
+	var code := true
+	for p in CODE_FILES:
+		code = code and listed.has(p)
+	return {"check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources, the station's code and AudioService) and the review contract included",
+		"ok": again["sha256"] == _fingerprint["sha256"] and again["review_contract_sha256"] == _fingerprint["review_contract_sha256"] and String(_fingerprint["sha256"]).length() == 64
+			and String(_fingerprint["review_contract_sha256"]).length() == 64 and all_present and code and int(_fingerprint["file_count"]) > 40,
+		"value": {"sha256": _fingerprint["sha256"], "files": _fingerprint["file_count"], "review_contract_sha256": _fingerprint["review_contract_sha256"]}}
+
+
+## Every source use of SOURCE_USES: its effective gain is SFX volume x file gain x use volume, the
+## first use is the game path, and every use the port already has matches the port's own call in
+## the Green Zone scene (the volume and rate the shipping game plays).
+func _source_uses_check() -> Dictionary:
+	var scene_text := FileAccess.get_file_as_string(GREEN_ZONE_SCENE_SCRIPT)
+	var ok := true
+	var value := {}
+	for it: Dictionary in _audio:
+		var cue := String(it["cue"])
+		if not _source_uses.has(cue):
+			continue
+		var uses := _uses(it)
+		var base: float = GameConfig.Audio.SFX_VOLUME * float(GameConfig.Audio.FILE_GAIN.get(cue, 1.0))
+		var rows := []
+		for u: Dictionary in uses:
+			var gain_ok := is_equal_approx(float(u["effective_gain"]), snappedf(base * float(u["volume"]), 0.000001))
+			var port_ok := String(u["port_call"]) == "" or scene_text.contains(String(u["port_call"]))
+			ok = ok and gain_ok and port_ok
+			rows.append({"use": u["id"], "control": u["control"], "volume": u["volume"], "rate": u["rate"], "effective_gain": u["effective_gain"],
+				"port_call": u["port_call"] if u["port_call"] != "" else "none (not in the port yet)", "port_call_found": port_ok})
+		value[cue] = rows
+	var splash: Array = _uses(_audio[_audio_cue_index("splash")])
+	ok = ok and splash.size() == 2 and is_equal_approx(float(splash[0]["volume"]), 0.7) and is_equal_approx(float(splash[1]["volume"]), 0.5) \
+		and is_equal_approx(float(splash[0]["effective_gain"]), 0.63) and is_equal_approx(float(splash[1]["effective_gain"]), 0.45)
+	return {"check": "effect source uses: splash [Enter] is the Green Zone use (volume 0.7, gain 0.63) and [V] the story boat use (0.5, gain 0.45); every effective gain is SFX x file gain x use volume; each use the port has equals its call in %s" % GREEN_ZONE_SCENE_SCRIPT,
+		"ok": ok, "value": value}
 
 
 ## The siren attack-event mode uses the port's constants, and they equal the source literals.
@@ -1821,6 +2141,7 @@ func _audio_inventory(checks: Array[Dictionary]) -> Dictionary:
 	checks.append({"check": "Godot stream length within %s s of the source fixture duration (unrounded values; value: the largest difference)" % DURATION_TOLERANCE, "ok": durations, "value": worst})
 	return {"items": _audio, "counts": counts, "master_volume_at_start": SAFE_VOLUME, "duration_tolerance_s": DURATION_TOLERANCE,
 		"siren_attack_event": _siren_config(),
+		"source_uses_note": "every item's 'uses': the source use(s) the station plays, with volume and rate multipliers and the effective gain (SFX volume x file gain x use volume for effects; music_level for music), before the master volume; [Enter] plays the first use, [V] the second",
 		"review": "listened to in tools/m1_review.tscn (tab 2); these facts do not replace the human decisions B-*"}
 
 
@@ -1997,22 +2318,117 @@ func _capture_title_stills() -> void:
 
 
 ## Captures of the review tabs as the reviewer sees them (supporting images, not evidence of any
-## decision); the audio tab twice: its first item and the siren with the attack-event controls.
-func _capture_ui() -> void:
+## decision; UI_CAPTURES): the audio tab twice (splash with its two source uses; the siren with the
+## attack-event controls), and the title tab at 1320 x 900 and scrolled to its end at SUPPORTED_MIN_SIZE.
+## Returns a check that every capture has its window size.
+func _capture_ui() -> Dictionary:
 	var out := _export_dir.path_join("review_ui")
 	var dir_error := _ensure_dir(out)
+	var sizes := {}
 	if dir_error != "":
 		_export_errors.append(dir_error)
-		return
-	for t in UI_TABS.size():
-		var tab := 2 if UI_TABS[t] == "title" else (1 if UI_TABS[t].begins_with("audio") else 0)
-		_select_audio(_audio_cue_index("siren") if UI_TABS[t] == "audio_siren" else 0)
-		_tabs.current_tab = tab
-		for i in 30:
+		return {"check": "review screen captures saved at their window sizes", "ok": false, "value": dir_error}
+	for c: Array in UI_CAPTURES:
+		await _set_window_size(c[4] as Vector2i)
+		_select_audio(_audio_cue_index(String(c[2])))
+		_tabs.current_tab = int(c[1])
+		for i in 10:
+			await get_tree().process_frame
+		var sc := _tab_scrolls[int(c[1])]
+		sc.scroll_vertical = int(sc.get_v_scroll_bar().max_value) if bool(c[3]) else 0
+		for i in 20:
 			await get_tree().process_frame
 		await RenderingServer.frame_post_draw
-		_save_png(get_viewport().get_texture().get_image(), out.path_join("tab_%d_%s.png" % [t + 1, UI_TABS[t]]))
+		var img := get_viewport().get_texture().get_image()
+		sizes[String(c[0])] = [img.get_width(), img.get_height()] if img != null else []
+		_save_png(img, out.path_join(String(c[0])))
+		sc.scroll_vertical = 0
+	await _set_window_size(WINDOW_SIZE)
 	_select_audio(0)
+	var ok := true
+	for c: Array in UI_CAPTURES:
+		var want: Vector2i = c[4]
+		ok = ok and sizes.get(String(c[0]), []) == [want.x, want.y]
+	return {"check": "review screen captures saved at their window sizes (1320 x 900; the title tab's end also at %d x %d)" % [SUPPORTED_MIN_SIZE.x, SUPPORTED_MIN_SIZE.y], "ok": ok, "value": sizes}
+
+
+## Sets the window size and waits until the root viewport has it.
+func _set_window_size(win: Vector2i) -> void:
+	get_window().size = win
+	for i in 60:
+		await get_tree().process_frame
+		if Vector2i(get_viewport().get_visible_rect().size) == win:
+			break
+	for i in 5:
+		await get_tree().process_frame
+
+
+## At window `size`: on every tab, the status line lies wholly inside the window, and every
+## interactive control (buttons, decision pickers, notes and owner fields, the volume slider) can
+## be scrolled wholly into view inside its tab. The title tab's eight decisions (C-MEMORY among
+## them) and its notes are listed by name.
+func _layout_check(win: Vector2i) -> Dictionary:
+	await _set_window_size(win)
+	var view := Rect2(Vector2.ZERO, get_viewport().get_visible_rect().size)
+	var unreachable := PackedStringArray()
+	var status_ok := true
+	var checked := 0
+	var title_reached := PackedStringArray()
+	for t in _tabs.get_tab_count():
+		_tabs.current_tab = t
+		for i in 4:
+			await get_tree().process_frame
+		var st := _status.get_global_rect()
+		status_ok = status_ok and _status.is_visible_in_tree() and view.grow(0.5).encloses(st) and st.size.y > 0.0
+		var sc := _tab_scrolls[t]
+		for c in _interactive_controls(_tabs.get_child(t)):
+			checked += 1
+			var inside_scroll := sc.is_ancestor_of(c)
+			if inside_scroll:
+				sc.ensure_control_visible(c)
+				for i in 3:
+					await get_tree().process_frame
+			var r := c.get_global_rect()
+			var ok := view.grow(0.5).encloses(r) and r.size.x > 0.0 and r.size.y > 0.0 and (not inside_scroll or sc.get_global_rect().grow(0.5).encloses(r))
+			if not ok:
+				unreachable.append("%s: %s %s" % [_tabs.get_tab_title(t), c.get_class(), _control_name(c)])
+			elif t == 2 and (c is OptionButton or c == _title_notes):
+				title_reached.append(_control_name(c))
+		sc.scroll_vertical = 0
+	_tabs.current_tab = 0
+	await _set_window_size(WINDOW_SIZE)
+	var title_ok := title_reached.size() == TITLE_OBS.size() + 1 and title_reached.has("C-MEMORY") and title_reached.has("title notes")
+	return {"check": "layout at %d x %d: the status line stays inside the window on every tab and every interactive control can be scrolled into view (title: the 8 decisions, C-MEMORY included, and the notes)" % [win.x, win.y],
+		"ok": status_ok and unreachable.is_empty() and title_ok and view.size == Vector2(win),
+		"value": {"window": [view.size.x, view.size.y], "status_inside": status_ok, "controls_checked": checked, "unreachable": unreachable, "title_reached": title_reached}}
+
+
+## The buttons, pickers, text fields and sliders under `node` that are shown (scroll bars excluded).
+func _interactive_controls(node: Node) -> Array[Control]:
+	var out: Array[Control] = []
+	for child in node.get_children():
+		if child is ScrollBar or child is SubViewportContainer:
+			continue
+		if child is Control and not (child as Control).is_visible_in_tree():
+			continue
+		if child is BaseButton or child is LineEdit or child is Range:
+			out.append(child as Control)
+		out.append_array(_interactive_controls(child))
+	return out
+
+
+## A readable name of a control for the layout report: the decision it sets, or its text.
+func _control_name(c: Control) -> String:
+	for id: String in _pickers_by_id:
+		if _pickers_by_id[id] == c:
+			return id
+	if c == _title_notes:
+		return "title notes"
+	if c is Button:
+		return "'%s'" % (c as Button).text
+	if c is LineEdit:
+		return "field '%s'" % (c as LineEdit).placeholder_text
+	return c.name
 
 
 func _audio_cue_index(cue: String) -> int:
@@ -2025,10 +2441,11 @@ func _audio_cue_index(cue: String) -> int:
 # --- Self-test: the station's own behaviour, in a scratch folder ----------------------------------
 
 ## --selftest <dir>: drives the station's own code (no human decision is made or implied) in
-## <dir>/run-<time>: save and resume, a stale fingerprint, an old schema, save failures, approval
-## and attribution refusal, the siren attack event and pausing on focus loss. The master bus is
-## silent throughout (volume 0). Writes <dir>/station_selftest.json and exits 0 only when every
-## check holds.
+## <dir>/run-<time>: the transactional save and its failures, resume, stale content, schema and
+## review contract, approval and attribution refusal, the effects' source uses on AudioService's
+## players, the siren attack event (with a real loop wrap in mixer time), pausing on focus loss and
+## the layout at 1320 x 900 and the smallest supported size. The master bus is silent throughout
+## (volume 0). Writes <dir>/station_selftest.json and exits 0 only when every check holds.
 func _run_selftest() -> void:
 	var checks: Array[Dictionary] = []
 	var root_error := _ensure_dir(_selftest_dir)
@@ -2042,8 +2459,10 @@ func _run_selftest() -> void:
 	var add := func(check_name: String, ok: bool, value: Variant = null) -> void:
 		checks.append({"check": check_name, "ok": ok, "value": value})
 	AudioService.apply_settings(false, 0.0)
+	var fp := String(_fingerprint["sha256"])
+	var rc := String(_fingerprint["review_contract_sha256"])
 
-	# Fields.
+	# Fields, fingerprint, constants.
 	add.call("363 fields: 193 animation (192 cells + A-FILTER), 162 audio (32 x 5 + B-MUTE + B-VOLUME), 8 title (C-MEMORY included)",
 		_fields.size() == 363 and _section_size("A") == 193 and _section_size("B") == 162 and _section_size("C") == 8 and _decisions.has("C-MEMORY"),
 		{"fields": _fields.size(), "A": _section_size("A"), "B": _section_size("B"), "C": _section_size("C")})
@@ -2051,30 +2470,107 @@ func _run_selftest() -> void:
 		and String(_owner_info["name"]) == "" and String(_owner_info["date"]) == "" and String(_owner_info["equipment"]) == "", _count("NOT EXECUTED"))
 	checks.append(_fingerprint_check())
 	checks.append(_siren_config_check())
+	checks.append(_source_uses_check())
 
-	# Save and resume.
-	_decisions_dir = run.path_join("resume")
+	# Transactional save: write both copies, verify, keep the earlier pair, promote.
+	_decisions_dir = run.path_join("transaction")
+	var base := _decisions_dir.path_join(DECISIONS_FILE)
 	_reset_decisions()
 	_decisions["A-normal-idle-n"] = "PASS"
-	_decisions["B-bark-AUDIBLE"] = "FAIL"
 	_decisions["C-MEMORY"] = "PASS"
-	_notes["C"] = "self-test note"
+	_notes["C"] = "pair A"
 	_owner_info["name"] = "Self-test"
-	var saved := _save()
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(_decisions_dir.path_join(DECISIONS_FILE + ".json")))
-	var md := FileAccess.get_file_as_string(_decisions_dir.path_join(DECISIONS_FILE + ".md"))
-	add.call("save: m1_owner_decisions.json (schema %d, content fingerprint) and .md (fingerprint shown) written" % SCHEMA_VERSION,
-		saved and _save_state == "ok" and data is Dictionary and int((data as Dictionary).get("schema_version", 0)) == SCHEMA_VERSION
-		and (data as Dictionary).get("content_fingerprint", "") == _fingerprint["sha256"] and md.contains(String(_fingerprint["sha256"])), saved)
+	var saved_a := _save()
+	var a_json := FileAccess.get_file_as_bytes(base + ".json")
+	var a_md := FileAccess.get_file_as_bytes(base + ".md")
+	var a_data: Variant = JSON.parse_string(a_json.get_string_from_utf8())
+	var a_id := String((a_data as Dictionary).get("save_id", "")) if a_data is Dictionary else ""
+	add.call("save: m1_owner_decisions.json and .md written as a pair (schema %d, the same save ID in both, content fingerprint, review contract); no .new or .previous file left" % SCHEMA_VERSION,
+		saved_a and _save_state == "ok" and a_id != "" and a_md.get_string_from_utf8().contains(_save_id_line(a_id))
+		and int((a_data as Dictionary).get("schema_version", 0)) == SCHEMA_VERSION and (a_data as Dictionary).get("content_fingerprint", "") == fp
+		and (a_data as Dictionary).get("review_contract_sha256", "") == rc and a_md.get_string_from_utf8().contains(fp) and a_md.get_string_from_utf8().contains(rc)
+		and _files_in(_decisions_dir) == [DECISIONS_FILE + ".json", DECISIONS_FILE + ".md"], {"save_id": a_id, "files": _files_in(_decisions_dir)})
 	_reset_decisions()
 	_load_decisions()
-	add.call("resume: decisions, notes and owner restored from the saved file", _decisions["A-normal-idle-n"] == "PASS" and _decisions["B-bark-AUDIBLE"] == "FAIL"
-		and _decisions["C-MEMORY"] == "PASS" and _notes.get("C", "") == "self-test note" and _owner_info["name"] == "Self-test"
-		and _count("NOT EXECUTED") == 360 and _load_message.begins_with("Resumed"), _count("NOT EXECUTED"))
+	add.call("resume: decisions, notes and owner restored from the saved pair", _decisions["A-normal-idle-n"] == "PASS" and _decisions["C-MEMORY"] == "PASS"
+		and _notes.get("C", "") == "pair A" and _owner_info["name"] == "Self-test" and _count("NOT EXECUTED") == 361 and _load_message.begins_with("Resumed") and _load_message.contains(a_id),
+		_count("NOT EXECUTED"))
+	var failures := [
+		["JSON first: the new JSON copy cannot be written (a folder named m1_owner_decisions.json.new is in the way)", ".json.new", ""],
+		["Markdown second: the new Markdown copy cannot be written after the new JSON copy was (a folder named m1_owner_decisions.md.new is in the way)", ".md.new", ""],
+		["promotion: the new Markdown copy cannot be put in place after the new JSON copy was (rename failure injected by the self-test)", "", "promote.md"],
+		["promotion: the new JSON copy cannot be put in place (rename failure injected by the self-test)", "", "promote.json"],
+	]
+	print("m1_review self-test: %d save-failure checks below print expected ERROR records (the first %d in the transaction checks, the last two in the obstacle checks)" % [failures.size() + 2, failures.size()])
+	for f: Array in failures:
+		if String(f[1]) != "":
+			DirAccess.make_dir_recursive_absolute(base + String(f[1]))
+		_fault = String(f[2])
+		_decisions["A-normal-idle-n"] = "FAIL"
+		_notes["C"] = "pair B"
+		_save_state = ""
+		var ok := _save()
+		_fault = ""
+		_refresh_all()
+		var red := _status.get_theme_color("font_color") == Color("#ff6b6b") and _summary.get_theme_color("font_color") == Color("#ff6b6b")
+		var shown := _status.text.contains("NOT SAVED") and _summary.text.contains("NOT SAVED") and not _status.text.contains("saved ")
+		var same := FileAccess.get_file_as_bytes(base + ".json") == a_json and FileAccess.get_file_as_bytes(base + ".md") == a_md
+		var files := _files_in(_decisions_dir)
+		if String(f[1]) != "":
+			DirAccess.remove_absolute(base + String(f[1]))
+		_reset_decisions()
+		_load_decisions()
+		var resumed_a: bool = _decisions["A-normal-idle-n"] == "PASS" and _notes.get("C", "") == "pair A" and _load_message.contains(a_id)
+		add.call("save failure, %s: _save() is false, NOT SAVED in red, the earlier pair is byte-identical, no new or partial file is left, and the earlier pair (not the new one) is what resumes" % f[0],
+			not ok and _save_state == "failed" and red and shown and same and files == [DECISIONS_FILE + ".json", DECISIONS_FILE + ".md"] and resumed_a,
+			{"returned": ok, "earlier_pair_identical": same, "files": files, "resumed_earlier": resumed_a, "message": _save_message.left(160)})
+	_decisions["A-normal-idle-n"] = "FAIL"
+	_notes["C"] = "pair B"
+	var saved_b := _save()
+	_refresh_all()
+	var b_json := FileAccess.get_file_as_bytes(base + ".json")
+	var b_data: Variant = JSON.parse_string(b_json.get_string_from_utf8())
+	var b_id := String((b_data as Dictionary).get("save_id", "")) if b_data is Dictionary else ""
+	add.call("after the failures a save succeeds: the new pair is in place, the earlier pair is kept byte-identical as m1_owner_decisions.previous.json/.md, no .new file is left, the status is no longer red",
+		saved_b and b_id != "" and b_id != a_id and FileAccess.get_file_as_string(base + ".md").contains(_save_id_line(b_id))
+		and FileAccess.get_file_as_bytes(base + ".previous.json") == a_json and FileAccess.get_file_as_bytes(base + ".previous.md") == a_md
+		and _files_in(_decisions_dir) == [DECISIONS_FILE + ".json", DECISIONS_FILE + ".md", DECISIONS_FILE + ".previous.json", DECISIONS_FILE + ".previous.md"]
+		and not _status.text.contains("NOT SAVED"), _files_in(_decisions_dir))
+	# A save that stopped between its two renames: the JSON copy is new, the Markdown copy is not.
+	_write(base + ".md", a_md.get_string_from_utf8())
+	_reset_decisions()
+	_load_decisions()
+	var stale_count := 0
+	for file_name in _files_in(_decisions_dir):
+		if file_name.begins_with(DECISIONS_FILE + ".stale-"):
+			stale_count += 1
+	add.call("a pair whose copies carry different save IDs (a save stopped between its renames) is not resumed: it is set aside and the previous pair is resumed",
+		_decisions["A-normal-idle-n"] == "PASS" and _notes.get("C", "") == "pair A" and stale_count == 2 and _load_message.contains("previous")
+		and not FileAccess.file_exists(base + ".json"), {"stale_files": stale_count, "message": _load_message.left(160)})
+	# Leftover .new files of an interrupted save are never resumed and are replaced by the next save.
+	_decisions_dir = run.path_join("leftover")
+	base = _decisions_dir.path_join(DECISIONS_FILE)
+	_reset_decisions()
+	_notes["C"] = "pair A"
+	_save()
+	var left_json := FileAccess.get_file_as_string(base + ".json").replace("\"pair A\"", "\"interrupted\"")
+	_write(base + ".json.new", left_json)
+	_write(base + ".md.new", FileAccess.get_file_as_string(base + ".md"))
+	_reset_decisions()
+	_load_decisions()
+	var not_new: bool = _notes.get("C", "") == "pair A"
+	_notes["C"] = "pair C"
+	_save()
+	add.call("leftover .new files of an interrupted save are not resumed, and the next save replaces them (none left)", not_new and _files_in(_decisions_dir).size() == 4
+		and not FileAccess.file_exists(base + ".json.new") and not FileAccess.file_exists(base + ".md.new") and FileAccess.get_file_as_string(base + ".json").contains("pair C"),
+		_files_in(_decisions_dir))
 
-	# Stale content fingerprint and an old schema (the 10eec20 layout has no schema_version).
-	var stale_cases := [["stale_fingerprint", {"schema_version": SCHEMA_VERSION, "content_fingerprint": "0".repeat(64)}, "other content"],
-		["old_schema", {}, "schema 1"]]
+	# Stale content, contract or schema (the 10eec20 layout has no schema_version; 6dc585a's is 2).
+	var stale_cases := [
+		["stale_fingerprint", {"schema_version": SCHEMA_VERSION, "review_contract_sha256": rc, "content_fingerprint": "0".repeat(64), "save_id": "x"}, "other content"],
+		["stale_review_contract", {"schema_version": SCHEMA_VERSION, "review_contract_sha256": "f".repeat(64), "content_fingerprint": fp, "save_id": "x"}, "review contract"],
+		["old_schema_1", {}, "schema 1"],
+		["old_schema_2", {"schema_version": 2, "content_fingerprint": "406f37285e283d40a123cbd5135f6430ea85b4f569565d900cf58eef54f24994"}, "schema 2"]]
 	for case: Array in stale_cases:
 		_decisions_dir = run.path_join(String(case[0]))
 		_ensure_dir(_decisions_dir)
@@ -2082,13 +2578,12 @@ func _run_selftest() -> void:
 		stale["decisions"] = {"A-normal-idle-n": "PASS", "C-CROP": "PASS"}
 		stale["owner"] = {"name": "Earlier", "date": "2026-01-01", "equipment": "old", "final": "NOT APPROVED"}
 		_write(_decisions_dir.path_join(DECISIONS_FILE + ".json"), JSON.stringify(stale))
-		_write(_decisions_dir.path_join(DECISIONS_FILE + ".md"), "# old\n")
+		_write(_decisions_dir.path_join(DECISIONS_FILE + ".md"), "# old\n" + _save_id_line("x") + "\n")
 		_reset_decisions()
 		_load_decisions()
-		var aside := DirAccess.get_files_at(_decisions_dir)
 		var set_aside := 0
-		for f in aside:
-			if f.begins_with(DECISIONS_FILE + ".stale-"):
+		for file_name in _files_in(_decisions_dir):
+			if file_name.begins_with(DECISIONS_FILE + ".stale-"):
 				set_aside += 1
 		add.call("%s: nothing resumed (every field NOT EXECUTED, no owner data), both files set aside as .stale-<time>, the reason shown" % case[0],
 			_count("NOT EXECUTED") == 363 and _owner_info["name"] == "" and _owner_info["final"] == "NOT DECIDED" and set_aside == 2
@@ -2096,8 +2591,35 @@ func _run_selftest() -> void:
 			and _status_note == _load_message and not _save_blocked, {"set_aside": set_aside, "message_has_reason": _load_message.contains(String(case[2]))})
 		var fresh := _save()
 		var fresh_data: Variant = JSON.parse_string(FileAccess.get_file_as_string(_decisions_dir.path_join(DECISIONS_FILE + ".json")))
-		add.call("%s: the next save writes a fresh file for this content and keeps the set-aside files" % case[0], fresh and fresh_data is Dictionary
-			and (fresh_data as Dictionary).get("content_fingerprint", "") == _fingerprint["sha256"] and DirAccess.get_files_at(_decisions_dir).size() == 4, fresh)
+		add.call("%s: the next save writes a fresh pair for this content and contract and keeps the set-aside files" % case[0], fresh and fresh_data is Dictionary
+			and (fresh_data as Dictionary).get("content_fingerprint", "") == fp and (fresh_data as Dictionary).get("review_contract_sha256", "") == rc
+			and _files_in(_decisions_dir).size() == 4, fresh)
+
+	# Decisions are bound to how things are played: changing a playback parameter or a source use
+	# changes the review contract and the fingerprint, and saved decisions are then set aside.
+	var mutations := [["AudioService's start offset of splash moved by 0.001 s (a playback parameter)", "offset"],
+		["the splash game-path volume changed from 0.7 to 0.71 (a source use)", "use"]]
+	for m: Array in mutations:
+		_decisions_dir = run.path_join("binding_" + String(m[1]))
+		_reset_decisions()
+		_decisions["C-CROP"] = "PASS"
+		var bound := _save()
+		var offset := float(AudioService.offsets.get(&"splash", 0.0))
+		if m[1] == "offset":
+			AudioService.offsets[&"splash"] = offset + 0.001
+		else:
+			((_source_uses["splash"] as Array)[0] as Array)[1] = 0.71
+		_fingerprint = _content_fingerprint()
+		var changed: bool = _fingerprint["review_contract_sha256"] != rc and _fingerprint["sha256"] != fp
+		_reset_decisions()
+		_load_decisions()
+		var invalidated: bool = _count("NOT EXECUTED") == 363 and _load_message.contains("review contract") and not FileAccess.file_exists(_decisions_dir.path_join(DECISIONS_FILE + ".json"))
+		AudioService.offsets[&"splash"] = offset
+		_source_uses = SOURCE_USES.duplicate(true)
+		_fingerprint = _content_fingerprint()
+		var restored: bool = _fingerprint["sha256"] == fp and _fingerprint["review_contract_sha256"] == rc
+		add.call("binding: after %s the review contract and the fingerprint change and the saved decisions are set aside, not resumed; undoing the change restores both" % m[0],
+			bound and changed and invalidated and restored, {"contract_changed": changed, "invalidated": invalidated, "restored": restored})
 
 	# Approval: every field PASS and a nonblank owner name, date and equipment.
 	_decisions_dir = run.path_join("approval")
@@ -2144,25 +2666,51 @@ func _run_selftest() -> void:
 	_set_decision("C-MEMORY", "PASS")
 	_loading = false
 
-	# Save failures: the folder cannot be created (a file is in the way) / the file cannot be written.
+	# Save failures with real obstacles: the folder cannot be created / the new pair cannot be put
+	# in place because a folder has the decisions file's name.
 	var blocker := run.path_join("blocker_file")
 	_write(blocker, "not a folder\n")
-	print("m1_review self-test: the next two save-failure checks print expected ERROR lines")
-	for target: Array in [["the decisions folder cannot be created", blocker.path_join("decisions")], ["the decisions file cannot be written", run.path_join("unwritable")]]:
-		if String(target[0]).contains("written"):
+	for target: Array in [["the decisions folder cannot be created (a file is in the way)", blocker.path_join("decisions"), false],
+			["the new pair cannot be put in place (a folder named m1_owner_decisions.json is in the way)", run.path_join("unwritable"), true]]:
+		if bool(target[2]):
 			_ensure_dir(String(target[1]).path_join(DECISIONS_FILE + ".json"))
 		_decisions_dir = String(target[1])
 		_save_state = ""
 		var ok := _save()
 		_refresh_all()
 		var red := _status.get_theme_color("font_color") == Color("#ff6b6b")
-		add.call("save failure when %s: _save() is false, status and summary say NOT SAVED in red, nothing says saved" % target[0],
+		var left := _files_in(_decisions_dir) if DirAccess.dir_exists_absolute(_decisions_dir) else []
+		add.call("save failure when %s: _save() is false, status and summary say NOT SAVED in red, nothing says saved, no new file is left" % target[0],
 			not ok and _save_state == "failed" and _status.text.contains("NOT SAVED") and _summary.text.contains("NOT SAVED")
-			and not _status.text.contains("saved ") and red, {"returned": ok, "state": _save_state})
+			and not _status.text.contains("saved ") and red and left.is_empty(), {"returned": ok, "state": _save_state, "files_left": left})
 	_decisions_dir = run.path_join("approval")
 	_save()
 	_refresh_all()
 	add.call("a later successful save clears the failure", _save_state == "ok" and not _status.text.contains("NOT SAVED"), _save_state)
+
+	# The window must be active for AudioService to play (it drops requests in the background).
+	get_tree().root.propagate_notification(NOTIFICATION_APPLICATION_FOCUS_IN)
+
+	# Effects' source uses on AudioService's own players: volume and rate as the source plays them.
+	for cue: String in ["splash", "coin", "warning", "empty", "bark", "treat"]:
+		_select_audio(_audio_cue_index(cue))
+		var it := _audio[_audio_index]
+		var uses := _uses(it)
+		var measured := []
+		var ok := _alt_button.disabled == (uses.size() < 2)
+		for k in uses.size():
+			_stop_audio()
+			_play_audio("game" if k == 0 else "alt")
+			var p := _effect_player(String(it["path"]))
+			var want_db := linear_to_db(float(uses[k]["effective_gain"]))
+			ok = ok and p != null and absf(p.volume_db - want_db) < 0.01 and is_equal_approx(p.pitch_scale, float(uses[k]["rate"]))
+			measured.append({"control": uses[k]["control"], "use": uses[k]["id"], "volume_db": snappedf(p.volume_db, 0.001) if p != null else null,
+				"expected_db": snappedf(want_db, 0.001), "pitch": p.pitch_scale if p != null else null})
+		_stop_audio()
+		var described := ""
+		for u: Dictionary in uses:
+			described += "%s%s %s (volume %s, rate %s, gain %s)" % [", " if described != "" else "", "[Enter]" if u["control"] == "Enter" else "[V]", u["id"], u["volume"], u["rate"], snappedf(float(u["effective_gain"]), 0.0001)]
+		add.call("%s plays through AudioService as its source uses: %s; the [V] control is %s" % [cue, described, "enabled" if uses.size() > 1 else "disabled"], ok, measured)
 
 	# Siren attack event (review-only player, source constants).
 	var s := _siren_config()
@@ -2178,17 +2726,40 @@ func _run_selftest() -> void:
 	_siren_step(5.0)
 	var frozen := _siren_state == "waiting" and is_equal_approx(_siren_wait, float(s["delay_s"]) - 1.0) and _suspended and AudioService.suspended
 	get_tree().root.propagate_notification(NOTIFICATION_APPLICATION_FOCUS_IN)
-	add.call("attack event: the delay does not advance while the window is in the background", frozen and not _suspended, _siren_wait)
+	add.call("attack event (state stepped by 1 s, then 5 s in the background): the delay does not advance while the window is in the background", frozen and not _suspended, _siren_wait)
 	_siren_step(float(s["delay_s"]) - 1.0 + 0.05)
 	var st := _siren.stream as AudioStreamMP3
 	add.call("attack event: after the delay the siren plays on the SFX bus at gain %s from %s s" % [snappedf(float(s["gain"]), 0.0001), s["start_s"]],
 		_siren_state == "looping" and _siren.playing and _siren.bus == &"SFX" and is_equal_approx(_siren.volume_db, linear_to_db(float(s["gain"]))),
 		{"state": _siren_state, "volume_db": snappedf(_siren.volume_db, 0.001)})
-	add.call("attack event: a private copy loops from the trimmed start; the shared siren resource (AudioService one-shot) does not loop",
+	add.call("attack event, structure: a private copy of the siren stream has looping on with its loop start at the trimmed start; the shared siren resource (the AudioService one-shot) does not loop",
 		st != null and st != shared and st.loop and is_equal_approx(st.loop_offset, float(s["loop_offset_s"])) and not shared.loop
 		and is_equal_approx(st.get_length(), shared.get_length()), {"copy_loop": st.loop if st != null else null, "shared_loop": shared.loop})
-	_siren_step(30.0)
-	add.call("attack event: still looping 30 s later (no end until Stop)", _siren_state == "looping" and _siren.playing, _siren_state)
+	# A real wrap: play the last 0.3 s and let the mixer run in real time.
+	var length := st.get_length() if st != null else 0.0
+	_siren.seek(maxf(length - 0.3, 0.0))
+	var t0 := Time.get_ticks_usec()
+	var last_pos := _siren.get_playback_position()
+	var max_pos := last_pos
+	var wrapped_after := -1.0
+	var frames := 0
+	while Time.get_ticks_usec() - t0 < 1500000:
+		await get_tree().process_frame
+		frames += 1
+		var pos := _siren.get_playback_position()
+		if wrapped_after < 0.0 and pos < last_pos - 1.0:
+			wrapped_after = (Time.get_ticks_usec() - t0) / 1000000.0
+		max_pos = maxf(max_pos, pos)
+		last_pos = pos
+		if wrapped_after >= 0.0 and Time.get_ticks_usec() - t0 > 900000:
+			break
+	var elapsed := (Time.get_ticks_usec() - t0) / 1000000.0
+	var loop_start := float(s["loop_offset_s"])
+	add.call("attack event, real playback: from 0.3 s before the end, the siren wraps to its loop start (%s s) in real mixer time and keeps playing until Stop" % loop_start,
+		wrapped_after >= 0.0 and wrapped_after < 1.0 and _siren.playing and _siren_state == "looping" and not _suspended
+		and last_pos >= loop_start - 0.01 and last_pos <= loop_start + elapsed and max_pos <= length + 0.01,
+		{"length_s": snappedf(length, 0.0001), "started_at_s": snappedf(length - 0.3, 0.0001), "wrapped_after_s": snappedf(wrapped_after, 0.001),
+			"position_at_end_s": snappedf(last_pos, 0.001), "elapsed_s": snappedf(elapsed, 0.001), "largest_position_s": snappedf(max_pos, 0.001), "frames": frames})
 	for pair: Array in [[NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_FOCUS_IN, "focus out/in"], [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_RESUMED, "application paused/resumed"]]:
 		get_tree().root.propagate_notification(int(pair[0]))
 		var paused := _siren.stream_paused
@@ -2199,7 +2770,7 @@ func _run_selftest() -> void:
 	_siren_step(0.2)
 	var fading := _siren_state == "fading" and _siren.playing and _siren.volume_db < start_db - 20.0
 	_siren_step(0.25)
-	add.call("Stop: the siren fades out like the source's stopLoop() (time constant %s s) and stops after %s s" % [STOP_LOOP_TAU, STOP_LOOP_END],
+	add.call("Stop (state stepped by 0.2 s, then 0.25 s): the siren fades out like the source's stopLoop() (time constant %s s) and stops after %s s" % [STOP_LOOP_TAU, STOP_LOOP_END],
 		fading and _siren_state == "idle" and not _siren.playing, {"fading_ok": fading, "state": _siren_state})
 	_play_audio("siren")
 	_stop_audio(true)
@@ -2239,13 +2810,17 @@ func _run_selftest() -> void:
 		worst = maxf(worst, float(it["duration_delta_s"]))
 	add.call("audio: every Godot stream length is within %s s of the source fixture duration" % DURATION_TOLERANCE, worst <= DURATION_TOLERANCE, worst)
 
+	# Layout: the status line and every control at the captured and the smallest supported size.
 	_select_audio(0)
+	for win: Vector2i in [WINDOW_SIZE, SUPPORTED_MIN_SIZE]:
+		checks.append(await _layout_check(win))
+
 	AudioService.apply_settings(false, SAFE_VOLUME)
 	var failed := PackedStringArray()
 	for c: Dictionary in checks:
 		if not c["ok"]:
 			failed.append(String(c["check"]))
-	var result := {"ok": failed.is_empty(), "checks": checks.size(), "failed": failed, "content_fingerprint": _fingerprint["sha256"],
+	var result := {"ok": failed.is_empty(), "checks": checks.size(), "failed": failed, "content_fingerprint": fp, "review_contract_sha256": rc,
 		"schema_version": SCHEMA_VERSION, "note": "drives the station's own code in a scratch folder; no human decision is made or implied"}
 	var write_error := _write(_selftest_dir.path_join("station_selftest.json"), JSON.stringify({"result": result, "checks": checks}, "  ", true) + "\n")
 	if write_error != "":
@@ -2253,3 +2828,18 @@ func _run_selftest() -> void:
 		result["write_error"] = write_error
 	print("M1SELFTEST ", JSON.stringify(result))
 	get_tree().quit(0 if result["ok"] else 1)
+
+
+## The file names in `dir`, sorted.
+static func _files_in(dir: String) -> Array:
+	var names := Array(DirAccess.get_files_at(dir))
+	names.sort()
+	return names
+
+
+## The AudioService effect player now playing the file at `path` (null if none).
+static func _effect_player(path: String) -> AudioStreamPlayer:
+	for p: AudioStreamPlayer in AudioService.players():
+		if p.playing and p.stream != null and p.stream.resource_path == path and p.bus == &"SFX":
+			return p
+	return null
