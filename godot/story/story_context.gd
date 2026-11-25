@@ -24,13 +24,22 @@ var no_run := false
 ## What J/X, Space, B, the touch buttons and the gestures do in a walk (the objective configures it).
 var actions := StoryActionRouter.new()
 var carrying := ""
+## The walk's combat (CombatController; a fight or only the bark/sword/shield), or null.
+var combat: CombatController = null
+## Walking-speed multiplier of the current walk when he is not running (2.3: heavy armour); 1 = none.
+var walk_speed_mul := 1.0
+## Story hiding spots on the current stage (grid points of the bushes a scene placed).
+var hides: Array = []
+## Scene-seeded randomness (lulls): a run (and a restart) draws the same sequence.
+var rng := RandomNumberGenerator.new()
 var map_id := ""
 ## A scripted walk of the player in progress (MoveStep): its target grid point, or null.
 var move_target: Variant = null
 ## choice id -> option ids taken in this run (once_each choices offer the rest).
 var choices_taken: Dictionary = {}
-## Run metrics: choices taken, bumps and echoes at a gate, notices shown.
-var metrics: Dictionary = {"choices": [], "bumps": 0, "echoes": 0, "notices": [], "actions": []}
+## Run metrics: choices taken, bumps and echoes at a gate, notices shown, action modes performed,
+## knockdowns and captures (the objective's id each time).
+var metrics: Dictionary = {"choices": [], "bumps": 0, "echoes": 0, "notices": [], "actions": [], "knockdowns": [], "caught": []}
 
 var world: IsoWorld:
 	get:
@@ -39,6 +48,12 @@ var world: IsoWorld:
 var player: PlayableDog:
 	get:
 		return scene.world.player
+
+
+## The sword and the shield (knight capability): only in a dream scene, once `knight` is held in
+## the working copy (2.3 unlocks it mid-scene). Armour visibility is separate (StorySceneData.costume).
+func armed() -> bool:
+	return not data.reality and (state.get("abilities", []) as Array).has("knight")
 
 
 ## Stops the scene with an explicit message (never a silent fallback).

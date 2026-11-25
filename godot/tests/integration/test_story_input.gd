@@ -5,8 +5,8 @@ extends TestCase
 ## InputService.trigger(): J/X perform the action button's mode, Space always the walk's own action,
 ## B a plain bark the scene rules hear (RD-28), the touch ACTION button the displayed action, the
 ## switcher (Q or its button) the next mode, the double tap what CONTROLS binds it to; a button or
-## joystick touch never also becomes a gesture; swipes are routed, but no sword or shield is offered
-## before M6.
+## joystick touch never also becomes a gesture; swipes are routed (in reality no sword or shield is
+## offered: M6 gives the arms only to a knight in the dream).
 
 const MAIN := preload("res://main/main.tscn")
 const DT := 1.0 / 60.0
@@ -302,8 +302,8 @@ func test_SLICE_double_tap_performs_its_configured_action() -> void:
 
 
 ## Pointer ownership: a joystick drag that ends over the gesture zone is never a swipe; a swipe in
-## the zone is routed (SWORD by default: not offered before M6, nothing happens; bound to SWITCH
-## it switches the mode).
+## the zone is routed (SWORD by default: in reality there are no arms, so only the no-arms notice;
+## bound to SWITCH it switches the mode).
 func test_SLICE_pointer_ownership_and_swipe_routing() -> void:
 	var s := await _to_objective("1.2", "s05")
 	if s == null:
@@ -322,7 +322,8 @@ func test_SLICE_pointer_ownership_and_swipe_routing() -> void:
 	await _drag(0, p + Vector2(2, -30))
 	await _touch(0, p + Vector2(2, -30), false)
 	_ticks(s, 1)
-	assert_eq([InputService.last_gesture.get("kind", ""), _performed(s), s.ctx.actions.mode], ["swipeUp", [], "scene"], "swipe up (SWORD): routed, no sword before M6")
+	assert_eq([InputService.last_gesture.get("kind", ""), _performed(s), s.ctx.actions.mode], ["swipeUp", ["sword"], "scene"], "swipe up (SWORD): routed to the sword")
+	assert_eq([s.ctx.combat.events.has("no_arms"), s.ctx.combat.events.has("strike"), s.ctx.actions.modes], [true, false, PackedStringArray(["scene", "bark"])], "in reality there are no arms: no swing, no SWORD mode (M6)")
 	AppState.set_control("swipeUp", "switch")
 	await _touch(0, p, true)
 	await _drag(0, p + Vector2(0, -30))

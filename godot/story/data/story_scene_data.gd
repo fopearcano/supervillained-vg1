@@ -43,6 +43,13 @@ extends Resource
 @export var technical_status := ""
 
 
+## The player's costume slot, decided by `reality` alone (RD-30): a reality scene always shows the
+## plain costume (whatever abilities a later replay holds); a dream scene shows the coat of mail from
+## 2.1. The sword and the shield are a separate capability (`knight`, StoryContext.armed()).
+func costume() -> String:
+	return "normal" if reality else "armoured"
+
+
 ## Why the scene cannot start from `state` ("" = it can): every `entry_conditions.requires_completed`
 ## id completed and every `requires_abilities` ability held. Reality scenes need no ability rule
 ## here: `reality` alone keeps them plain (spec §2.4).

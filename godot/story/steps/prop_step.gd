@@ -1,7 +1,9 @@
 class_name PropStep
 extends StoryStep
-## A story prop on the stage (the bowl, the ball): place it, move it, or remove it; optionally a
-## floating line where it lands (the bowl's CLONG).
+## A story prop on the stage (the bowl, the ball, a horse, a bush): place it, move it, or remove
+## it; optionally a floating line where it lands (the bowl's CLONG). `near_player`: `point` is an
+## offset from Zampanò (place) or, for move, from where the prop stands. `hides`: the prop is a hiding
+## spot for stealth walks (StorySight).
 
 const ACTIONS := ["place", "move", "remove"]
 
@@ -14,6 +16,8 @@ const ACTIONS := ["place", "move", "remove"]
 @export var float_text := ""
 @export var float_color := Color.WHITE
 @export var sound := ""
+@export var near_player := false
+@export var hides := false
 
 
 func kind() -> String:
@@ -48,14 +52,22 @@ func begin(ctx: StoryContext, _st: Dictionary) -> void:
 		return
 	match action:
 		"place":
-			ctx.scene.place_prop(prop, sprite, p, tint)
+			if near_player:
+				p = ctx.player_pos() + point
+			if ctx.scene.place_prop(prop, sprite, p, tint) and hides:
+				ctx.hides.append(p)
 		"move":
 			var pr: StoryProp = ctx.scene.props.get(prop)
 			if pr == null:
 				ctx.fail("missing prop '%s'" % prop)
 				return
+			if near_player:
+				p = Vector2(pr.gx, pr.gy) + point
 			pr.set_grid_position(p.x, p.y)
 		"remove":
+			var pr: StoryProp = ctx.scene.props.get(prop)
+			if pr:
+				ctx.hides.erase(Vector2(pr.gx, pr.gy))
 			ctx.scene.remove_prop(prop)
 	ctx.play_sound(sound)
 	if float_text != "":

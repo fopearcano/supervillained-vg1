@@ -1,9 +1,12 @@
 class_name ActorStep
 extends StoryStep
 ## Commands one actor: spawn (a role at a marker, a point or near the player), despawn, goto,
-## follow the player, idle, face, a speaking gesture, or place (teleport).
+## follow the player, idle, face, a speaking gesture, place (teleport), patrol (between marker
+## `points`, pausing), chase (the player, within `radius` of where it stands), flee (from the
+## player while within `radius`), wander (within `radius` of where it stands), emote (a one-shot
+## clip: hurt, bark). Any action may also set a sight cone (`sight_range` > 0) and `hostile`.
 
-const ACTIONS := ["spawn", "despawn", "goto", "follow", "idle", "face", "gesture", "place"]
+const ACTIONS := ["spawn", "despawn", "goto", "follow", "idle", "face", "gesture", "place", "patrol", "chase", "flee", "wander", "emote"]
 
 @export var actor := ""
 @export var action := "idle"
@@ -23,6 +26,21 @@ const ACTIONS := ["spawn", "despawn", "goto", "follow", "idle", "face", "gesture
 ## goto + wait_arrival: seconds to arrive before the scene stops with an explicit error (validated
 ## positive; never a silent continue while the actor is far from its target).
 @export var arrival_timeout := 0.0
+## patrol: marker ids in order, the pause at each.
+@export var points: PackedStringArray = []
+@export var pause := 0.8
+## chase / flee / wander: the radius.
+@export var radius := 0.0
+## follow: tiles to the player's side.
+@export var side := 0.0
+## emote: the clip and its length.
+@export var clip := ""
+@export var seconds := 0.0
+## A sight cone (stealth): range in tiles (0 = unchanged), half-angle in radians.
+@export var sight_range := 0.0
+@export var sight_half_angle := 0.0
+## Touching him catches him (stealth walks).
+@export var hostile := false
 
 
 func kind() -> String:
@@ -30,7 +48,9 @@ func kind() -> String:
 
 
 func marker_refs() -> PackedStringArray:
-	return PackedStringArray([at]) if at != "" else PackedStringArray()
+	var out := PackedStringArray([at]) if at != "" else PackedStringArray()
+	out.append_array(points)
+	return out
 
 
 func roles() -> PackedStringArray:
@@ -53,6 +73,10 @@ func check(errors: PackedStringArray) -> void:
 	_need(errors, action != "spawn" or role != "", "actor %s: spawn without a role" % actor)
 	_need(errors, face == "" or StoryDirs.ALL.has(face), "actor %s: bad facing '%s'" % [actor, face])
 	_need(errors, speed > 0.0, "actor %s: speed must be positive" % actor)
+	_need(errors, action != "patrol" or points.size() >= 2, "actor %s: patrol needs at least two points" % actor)
+	_need(errors, not ["chase", "flee", "wander"].has(action) or radius > 0.0, "actor %s: %s needs a positive radius" % [actor, action])
+	_need(errors, action != "emote" or (clip != "" and seconds > 0.0), "actor %s: emote needs a clip and seconds" % actor)
+	_need(errors, sight_range >= 0.0 and (sight_range == 0.0 or sight_half_angle > 0.0), "actor %s: a sight cone needs a half-angle" % actor)
 
 
 func begin(ctx: StoryContext, st: Dictionary) -> void:
@@ -66,6 +90,8 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 		var s := ctx.scene.spawn_actor(actor, role, p, face if face != "" else "S")
 		if s != null and face_player:
 			s.face_point(ctx.player_pos())
+		if s != null:
+			_watch(s)
 		return
 	if action == "despawn":
 		ctx.scene.despawn_actor(actor)
@@ -77,9 +103,24 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 		"goto":
 			a.go_to(p, speed, run)
 		"follow":
-			a.follow(speed)
+			a.follow(speed, side)
 		"idle":
-			a.set_idle()
+			a.set_idle(face_player)
+		"patrol":
+			var pts: Array = []
+			for m in points:
+				pts.append(ctx.marker(m))
+			if ctx.error != "":
+				return
+			a.patrol(pts, speed, pause)
+		"chase":
+			a.chase(speed, radius, Vector2(a.gx, a.gy))
+		"flee":
+			a.flee(speed, radius)
+		"wander":
+			a.wander(Vector2(a.gx, a.gy), radius, speed)
+		"emote":
+			a.play_action(clip, seconds)
 		"gesture":
 			if not a.gesture():
 				a.play_action("bark", 0.5)
@@ -89,6 +130,16 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 		a.face_point(ctx.player_pos())
 	elif face != "":
 		a.face(face)
+	_watch(a)
+
+
+## Sight and hostility, when the step sets them.
+func _watch(a: StoryActor) -> void:
+	if sight_range > 0.0:
+		a.sight_range = sight_range
+		a.sight_half_angle = sight_half_angle
+	if hostile:
+		a.hostile = true
 
 
 func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:

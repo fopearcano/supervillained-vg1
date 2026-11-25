@@ -175,6 +175,13 @@ var run_held: bool:
 			or (not run_toggle and buttons.has(&"run") and bool(buttons[&"run"]["pressed"]))
 
 
+## The shield held (I, or the injected hold of a test driver): it stays up while held.
+var guard_hold_injected := false
+var guard_held: bool:
+	get:
+		return guard_hold_injected or Input.is_action_pressed(&"guard")
+
+
 var run_on: bool:
 	get:
 		return _run_latched
@@ -197,6 +204,7 @@ func clear_injection() -> void:
 ## Returns every piece of state to its start-up value (test isolation between cases).
 func reset_for_tests() -> void:
 	_override = null
+	guard_hold_injected = false
 	_pending.clear()
 	_taps.clear()
 	_pointers.clear()
@@ -360,6 +368,7 @@ func pointer_up(index: int, p: Vector2, cancelled: bool = false) -> void:
 
 func release_all() -> void:
 	_pointers.clear()
+	guard_hold_injected = false
 	_last_tap = null
 	_joystick_pointer = -1
 	joystick["active"] = false

@@ -37,6 +37,11 @@ var floats: Array = []
 var objective := ""
 var carry_label := ""
 var visor := 0.0
+## A walk's gauge under the objective (a fight's hearts, a lull, listening, a beat game): its label,
+## fill 0..1 and colour; hidden when the label is "".
+var mode_label := ""
+var mode_value := 0.0
+var mode_color := Color.WHITE
 var flash_alpha := 0.0
 var time := 0.0
 ## Every line, card, notice and floating text shown, in order (tests, the completion reports).
@@ -122,6 +127,18 @@ func hide_card() -> void:
 	card_visible = false
 
 
+func set_mode(label: String, value: float, color: Color) -> void:
+	mode_label = label
+	mode_value = clampf(value, 0.0, 1.0)
+	mode_color = color
+	queue_redraw()
+
+
+func clear_mode() -> void:
+	mode_label = ""
+	queue_redraw()
+
+
 func notice(text: String, color: Color, delay: float = 0.0) -> void:
 	notices.append({"text": T.sanitize(text), "color": color, "t": -delay})
 	shown_texts.append(T.sanitize(text))
@@ -183,6 +200,14 @@ func _draw() -> void:
 	if carry_label != "":
 		T.draw(self, Vector2(6, y0), carry_label, T.CYAN, 1, Color.BLACK)
 		y0 += T.CELL_H + 3
+	if mode_label != "":
+		T.draw(self, Vector2(6, y0), mode_label, mode_color, 1, Color.BLACK)
+		y0 += T.CELL_H + 2
+		var bw := minf(120.0, w - 12.0)
+		draw_rect(Rect2(6, y0, bw, 5), Color(0, 0, 0, 0.6))
+		draw_rect(Rect2(7, y0 + 1, roundf((bw - 2.0) * mode_value), 3), mode_color)
+		draw_rect(Rect2(6, y0, bw, 5), T.YELLOW, false, 1.0)
+		y0 += 8
 	var ny := y0 + 4
 	for n: Dictionary in notices:
 		if float(n["t"]) < 0.0:

@@ -92,6 +92,8 @@ func _start_run() -> void:
 	ctx.cast = cast
 	ctx.state = entry_state.duplicate(true)
 	ctx.persist = persist
+	# The scene's own seeded randomness (a lull's pauses): every run and restart draws the same.
+	ctx.rng.seed = hash("story:" + data.id)
 	ctx.runner = runner
 	ctx.hud = hud
 	hud.hide_line()
@@ -133,7 +135,7 @@ func resize(logical: Vector2i) -> void:
 # --- Stage --------------------------------------------------------------------------------------
 
 ## Loads a map as a new IsoWorld (the old one, its actors, props and markers are freed), places the
-## player (plain skin in reality) and snaps the camera; the new player's physics interpolation is
+## player in the scene's costume (plain in reality, the coat of mail in the dream) and snaps the camera; the new player's physics interpolation is
 ## reset (DOG-008b). False (and an explicit failure) when the map or its marker is missing.
 func build_stage(map_id: String, at: String, point: Vector2, face: String) -> bool:
 	var m: StoryMapData = maps.get(map_id)
@@ -159,6 +161,11 @@ func build_stage(map_id: String, at: String, point: Vector2, face: String) -> bo
 	world.player.set_grid_position(p.x, p.y)
 	world.player.face(face)
 	world.player.no_run = false
+	# The costume follows the scene's `reality` (StorySceneData.costume), never the abilities held.
+	world.player.set_costume(data.costume())
+	world.decal_layer.add_child(StoryFxView.new().setup(self, true))
+	world.fx_layer.add_child(StoryFxView.new().setup(self, false))
+	ctx.hides = []
 	world.snap_camera()
 	stage_changes += 1
 	return true
@@ -277,6 +284,8 @@ func tick(dt: float) -> void:
 	if finished or ctx.error != "" or world == null:
 		return
 	var dog := world.player
+	# A walk's speed modifier applies to walking, never to a charge (2.3's heavy armour).
+	dog.speed_mul = 1.0 if dog.running else ctx.walk_speed_mul
 	if ctx.controls:
 		dog.no_run = ctx.no_run
 		dog.set_intent(InputService.move_x, InputService.move_y, InputService.run_held and not ctx.no_run)

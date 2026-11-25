@@ -188,9 +188,63 @@ class Audio:
 	const SIREN_VOLUME := 0.45
 
 
-## Subset of COMBAT used outside story fights (src/config.ts COMBAT.SHIELD.SPEED).
+## Story fights (src/config.ts COMBAT; rules in story/combat/combat_rules.gd): BARK from the start,
+## the SWORD and the SHIELD once Zampanò is a knight (2.3). Nobody dies: a foe with no HP left is
+## routed (runs off); Zampanò at 0 HEALTH is knocked down and the fight starts again. Distances in
+## tiles, times in seconds, angles in radians.
 class Combat:
+	## Walking speed with the shield up (also read by PlayableDog).
 	const SHIELD_SPEED := 0.55
+	## Zampanò's hearts in a fight (a fight may set its own).
+	const HEALTH := 5
+	const SWORD_RANGE := 1.45
+	const SWORD_HALF_ARC := 1.15
+	const SWORD_DAMAGE := 1.0
+	## Shorter than the cooldown: one opening, one blow (no chains).
+	const SWORD_STUN := 0.3
+	const SWORD_KNOCK := 2.6
+	const SWORD_COOLDOWN := 0.42
+	## A parried blow: both step back a little.
+	const SWORD_PARRY_KNOCK := 1.6
+	## The swing's pose and its arc on screen.
+	const SWORD_ACTION_TIME := 0.22
+	## A bark is never parried, but staggers only briefly: a bark-only fight is a slow one.
+	const BARK_RADIUS := 2.3
+	const BARK_DAMAGE := 0.5
+	const BARK_STUN := 0.3
+	const BARK_KNOCK := 3.2
+	const BARK_COOLDOWN := 1.1
+	## Blows from within this half-angle of where he faces are blocked.
+	const SHIELD_HALF_ARC := 1.35
+	## A tap (button, swipe, I pressed once) raises it this long; holding keeps it up.
+	const SHIELD_PULSE := 0.8
+	## Raising it shoves whoever is right in front (no stagger).
+	const SHIELD_BASH_RANGE := 1.2
+	const SHIELD_BASH_KNOCK := 4.0
+	## A blocked blow staggers the attacker.
+	const SHIELD_BLOCK_STUN := 0.6
+	const SHIELD_BLOCK_KNOCK := 3.0
+	const FOE_HP := 2.0
+	const FOE_CHASE_SPEED := 1.6
+	const FOE_CHASE_RADIUS := 5.0
+	## They stop this close to him and swing.
+	const FOE_STOP_AT := 0.75
+	const FOE_ATTACK_RANGE := 0.95
+	## A swing lands if he is still this close when it comes down.
+	const FOE_REACH := 1.25
+	## The raised arm before the blow (the ring under them fills): time to raise the shield.
+	const FOE_WINDUP := 0.5
+	const FOE_COOLDOWN := 1.5
+	## Right after a swing they are open (no parry) this long.
+	const FOE_RECOVER := 0.6
+	const FOE_KNOCK_DECAY := 9.0
+	const HURT_KNOCK := 4.5
+	const HURT_INVULN := 0.9
+	const HURT_TIME := 0.3
+	## The KNOCKED DOWN card before the fight starts again.
+	const KNOCKED_CARD := 1.8
+	## A routed foe runs off at this speed.
+	const ROUT_SPEED := 3.2
 
 
 class Cat:
@@ -357,6 +411,42 @@ class Story:
 	## Floating lines above characters live this long (s).
 	const FLOAT_TIME := 1.6
 	const NOTICE_TIME := 2.2
+	## Sight cones (src/config.ts STORY): alert fills this fast while seen, drains while not; a
+	## hostile closer than HOSTILE_TOUCH catches him; in a bush he is seen only within BUSH_HIDE.
+	const ALERT_GAIN := 2.2
+	const ALERT_DECAY := 1.2
+	const HOSTILE_TOUCH := 0.6
+	const BUSH_HIDE := 1.2
+	## A story hiding spot (a bush the scene places) covers him within this distance of it.
+	const HIDE_PROP_RADIUS := 0.7
+	## The caught card ("BACK TO WHERE YOU STARTED") before the walk starts again.
+	const CAUGHT_CARD := 1.6
+	## A checkpoint is passed within this distance.
+	const CHECKPOINT_RADIUS := 1.2
+	## Acting in a lull (2.2 the preacher, 3.3 the square): seconds of talk and of quiet ([min, max],
+	## drawn from the scene's seeded generator), the action's range and the phrase interval.
+	const LULL_TALK := [2.4, 3.4]
+	const LULL_QUIET := [1.4, 2.1]
+	const LULL_RANGE := 3.4
+	const LULL_PHRASE_EVERY := 0.85
+	## Beat games (4.1, 4.3): the timing window either side of a beat, the cue speed (px/s) and the
+	## lead-in before beat 0.
+	const RHYTHM_WINDOW := 0.18
+	const RHYTHM_CUE_SPEED := 70.0
+	const RHYTHM_START_DELAY := 1.2
+	const PARADE_BEATS := 12
+	const PARADE_BPM := 72.0
+	const PARADE_NEED := 8
+	## 4.3: the rowing is the parade's beat count and need, 8 BPM slower.
+	const ROWING_BPM_DROP := 8.0
+	## A beat game's result shows this long before the scene goes on.
+	const MINI_RESULT_HOLD := 0.8
+	## 4.2: easing the boat alongside. Strokes closer together than MIN_GAP slosh water in.
+	const BOAT_STROKE := 0.11
+	const BOAT_MIN_GAP := 0.42
+	const BOAT_SPLASH := 0.3
+	const BOAT_DRAIN := 0.12
+	const BOAT_SWAMP_TIME := 1.2
 
 
 static func groups() -> Dictionary:

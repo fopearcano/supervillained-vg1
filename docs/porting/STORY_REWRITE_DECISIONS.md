@@ -210,6 +210,17 @@ only within 0.05 tiles of its target; `ActorStep.arrival_timeout` (validated pos
 with an explicit story error when exceeded. Level 1's clear paths are unchanged (4 s for Jack in 1.2,
 12 s per leg of the Professor's walk). Saves: none.
 
+## Owner decisions
+
+- **OD-01 (2026-11-25) — Level 1 draft: DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT.** The
+  owner chose the third outcome of the Level 1 review package
+  (`docs/porting/manual_evidence/m5r_level1_narrative_review/README.md`). This is **not** narrative
+  approval: Level 1 and every later scene's prose stay `draft_implemented_review_pending` and are
+  release-blocking until reviewed; the open questions below stay open. Narrative review no longer
+  blocks prototype implementation: M6 (Levels 2–4) proceeds on this decision. The Godot story
+  Resources remain the narrative authority; the PixiJS source is reference material for mechanics,
+  state consequences and historical sources, not wording to copy.
+
 ## Open questions for the owner
 
 | ID | Question | Where |

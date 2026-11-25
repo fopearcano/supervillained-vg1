@@ -12,6 +12,7 @@ const SUITES := {
 		"res://tests/unit/test_save.gd",
 		"res://tests/unit/test_save_m4.gd",
 		"res://tests/unit/test_story_schema.gd",
+		"res://tests/unit/test_combat_rules.gd",
 		"res://tests/unit/test_isolation.gd",
 	],
 	"content": [
@@ -25,6 +26,7 @@ const SUITES := {
 		"res://tests/integration/test_story_level1.gd",
 		"res://tests/integration/test_story_engine.gd",
 		"res://tests/integration/test_story_input.gd",
+		"res://tests/integration/test_story_combat.gd",
 		"res://tests/integration/test_collision_decision.gd",
 		"res://tests/integration/test_main_and_rates.gd",
 		"res://tests/integration/test_export_pack.gd",

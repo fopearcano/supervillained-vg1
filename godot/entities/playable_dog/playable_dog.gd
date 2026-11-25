@@ -149,6 +149,22 @@ var can_run: bool:
 		return not no_run and energy.can_run()
 
 
+## The costume slot shown ("normal" in reality, "armoured" in the dream): the profile's frames for
+## it (Sbrimbrulòn and Bagnaskiz have their own armoured mappings). Appearance only: it grants no
+## capability (the knight's arms are StoryContext.armed()).
+var costume := "normal"
+
+
+func set_costume(slot: String) -> void:
+	var p := active_profile()
+	var frames: SpriteFrames = p.armoured_frames if slot == "armoured" else p.normal_frames
+	costume = "armoured" if slot == "armoured" else "normal"
+	if body_sprite.sprite_frames != frames:
+		body_sprite.sprite_frames = frames
+		_anim_restart = true
+		_apply_animation()
+
+
 func start_action(new_state: String, duration: float) -> void:
 	state = new_state
 	state_time = 0.0

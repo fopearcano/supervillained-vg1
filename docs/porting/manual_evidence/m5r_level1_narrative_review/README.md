@@ -44,24 +44,25 @@ locks and effects, the remembered lines and the objectives' lines.
 
 ## The three possible outcomes
 
-Choose **one** for the Level 1 draft. Nothing below is filled in; the decision is the owner's.
+Choose **one** for the Level 1 draft. The owner chose prototype deferral on 2026-11-25 (relayed with
+the architect's M6 instruction); this is **not** narrative approval.
 
 - [ ] **APPROVE LEVEL 1 DRAFT** — the rewritten Level 1 is approved as written (scenes become
   `narrative_approved`; any answers above are recorded as owner decisions).
 - [ ] **REQUEST CHANGES** — list the changes (scene, line, what instead); they are made and this
   package is regenerated for another review.
-- [ ] **DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT** — Level 1 stays
+- [x] **DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT** — Level 1 stays
   `draft_implemented_review_pending`; development may continue as a prototype, and the
   narrative review stays open (release-blocking).
 
 | Owner decision record | |
 |---|---|
-| Outcome | |
-| Date | |
-| Requested changes / notes | |
+| Outcome | DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT |
+| Date | 2026-11-25 |
+| Requested changes / notes | Not narrative approval. Level 1 and all later prose stay draft (`draft_implemented_review_pending`) and release-blocking; narrative review no longer blocks prototype implementation (M6 began on this decision). The open questions above stay unanswered. |
 
-Level 2 does not begin until the independent architectural review passes and the owner either
-approves the Level 1 draft or selects prototype-only deferral.
+The decision is also recorded in `STORY_REWRITE_DECISIONS.md` (OD-01), `MILESTONES.md` (M5 status)
+and `FEATURE_MATRIX.md`.
 
 ## How this package was made
 

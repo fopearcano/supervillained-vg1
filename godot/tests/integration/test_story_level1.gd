@@ -988,8 +988,13 @@ func test_SLICE_owner_review_package_lists_every_line() -> void:
 	var ch := StoryLibrary.chapter(1)
 	assert_true(level.contains(ch.intro) and level.contains(ch.professor_aside), "level_1.md: the level card and the aside")
 	var readme := FileAccess.get_file_as_string(dir.path_join("README.md"))
-	for outcome in ["APPROVE LEVEL 1 DRAFT", "REQUEST CHANGES", "DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT"]:
+	for outcome in ["APPROVE LEVEL 1 DRAFT", "REQUEST CHANGES"]:
 		assert_true(readme.contains("- [ ] **%s**" % outcome), "the outcome '%s' is offered, unticked" % outcome)
+	# The owner's decision (OD-01, 2026-11-25): prototype deferral, not approval.
+	assert_true(readme.contains("- [x] **DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT**"), "the owner's outcome is ticked")
+	assert_true(readme.contains("| Outcome | DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT |") and readme.contains("| Date | 2026-11-25 |"), "the decision record")
+	for id in IDS:
+		assert_eq(StoryLibrary.scene(id).review_status, "draft_implemented_review_pending", "%s stays draft (deferral is not approval)" % id)
 
 
 ## CONTENT-005: the cast, source and review metadata never reach a player-facing card or line.

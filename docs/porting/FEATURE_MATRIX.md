@@ -83,7 +83,9 @@ rewritten Resources are the display authority for titles (generated over the fro
 catalog); entry conditions are enforced at run time and `reality` alone keeps reality scenes plain;
 ARCH-001b is accepted on combined evidence (the production StoryScene suite case and the architect's
 static review of `d503938`); the owner's narrative-review package is in
-`docs/porting/manual_evidence/m5r_level1_narrative_review/`. **Gestures and action modes:**
+`docs/porting/manual_evidence/m5r_level1_narrative_review/`; **owner decision (2026-11-25): DEFER
+NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT** (OD-01) — not approval: all story prose stays draft
+and release-blocking, and narrative review no longer blocks prototype implementation. **Gestures and action modes:**
 implemented and tested — the right-hand double tap and swipes (pointer ownership kept: a button or
 joystick touch never becomes a gesture), their CONTROLS bindings (OFF, ACTION BUTTON, BARK, SWITCH,
 RUN ON/OFF), the mode switcher (button, Q/Tab, a gesture), modes "scene" and "bark"; routed but not
@@ -112,7 +114,7 @@ rendered clauses under the acceptance conditions the architect set, below), or o
 architect-accepted command evidence (AST-019 and CORE-001, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (137, counting split-ID parts), Godot 4.7.2; last architect-accepted M1/M2 baseline verified on the Windows console build (`godot/` tree `21ce8a2`, 139 passed, correction report 24); the 21 M3 IDs accepted on correction report 26's tree `0684cc9` (161 passed); the 24 M4 IDs accepted on correction report 28's tree `69eba9b` (212 passed); the current correction-31 tree passes the same cases (the full suite on a fresh Windows clone, correction report 31); Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed; not rerun since):**
+**Acceptance IDs satisfied by a full suite case (137, counting split-ID parts), Godot 4.7.2; last architect-accepted M1/M2 baseline verified on the Windows console build (`godot/` tree `21ce8a2`, 139 passed, correction report 24); the 21 M3 IDs accepted on correction report 26's tree `0684cc9` (161 passed); the 24 M4 IDs accepted on correction report 28's tree `69eba9b` (212 passed); the current correction-31 tree `e5413d4` (commit `d2a6b10`) passes the same cases (268 passed, 0 failed, on a fresh Windows clone of the verification commit `4c966e7`, correction report 31); Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed; not rerun since):**
 CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-005a, DOG-005b, DOG-006, DOG-007; GZ-001, GZ-008, GZ-009, GZ-016, GZ-017, GZ-019, GZ-020, GZ-024, GZ-031, GZ-032,
@@ -187,7 +189,7 @@ cases compare with fixtures executed from the audited `src/systems/threats.ts`, 
 `src/entities/critters.ts` (the source's unseeded `Math.random` in the flee steering replaced by the
 port's seeded critter RNG during extraction, D-16).
 
-**Claimed by full suite cases in M4 report 27 and correction report 28 (pending architect review; not counted above; 24):**
+**M4 IDs accepted by the architect (counted above; 24; acceptance recorded in correction report 31):**
 SAV-005, SAV-006, SAV-007, SAV-008, SAV-011, SAV-012, SAV-021; UI-007, UI-008, UI-010, UI-011,
 UI-012, UI-013, UI-015–021, UI-022; FLOW-006, FLOW-010, FLOW-011 — `godot/` tree `69eba9b75fbbb08002ef92cf02e1a9a91b9b3964`, 212 passed, 0 failed on a fresh
 Windows clone (correction report 28; first claimed on `477f012`, 197 passed, M4 report 27). SAV-021

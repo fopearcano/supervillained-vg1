@@ -3,19 +3,23 @@ extends RefCounted
 ## What each action input does during a story walk (port of src/story/walk.ts `perform` and
 ## StoryScene.actionMode). The router only decides which mode to perform; the objective performs it.
 ##
-## Modes: "scene" (the objective's own action: SNIFF, or a scene's own BARK with its rule), "bark"
-## (a plain bark), and — extension points, not offered before M6's combat — "sword" and "shield".
-## A walk with its own action offers ["scene", "bark"]; a walk without one offers ["bark"].
+## Modes: "scene" (the objective's own action: SNIFF, LOOK, VOW, or a scene's own BARK with its
+## rule), "bark" (a plain bark), and "sword" and "shield" (M6 combat), offered only while the
+## campaign's capability permits (StoryContext.armed(): a dream scene with `knight` held, from the
+## authored point of 2.3). A walk with its own action offers ["scene", "bark"] (+ the arms); a walk
+## without one offers ["bark"] (+ the arms). The switcher cycles only these valid modes.
 ##
 ## Inputs, every tick of a walk (source order):
 ##   switch  (Q/Tab, the switcher button, a gesture bound to SWITCH) -> the next mode;
 ##   action  (J/X, the round touch button, a gesture bound to ACTION) -> the selected mode;
 ##   pee     (Space)                                                  -> "scene", always;
 ##   bark    (B, a gesture bound to BARK, the default double tap)     -> "bark", directly;
-##   strike / guard (U / I, the default swipes up / down)             -> "sword" / "shield" when
-##                                                                      offered (never in M5R).
+##   strike / guard (U / I, the default swipes up / down)             -> "sword" / "shield",
+##                                                                      directly (without the
+##                                                                      capability the walk only
+##                                                                      shows that he has no arms).
 
-## Modes M6 adds with combat (knights in the dream); never offered in reality.
+## Modes combat adds (knights in the dream); never offered in reality.
 const COMBAT_MODES := ["sword", "shield"]
 
 var modes: PackedStringArray = PackedStringArray(["bark"])
@@ -23,13 +27,17 @@ var mode := "bark"
 ## The objective's own action label ("" = none) and the plain bark's label (ShellText).
 var scene_label := ""
 var bark_label := ""
+var sword_label := ""
+var shield_label := ""
 
 
-## Sets the modes for a walk: its own action first (when it has one), then the plain bark.
-## `combat` is the M6 extension point (sword and shield for knights); M5R always passes false.
-func configure(p_scene_label: String, p_bark_label: String, combat: bool = false) -> void:
+## Sets the modes for a walk: its own action first (when it has one), then the plain bark, then
+## (`combat`: the knight's capability) the sword and the shield.
+func configure(p_scene_label: String, p_bark_label: String, combat: bool = false, p_sword_label: String = "", p_shield_label: String = "") -> void:
 	scene_label = p_scene_label
 	bark_label = p_bark_label
+	sword_label = p_sword_label
+	shield_label = p_shield_label
 	modes = PackedStringArray()
 	if scene_label != "":
 		modes.append("scene")
@@ -41,7 +49,14 @@ func configure(p_scene_label: String, p_bark_label: String, combat: bool = false
 
 ## The action button's label in the selected mode.
 func label() -> String:
-	return scene_label if mode == "scene" else bark_label
+	match mode:
+		"scene":
+			return scene_label
+		"sword":
+			return sword_label
+		"shield":
+			return shield_label
+	return bark_label
 
 
 func index() -> int:
@@ -68,8 +83,8 @@ func poll() -> Dictionary:
 		out.append("scene" if modes.has("scene") else "bark")
 	if InputService.consume(&"bark"):
 		out.append("bark")
-	if InputService.consume(&"strike") and modes.has("sword"):
+	if InputService.consume(&"strike"):
 		out.append("sword")
-	if InputService.consume(&"guard") and modes.has("shield"):
+	if InputService.consume(&"guard"):
 		out.append("shield")
 	return {"switched": switched, "perform": out}
