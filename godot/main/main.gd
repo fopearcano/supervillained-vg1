@@ -254,9 +254,16 @@ func show_story_card(id: String) -> void:
 	push_overlay(m)
 
 
-## Starts a story scene from the campaign (or the replay's copy, which is never committed).
+## Starts a story scene from the campaign (or the replay's copy, which is never committed). A scene
+## whose entry conditions do not hold is never started: the story error card says why.
 func start_story(id: String) -> void:
 	var data := StoryLibrary.scene(id)
+	var why := data.entry_failure(AppState.story_entry_state())
+	if why != "":
+		var message := "story %s: %s" % [id, why]
+		push_error(message)
+		_on_story_failed(message)
+		return
 	var scene: StoryScene = change_scene(STORY_SCENE, func(n: Node) -> void:
 		(n as StoryScene).setup(data, AppState.story_entry_state(), AppState.persists()))
 	scene.completed.connect(_on_story_completed)

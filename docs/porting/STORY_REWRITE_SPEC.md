@@ -186,10 +186,10 @@ godot/data/story/
 | `music` | `AudioService` music key |
 | `cast` | speaker ids the scene uses (validated against `StoryCast` and every step) |
 | `steps` | the ordered `StoryStep` Resources (§5.3) |
-| `entry_conditions` | `{"requires_completed": [...ids], "requires_abilities": [...], "forbids_abilities_visible": bool}` |
+| `entry_conditions` | `{"requires_completed": [...ids], "requires_abilities": [...]}` — checked before the scene starts (Main never starts it; the StoryScene stops with an explicit error; RD-30) |
 | `persistent_effects` | the declared effect keys the scene may write: meters, `flags.<name>`, `book.<key>`, `unlock.<ability>`; the validator rejects an undeclared write |
 | `completion` | `{"boundary": "scene" | "chapter_end" | "sleep", "requires_flags": [...], "requires_abilities": [...]}` — what must be true when the scene completes |
-| `reality` | `true` for reality scenes (Levels 1 and 8): plain skin, no armour, no dream capability |
+| `reality` | `true` for reality scenes (Levels 1 and 8): plain skin, no armour, no dream capability, whatever abilities the campaign holds — the single authority for this rule (RD-30) |
 | `historical_tags`, `source_refs` | the event/place tags and the references (`docs/STORY-SOURCES.md` short forms); tools only, never shown |
 | `review_status`, `review_notes` | §4; notes carry every `REVIEW REQUIRED` item |
 | `technical_status` | §4 (the technical axis) |
@@ -198,7 +198,16 @@ godot/data/story/
 
 `number`, `title`, `menu_title`, `intro` (level card), `cast_note` (tools only), `music`,
 `professor_aside` (the level-end aside), `scenes` (ordered `StorySceneData`), `content_version`,
-`review_status`. The catalog order of the scenes must equal `StoryCatalog`'s.
+`review_status`, `review_notes` — every one required and validated. The scenes' order must equal the
+compatibility catalog's.
+
+### 5.2a Display titles (RD-29)
+
+The chapter's `title`/`menu_title` and each scene's `title` are what the game shows (Title,
+CONTINUE, Couch, level and chapter lists, scene and boundary cards). `tools/build_resources.gd`
+generates the runtime `StoryCatalog` from the frozen compatibility catalog
+(`data/campaign/story_catalog.json`: stable IDs, order, Green Zone dispatch, draft fallback titles)
+with these titles laid over it; chapters not rewritten yet keep their draft titles.
 
 ### 5.3 Steps
 
@@ -208,12 +217,12 @@ logic is in the step's script; all player-visible text is in the Resource's fiel
 | Step | Purpose | Text fields |
 |---|---|---|
 | `StageStep` | load a map, place the player (marker or point, facing, reality skin) and actors | — |
-| `ActorStep` | spawn, despawn, move (goto/follow/idle), face, gesture an actor | — |
+| `ActorStep` | spawn, despawn, move (goto/follow/idle), face, gesture an actor; `wait_arrival` with a positive `arrival_timeout` (RD-31) | — |
 | `MoveStep` | scripted walk of the player to a point | — |
 | `NarrationStep` | a narrator line (no speaker) | `text` |
 | `DialogueStep` | a speaker's line; optional `remembered` (one per scene) and effects | `text` |
 | `ChoiceStep` | a prompt and options; costs, locks, effects, follow-up steps; `once_each` mode | `prompt`, `prompt_again`, option `label`/`said` |
-| `ObjectiveStep` | a walk objective: reach/collect/follow, pickups, no-run, an action button, an optional scene rule (bucket visor, Jack's gate, the cut-off path) | `objective`, `goal_label`, pickup labels/texts, rule lines |
+| `ObjectiveStep` | a walk objective: reach/collect/follow (a positive `leader_leg_timeout`, RD-31), pickups, no-run, the walk's own action (routed by StoryActionRouter, RD-28), an optional scene rule (bucket visor, Jack's gate, the cut-off path) | `objective`, `goal_label`, `action_label`/`action_text`, pickup labels/texts, leader and rule lines |
 | `EffectStep` | persistent campaign effects | — |
 | `CardStep` / `WaitStep` | a big centred card (timed or tap) / a pause | `big`, `small` |
 | `CueStep` | sound, shake, flash, visor, a floating line | `float_text` |
@@ -224,7 +233,9 @@ logic is in the step's script; all player-visible text is in the Resource's fiel
 ## 6. Validation (automated)
 
 `StoryValidator` checks every chapter and scene Resource and fails with an explicit message for:
-unique and stable scene IDs matching the catalog and its order; unique step ids; valid step types;
+unique and stable scene IDs matching the frozen compatibility catalog and its order; displayed titles
+equal to the Resources' (the generated catalog is current, RD-29); every chapter field of §5.2;
+positive timeouts on every wait (RD-31); unique step ids; valid step types;
 known speakers, maps, markers, cast roles, sprite keys, music and sound keys; reachable choice
 branches; no choice whose options can all be locked; effects limited to known meters, abilities,
 book keys and `CampaignFlagSchema` flags with valid values; effects declared in

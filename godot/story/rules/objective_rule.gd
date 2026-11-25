@@ -20,6 +20,12 @@ func tick(_ctx: StoryContext, _step: ObjectiveStep, _st: Dictionary, _dt: float)
 
 
 ## The objective's action button was pressed.
+## A plain bark (B, a gesture, the action button in BARK mode) while this rule runs. A rule whose
+## scene reacts to barking (the bucket, Jack's echo) treats it like its own action.
+func on_bark(_ctx: StoryContext, _step: ObjectiveStep, _st: Dictionary) -> void:
+	pass
+
+
 func on_action(_ctx: StoryContext, _step: ObjectiveStep, _st: Dictionary) -> void:
 	pass
 

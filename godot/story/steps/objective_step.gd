@@ -5,8 +5,9 @@ extends StoryStep
 ##   reach  — get within `goal_radius` of the goal (marker or point);
 ##   collect — pick up every pickup (StoryPickup), then (if a goal is set) reach it;
 ##   follow — follow `leader` along `path` (it waits when he lags; `leader_lines` at each stop).
-## Options: no running, an action button (`action_label`, a bark/sniff that shows `action_text`),
-## checkpoints, a timed hint, and one scene rule (STORY_REWRITE_SPEC.md §5.3): "visor" (1.1, the
+## Options: no running, the walk's own action (`action_label`, a bark/sniff that shows
+## `action_text`; StoryActionRouter decides which input performs it and when a plain bark is
+## performed instead), checkpoints, a timed hint, and one scene rule (STORY_REWRITE_SPEC.md §5.3): "visor" (1.1, the
 ## bucket slides down when he stops or barks), "jack_gate" (1.2, Jack blocks a gap: barks echo,
 ## pushes bump), "cut_off" (1.3, Jack cuts off the direct path). Rule numbers are in
 ## `rule_params`; every line a rule shows is in `rule_lines`.
@@ -46,6 +47,9 @@ const SCRAP_COLOR := Color("#f0d8a0")
 @export var path: PackedStringArray = []
 @export var leader_speed := 0.0
 @export var leader_lines: PackedStringArray = []
+## follow: seconds the leader may walk one leg (waiting for the player not counted) before the
+## scene stops with an explicit error (validated positive: a blocked leader never waits forever).
+@export var leader_leg_timeout := 0.0
 @export var rule := ""
 @export var rule_params: Dictionary = {}
 @export var rule_lines: Dictionary = {}
@@ -157,6 +161,7 @@ func check(errors: PackedStringArray) -> void:
 			_need(errors, not pickups.is_empty(), "objective %s: collect without pickups" % id)
 		"follow":
 			_need(errors, leader != "" and not path.is_empty() and leader_speed > 0.0, "objective %s: follow needs a leader, a path and a speed" % id)
+			_need(errors, leader_leg_timeout > 0.0, "objective %s: follow needs a positive leader_leg_timeout" % id)
 	for p: Variant in pickups:
 		if not p is StoryPickup:
 			errors.append("objective %s: a pickup is not a StoryPickup" % id)
@@ -206,10 +211,11 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 		st["goal_node"] = ctx.scene.add_marker(st["goal"], st["radius"], GOAL_COLOR)
 	ctx.hud.objective = objective
 	ctx.no_run = no_run
-	ctx.action_label = action_label
+	ctx.actions.configure(action_label, ctx.ui_text("story_mode_bark"))
 	ctx.set_controls(true)
 	if objective_kind == "follow":
 		st["leg"] = 0
+		st["leg_t"] = 0.0
 		st["waiting"] = false
 		var lead := ctx.actor(leader)
 		if lead:
@@ -225,14 +231,13 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 	if hint != "" and not st["hinted"] and float(st["t"]) > hint_after:
 		st["hinted"] = true
 		ctx.notice(hint, PixelText.CYAN)
-	if action_label != "" and InputService.consume(&"action"):
-		ctx.play_sound(action_sound)
-		if action_sound == "bark":
-			ctx.player.start_action("bark", 0.35)
-		if action_text != "":
-			ctx.say_float(action_text, ctx.player_pos(), Color.WHITE)
-		if st.has("rule"):
-			(st["rule"] as ObjectiveRule).on_action(ctx, self, st)
+	var routed := ctx.actions.poll()
+	if routed["switched"]:
+		ctx.set_controls(true)
+		if not InputService.using_touch:
+			ctx.notice(ctx.ui_text("story_switch_notice") % ctx.actions.label(), PixelText.CYAN)
+	for mode: String in routed["perform"]:
+		_perform(ctx, st, mode)
 	var pp := ctx.player_pos()
 	for p: StoryPickup in pickups:
 		if (st["picked"] as Array).has(p.id):
@@ -253,7 +258,7 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 	if ctx.error != "":
 		return true
 	if objective_kind == "follow":
-		return _tick_follow(ctx, st)
+		return _tick_follow(ctx, st, dt)
 	if (st["picked"] as Array).size() < pickups.size():
 		return false
 	if st["goal"] == null:
@@ -261,9 +266,30 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 	return pp.distance_to(st["goal"]) <= float(st["radius"])
 
 
+## Performs one action mode (StoryActionRouter): the walk's own action, or a plain bark (which
+## the scene rule hears too, RD-28). "sword"/"shield" are never offered before M6.
+func _perform(ctx: StoryContext, st: Dictionary, mode: String) -> void:
+	(ctx.metrics["actions"] as Array).append(mode)
+	if mode == "scene" and action_label != "":
+		ctx.play_sound(action_sound)
+		if action_sound == "bark":
+			ctx.player.start_action("bark", S.BARK_ANIM)
+		if action_text != "":
+			ctx.say_float(action_text, ctx.player_pos(), Color.WHITE)
+		if st.has("rule"):
+			(st["rule"] as ObjectiveRule).on_action(ctx, self, st)
+	elif mode == "bark" or mode == "scene":
+		ctx.play_sound("bark")
+		ctx.player.start_action("bark", S.BARK_ANIM)
+		ctx.say_float(ctx.ui_text("story_bark_text"), ctx.player_pos(), Color.WHITE)
+		if st.has("rule"):
+			(st["rule"] as ObjectiveRule).on_bark(ctx, self, st)
+
+
 ## The leader walks the path, waiting while he lags; at each stop one line; done once he has caught
-## up at the last stop.
-func _tick_follow(ctx: StoryContext, st: Dictionary) -> bool:
+## up at the last stop. A leg that takes longer than `leader_leg_timeout` of walking stops the
+## scene with an explicit error.
+func _tick_follow(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 	var lead := ctx.actor(leader)
 	if lead == null:
 		return true
@@ -281,10 +307,15 @@ func _tick_follow(ctx: StoryContext, st: Dictionary) -> bool:
 	if st["waiting"]:
 		st["waiting"] = false
 		lead.go_to(wp, leader_speed)
+	st["leg_t"] = float(st["leg_t"]) + dt
+	if float(st["leg_t"]) > leader_leg_timeout:
+		ctx.fail("leader '%s' did not reach stop %d (marker '%s') within %.1f s" % [leader, leg + 1, path[leg], leader_leg_timeout])
+		return true
 	if Vector2(lead.gx, lead.gy).distance_to(wp) < 0.1:
 		if not leader_lines.is_empty():
 			ctx.say_float(leader_lines[leg % leader_lines.size()], Vector2(lead.gx, lead.gy - 1.2), SCRAP_COLOR)
 		st["leg"] = leg + 1
+		st["leg_t"] = 0.0
 		if leg + 1 < path.size():
 			lead.go_to(ctx.marker(path[leg + 1]), leader_speed)
 		else:
@@ -312,6 +343,6 @@ func end(ctx: StoryContext, st: Dictionary) -> void:
 	if st.has("rule"):
 		(st["rule"] as ObjectiveRule).end(ctx, self, st)
 	ctx.hud.objective = ""
-	ctx.action_label = ""
+	ctx.actions.configure("", ctx.ui_text("story_mode_bark"))
 	ctx.no_run = false
 	ctx.set_controls(false)

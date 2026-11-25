@@ -8,6 +8,8 @@ extends CharacterBody2D
 ## (src/story/dialogueGestures.ts). CharacterBody2D like PlayableDog, for Area2D interactions.
 
 const RADIUS := 0.26
+## A goto has arrived within this distance (tiles) of its target, and only then.
+const ARRIVE_DISTANCE := 0.05
 ## Human roles whose "bark" slot is a speaking gesture (src/story/dialogueGestures.ts).
 const GESTURE_ROLES := ["professor", "niketas", "fulk", "clerk", "abbot", "envoy", "bishop", "cook",
 	"sailmaker", "prince", "householdWoman", "knight", "pilgrim", "venetian", "greek"]
@@ -86,7 +88,7 @@ func go_to(p: Vector2, p_speed: float, run: bool = false) -> void:
 	target = p
 	speed = p_speed
 	running = run
-	arrived = Vector2(gx, gy).distance_to(p) < 0.05
+	arrived = Vector2(gx, gy).distance_to(p) < ARRIVE_DISTANCE
 
 
 func follow(p_speed: float) -> void:
@@ -117,7 +119,7 @@ func tick(dt: float, map: WorldMapModel, player: Vector2) -> void:
 		"goto":
 			var d := target - Vector2(gx, gy)
 			var length := d.length()
-			if length < 0.05:
+			if length < ARRIVE_DISTANCE:
 				arrived = true
 			else:
 				var step := minf(length, speed * dt)
@@ -127,7 +129,9 @@ func tick(dt: float, map: WorldMapModel, player: Vector2) -> void:
 				gy = r[1]
 				face_point(target)
 				moving = moved
-				arrived = Vector2(gx, gy).distance_to(target) < 0.05 or not moved
+				# Arrival is distance only (the retained actor contract): a blocked actor has not
+				# arrived (ActorStep's timeout reports it).
+				arrived = Vector2(gx, gy).distance_to(target) < ARRIVE_DISTANCE
 		"follow":
 			var d := player - Vector2(gx, gy)
 			var length := d.length()

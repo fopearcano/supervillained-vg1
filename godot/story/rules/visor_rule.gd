@@ -16,6 +16,11 @@ func on_action(_ctx: StoryContext, _step: ObjectiveStep, st: Dictionary) -> void
 	st["bow"] = 0.8
 
 
+## Any bark lowers his head (RD-28): the bucket slides down.
+func on_bark(ctx: StoryContext, step: ObjectiveStep, st: Dictionary) -> void:
+	on_action(ctx, step, st)
+
+
 func tick(ctx: StoryContext, _step: ObjectiveStep, st: Dictionary, dt: float) -> bool:
 	var dog := ctx.player
 	var still := Vector2(dog.vx, dog.vy).length() < 0.2

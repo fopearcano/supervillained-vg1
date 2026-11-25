@@ -98,6 +98,159 @@ func _until_step(s: StoryScene, id: String, limit: int = 600) -> bool:
 	return s.runner.current != null and s.runner.current.id == id
 
 
+# --- Actor arrival and timeouts (correction 31) --------------------------------------------------
+
+## A straight run of walkable tiles from the neighbourhood's start: {"spawn", "near", "dir"} in grid
+## points (tile centres), found on the same map the stage builds.
+static func _clear_run() -> Dictionary:
+	var m: StoryMapData = load("res://data/story/maps/neighborhood.tres")
+	var map := WorldMapModel.new(m.parse()["level"])
+	var s0: Vector2i = map.start_tile
+	for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		var ok := true
+		for k in range(1, 5):
+			if not map.is_walkable(s0.x + d.x * k, s0.y + d.y * k):
+				ok = false
+		if ok:
+			return {"spawn": Vector2(s0 + d) + Vector2(0.5, 0.5), "near": Vector2(s0 + d * 4) + Vector2(0.5, 0.5), "dir": d}
+	return {}
+
+
+static func _jack_at(p: Vector2) -> StoryActorSpec:
+	var a := StoryActorSpec.new()
+	a.name = "jack"
+	a.role = "jack"
+	a.point = p
+	return a
+
+
+static func _goto(p: Vector2, timeout: float) -> ActorStep:
+	var g := ActorStep.new()
+	g.id = "goto"
+	g.actor = "jack"
+	g.action = "goto"
+	g.point = p
+	g.speed = 3.0
+	g.wait_arrival = true
+	g.arrival_timeout = timeout
+	return g
+
+
+func _watch(s: StoryScene) -> Dictionary:
+	var out := {}
+	s.failed.connect(func(m: String) -> void: out["error"] = m)
+	s.completed.connect(func(r: Dictionary) -> void: out["result"] = r)
+	return out
+
+
+func _take_errors(fragment: String) -> int:
+	var cap: ErrorCapture = tree.get("_capture")
+	var logged: Array = cap.take() if cap else []
+	return logged.filter(func(e: Dictionary) -> bool: return String(e["code"]).contains(fragment) or String(e["rationale"]).contains(fragment)).size()
+
+
+## Arrival is distance only: a goto with wait_arrival waits until the actor is within
+## StoryActor.ARRIVE_DISTANCE of its target, then the scene goes on.
+func test_SLICE_actor_arrival_on_a_clear_path() -> void:
+	var run := _clear_run()
+	if not assert_false(run.is_empty(), "a clear run from the start"):
+		return
+	var s := _run(_data([_stage([_jack_at(run["spawn"])]), _goto(run["near"], 4.0), _say("after", "jack", "HERE.")]))
+	var out := _watch(s)
+	var waited := 0
+	for k in 300:
+		_ticks(s, 1)
+		if s.runner.current != null and s.runner.current.id == "goto":
+			waited += 1
+		if s.runner.current != null and s.runner.current.id == "after":
+			break
+	var jack: StoryActor = s.actors["jack"]
+	assert_eq(s.runner.current.id if s.runner.current else "", "after", "the scene went on after the arrival")
+	assert_true(waited > 30, "it waited for the walk (%d ticks)" % waited)
+	assert_true(jack.arrived and Vector2(jack.gx, jack.gy).distance_to(run["near"]) < StoryActor.ARRIVE_DISTANCE, "arrived: within %.2f of the target" % StoryActor.ARRIVE_DISTANCE)
+	assert_false(out.has("error"), "no error")
+
+
+## A blocked actor has not arrived: it stops against the edge, `arrived` stays false and the step
+## keeps waiting (until its timeout).
+func test_SLICE_blocked_actor_never_counts_as_arrived() -> void:
+	var run := _clear_run()
+	if not assert_false(run.is_empty(), "a clear run from the start"):
+		return
+	var far: Vector2 = run["spawn"] - Vector2(run["dir"]) * 60.0
+	var s := _run(_data([_stage([_jack_at(run["spawn"])]), _goto(far, 30.0), _say("after", "jack", "HERE.")]))
+	var out := _watch(s)
+	_ticks(s, 60 * 4)
+	var jack: StoryActor = s.actors["jack"]
+	var stopped := Vector2(jack.gx, jack.gy)
+	_ticks(s, 30)
+	assert_eq(Vector2(jack.gx, jack.gy), stopped, "the actor is stopped (blocked)")
+	assert_true(stopped.distance_to(far) > 1.0, "far from its target")
+	assert_false(jack.arrived, "blocked is not arrived")
+	assert_eq(s.runner.current.id if s.runner.current else "", "goto", "the step still waits")
+	assert_false(out.has("error") or out.has("result"), "no error yet, nothing completed")
+
+
+## The timeout: a goto that cannot arrive stops the scene with an explicit story error (reported
+## once); RESTART then starts a clean attempt (one fresh actor, the old one freed, a fresh context)
+## that fails the same way; freeing the scene leaves no node behind (the runner's orphan check).
+func test_SLICE_arrival_timeout_fails_explicitly_and_restart_cleans_up() -> void:
+	var run := _clear_run()
+	if not assert_false(run.is_empty(), "a clear run from the start"):
+		return
+	var far: Vector2 = run["spawn"] - Vector2(run["dir"]) * 60.0
+	var s := _run(_data([_stage([_jack_at(run["spawn"])]), _goto(far, 1.0), _say("after", "jack", "HERE.")]))
+	var out := _watch(s)
+	_ticks(s, 90)
+	var why := "actor 'jack' did not reach (%.2f, %.2f) within 1.0 s" % [far.x, far.y]
+	assert_true(String(out.get("error", "")).begins_with("story 1.1: " + why), "the explicit error: %s" % out.get("error", ""))
+	assert_eq(_take_errors(why), 1, "reported once")
+	assert_true(s.finished and not out.has("result"), "stopped, nothing completed")
+	var old_jack: StoryActor = s.actors["jack"]
+	var old_ctx := s.ctx
+	out.clear()
+	s.restart()
+	_ticks(s, 1)
+	await tree.process_frame
+	assert_false(is_instance_valid(old_jack), "the old actor is freed")
+	assert_eq([s.actors.size(), s.actors.get("jack") != old_jack, s.ctx != old_ctx, s.ctx.error, s.finished, s.restarts], [1, true, true, "", false, 1], "a clean attempt: one fresh actor, a fresh context")
+	_ticks(s, 89)
+	assert_true(String(out.get("error", "")).begins_with("story 1.1: " + why), "the restarted attempt fails the same way")
+	assert_eq(_take_errors(why), 1, "reported once again")
+
+
+## A follow objective whose leader cannot reach a stop stops the scene with an explicit error
+## (time waiting for the player is not counted).
+func test_SLICE_follow_leader_leg_timeout_fails_explicitly() -> void:
+	var run := _clear_run()
+	if not assert_false(run.is_empty(), "a clear run from the start"):
+		return
+	var f := ObjectiveStep.new()
+	f.id = "follow"
+	f.objective = "FOLLOW"
+	f.objective_kind = "follow"
+	f.leader = "jack"
+	f.path = PackedStringArray(["7"])
+	f.leader_speed = 0.01
+	f.leader_leg_timeout = 1.0
+	var s := _run(_data([_stage([_jack_at(run["spawn"])]), f]))
+	var out := _watch(s)
+	_ticks(s, 90)
+	var why := "leader 'jack' did not reach stop 1 (marker '7') within 1.0 s"
+	assert_eq(String(out.get("error", "")), "story 1.1: " + why, "the explicit error")
+	assert_eq(_take_errors(why), 1, "reported once")
+
+
+## Draw order (source StoryScene: overlayG, then the controls, the HUD, the dialogue and the cards):
+## the visor bars and the flash are beneath the touch controls, which stay visible and usable while
+## the bucket is down; the HUD (objective, lines, cards) is above both.
+func test_SLICE_visor_and_flash_drawn_beneath_the_touch_controls() -> void:
+	var s := _run(_data([_stage(), _say("hello", "jack", "HELLO.")]))
+	var order: Array = s.get_node("StoryCanvas").get_children().map(func(n: Node) -> String: return String(n.name))
+	assert_eq(order, ["StoryShade", "StoryTouchControls", "StoryHud"], "shade, then controls, then HUD")
+	assert_eq([s.shade.hud, s.shade.mouse_filter], [s.hud, Control.MOUSE_FILTER_IGNORE], "the shade reads the HUD and takes no touch")
+
+
 # --- Missing content ----------------------------------------------------------------------------
 
 ## Missing content fails explicitly at run time, never silently (STORY_REWRITE_SPEC.md §6): a map
@@ -302,9 +455,14 @@ func test_DLG_009_period_words_amber_while_typing_and_after() -> void:
 
 # --- Objectives ---------------------------------------------------------------------------------
 
+## A Level 1 scene from the campaign that enters it (1.0 and every earlier scene completed).
 func _level(id: String) -> StoryScene:
 	var st := CampaignSchema.new_campaign()
 	st["completed"] = ["1.0"]
+	for k in ["1.1", "1.2", "1.3", "1.4", "1.5"]:
+		if k == id:
+			break
+		st["completed"].append(k)
 	return _run(StoryLibrary.scene(id), st)
 
 
@@ -321,7 +479,7 @@ func _until_objective(s: StoryScene, id: String) -> ObjectiveStep:
 ## WALK-001–006 (Level 1 scope: reach, collect, action and follow objectives, progress, success,
 ## failure and recovery): a reach goal completes only inside its radius; a collect needs every
 ## pickup; the action button acts (BARK, SNIFF); the leader waits while Zampanò lags and goes on
-## when he comes; pushing at Jack fails and recovers (test_story_level1).
+## when he comes; pushing at Jack fails and recovers. Partial: survive and the later failure systems.
 func test_WALK_001_006_level_1_objectives() -> void:
 	var s := _level("1.1")
 	var o := _until_objective(s, "s06")
@@ -368,6 +526,33 @@ func test_WALK_001_006_level_1_objectives() -> void:
 	InputService.trigger(&"action")
 	_ticks(s, 1)
 	assert_true(s.hud.shown_texts.has("SNIFF..."), "SNIFF")
+	# Failure and recovery (Jack's gate, the Level 1 failure system): every push into the gap is
+	# refused (NOPE!, pushed back out), a hint after 3 and 8 pushes, and after 14 the way opens
+	# anyway; then the reach goal completes. (Survive objectives and the later failure systems —
+	# sight, contact, checkpoints — arrive with later levels: WALK-001–006 stays Partial.)
+	s = _level("1.2")
+	var gate := _until_objective(s, "s17")
+	if not assert_true(gate != null and gate.rule == "jack_gate", "the gate walk"):
+		return
+	var gap: Rect2 = gate.rule_params["gap"]
+	var opened := false
+	for k in 60 * 12:
+		s.world.player.set_grid_position(gap.position.x + 0.1, gap.get_center().y)
+		_ticks(s, 1)
+		assert_true(s.world.player.gx < gap.position.x or bool(s.runner.st.get("open", false)), "pushed back out of the gap")
+		if bool(s.runner.st.get("open", false)) or s.runner.current != gate:
+			opened = true
+			break
+	assert_true(opened, "the way opened")
+	assert_eq([s.ctx.metrics["bumps"], s.ctx.metrics["echoes"]], [14, 0], "after the 14th push, without a bark")
+	assert_eq((s.ctx.metrics["notices"] as Array).count("JACK WILL NOT MOVE. BARK?"), 2, "the hint after 3 and 8 pushes")
+	assert_true(s.hud.shown_texts.has("NOPE!"), "NOPE!")
+	_ticks(s, 2)
+	var bowl: Vector2 = s.runner.st.get("goal", Vector2.ZERO) if s.runner.current == gate else Vector2.ZERO
+	if s.runner.current == gate:
+		s.world.player.set_grid_position(bowl.x, bowl.y)
+		_ticks(s, 1)
+	assert_true(s.runner.current != gate, "the walk then completes at its goal")
 
 
 ## WALK-007–009: spot rings and sprites while an objective runs (gone after), pickups apply their

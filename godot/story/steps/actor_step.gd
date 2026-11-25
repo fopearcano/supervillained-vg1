@@ -20,6 +20,9 @@ const ACTIONS := ["spawn", "despawn", "goto", "follow", "idle", "face", "gesture
 @export var run := false
 ## goto: the step waits until the actor arrives.
 @export var wait_arrival := false
+## goto + wait_arrival: seconds to arrive before the scene stops with an explicit error (validated
+## positive; never a silent continue while the actor is far from its target).
+@export var arrival_timeout := 0.0
 
 
 func kind() -> String:
@@ -43,6 +46,8 @@ func actor_refs() -> PackedStringArray:
 
 
 func check(errors: PackedStringArray) -> void:
+	if action == "goto" and wait_arrival:
+		_need(errors, arrival_timeout > 0.0, "actor step %s: wait_arrival needs a positive arrival_timeout" % id)
 	_need(errors, actor != "", "actor step without an actor")
 	_need(errors, ACTIONS.has(action), "actor %s: bad action '%s'" % [actor, action])
 	_need(errors, action != "spawn" or role != "", "actor %s: spawn without a role" % actor)
@@ -50,7 +55,8 @@ func check(errors: PackedStringArray) -> void:
 	_need(errors, speed > 0.0, "actor %s: speed must be positive" % actor)
 
 
-func begin(ctx: StoryContext, _st: Dictionary) -> void:
+func begin(ctx: StoryContext, st: Dictionary) -> void:
+	st["t"] = 0.0
 	var p := Vector2.ZERO
 	if ["spawn", "goto", "place"].has(action):
 		p = ctx.player_pos() + point if near_player else ctx.place(at, point)
@@ -85,8 +91,16 @@ func begin(ctx: StoryContext, _st: Dictionary) -> void:
 		a.face(face)
 
 
-func tick(ctx: StoryContext, _st: Dictionary, _dt: float) -> bool:
+func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 	if action == "goto" and wait_arrival:
-		var a: StoryActor = ctx.scene.actors.get(actor)
-		return a == null or a.arrived
+		var a := ctx.actor(actor)
+		if a == null:
+			return true
+		st["t"] = float(st["t"]) + dt
+		if a.arrived:
+			return true
+		if float(st["t"]) > arrival_timeout:
+			ctx.fail("actor '%s' did not reach (%.2f, %.2f) within %.1f s (stopped at %.2f, %.2f)" % [actor, a.target.x, a.target.y, arrival_timeout, a.gx, a.gy])
+			return true
+		return false
 	return true

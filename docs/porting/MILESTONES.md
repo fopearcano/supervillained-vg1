@@ -351,7 +351,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 - Story smoke and real-input completion reports for 1.1–1.5; gameplay and dialogue captures.
 - Narrative status "draft implemented, narrative review pending" until the owner reviews historical accuracy, tone and characterization, every dialogue and choice, Level 1 pacing and the setup for both endings.
 
-**Status (M5R-B, implementation log report 30):** the engine and Level 1 are implemented and technically complete (validator, scripted smoke, real-input completion, save/restart/replay tests); narrative status "draft implemented, narrative review pending". Gates still open: independent architectural review of the engine (`STORY_ENGINE_API.md`) and the owner's review of the Level 1 draft. M6 does not begin before both.
+**Status (M5R-B, report 30; correction report 31):** the engine and Level 1 are implemented and technically complete (validator, scripted smoke, real-input completion, save/restart/replay tests); correction 31 completed the action routing and gestures, distance-only arrival with timeouts, the Resources as display authority, run-time entry conditions and the owner's review package; ARCH-001b is accepted. Narrative status "draft implemented, narrative review pending". Gates still open: independent review of the correction and the owner's decision on the Level 1 draft (approve, request changes, or defer for prototype development; `docs/porting/manual_evidence/m5r_level1_narrative_review/`). M6 does not begin before both.
 
 ---
 

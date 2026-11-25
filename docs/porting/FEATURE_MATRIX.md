@@ -12,7 +12,7 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 
 Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. **From M5R, story prose and scene beats follow the rewrite authority** (`STORY_REWRITE_SPEC.md`: the Godot story Resources, the content matrix, the decision log); the PixiJS story and `docs/STORY.md` are draft/reference material and the story rows below no longer require their exact text. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
-## Godot implementation status — M1, M2, M3 Partial (manual checks owner-deferred; M3 automated IDs accepted), M4 Partial (save system and product shell, pending review)
+## Godot implementation status — M1, M2, M3, M4 Partial (manual checks owner-deferred or not executed; their automated IDs accepted), M5R implemented (Level 1 draft; pending review)
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. The M1 Android
@@ -41,8 +41,9 @@ scope (CONTINUE hands `{result, time, coins}` to a stub receiver). Evidence: M3 
 correction report 26 (the level freezes under the Supervillained snap, the result card and game over;
 strengthened GZ-032/043/044/045 cases) in `docs/porting/IMPLEMENTATION_LOG.md`,
 `docs/porting/captures/m3_green_zone_prototype/` (5 PNGs, M3 report 25).
-**M4 (save system, title shell, settings, records, replay shell): implemented, pending architect
-review; M4 stays Partial** — the game starts at the title; the format-3 save validates every
+**M4 (save system, title shell, settings, records, replay shell): implemented; its 24 automated
+IDs claimed in correction report 28 are accepted by the architect (recorded in correction report
+31); M4 stays Partial** (its manual checks are not executed) — the game starts at the title; the format-3 save validates every
 section (settings, independent records, passive legacy coins, the campaign v2 with
 CampaignFlagSchema, legacy-import metadata) and writes atomically with recovery, user-visible
 notices and future-format preservation; the legacy Capacitor converter runs on fixtures with the raw
@@ -74,10 +75,25 @@ pause; API in `STORY_ENGINE_API.md`) and the rewritten Level 1 (1.1–1.5) as Re
 CONTINUE launches 1.1; each scene is one atomic save at its completion (RD-05), restart and
 force-close apply nothing twice, replays change no byte; after 1.5 the Supervillained snap, the
 Professor's aside and the explicit Level 2 boundary. Level 1 is technically complete; its narrative
-status is "draft implemented, narrative review pending". Not done: SKIP SCENE (RD-23, OQ-11), the
-study's own art bank (M8, RD-14), Levels 2–8. M5R's manual checks (playing 1.0–1.5 by hand on a
-device, both 1.3 choices, failing Jack's gate, pause at every step family) are not executed.
-Evidence: report 30 in the log, `docs/porting/captures/m5r_level1/` (12 PNGs).
+status is "draft implemented, narrative review pending". **Correction report 31:** the story's action
+inputs are routed as the source routes them (J/X the action button's mode, Space the walk's own
+action, B a plain bark the bucket and Jack hear, the touch ACTION button and the mode switcher, the
+configured double tap); actor arrival is distance-only and every wait has an explicit timeout; the
+rewritten Resources are the display authority for titles (generated over the frozen compatibility
+catalog); entry conditions are enforced at run time and `reality` alone keeps reality scenes plain;
+ARCH-001b is accepted on combined evidence (the production StoryScene suite case and the architect's
+static review of `d503938`); the owner's narrative-review package is in
+`docs/porting/manual_evidence/m5r_level1_narrative_review/`. **Gestures and action modes:**
+implemented and tested — the right-hand double tap and swipes (pointer ownership kept: a button or
+joystick touch never becomes a gesture), their CONTROLS bindings (OFF, ACTION BUTTON, BARK, SWITCH,
+RUN ON/OFF), the mode switcher (button, Q/Tab, a gesture), modes "scene" and "bark"; routed but not
+offered before M6's combat — SWORD and SHIELD (U/I, the default swipes do nothing in Level 1); no
+gesture streak or on-screen gesture hints yet (M8). Not done: SKIP SCENE (RD-23, OQ-11), the study's
+own art bank (M8, RD-14), Levels 2–8. M5R's manual checks (playing 1.0–1.5 by hand on a device, both
+1.3 choices, failing Jack's gate, pause at every step family, the gestures on a phone) are not
+executed.
+Evidence: reports 30 and 31 in the log, `docs/porting/captures/m5r_level1/` (12 PNGs, regenerated in
+correction report 31).
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title captures: `…_49` and `…_98` of commit `16b5619`; `…_00`
 regenerated as rendered frame 0 in correction report 22 after the `title_capture.gd` fix; the earlier
@@ -96,20 +112,23 @@ rendered clauses under the acceptance conditions the architect set, below), or o
 architect-accepted command evidence (AST-019 and CORE-001, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (113, counting split-ID parts), Godot 4.7.2; last architect-accepted M1/M2 baseline verified on the Windows console build (`godot/` tree `21ce8a2`, 139 passed, correction report 24); the 21 M3 IDs accepted on correction report 26's tree `0684cc9` (161 passed); the current correction-28 tree `69eba9b` passes the same cases (212 passed, 0 failed in total, correction report 28); Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed; not rerun since):**
+**Acceptance IDs satisfied by a full suite case (137, counting split-ID parts), Godot 4.7.2; last architect-accepted M1/M2 baseline verified on the Windows console build (`godot/` tree `21ce8a2`, 139 passed, correction report 24); the 21 M3 IDs accepted on correction report 26's tree `0684cc9` (161 passed); the 24 M4 IDs accepted on correction report 28's tree `69eba9b` (212 passed); the current correction-31 tree passes the same cases (the full suite on a fresh Windows clone, correction report 31); Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed; not rerun since):**
 CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-005a, DOG-005b, DOG-006, DOG-007; GZ-001, GZ-008, GZ-009, GZ-016, GZ-017, GZ-019, GZ-020, GZ-024, GZ-031, GZ-032,
 GZ-034–036, GZ-037, GZ-038–041, GZ-042–045; AST-001–018, AST-020; AUD-001–008;
 FLOW-001–004; AUTO-001; SAV-001–004, SAV-013–020, SAV-022 (main, temp and backup; the fractional
-future version 3.5 too since correction report 28).
+future version 3.5 too since correction report 28); the 24 M4 IDs — SAV-005–008, SAV-011, SAV-012,
+SAV-021; UI-007, UI-008, UI-010–013, UI-015–021, UI-022; FLOW-006, FLOW-010, FLOW-011.
 MAP-007 is one aggregator case (rows/topology, canonical route length, treat placements).
 Every automated M1 ID (ISO-001–003, RNG-001–003, AST-001–020, AUD-001–008, SAV-013–017) is
 satisfied, AST-019 by command evidence (counted once, below). **AST-007 / finding F-15 accepted by the architect**
 (review of `6b91fd3`): the sword and shield are baked into the armoured frames, so shared frame and
 foot-anchor alignment is the applicable "arms attachment" contract.
 
-**Satisfied on combined evidence (4; TEST_PLAN.md):** ARCH-001a (suite:
+**Satisfied on combined evidence (5; TEST_PLAN.md):** ARCH-001b (suite:
+`test_ARCH_001b_production_story_scene_shares_the_world`; static: the architect's review of
+`d503938`, accepted as recorded in correction report 31). ARCH-001a (suite:
 `test_ARCH_001a_dummy_story_host_shares_the_green_zone_world`; static: the named static review is
 the architect's review of `f580fa4`, **confirmed** by the architect on review of `46d7ad9`: no
 duplicate playable/input movement controller). VIEW-004 and CAM-004, **accepted by the architect on
@@ -136,13 +155,16 @@ RESTART drawn with the identity canvas transform, fixed by `CameraRig.snap()` pu
 view with `force_update_scroll()`) stays separate evidence: the pre-fix mutation fails the four real
 Main RESTART records (its rerun in correction report 19 failed only those). **Satisfied on
 architect-accepted command evidence (2):** AST-019 and CORE-001 (below).
-**Total satisfied: 119 (113 full suite + 4 combined + 2 command).** The 21 M3 IDs of correction
+**Total satisfied: 144 (137 full suite + 5 combined + 2 command).** The 21 M3 IDs of correction
 report 26 (GZ-001, GZ-016, GZ-017, GZ-031, GZ-032, GZ-034–036, GZ-037, GZ-038–041, GZ-042–045,
 DOG-005b, FLOW-003, FLOW-004, AUTO-001) were accepted by the architect after that report (recorded
-in correction report 28); the earlier 98 are unchanged.
+in correction report 28); correction report 28's 24 M4 IDs and ARCH-001b were accepted after
+reports 28 and 30 (recorded in correction report 31); the earlier 98 are unchanged. The M5R IDs
+claimed in reports 30 and 31 are pending review and not counted here.
 
 **Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
-ARCH-001a (M2, satisfied on combined evidence) + ARCH-001b (M5, production story scene); COLL-005 = COLL-005a (M2,
+ARCH-001a (M2, satisfied on combined evidence) + ARCH-001b (M5, production story scene, satisfied on
+combined evidence) — **satisfied**; COLL-005 = COLL-005a (M2,
 satisfied) + COLL-005b (M5–M7: scripted-position objectives; `test_P_COLL_005b` evidence in
 M5/M6, the full aggregate in M7). COLL-005 covers static and scripted-position reachability only;
 dynamic goals (moving or runtime-placed targets) are owned by WALK/NPC/MINI and each scene's STY
@@ -357,7 +379,7 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Eight-direction facing | Slice | MOVE-002, MOVE-003 | — |
 | Walk/run/terrain speed | Slice | MOVE-003, MOVE-004, MOVE-005 | — |
 | Collision and sliding | Slice | COLL-001–004, COLL-005a (one continuous drive to every treat's exact position within its pickup radius and on to the exit; every reachable story-map marker), COLL-006; SLICE solver decision | GridKinematicSolver (native slide rejected); COLL-005b partial: Level 1's ten scripted targets reachable (M5R-B), Levels 2–8 (M6–M7) |
-| Shared Green Zone/story world | Slice | ARCH-001a on combined evidence: the dummy Story host case (same classes and public interfaces, its own environment resources, lifecycle, movement, camera, sorting, recursive cleanup) + the architect's static review of `f580fa4`, confirmed (no duplicate playable/input controller; ActorBody controllers on the shared solver allowed) | ARCH-001b: suite half claimed in M5R-B (the production `StoryScene` uses the same `IsoWorld`, dog, camera and solver); the architect's static review of the story engine pending |
+| Shared Green Zone/story world | Slice | ARCH-001a on combined evidence: the dummy Story host case (same classes and public interfaces, its own environment resources, lifecycle, movement, camera, sorting, recursive cleanup) + the architect's static review of `f580fa4`, confirmed (no duplicate playable/input controller; ActorBody controllers on the shared solver allowed) | ARCH-001b accepted on combined evidence (the production `StoryScene` suite case + the architect's static review of `d503938`); ARCH-001 satisfied |
 | Camera lag/look-ahead/sway/shake/clamp | Slice | CAM-001–003; CAM-004 on combined evidence, accepted on review of `9c4cd52` (whole-pixel origin in the suite + the renderer-backed probe: static markers exact under the following camera at 30/60/90/120 FPS, fractional-camera controls detected) | shake noise seeded (D-04) |
 | Stable depth sorting | Slice | DEPTH-001–003 | — |
 | Tall-object occlusion | Slice | DEPTH-004, capture 12 | — |
@@ -388,18 +410,18 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Under Attack | Slice (M3, accepted) | GZ-038–041; banner, alarm, siren loop, duck, pause/resume (SLICE cue case); capture 22 | screen look approximate (D-19) |
 | Bagnaskiz | Slice (M3, accepted) | GZ-042–045 | — |
 | Pollution waves | Slice (M3, accepted) | GZ-037; one shared threat RNG drawn in the source order (GZ-001) | — |
-| HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006 (M3: threat radar dots, attack banner and hints, button state); SLICE multi-touch routing; captures | gestures/switcher (D-09); device safe area |
+| HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006 (M3: threat radar dots, attack banner and hints, button state); SLICE multi-touch routing; captures; story walks (correction 31): action button by mode, switcher, double tap and swipes with their bindings, pointer ownership (SLICE, `test_story_input.gd`) | gesture streak and hints (M8); SWORD/SHIELD modes (M6); device safe area |
 | Briefing/level end/game over | Partial | FLOW-001–004 (FLOW-003, FLOW-004 accepted from M3); P: FLOW-005; Supervillained snap; glitch transition; CONTINUE → stub handoff; the level frozen under the terminal overlays (SLICE, correction report 26); captures 23, 14 | title (M4); the 1.1 receiver implemented (M5R-B, STY-100) |
 | Green Zone automated full-play coverage | Slice (M3, accepted) | AUTO-001 (seeded real-input run with an attack); SLICE reproducibility | MAN-GZ manual runs |
 | Press Start 2P pixel font | Slice | AST-020 (glyphs, metrics, wrapping, fallback, IPA, schwa); OFL exported | glow (D-06) |
 | Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |
 | Synthesized audio | Slice | AUD-005–008 (14 cues + medieval loop as source-rendered PCM WAV) | chapter routing (M5–M8) |
-| Settings / records persistence, atomic save | Slice (M4, pending review) | SAV-001–004, SAV-018–020, SAV-022 (3.5 included); SAV-021 claimed (an invalid main copied and verified before any repair, or left untouched in a read-only session; restored from the backup with a title notice); every domain write one transaction at every injected stage, exact versions (SLICE, correction report 28); tests and --script tools never touch a real save | — |
-| Format-3 campaign, legacy coins, import metadata | Slice (M4, pending review) | SAV-005–008, SAV-011, SAV-012 claimed; P: SAV-009, SAV-010 | story saves are per scene (RD-05, M5R-B); SAV-009/010 stay partial until every level saves |
+| Settings / records persistence, atomic save | Slice (M4, accepted) | SAV-001–004, SAV-018–020, SAV-022 (3.5 included); SAV-021 (an invalid main copied and verified before any repair, or left untouched in a read-only session; restored from the backup with a title notice); every domain write one transaction at every injected stage, exact versions (SLICE, correction report 28); tests and --script tools never touch a real save | — |
+| Format-3 campaign, legacy coins, import metadata | Slice (M4, accepted) | SAV-005–008, SAV-011, SAV-012; P: SAV-009, SAV-010 | story saves are per scene (RD-05, M5R-B); SAV-009/010 stay partial until every level saves |
 | Legacy Capacitor converter | Partial | P: MIG-005 (M4 half; an existing raw backup preserved or left alone), MIG-006–010 (fixtures, statuses, notices, one transactional commit with retry) | real WebView acquisition, MIG-001–004, M9 half of MIG-005 (M9) |
-| Title, NEW GAME, CONTINUE, Couch, Options, Controls, Glossary, Goodbye | Slice (M4, pending review) | UI-007, UI-008, UI-010, UI-011, UI-012, UI-013, UI-015–021, UI-022 claimed; P: UI-009, UI-014; save-error card (SLICE); captures `m4_shell/` | title film/glitch/lettering and the title visible under OPTIONS, the confirmation and Goodbye (M8, D-21); the level card before 1.0 (D-22 narrowed to it, OQ-02); UI-014 historical UTC offsets |
-| Replay and flow-policy shell | Slice (M4, pending review) | FLOW-006, FLOW-010, FLOW-011 claimed; P: FLOW-007–009, FLOW-012; the walk handoff one atomic, idempotent save (SLICE) | story scenes: see the next row |
-| Story engine and rewritten Level 1 (1.1–1.5) | Slice (M5R-B, pending review) | CONTENT-001–005, STY-100–105, DLG-001–009, WALK-001–009 and NPC-001–007 (Level 1 scope), DOG-008b, FLOW-007, FLOW-008 and FLOW-011 (Level 1) claimed; ARCH-001b suite half; P: COLL-005b, FLOW-009, FLOW-012, SAV-009, SAV-010, CAMP-001–014 (Level 1 portions), UI-023–030; captures `m5r_level1/` | narrative review (owner); independent architectural review; SKIP SCENE (RD-23, OQ-11); Levels 2–8 (M6–M7) |
+| Title, NEW GAME, CONTINUE, Couch, Options, Controls, Glossary, Goodbye | Slice (M4, accepted) | UI-007, UI-008, UI-010, UI-011, UI-012, UI-013, UI-015–021, UI-022; P: UI-009, UI-014; save-error card (SLICE); captures `m4_shell/` | title film/glitch/lettering and the title visible under OPTIONS, the confirmation and Goodbye (M8, D-21); the level card before 1.0 (D-22 narrowed to it, OQ-02); UI-014 historical UTC offsets |
+| Replay and flow-policy shell | Slice (M4, accepted) | FLOW-006, FLOW-010, FLOW-011; P: FLOW-007–009, FLOW-012; the walk handoff one atomic, idempotent save (SLICE) | story scenes: see the next row |
+| Story engine and rewritten Level 1 (1.1–1.5) | Partial (M5R, pending review) | claimed (correction 31's strengthened cases): CONTENT-001–005, STY-100–105, DLG-001–009, WALK-007–009, NPC-007, DOG-008b, FLOW-007, FLOW-008 and FLOW-011 (Level 1); ARCH-001b accepted (combined); P: WALK-001–006 (Level 1 reach/collect/action/follow and Jack's gate failure/recovery; survive and the later failure systems with later levels), NPC-001–006 (idle, goto, follow; patrol, chase, flee, wander, flail and fly with later chapters), COLL-005b, FLOW-009, FLOW-012, SAV-009, SAV-010, CAMP-001–014 (Level 1 portions), UI-023–030; SLICE: action routing and gestures, arrival timeouts, entry conditions, display authority; captures `m5r_level1/`; owner review package | narrative review (owner); SKIP SCENE (RD-23, OQ-11); SWORD/SHIELD (M6); Levels 2–8 (M6–M7) |
 | Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15, 16 and 17; accepted on review of `8f8dcb6`); M4: the format-3 converter, SaveService integration and the fixture/simulated half of MIG-005 implemented (M4 report 27); production lineage, two WebView/device versions and MIG-001–010 proof M9 |
 | Everything else in this matrix | — | — | later milestones |
 

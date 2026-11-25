@@ -41,3 +41,18 @@ extends Resource
 @export var review_notes: PackedStringArray = []
 ## Technical status (STORY_REWRITE_SPEC.md §4).
 @export var technical_status := ""
+
+
+## Why the scene cannot start from `state` ("" = it can): every `entry_conditions.requires_completed`
+## id completed and every `requires_abilities` ability held. Reality scenes need no ability rule
+## here: `reality` alone keeps them plain (spec §2.4).
+func entry_failure(state: Dictionary) -> String:
+	var done: Array = state.get("completed", [])
+	for req: String in entry_conditions.get("requires_completed", []):
+		if not done.has(req):
+			return "entry condition: %s is not completed" % req
+	var held: Array = state.get("abilities", [])
+	for a: String in entry_conditions.get("requires_abilities", []):
+		if not held.has(a):
+			return "entry condition: the ability '%s' is not held" % a
+	return ""

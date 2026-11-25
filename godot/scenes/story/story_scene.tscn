@@ -1,14 +1,21 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/story/story_scene.gd" id="1_story"]
 [ext_resource type="Script" path="res://ui/story/story_hud.gd" id="2_hud"]
 [ext_resource type="Script" path="res://ui/story/story_touch_controls.gd" id="3_touch"]
+[ext_resource type="Script" path="res://ui/story/story_shade.gd" id="4_shade"]
 
 [node name="StoryScene" type="Node2D"]
 script = ExtResource("1_story")
 
 [node name="StoryCanvas" type="CanvasLayer" parent="."]
 layer = 1
+
+[node name="StoryShade" type="Control" parent="StoryCanvas"]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("4_shade")
 
 [node name="StoryTouchControls" type="Control" parent="StoryCanvas"]
 layout_mode = 3

@@ -160,11 +160,7 @@ func _box_height(w: float) -> float:
 func _draw() -> void:
 	var w := size.x
 	var h := size.y
-	if visor > 0.01:
-		var top := roundf(h / 2.0 * visor)
-		var bottom := roundf(h / 2.0 * visor * 0.82)
-		draw_rect(Rect2(0, 0, w, top), Color.BLACK)
-		draw_rect(Rect2(0, h - bottom, w, bottom), Color.BLACK)
+	# (The visor bars and the flash are drawn beneath the touch controls by StoryShade.)
 	# Floating lines above characters (kept inside the view).
 	if world:
 		var origin := world.camera_rig.view_rect().position
@@ -210,8 +206,6 @@ func _draw() -> void:
 			yy += T.CELL_H + 3
 		if card_tap and int(floor(time * 3.0)) % 2 == 0:
 			T.draw(self, Vector2(w - 16, h - 18), ">", T.YELLOW, 1, Color.BLACK)
-	if flash_alpha > 0.0:
-		draw_rect(Rect2(0, 0, w, h), Color(1, 1, 1, flash_alpha))
 
 
 func _draw_dialogue(w: float, h: float) -> void:

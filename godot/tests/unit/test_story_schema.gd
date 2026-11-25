@@ -159,6 +159,28 @@ func test_SLICE_valid_scene_passes_and_every_defect_fails_explicitly() -> void:
 	s = _valid()
 	s.music = "polka"
 	_expect(s, "unknown music 'polka'", "unknown music")
+	# Waits that could last forever need a positive timeout (correction 31).
+	s = _valid()
+	var g := ActorStep.new()
+	g.id = "walk_in"
+	g.actor = "watson"
+	g.action = "goto"
+	g.at = "S"
+	g.wait_arrival = true
+	s.steps.insert(1, g)
+	_expect(s, "wait_arrival needs a positive arrival_timeout", "goto wait without a timeout")
+	g.arrival_timeout = 3.0
+	assert_eq(v.validate_scene(s), PackedStringArray(), "with a timeout: valid")
+	s = _valid()
+	var f := ObjectiveStep.new()
+	f.id = "follow"
+	f.objective = "FOLLOW HIM"
+	f.objective_kind = "follow"
+	f.leader = "watson"
+	f.path = PackedStringArray(["S"])
+	f.leader_speed = 1.0
+	s.steps.insert(1, f)
+	_expect(s, "follow needs a positive leader_leg_timeout", "follow without a leg timeout")
 
 
 func test_SLICE_choices_effects_metadata_and_branch_completion() -> void:
@@ -188,7 +210,7 @@ func test_SLICE_choices_effects_metadata_and_branch_completion() -> void:
 	# Metadata.
 	for field: Array in [["source_refs", PackedStringArray(), "no source references"], ["historical_tags", PackedStringArray(), "no historical/place tags"],
 			["review_status", "approved!", "bad review_status"], ["technical_status", "", "bad technical_status"], ["summary", "", "no summary"],
-			["title", "A different title", "differs from the catalog's"], ["reality", false, "reality flag does not match"], ["content_version", 0, "content_version must be >= 1"]]:
+			["title", "A different title", "the generated catalog shows"], ["title", "", "no title"], ["reality", false, "reality flag does not match"], ["content_version", 0, "content_version must be >= 1"]]:
 		s = _valid()
 		s.set(field[0], field[1])
 		_expect(s, field[2], "metadata %s" % field[0])
@@ -222,6 +244,9 @@ func test_SLICE_chapter_order_and_metadata() -> void:
 	var ch := StoryChapterData.new()
 	ch.number = 1
 	ch.title = "The Greenzone"
+	ch.menu_title = "The Greenzone"
+	ch.cast_note = "EVERYONE AS THEMSELVES"
+	ch.review_notes = PackedStringArray(["DRAFT."])
 	ch.intro = "INTRO."
 	ch.professor_aside = "ASIDE."
 	ch.music = "greenzone"
@@ -236,7 +261,15 @@ func test_SLICE_chapter_order_and_metadata() -> void:
 	assert_true("\n".join(v.validate_chapter(ch)).contains("are not the catalog order"), "out of order")
 	ch.scenes = [s11]
 	ch.title = "Elsewhere"
-	assert_true("\n".join(v.validate_chapter(ch)).contains("differs from the catalog's"), "chapter title")
+	assert_true("\n".join(v.validate_chapter(ch)).contains("the generated catalog shows"), "a chapter title the generated catalog does not show")
+	ch.title = "The Greenzone"
+	assert_eq(v.validate_chapter(ch), PackedStringArray(), "valid again")
+	# Spec §5.2: every chapter field is required.
+	for field: Array in [["number", 0], ["title", ""], ["menu_title", ""], ["intro", ""], ["cast_note", ""], ["professor_aside", ""], ["music", "polka"],
+			["content_version", 0], ["review_status", "approved!"], ["review_notes", PackedStringArray()], ["scenes", []]]:
+		var bad: StoryChapterData = ch.duplicate()
+		bad.set(field[0], field[1])
+		assert_false(v.validate_chapter(bad).is_empty(), "a chapter without a valid %s is refused" % field[0])
 
 
 func test_SLICE_level_1_maps_are_the_executed_sources_and_cast_has_art() -> void:

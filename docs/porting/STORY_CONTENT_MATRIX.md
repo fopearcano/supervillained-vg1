@@ -21,6 +21,8 @@ aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09). Imple
 1.0's CONTINUE launches 1.1; 1.1–1.5 play on the native engine; after 1.5 come the Supervillained
 snap, the Professor's aside and the explicit "next chapter not in this build" card for 2.1 (RD-16).
 Text fingerprints (content version 1 of each scene): `godot/tests/fixtures/story_level1_text.json`.
+Owner narrative-review package (every line in play order, old→new, decisions, captures, the three
+review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (correction report 31).
 
 ### 1.1 A bucket on his head
 - **Titles**: A bucket on his head → A bucket on his head.
@@ -31,7 +33,7 @@ Text fingerprints (content version 1 of each scene): `godot/tests/fixtures/story
 - **Cast**: Zampanò, Watson, Confusione.
 - **Setup → payoff**: the bucket → the slipping helmet of 2.1.
 - **Effects**: remembered line "THERE WAS A BUCKET, AND IT FELT LIKE A HELMET."
-- **Status**: keep (prose tightened; the first card names the walk it follows, RD-20).
+- **Status**: keep (prose tightened; the first card names the walk it follows, RD-20; any bark lowers the bucket, RD-28).
 - **Refs**: `docs/STORY.md` 1.1; PixiJS ch1 1.1 (adaptation: all).
 - **Open**: —
 - **Impl**: technically_complete (M5R-B: Resources, engine, tests) · draft_implemented_review_pending.
@@ -59,7 +61,7 @@ Text fingerprints (content version 1 of each scene): `godot/tests/fixtures/story
   WALLS" (names unchanged: the v1 migration keeps them); remembered line "THERE WAS A GATE, AND IT
   WAS A CHIHUAHUA."
 - **Status**: revise (RD-06 one remembered line; RD-10 lecture lines; RD-11 narration; RD-19 gate;
-  RD-22 the Professor sends him out).
+  RD-22 the Professor sends him out; RD-28 any bark is echoed).
 - **Refs**: Villehardouin pp. 1–4, 6–7; Clari XI, XIII (Munro); `docs/STORY.md` 1.2.
 - **Open**: OQ-03 (every lecture fragment), OQ-04 (Jack's breed in the remembered line).
 - **Impl**: technically_complete (M5R-B: Resources, engine, tests) · draft_implemented_review_pending.

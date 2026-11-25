@@ -326,6 +326,8 @@ class Story:
 	## Dialogue typewriter, characters per second, per text-speed setting.
 	const TEXT_CPS := {"slow": 24.0, "normal": 45.0, "fast": 90.0, "instant": 10000.0}
 	const PICKUP_RADIUS := 0.7
+	## His bark animation (src/story/combat.ts bark, chapters/helpers.ts bark: 0.3 s).
+	const BARK_ANIM := 0.3
 	## Reach goals count as reached within this radius (tiles) unless an objective sets its own.
 	const GOAL_RADIUS := 0.8
 	## 1.1: the bucket slips over his eyes when he lowers his head (stands still, barks).

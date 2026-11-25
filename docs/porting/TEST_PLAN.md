@@ -102,7 +102,7 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | RNG-002 | Same seed reproduces treat/decor/spawn choices byte-for-byte. |
 | RNG-003 | Different seeds produce different sequences without global RNG leakage. |
 | CONTENT-001 | Catalog contains exactly eight chapters and 37 entries with exact IDs/counts/order; every implemented chapter's story Resources list their scenes in catalog order (Chapter 1: 1.1–1.5). |
-| CONTENT-002 | Every implemented scene Resource builds a fresh, nonempty, validated step list (valid step types, unique step ids, known speakers/maps/markers/actors/sprites/music/sounds, reachable choices, no all-locked choice, a final completion step whose required state every branch produces); 1.0 keeps the exact Green Zone dispatch; a scene without Resources is shown as a boundary; no retired scene ID is registered. |
+| CONTENT-002 | (Correction 31: the displayed titles are the rewritten Resources', generated over the frozen compatibility catalog; draft titles only where nothing is rewritten.) Every implemented scene Resource builds a fresh, nonempty, validated step list (valid step types, unique step ids, known speakers/maps/markers/actors/sprites/music/sounds, reachable choices, no all-locked choice, a final completion step whose required state every branch produces); 1.0 keeps the exact Green Zone dispatch; a scene without Resources is shown as a boundary; no retired scene ID is registered. |
 | CONTENT-003 | Every scene and chapter Resource carries the rewrite metadata (stable ID, content version, title, level, map, music, cast, entry conditions, persistent effects, completion boundary, historical/source tags, review status) and its titles equal the catalog's. |
 | CONTENT-004 | All player-visible story text lives in the story Resources (none in execution scripts); every effect is a known meter/ability/book key/flag with a valid value and declared in the scene's `persistent_effects`; a text change raises the scene's `content_version`. Verbatim parity with the PixiJS draft is not required (`STORY_REWRITE_SPEC.md`). |
 | CONTENT-005 | CAST/SOURCE/review metadata is available to tools but absent from player-facing cards. |
@@ -288,13 +288,13 @@ Additional input assertions:
 
 | ID range | Acceptance cases |
 |---|---|
-| WALK-001–006 | reach/collect/action/survive objectives, progress, success, failure/restart. M5R evidence covers the Level 1 scope (reach, collect, action, follow; failure/recovery at Jack's gate); survive objectives arrive with the levels that use them. |
+| WALK-001–006 | reach/collect/action/survive objectives, progress, success, failure/restart. **Partial** until its later clauses exist: M5R evidence covers the Level 1 scope (reach, collect, the action inputs of correction 31, follow; failure/recovery at Jack's gate in `test_WALK_001_006_…` and `test_STY_102_…`); survive objectives and the later failure systems arrive with the levels that use them. |
 | WALK-007–009 | visible spot rings/sprites, pickups/effects, carry attachment/clear (M5R evidence: Level 1). |
 | WALK-010–013 | sight cone/range/LOS, bush hiding, hostile contact and checkpoint restart. |
 | WALK-014–017 | leader waits/catches up, lull opens/closes, hidden sound goal, no-run/speed modifiers. |
 | WALK-018 | scrambled input rotation and settling match 8.1 fixture. |
 | WALK-019–021 | fire spread/push, safe checkpoints, restart state. |
-| NPC-001–006 | idle/patrol/chase/flee/follow/wander/flail/goto/fly state transitions and collision. M5R evidence covers the Level 1 scope (idle, goto, follow on the grid solver); the other states arrive with the levels that use them. |
+| NPC-001–006 | idle/patrol/chase/flee/follow/wander/flail/goto/fly state transitions and collision. **Partial** until every state is used and tested: M5R evidence covers the Level 1 scope (idle, goto, follow on the grid solver; arrival is distance only and blocked actors time out explicitly, correction 31); patrol, chase, flee, wander, flail and fly arrive with the chapters that use them. |
 | NPC-007 | on-stage idle human performs one speaking gesture then resumes behavior. |
 | NPC-008–011 | 7.3 and 8.3 exact companion fall-in/wait/rejoin/pace effects. |
 

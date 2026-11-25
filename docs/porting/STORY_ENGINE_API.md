@@ -39,9 +39,15 @@ TITLE / CONTINUE / level list
 Main._level_end(id) → Supervillained snap → Main._professor_aside(n) → the next level's first scene
 ```
 
+`Main.start_story(id)` first checks the scene's entry conditions (`StorySceneData.entry_failure`):
+a failure shows the story error card and nothing starts (RD-30).
+
 `StoryCatalog.playable_in_build(id)` is true for the Green Zone and for every ID with a scene
 Resource (`StoryCatalog.scene_path(id)` = `res://data/story/scenes/<id with "." → "_">.tres`).
 `StoryLibrary` loads scenes and chapters (`scene(id)`, `chapter(n)`, `chapters()`, `has_scene(id)`).
+The runtime catalog is generated (RD-29): `StoryCatalog.overlay(compat, StoryCatalog.rewrite_titles())`
+lays the Resources' titles over the frozen compatibility catalog; `tools/build_resources.gd --check`
+fails when the shipped catalog is not that output.
 
 `AppState.commit_scene(id, working, play_time) -> {saved, replay, applied, error}`: in a replay it
 returns `saved: false, replay: true` and writes nothing; for a scene already completed it returns
@@ -71,6 +77,8 @@ A `Node2D` that builds the shared `IsoWorld` (`world/world_2d.tscn`) for each st
 
 `restart()` stops the running step, then starts again from `entry_state` (a fresh `StoryContext`
 and working copy): nothing from the abandoned attempt is kept except the session's play time.
+Before the first step runs, the entry conditions are checked against `entry_state`; a failure stops
+the scene with an explicit error (emitted deferred, so the owner's handler receives it).
 Every scene's first step is a `StageStep` (RD-26); the scene builds no stage of its own.
 
 ## 3. `StoryRunner` (`story/story_runner.gd`)
@@ -101,7 +109,8 @@ The only API a step or rule uses.
 | `marker(id) -> Vector2`, `place(at, point)` | a marker's grid centre ("S" = start) — a missing marker **fails** the scene |
 | `actor(handle)`, `has_actor(handle)` | a missing actor **fails** the scene |
 | `fail(message)` | stops the scene with an explicit error (Main shows it) |
-| `set_controls(on)`, `controls`, `no_run`, `action_label`, `move_target` | who drives the player |
+| `set_controls(on)`, `controls`, `no_run`, `move_target` | who drives the player |
+| `actions` | the walk's `StoryActionRouter` (§6a) |
 | `carry(label, sprite)`, `carrying` | the carried thing |
 | `visor` | 0..1, the 1.1 bucket bars |
 | `ui_text(key)` | interface chrome from `ShellText` |
@@ -119,12 +128,12 @@ Every step extends `StoryStep` (a `Resource` with a stable `id`). Validation hoo
 | Step | Fields | Runs |
 |---|---|---|
 | `StageStep` | `map`, `player_at`/`player_point`, `player_face`, `actors` (`StoryActorSpec`: name, role, at/point, face) | builds the stage and places the cast; instant |
-| `ActorStep` | `actor`, `action` (spawn, despawn, goto, follow, idle, face, gesture, place), `role`, `at`/`point`, `near_player`, `face`, `face_player`, `speed`, `run`, `wait_arrival` | instant, or until arrival with `wait_arrival` |
+| `ActorStep` | `actor`, `action` (spawn, despawn, goto, follow, idle, face, gesture, place), `role`, `at`/`point`, `near_player`, `face`, `face_player`, `speed`, `run`, `wait_arrival`, `arrival_timeout` | instant, or until arrival (distance ≤ `StoryActor.ARRIVE_DISTANCE`) with `wait_arrival`; past `arrival_timeout` the scene **fails** explicitly (RD-31) |
 | `MoveStep` | `to_marker`/`to_point`, `speed`, `face` | walks Zampanò there (controls off); fails explicitly after 12 s |
 | `NarrationStep` | `text` | a narrator box; typewriter, then a confirm/tap (guard `LINE_GUARD`) |
 | `DialogueStep` | `speaker`, `text`, `remembered`, `effects` | a speaker's box with name colour and portrait; `remembered` adds the line to the book; effects apply on begin |
 | `ChoiceStep` | `speaker`, `prompt`, `prompt_again`, `options` (`StoryChoiceOption`), `once_each` | the prompt, then the option rows (keys, confirm or taps); see below |
-| `ObjectiveStep` | `objective`, `objective_kind` (reach, collect, follow), goal (`goal_marker`/`goal_point`, `goal_label`, `goal_radius`), `pickups` (`StoryPickup`), `no_run`, `action_label`/`action_text`/`action_sound`, `checkpoints`, follow (`leader`, `path`, `leader_speed`, `leader_lines`), `rule`/`rule_params`/`rule_lines`, `hint`/`hint_after` | the player walks with the joystick until the goal is met; see §6 |
+| `ObjectiveStep` | `objective`, `objective_kind` (reach, collect, follow), goal (`goal_marker`/`goal_point`, `goal_label`, `goal_radius`), `pickups` (`StoryPickup`), `no_run`, `action_label`/`action_text`/`action_sound`, `checkpoints`, follow (`leader`, `path`, `leader_speed`, `leader_lines`, `leader_leg_timeout`), `rule`/`rule_params`/`rule_lines`, `hint`/`hint_after` | the player walks with the joystick until the goal is met; see §6 and §6a |
 | `EffectStep` | `effects` | applies them; instant |
 | `CardStep` | `big`, `small`, `color`, `seconds` (0 = tap), `dim`, `sound`, `flash` | a centred card (guard `CARD_GUARD`) |
 | `WaitStep` | `seconds` | a pause |
@@ -148,11 +157,36 @@ option has been taken. Choice rows are laid out by the HUD (`choice_rects`) and 
 tick: pickups within `GameConfig.Story.PICKUP_RADIUS` (each shows its `text`, plays its `sound` and
 applies its `effects`; shards and spots), then the goal within `goal_radius` (default
 `GOAL_RADIUS`). `follow` moves the `leader` along `path`, waits while the player lags by more than
-`LEAD_WAIT_DISTANCE`, and says `leader_lines[i]` at each stop. The action button (`action_label`)
-barks or sniffs: it shows `action_text`, plays `action_sound` and is passed to the rule.
+`LEAD_WAIT_DISTANCE`, and says `leader_lines[i]` at each stop; a leg longer than
+`leader_leg_timeout` of walking **fails** the scene (RD-31). The walk's own action (`action_label`:
+SNIFF, or a scene's own BARK) shows `action_text`, plays `action_sound` and calls the rule's
+`on_action`; a plain bark shows the ShellText bark line and calls the rule's `on_bark` (§6a).
 
-A **rule** (`story/rules/`, `ObjectiveRule`: `begin`, `tick -> bool`, `on_action`, `end`, plus the
-static `keep_out(ctx, gap)`) adds real-time behaviour; its numbers are in `rule_params` and every
+### 6a. Action routing and gestures (`story/story_action_router.gd`, `InputService`)
+
+`StoryActionRouter` (one per context; the objective configures it) holds the walk's modes —
+`["scene", "bark"]` when the walk has its own action, else `["bark"]`; `"sword"` and `"shield"` are
+extension points for M6's combat, never offered in M5R — and the selected mode (the first). Each
+tick `poll()` reads, in the source's order:
+
+| Input | Physical | Does |
+|---|---|---|
+| `switch` | Q, Tab, the switcher button, a gesture bound to SWITCH | the next mode (a "J: …" notice when no touch is in use) |
+| `action` | J, X, the round ACTION button, a gesture bound to ACTION BUTTON | the selected mode |
+| `pee` | Space | the walk's own action, whatever the mode |
+| `bark` | B, a gesture bound to BARK (the default double tap) | a plain bark, which the bucket and Jack hear (RD-28) |
+| `strike` / `guard` | U / I, the default swipes up / down | SWORD / SHIELD when offered (M6); nothing in M5R |
+
+`InputService` recognises the right-hand gestures while a walk enables them (`gestures_enabled`,
+`gesture_zone` = the side opposite the joystick): a double tap (second press within
+`DOUBLE_TAP_TIME` and `DOUBLE_TAP_DIST`, fired on press) and vertical swipes (`classify_swipe`),
+each queuing the action its CONTROLS binding names (`GESTURE_ACTIONS`; RUN ON/OFF latches RUN). A
+pointer is owned by what it first touched: a button or the joystick never becomes a gesture. A plain
+tap in the zone is still a tap. The story touch controls remove their buttons and turn the gestures
+off when the scene leaves.
+
+A **rule** (`story/rules/`, `ObjectiveRule`: `begin`, `tick -> bool`, `on_action`, `on_bark`, `end`,
+plus the static `keep_out(ctx, gap)`) adds real-time behaviour; its numbers are in `rule_params` and every
 line it shows is in `rule_lines`:
 
 | Rule | Scene | Params | Lines |
@@ -177,8 +211,9 @@ with its parameters validated in `ObjectiveStep.check`.
   `read_choice() -> int`, `show_card`/`hide_card`, `notice`, `float_text`, `flash`, the objective and
   carry lines, the visor bars, and `shown_texts` (every text shown, for the tests). Period words are
   drawn amber in dialogue and names yellow on story cards (`StoryMarkup`, `data/story/markup.tres`).
-- `StoryTouchControls`: the joystick, the action button (its label from the objective), RUN and
-  MENU; the same `InputService` actions as keys and gamepads.
+- `StoryTouchControls`: the joystick, the action button (labelled by its mode), the mode switcher
+  (two modes and the CONTROLS setting), RUN and MENU, and the gesture zone; the same `InputService`
+  actions as keys.
 - `StoryPauseOverlay` (`scenes/shell/`): RESUME, RESTART SCENE, QUIT TO TITLE (`ShellText`).
 
 ## 8. Content tools and tests
@@ -189,10 +224,16 @@ with its parameters validated in `ObjectiveStep.check`.
   real-input mode plays through `InputService` (joystick injection, confirm/action edges, pointer
   taps on the choice rows, a breadth-first path over walkable tiles); scripted mode places Zampanò on
   each target (the smoke). `policy` maps a choice id to an option id; `gate` is "bark" or "push".
-- `tests/integration/test_story_engine.gd` (DLG, WALK, NPC, missing content at run time) and
+- `tests/integration/test_story_input.gd` (J, X, Space, B, Q/Tab, the touch ACTION button and switcher,
+  the double tap with each binding, pointer ownership and swipe routing — real key events and screen
+  touches through Main), `tests/integration/test_story_engine.gd` (DLG, WALK, NPC, missing content at
+  run time, arrival, blocked actors, timeouts and restart) and
   `test_story_level1.gd` (STY, FLOW, CONTENT, ARCH-001b, DOG-008b, COLL-005b partial, a failed scene
   save, the story pause through Main).
 - `tools/capture_suite.gd --mode story` writes the Level 1 captures (shots 40–51).
+
+- `tools/story_review_export.tscn`: writes every player-visible line of a chapter in play order
+  (the owner's narrative-review package).
 
 ## 9. Adding a scene (Levels 2–8, not started)
 

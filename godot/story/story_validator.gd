@@ -3,7 +3,9 @@ extends RefCounted
 ## Automated content validation of the story Resources (docs/porting/STORY_REWRITE_SPEC.md §6).
 ## Every problem is returned as a readable error naming the scene, the step and the field; a
 ## validator with errors means the content must not run. Checks:
-## - IDs, titles, levels and order against the 37-entry StoryCatalog; unique step ids;
+## - stable IDs, levels and order against the frozen compatibility catalog (37 entries); display
+##   titles against the generated StoryCatalog (which takes them from these Resources); every
+##   chapter field of spec §5.2; unique step ids;
 ## - step types; speakers (StoryCast and the scene's cast); maps; markers on the stage each step
 ##   runs on; actors defined before use; cast roles with SpriteFrames; sprite, sound and music keys;
 ## - choices: reachable branches, no all-locked state;
@@ -24,7 +26,10 @@ const REALITY_LEVELS := [1, 8]
 ## Script folders whose code must hold no player text.
 const EXECUTION_DIRS := ["res://story", "res://scenes/story", "res://ui/story"]
 
+## The runtime catalog (generated: compatibility IDs/order + the Resources' titles).
 var catalog: StoryCatalog
+## The frozen compatibility catalog (data/campaign/story_catalog.json): stable IDs, order, Green Zone.
+var compat: Dictionary = {}
 var cast: StoryCast
 ## map id -> StoryMapData
 var maps: Dictionary = {}
@@ -37,6 +42,8 @@ var music_keys: Array = []
 static func for_project() -> StoryValidator:
 	var v := StoryValidator.new()
 	v.catalog = load("res://data/campaign/story_catalog.tres")
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/campaign/story_catalog.json"))
+	v.compat = parsed if parsed is Dictionary else {}
 	v.cast = load("res://data/story/cast.tres")
 	v.sprites = load("res://data/environment/green_zone_sprites.tres")
 	for f in DirAccess.get_files_at("res://data/story/maps"):
@@ -52,23 +59,55 @@ static func for_project() -> StoryValidator:
 
 # --- Chapters and scenes ------------------------------------------------------------------------
 
+## The compatibility catalog's chapter `number` ({} if none).
+func compat_chapter(number: int) -> Dictionary:
+	for ch: Dictionary in compat.get("chapters", []):
+		if int(ch["number"]) == number:
+			return ch
+	return {}
+
+
+## The compatibility catalog's entry for `id`: {"chapter", "sub"} or {}.
+func compat_find(id: String) -> Dictionary:
+	for ch: Dictionary in compat.get("chapters", []):
+		for sub: Dictionary in ch["subLevels"]:
+			if String(sub["id"]) == id:
+				return {"chapter": ch, "sub": sub}
+	return {}
+
+
+## Every compatibility ID in catalog order.
+func compat_ids() -> Array:
+	var out: Array = []
+	for ch: Dictionary in compat.get("chapters", []):
+		for sub: Dictionary in ch["subLevels"]:
+			out.append(String(sub["id"]))
+	return out
+
+
 func validate_chapter(ch: StoryChapterData) -> PackedStringArray:
 	var errors := PackedStringArray()
 	var where := "chapter %d" % ch.number
-	var cat_ch := catalog.chapter(ch.number)
-	if cat_ch.is_empty():
-		errors.append("%s: not in the catalog" % where)
+	var cc := compat_chapter(ch.number)
+	if ch.number < 1 or cc.is_empty():
+		errors.append("%s: not a chapter of the compatibility catalog" % where)
 		return errors
-	_need(errors, ch.title == String(cat_ch["title"]), "%s: title '%s' differs from the catalog's '%s'" % [where, ch.title, cat_ch["title"]])
-	_need(errors, ch.intro.strip_edges() != "", "%s: no level card text" % where)
-	_need(errors, ch.professor_aside.strip_edges() != "", "%s: no Professor aside" % where)
+	# Spec §5.2: every field present.
+	for f: Array in [["title", ch.title], ["menu_title", ch.menu_title], ["intro", ch.intro], ["cast_note", ch.cast_note], ["professor_aside", ch.professor_aside]]:
+		_need(errors, String(f[1]).strip_edges() != "", "%s: no %s" % [where, f[0]])
 	_need(errors, music_keys.has(ch.music), "%s: unknown music '%s'" % [where, ch.music])
 	_need(errors, ch.content_version >= 1, "%s: content_version must be >= 1" % where)
 	_need(errors, REVIEW_STATUSES.has(ch.review_status), "%s: bad review_status '%s'" % [where, ch.review_status])
-	# Scripted scenes in catalog order (1.0 is the Green Zone walk, never a story scene).
+	_need(errors, not ch.review_notes.is_empty(), "%s: no review_notes" % where)
+	_need(errors, not ch.scenes.is_empty(), "%s: no scenes" % where)
+	# The display titles come from this Resource: the generated catalog must show them.
+	var cat_ch := catalog.chapter(ch.number)
+	_need(errors, not cat_ch.is_empty() and String(cat_ch["title"]) == ch.title and String(cat_ch["menu_title"]) == ch.menu_title,
+		"%s: the generated catalog shows '%s' / '%s', not this Resource's '%s' / '%s' (run tools/build_resources.gd)" % [where, cat_ch.get("title", ""), cat_ch.get("menu_title", ""), ch.title, ch.menu_title])
+	# Scripted scenes in the compatibility order (1.0 is the Green Zone walk, never a story scene).
 	var catalog_ids: Array = []
-	for s: Dictionary in cat_ch["sub_levels"]:
-		if int(s["green_zone"]) == 0:
+	for s: Dictionary in cc["subLevels"]:
+		if int(s["greenZone"]) == 0:
 			catalog_ids.append(String(s["id"]))
 	var ids: Array = []
 	for s: Variant in ch.scenes:
@@ -86,11 +125,14 @@ func validate_chapter(ch: StoryChapterData) -> PackedStringArray:
 func validate_scene(scene: StorySceneData) -> PackedStringArray:
 	var errors := PackedStringArray()
 	var where := "scene %s" % scene.id
-	var found := catalog.find(scene.id)
-	if found.is_empty() or int(found["sub"]["green_zone"]) != 0:
+	var found := compat_find(scene.id)
+	if found.is_empty() or int(found["sub"]["greenZone"]) != 0:
 		errors.append("%s: not a scripted scene of the catalog" % where)
 		return errors
-	_need(errors, scene.title == String(found["sub"]["title"]), "%s: title '%s' differs from the catalog's '%s'" % [where, scene.title, found["sub"]["title"]])
+	_need(errors, scene.title.strip_edges() != "", "%s: no title" % where)
+	var shown := catalog.find(scene.id)
+	_need(errors, not shown.is_empty() and String(shown["sub"]["title"]) == scene.title,
+		"%s: the generated catalog shows '%s', not this Resource's title '%s' (run tools/build_resources.gd)" % [where, shown["sub"]["title"] if not shown.is_empty() else "", scene.title])
 	_need(errors, scene.level == int(found["chapter"]["number"]), "%s: level %d, catalog %d" % [where, scene.level, found["chapter"]["number"]])
 	_need(errors, scene.content_version >= 1, "%s: content_version must be >= 1" % where)
 	_need(errors, scene.summary.strip_edges() != "", "%s: no summary (scene card)" % where)
@@ -107,7 +149,7 @@ func validate_scene(scene: StorySceneData) -> PackedStringArray:
 	_need(errors, BOUNDARIES.has(String(scene.completion.get("boundary", ""))), "%s: bad completion boundary" % where)
 	for k: String in scene.entry_conditions:
 		_need(errors, ["requires_completed", "requires_abilities"].has(k), "%s: unknown entry condition '%s'" % [where, k])
-	var order := Array(catalog.ids())
+	var order := compat_ids()
 	for req: String in scene.entry_conditions.get("requires_completed", []):
 		_need(errors, order.has(req) and order.find(req) < order.find(scene.id), "%s: entry requires '%s', which is not an earlier catalog ID" % [where, req])
 	for a: String in scene.entry_conditions.get("requires_abilities", []):

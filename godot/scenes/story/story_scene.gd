@@ -46,6 +46,8 @@ var _carry_sprite: Sprite2D = null
 var _pause: Control = null
 
 @onready var hud: StoryHud = $StoryCanvas/StoryHud
+## The visor bars and the flash, beneath the touch controls and the HUD (source draw order).
+@onready var shade: StoryShade = $StoryCanvas/StoryShade
 @onready var controls: StoryTouchControls = $StoryCanvas/StoryTouchControls
 @onready var overlay_canvas: CanvasLayer = $OverlayCanvas
 
@@ -68,6 +70,7 @@ func _ready() -> void:
 		if f.ends_with(".tres"):
 			var m: StoryMapData = load("res://data/story/maps/" + f)
 			maps[m.id] = m
+	shade.hud = hud
 	runner = StoryRunner.new()
 	runner.finished.connect(_on_runner_finished)
 	AppState.settings_changed.connect(func(_s: Dictionary) -> void: _apply_text_speed())
@@ -102,6 +105,16 @@ func _start_run() -> void:
 	AudioService.set_duck(1.0)
 	_clear_stage()
 	set_controls(false)
+	# Entry conditions hold before anything runs; else an explicit story error (deferred so the
+	# owner's failed handler, connected after the scene enters the tree, receives it).
+	var why := data.entry_failure(entry_state)
+	if why != "":
+		finished = true
+		ctx.error = "story %s: %s" % [data.id, why]
+		push_error(ctx.error)
+		var message := ctx.error
+		(func() -> void: failed.emit(message)).call_deferred()
+		return
 	# The first step is the scene's StageStep (validated): it builds the first stage.
 	runner.start(data.steps)
 
@@ -111,6 +124,7 @@ func resize(logical: Vector2i) -> void:
 	if not is_node_ready():
 		return
 	hud.layout(logical)
+	shade.size = Vector2(logical)
 	controls.layout(logical, 60)
 	if world:
 		world.camera_rig.set_view_size(Vector2(logical))
@@ -223,7 +237,7 @@ func remove_marker(mk: Variant) -> void:
 func set_controls(on: bool) -> void:
 	if not is_node_ready() or ctx == null:
 		return
-	controls.configure(on, ctx.action_label if on else "", on and not ctx.no_run)
+	controls.configure(on, ctx.actions.label() if on else "", on and not ctx.no_run, ctx.actions.modes.size() if on else 0, ctx.actions.index())
 	if not on and world:
 		world.player.set_intent(0.0, 0.0)
 

@@ -14,7 +14,11 @@ and 1.0 completion on CONTINUE. **M5R implemented, pending review**: CONTINUE la
 Level 1 (1.1–1.5) on the native story engine (`StoryScene`, `StoryRunner`, typed step Resources;
 `docs/porting/STORY_ENGINE_API.md`); each scene is one atomic save at its completion; after 1.5 the
 Professor's aside and an explicit "not in this build" card for 2.1 (Levels 2–8 are not started).
-The Level 1 prose is a rewritten draft, **narrative review pending** (`docs/porting/STORY_REWRITE_SPEC.md`).
+The Level 1 prose is a rewritten draft, **narrative review pending** (`docs/porting/STORY_REWRITE_SPEC.md`;
+the owner's review package: `docs/porting/manual_evidence/m5r_level1_narrative_review/`, written by
+`res://tools/story_review_export.tscn`). In story walks: J/X the action button's mode, Space the
+walk's own action, B bark, Q/Tab switch the mode; on touch the ACTION button, its switcher and the
+right-hand gestures (double tap = BARK by default; CONTROLS sets them).
 See `docs/porting/IMPLEMENTATION_LOG.md` for evidence and deviations and the status section of
 `docs/porting/FEATURE_MATRIX.md` for the acceptance IDs claimed and satisfied.
 

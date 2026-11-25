@@ -6,14 +6,301 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. M5R report 30 is current. Erratum for the historical reports: their
+in progress report 5. M5R correction report 31 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## M5R report 30 (M5R-B): native story engine and the rewritten Level 1 (M1, M2, M3 Partial; M4 Partial; M5 implemented, pending review) — current
+## M5R correction report 31: story action routing and gestures, distance-only arrival with timeouts, the Resources as display authority, run-time entry conditions, strengthened acceptance evidence and the owner's review package (M1–M4 Partial; M5 implemented, pending review) — current
+
+Scope: the architect's M5R correction 31 on top of M5R-B (`d503938`, report 30). Changed:
+`godot/autoload/input_service.gd`, `godot/project.godot` (the Q/Tab, U and I keys),
+`godot/story/` (the new `story_action_router.gd`, `story_context.gd`, `story_validator.gd`, the actor
+and objective steps, the rules, `data/story_scene_data.gd`), `godot/scenes/story/` (`story_scene.gd`,
+`.tscn`, `story_actor.gd`), `godot/ui/story/` (touch controls, HUD, the new `story_shade.gd`),
+`godot/core/resources/story_catalog.gd`, `godot/core/game_config.gd`, `godot/main/main.gd`,
+`godot/tools/build_resources.gd`, the new `godot/tools/story_review_export.gd`/`.tscn`,
+`godot/data/shell/shell_text.tres`, `godot/data/story/scenes/1_2.tres` (two timeouts; no text), the
+story tests (the new `tests/integration/test_story_input.gd`), `godot/README.md`, the five captures
+whose walks changed, the docs in `docs/porting/` and the new owner package
+`docs/porting/manual_evidence/m5r_level1_narrative_review/`. The PixiJS, Capacitor and iOS sources
+are unchanged. Level 2 is not begun.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1, M2, M3, M4 Partial** (manual and device checks owner-deferred or not executed; every automated ID they claimed is accepted); **M5 (M5R) implemented, pending review**: ARCH-001b accepted; the M5R IDs below claimed by the strengthened full suite cases, pending review; WALK-001–006 and NPC-001–006 Partial; Level 1 narrative status "draft implemented, narrative review pending"; M5R's manual checks not executed |
+| Base | `d503938` (report 30; `godot/` tree `678573a`) |
+| `godot/` tree | `e5413d4c7f690534c6c68be61c6184a4e6a91062`; verified on a fresh Windows clone of the local verification commit `4c966e7` (the same `godot/` tree and captures; this commit adds only `docs/porting/` text) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090, OpenGL 3.3 Compatibility renderer (captures); Linux not run |
+| Android | not run (no device or emulator claim) |
+
+### Architect decisions recorded
+
+- **Correction report 28's 24 M4 IDs are accepted:** SAV-005, SAV-006, SAV-007, SAV-008, SAV-011,
+  SAV-012, SAV-021; UI-007, UI-008, UI-010, UI-011, UI-012, UI-013, UI-015–021, UI-022; FLOW-006,
+  FLOW-010, FLOW-011 (`cd37a07`, `godot/` tree `69eba9b`). Their cases pass unchanged on this tree.
+- **ARCH-001b is accepted on combined evidence:** the production StoryScene suite case
+  (`test_ARCH_001b_production_story_scene_shares_the_world`) plus the architect's static review of
+  `d503938`. With ARCH-001a, the split ID ARCH-001 is satisfied.
+- **Totals: 137 by full suite cases (counting split-ID parts; 113 + 24) + 5 on combined evidence
+  (4 + ARCH-001b) + 2 on command evidence = 144 satisfied.** The M5R IDs claimed in reports 30 and
+  31 are pending review and not counted.
+- Report 30 said the Level 1 Resources carry `technical_status = implemented`; they carry
+  `technically_complete` (corrected in report 30's text below; the Resources were always right).
+
+### 1. Story action routing and gestures (RD-28)
+
+- `StoryActionRouter` (`godot/story/story_action_router.gd`): a walk's modes — the walk's own action
+  ("scene": SNIFF, or a scene's own BARK) and a plain "bark"; "sword" and "shield" are extension
+  points for M6's combat, never offered in M5R — and the selected mode. Every tick of a walk it reads,
+  in the source's order: `switch` (Q, Tab, the switcher button, a gesture bound to SWITCH) → the next
+  mode; `action` (J, X, the round ACTION button, a gesture bound to ACTION BUTTON) → the selected
+  mode; `pee` (Space) → the walk's own action, whatever the mode; `bark` (B, a gesture bound to
+  BARK — the default double tap) → a plain bark; `strike`/`guard` (U/I, the default swipes) → only
+  when SWORD/SHIELD are offered (never before M6). The objective performs the mode: its own action
+  (its line, its sound, the rule's `on_action`) or a plain bark (WOOF!, the bark animation, the
+  rule's `on_bark`). The bucket (1.1) and Jack (1.2) hear a plain bark (RD-28); without touch, a
+  switch shows "J: <mode>". Every walk shows the action button (BARK when it has no action of its
+  own); the switcher shows beside it when the walk has two modes and CONTROLS wants it.
+- `InputService` recognises the right-hand gestures while a walk enables them: the double tap
+  (second press within `DOUBLE_TAP_TIME`/`DOUBLE_TAP_DIST`, fired on press) and vertical swipes,
+  each queuing what its CONTROLS binding names (OFF, ACTION BUTTON, BARK, SWORD, SHIELD, SWITCH, RUN
+  ON/OFF). Pointer ownership: a pointer belongs to what it first touched, so a button or joystick
+  touch never becomes a gesture; a plain tap in the zone is still a tap. The story controls remove
+  their buttons and turn the gestures off when the scene leaves (before, its buttons stayed
+  registered in `InputService`).
+- **Gesture and action-mode support status:** implemented and tested — J/X, Space, B, Q/Tab, the
+  touch ACTION button, the switcher button, the double tap with each binding, swipes routed to their
+  bindings, pointer ownership, RUN ON/OFF by gesture (the binding latches RUN). Routed, not
+  implemented: SWORD and SHIELD (U, I, the default swipes do nothing in Level 1; M6). Not done: the
+  on-screen gesture streak and hints (M8). Not checked on a phone.
+- Tests (`tests/integration/test_story_input.gd`, 6 cases, all through Main with real key events and
+  real screen touches, never `InputService.trigger`): J and X perform the displayed action (SNIFF in
+  1.2's scrap walk; the bucket's own BARK in 1.1, which the rule hears); Space performs the walk's own
+  action in either mode and Q/Tab switch the mode (with the notice); B barks directly — not SNIFF —
+  the bucket slides down after it (with a no-bark control) and three B barks open Jack's gate; the
+  touch ACTION button and the switcher (and no switcher in a one-mode walk); the double tap barks at
+  the gate (echoed), a slow second tap is not one, bound to OFF it does nothing, bound to ACTION it
+  performs the selected mode; a joystick drag ending over the gesture zone is not a swipe, a swipe
+  up is routed (SWORD: nothing before M6; bound to SWITCH: the next mode).
+
+### 2. Actor arrival semantics (RD-31)
+
+`StoryActor` has arrived only within `ARRIVE_DISTANCE` (0.05 tiles) of its goto target — no longer
+when a wall stopped it. `ActorStep.arrival_timeout` (validated positive with `wait_arrival`) stops
+the scene with an explicit story error ("actor 'jack' did not reach (x, y) within 1.0 s (stopped
+at …)"), never a silent continue; a missing actor fails through `StoryContext.actor`.
+`ObjectiveStep.leader_leg_timeout` (validated positive for follow) does the same when the leader
+cannot reach a stop (time waiting for the player is not counted). Level 1: Jack's goto in 1.2 has 4 s,
+the Professor's walk 12 s per leg (two data lines, no text: content version unchanged); its clear
+paths behave exactly as before (every Level 1 test unchanged). Tests (`test_story_engine.gd`):
+arrival on a clear path; a blocked actor never counts as arrived and the step keeps waiting; the
+timeout fails explicitly (reported once), then RESTART runs a clean attempt (one fresh actor, the
+old one freed, a fresh context) that fails the same way and leaves no node behind; a follow
+leader's leg timeout fails explicitly; the validator refuses both waits without a timeout.
+
+### 3. The Resources are the display authority (RD-29)
+
+The extracted catalog (`data/campaign/story_catalog.json`, from the source CHAPTERS) is kept frozen
+as the compatibility source of the stable IDs, the eight chapters, the 37-entry order, the Green Zone
+dispatch and draft fallback titles. `tools/build_resources.gd` generates the runtime catalog with
+`StoryCatalog.overlay(compat, StoryCatalog.rewrite_titles())`: every rewritten chapter's title and
+menu title and every rewritten scene's title (read from the Resources' text, without loading their
+scripts — the tool runs before the autoloads exist) override the fallback; chapters not rewritten
+keep their draft titles. The validator checks IDs and order against the compatibility catalog and
+the displayed titles against the Resources (the old rule that rewritten titles equal the PixiJS
+titles is gone). Level 1's titles are unchanged, so the generated catalog is byte-identical. Mutation
+test (`test_CONTENT_001_002_rewritten_titles_reach_every_menu_and_card`): a copy of the Resources with
+a new 1.2 title and a new chapter menu title, run through the same generation, reaches the Title's
+CONTINUE, the Couch, the level list, the chapter list and the scene card; the compatibility catalog
+and the PixiJS source are untouched; the shipped catalog equals the generation's output on the
+shipped Resources. Stable IDs and save compatibility are unchanged.
+
+### 4. Schema and validation reconciled (RD-30)
+
+- `StorySceneData.reality` is the single authority for the plain reality appearance; the
+  specification's `entry_conditions.forbids_abilities_visible` is removed. Test: every Level 1
+  scene replayed from a campaign that holds the cross, the sermon and the knight keeps Zampanò's plain
+  skin at every stage, and the replays change nothing.
+- `requires_completed` and `requires_abilities` are enforced before a scene starts
+  (`StorySceneData.entry_failure`): Main shows the story error card and never starts the scene; a
+  StoryScene entered with a failing state stops with the explicit error (emitted deferred, so its
+  owner receives it) and runs no step. Test: both paths, and a missing ability.
+- `StoryChapterData` validation covers every field of spec §5.2 (number, title, menu title, intro,
+  cast note, music, Professor aside, ordered scenes, positive content version, review status and
+  review notes); one refusal per missing field is tested.
+
+### 5. CONTENT acceptance evidence
+
+`test_CONTENT_001_002_catalog_exact_dispatch_fresh_steps_and_boundaries`: exactly eight chapters;
+the exact 37-ID sequence; the per-chapter counts (6, 3, 4, 3, 5, 3, 9, 4); no retired or unknown ID
+(and a save holding one drops it); the exact 1.0 Green Zone dispatch; the compatibility catalog gives
+the same IDs; Chapter 1 validates in catalog order; every implemented scene runs twice from the same
+Resource (different branches) with its own context, state and runner, and the Resource is unchanged
+by the runs; each of the 31 unimplemented IDs has no Resource and reaches the explicit "not in this
+build" card through Main; the displayed titles are the Resources' where rewritten and the fallback
+elsewhere. With the mutation test above, CONTENT-001/002 are claimed. `test_CONTENT_003_…` checks
+every scene field of §5.1 and every chapter field of §5.2 with the recorded values, and that the
+catalog displays the Resources' titles (no PixiJS equality).
+
+### 6. STY, WALK and NPC evidence
+
+Jack's push failure and recovery moved from a `test_SLICE_` case into
+`test_STY_102_lecture_scraps_and_jacks_gate_success_failure_and_recovery` (real input: 14 pushes,
+NOPE!, the hint twice, through to the bowl) and into `test_WALK_001_006_level_1_objectives` (every push
+refused and pushed back out of the gap, the hints, the way opening after 14, then the reach goal).
+WALK-001–006 stays **Partial** (survive objectives and the later failure systems arrive with later
+levels); NPC-001–006 is **Partial** (Level 1 proves idle, goto and follow; patrol, chase, flee,
+wander, flail and fly arrive with later chapters). WALK-007–009 and NPC-007 remain claimed.
+
+### 7. Defects found and fixed during the correction
+
+1. The 1.1 visor bars (and the flash) were drawn above the touch controls, hiding the joystick, the
+   buttons and MENU while the bucket was down; the source draws them beneath the controls, the HUD,
+   the dialogue and the cards. They are now a separate `StoryShade` layer beneath the controls, in
+   the source's colours (with its edge line). Test: `test_SLICE_visor_and_flash_drawn_beneath_the_touch_controls`; capture 41.
+2. The story's touch buttons stayed registered in `InputService` after the scene left; they are now
+   removed with the gestures turned off (asserted in the pause-through-Main case).
+
+### 8. The owner's narrative-review package
+
+`docs/porting/manual_evidence/m5r_level1_narrative_review/`: `README.md` (what to review, the open
+questions with empty answer fields, the three outcomes — APPROVE LEVEL 1 DRAFT, REQUEST CHANGES,
+DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT — unticked, an empty decision record), one file per
+scene (`1.1.md`–`1.5.md`: old → new, its RD and OQ references, its REVIEW REQUIRED items, its
+captures, then the scene as implemented — title, summary, metadata, speakers, every line in play
+order, choices with costs, locks and effects, remembered lines, objectives' lines) and `level_1.md`
+(the level card and the Professor's aside). The "as implemented" parts are generated from the
+Resources by `godot/tools/story_review_export.tscn`; `test_SLICE_owner_review_package_lists_every_line`
+fails if any player-visible line of a Level 1 Resource is missing from its file. No decision is
+filled in or inferred.
+
+### Tests and mutation checks
+
+- New: `tests/integration/test_story_input.gd` (6). `test_story_engine.gd` 14 → 19 (arrival on a
+  clear path, a blocked actor, the arrival timeout and restart, the follow leg timeout, the draw
+  order; the WALK case now holds the gate failure). `test_story_level1.gd`
+  22 → 25 (CONTENT-001/002 strengthened and the display-authority mutation, STY-102 with the
+  failure case — the separate `test_SLICE_jacks_gate_failure_and_recovery` is folded into it —
+  CONTENT-003 strengthened, entry conditions, the reality replay with dream abilities, the review
+  package). `test_story_schema.gd` (5; the timeout refusals, the chapter fields, the generated-
+  catalog title rule).
+- Mutation checks (each defect injected, the named test run, the file restored from a byte copy):
+  all 33 caught. Correction 31 (21): Space not routed (the old ObjectiveStep read only `action`); B
+  not routed; Jack not hearing a plain bark; the bucket not hearing it; no gesture recognizer; a
+  joystick drag also becoming a gesture; the touch ACTION button off; a blocked actor counting as
+  arrived; no arrival timeout; no follow leg timeout; the validator accepting a wait without a
+  timeout; generation ignoring the rewritten titles; Main starting a scene whose entry conditions
+  fail; a StoryScene running despite them; the dream armour shown in reality once the knight is held;
+  the chapter validator skipping a missing cast note; Jack never giving way to pushing (caught by
+  STY-102 and, separately, by WALK-001–006); the story's buttons staying registered after it leaves;
+  the visor drawn above the controls again; a line missing from the review package. M5R's 12
+  (report 30) rerun on the final code: all caught (the gate case now by STY-102).
+
+### Completion reports and captures
+
+The real-input and scripted completions of 1.1–1.5 are unchanged (the routing performs the same
+modes the driver used; the timeouts never trigger on Level 1's clear paths):
+
+| Scene | Ticks (60 Hz) | Time | Steps run | Action presses | Taps | Outcome (working copy at completion) |
+|---|---|---|---|---|---|---|
+| 1.1 | 402 | 6.7 s | 16 | 0 | 0 | remembered line "THERE WAS A BUCKET, AND IT FELT LIKE A HELMET." |
+| 1.2 | 1119 | 18.6 s | 22 | 3 (barks at Jack) | 0 | the three shards and "THERE WAS A GATE, AND IT WAS A CHIHUAHUA." |
+| 1.3 | 689 | 11.5 s | 28 | 0 | 1 (the paw) | `pawOffered: true`, `longWay: true`, Supervillain 7, the remembered line |
+| 1.4 | 567 | 9.4 s | 23 | 0 | 3 (the performances) | `santinaBall: "performed"`, "THERE WAS A GATE, AND IT WAS A STAGE." |
+| 1.5 | 766 | 12.8 s | 22 | 0 | 1 ("I AM ONE OF THEM") | `cross` unlocked, Supervillain 13, the remembered line |
+
+(Fresh clone, `test_SLICE_real_input_completes_every_level_1_scene`; identical to report 30.)
+
+Captures regenerated (`capture_suite.gd --mode story`): 41 (the visor beneath the controls), 43, 44,
+46 and 48 (the action button in every walk, the switcher in 44) changed; 51 differs only in its
+animated background; the other six are byte-identical.
+
+### Commands executed and results
+
+On a fresh Windows clone of the local verification commit `4c966e7` (`godot/` tree as above), each
+step's output and exit code logged:
+
+| Command | Exit | Result |
+|---|---|---|
+| `git clone --branch claude/gallant-keller-rbvtvy <session clone> <fresh dir>`; `npm ci`; `npx playwright install chromium` | 0 / 0 / 0 | fresh clone of the verification commit; `godot/` tree as above |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (asset and resource generation, deterministic check) | 0 | asset check OK: 208 outputs identical (73 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12); build_resources check (all): OK, 56 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | 0 | 0 ERROR/WARNING lines; `git status --porcelain` afterwards empty: yes |
+| `… --script res://tests/test_runner.gd -- --suite all` (complete suite) | 0 | 268 passed, 0 failed, 268 total (130.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_story_schema` (schema and validation) | 0 | 5 passed, 0 failed, 5 total (0.4 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine` (story engine) | 0 | 19 passed, 0 failed, 19 total (1.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1` (Level 1) | 0 | 25 passed, 0 failed, 25 total (16.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_input` (J, X, Space, B, Q/Tab, touch ACTION and switcher, double tap, ownership, swipes) | 0 | 6 passed, 0 failed, 6 total (7.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine --case actor_arrival_on_a_clear_path` | 0 | 1 passed, 0 failed, 1 total (0.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine --case blocked_actor` | 0 | 1 passed, 0 failed, 1 total (0.4 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine --case arrival_timeout` (timeout error, restart, cleanup) | 0 | 1 passed, 0 failed, 1 total (0.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine --case leader_leg_timeout` | 0 | 1 passed, 0 failed, 1 total (0.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1 --case catalog_exact` (exact catalog, dispatch, fresh steps, boundaries) | 0 | 1 passed, 0 failed, 1 total (1.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1 --case rewritten_titles` (display-authority mutation) | 0 | 1 passed, 0 failed, 1 total (0.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1 --case CONTENT_003` | 0 | 1 passed, 0 failed, 1 total (0.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1 --case STY_102` (success, failure and recovery) | 0 | 1 passed, 0 failed, 1 total (1.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine --case WALK_001` (Level 1 portion, with the gate failure) | 0 | 1 passed, 0 failed, 1 total (0.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1 --case entry_conditions` | 0 | 1 passed, 0 failed, 1 total (0.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1 --case dream_abilities` (reality replay with cross, sermon, knight) | 0 | 1 passed, 0 failed, 1 total (1.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1 --case real_input` (real-input completion) | 0 | 1 passed, 0 failed, 1 total (1.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_level1 --case owner_review` (review package lists every line) | 0 | 1 passed, 0 failed, 1 total (0.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save` (M4 save: test_save and test_save_m4) | 0 | 47 passed, 0 failed, 47 total (3.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell` (M4 shell) | 0 | 23 passed, 0 failed, 23 total (10.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_main_and_rates` (M4 flow) | 0 | 8 passed, 0 failed, 8 total (21.8 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3 --case AUTO_001`, twice (deterministic AUTO-001) | 0 / 0 | identical lines: yes — `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` |
+| `<console exe> --headless --path godot res://tools/story_review_export.tscn -- --out <log dir>` (the review exporter) | 0 | story_review_export: chapter 1, 5 scene(s) -> `<log dir>` |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame launch at the title) | 0 | 0 ERROR/WARNING lines |
+| `<console exe> --headless --path godot --quit-after 120 --verbose`, filtered for the first scene loaded | 0 | Completed load for: 'res://scenes/title/title_screen.tscn' remapped 'res://scenes/title/title_screen.tscn' at thread -1 |
+| `… -- --suite integration --file test_export_pack` (hermetic PCK smoke) | 0 | 1 passed, 0 failed, 1 total (18.0 s), Godot 4.7.2-stable (official) |
+| `npm test` (PixiJS) | 0 | Tests  248 passed (248) |
+| `npm run build` (PixiJS) | 0 | built in 309ms |
+| `git status --porcelain` after the checks | 0 | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check --format= HEAD` | 0 / 0 | no output |
+| `bash godot/tools/source_tree_guard.sh` | 0 | source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265 |
+| `git diff --stat 95b69c0 HEAD -- src public assets android ios package.json package-lock.json` | 0 | empty (PixiJS untouched) |
+| `git status --porcelain` after all steps | 0 | empty |
+
+### Acceptance IDs
+
+- **Accepted by the architect (counted, 144 in all):** correction report 28's 24 M4 IDs and
+  ARCH-001b (combined evidence), above.
+- **Claimed by full suite cases, pending review:** CONTENT-001–005 (CONTENT-001–003 on the
+  strengthened cases); STY-100, STY-101–105 (STY-102 with its failure and recovery case); DLG-001–009;
+  WALK-007–009; NPC-007; DOG-008b; FLOW-007 and FLOW-008 (Level 1); FLOW-011's story scope (Level 1
+  replays; FLOW-011 itself is accepted with M4).
+- **Partial:** WALK-001–006 (Level 1 reach, collect, the action inputs, follow, and Jack's gate
+  failure/recovery; survive objectives and the later failure systems with later levels); NPC-001–006
+  (idle, goto, follow; patrol, chase, flee, wander, flail and fly with later chapters); COLL-005b
+  (Level 1's ten scripted targets); FLOW-009 (the boundaries after 1.0 and 1.5); FLOW-012 (no SKIP
+  SCENE, RD-23, OQ-11); SAV-009 and SAV-010 (per-scene saves and play time, Level 1); CAMP-001–014
+  (Level 1 portions); UI-023–030 (the story pause, dialogue, choices, cards, Android Back; the story
+  menu's book and Meraviglia pagination later).
+- **SLICE (port behaviour without a plan ID):** the action routing and gestures, the arrival
+  timeouts, the entry conditions, the display authority, the draw order, the review package.
+
+### Remaining gaps and unresolved decisions
+
+- **Review gates:** independent review of this correction; the owner's decision on the Level 1 draft
+  — APPROVE LEVEL 1 DRAFT, REQUEST CHANGES or DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT
+  (`docs/porting/manual_evidence/m5r_level1_narrative_review/README.md`; nothing is filled in). Level 2
+  does not begin before both.
+- **Unresolved narrative decisions:** OQ-01–OQ-11 (`STORY_REWRITE_DECISIONS.md`; each listed with an
+  empty answer field in the package) and the four `REVIEW REQUIRED` items (Niketas inside the walls,
+  the fleet/army paraphrase, "in the spring", "from Picardy"). Narrative status stays
+  `draft_implemented_review_pending`.
+- **Manual and device checks, not executed:** M5R's (playing 1.0–1.5 by hand on a device, both 1.3
+  choices, failing Jack's gate, pause at every step family, the gestures and the switcher on a
+  phone); M1–M4's remain owner-deferred or not executed. No Android run.
+- **Not done:** SWORD and SHIELD (M6), the gesture streak and hints (M8), SKIP SCENE (OQ-11), the
+  study's own art bank (M8, RD-14), Levels 2–8.
+
+---
+
+## Historical — M5R report 30 (M5R-B): native story engine and the rewritten Level 1 (`d503938`; M1, M2, M3 Partial; M4 Partial; M5 implemented, pending review)
+
+> Superseded by M5R correction report 31 (the current tree is its). Its engine, Level 1 and claims stand as corrected there: WALK-001–006 and NPC-001–006 are Partial; CONTENT-001–003 and STY-102 rest on correction 31's strengthened cases; ARCH-001b is accepted. One line below is corrected: the Resources carry `technical_status = technically_complete` (the report had said `implemented`).
 
 Scope: the second of the two M5R commits, on top of M5R-A (`f1ef442`, report 29). The native story
 engine and the rewritten Level 1 (1.1–1.5) as Godot Resources, from 1.0's CONTINUE to the explicit
@@ -64,8 +351,8 @@ pending**. Levels 2–8 are not started. The PixiJS, Capacitor and iOS sources a
   `ui/story/`.
 
 **Content** (`godot/data/story/`): `chapters/ch1.tres` and `scenes/1_1.tres`–`1_5.tres`, content
-version 1, `review_status = draft_implemented_review_pending`, `technical_status = implemented`
-(the matrix records Level 1 as `technically_complete`). Every player-visible line is in these
+version 1, `review_status = draft_implemented_review_pending`, `technical_status = technically_complete`
+(corrected in report 31; this line first said `implemented`). Every player-visible line is in these
 Resources or in `shell_text.tres`. Text fingerprints: `godot/tests/fixtures/story_level1_text.json`.
 
 ### Save, restart and replay boundaries as implemented (RD-05)
@@ -257,7 +544,7 @@ step's output and exit code logged:
 
 ## Historical — M5R report 29 (M5R-A): story rewrite authority, content schema and validation (`f1ef442`; M1, M2, M3 Partial; M4 Partial; M5 in progress)
 
-> Superseded by M5R report 30 (the current tree is its). Its Phase 0 fix, the rewrite authority and the schema stand; its "git show --check on the commit" ran in report 30 (no output).
+> Superseded by M5R reports 30 and 31 (the current tree is report 31's). Its Phase 0 fix, the rewrite authority and the schema stand; its "git show --check on the commit" ran in report 30 (no output).
 
 Scope: the first of the two M5R commits after `cd37a07` (correction report 28). The owner's M5R
 instruction: the architect's decision that the campaign is rewritten as native Godot content (the
@@ -349,7 +636,7 @@ The fresh-clone verification of the whole M5R list runs on M5R-B (report 30).
 
 ## Historical — correction report 28: M4 persistence safety — exact versions, transactional writes, atomic handoff, non-destructive recovery (`cd37a07`; M1, M2, M3 Partial; M4 Partial)
 
-> Superseded by M5R reports 29 and 30 (the current tree is report 30's). Its M4 claims, the M3 acceptance it recorded and its gaps stand.
+> Superseded by M5R reports 29–31 (the current tree is report 31's). Its 24 M4 IDs were accepted (recorded in report 31); its M4 claims, the M3 acceptance it recorded and its gaps stand.
 
 Scope: the owner's narrow M4 persistence-safety correction after `5c593d6`. Changed: `godot/autoload/`
 (`save_service.gd`, `app_state.gd`), `godot/campaign/` (`campaign_schema.gd`, `legacy_import.gd`),

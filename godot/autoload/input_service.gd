@@ -4,7 +4,13 @@ extends Node
 ##
 ## - Movement is a screen-space vector (x right, y down) with magnitude 0..1.
 ## - Discrete actions are queued with a timestamp and dropped after INPUT.ACTION_TTL unless consumed.
+##   `action` (J/X, the round button) does the action button's mode; `pee` (Space) the scene's own
+##   action; `bark` (B), `strike` (U) and `guard` (I) those directly; `switch` (Q/Tab, the small
+##   switcher) the action button's next mode (story walks: StoryActionRouter).
 ## - RUN is held (Shift/K or the RUN button), or latched in toggle mode.
+## - Gestures (story walks): on the right-hand side over the buttons, a swipe up, a swipe down and a
+##   double tap do what OPTIONS > CONTROLS binds them to. A pointer is owned by what it first
+##   touched: a button or the joystick never also becomes a gesture.
 ## Touch Controls live inside the pixel SubViewport and call pointer_* with logical coordinates;
 ## this service never converts coordinates again.
 
@@ -18,7 +24,13 @@ const KEY_EDGES := {
 	&"bark": [&"bark"],
 	&"menu": [&"menu", &"back"],
 	&"run": [&"run"],
+	&"switch": [&"switch"],
+	&"strike": [&"strike"],
+	&"guard": [&"guard"],
 }
+
+## A gesture setting (OPTIONS > CONTROLS) -> the action it queues ("run": RUN on/off; "off": none).
+const GESTURE_ACTIONS := {"off": &"", "action": &"action", "bark": &"bark", "sword": &"strike", "shield": &"guard", "switch": &"switch", "run": &"run_toggle"}
 
 signal context_changed(context: StringName)
 
@@ -36,9 +48,14 @@ var buttons: Dictionary = {}
 var run_toggle := false
 var left_handed := false
 ## Settings for the story's gestures and action switcher (OPTIONS > CONTROLS), applied at once by
-## AppState; the gesture recognizer that reads them arrives with the story controls (M5, D-09).
+## AppState and read by the gesture recognizer below.
 var gesture_bindings := {"swipeUp": "sword", "swipeDown": "shield", "doubleTap": "bark"}
 var switcher_enabled := true
+## Where the right-hand gestures are read (logical px), while enabled (StoryTouchControls).
+var gesture_zone := Rect2()
+var gestures_enabled := false
+## The last gesture {"kind", "at": Vector2, "seq": int} (its on-screen streak, tests), or {}.
+var last_gesture: Dictionary = {}
 var context: StringName = &"menu"
 ## When false, the owner calls update(dt) itself (deterministic tests).
 var auto_update := true
@@ -49,6 +66,9 @@ var _run_latched := false
 var _pointers: Dictionary = {}
 var _joystick_pointer := -1
 var _taps: Array[Vector2] = []
+## The last plain tap in the gesture zone {"p": Vector2, "at": float} (for the double tap), or null.
+var _last_tap: Variant = null
+var _gesture_seq := 0
 ## Injection (tests/automation): replaces keyboard/joystick movement and RUN when not null.
 var _override: Variant = null
 
@@ -144,6 +164,7 @@ func set_context(new_context: StringName) -> void:
 func clear_pending() -> void:
 	_pending.clear()
 	_taps.clear()
+	_last_tap = null
 
 
 var run_held: bool:
@@ -189,6 +210,11 @@ func reset_for_tests() -> void:
 	left_handed = false
 	gesture_bindings = {"swipeUp": "sword", "swipeDown": "shield", "doubleTap": "bark"}
 	switcher_enabled = true
+	gesture_zone = Rect2()
+	gestures_enabled = false
+	last_gesture = {}
+	_last_tap = null
+	_gesture_seq = 0
 	context = &"menu"
 	_run_latched = false
 	_set_move(0.0, 0.0)
@@ -215,6 +241,42 @@ func is_button_pressed(id: StringName) -> bool:
 	return buttons.has(id) and bool(buttons[id]["pressed"])
 
 
+## Forgets a button (its owner left: a scene's buttons must not catch the next scene's touches).
+func remove_button(id: StringName) -> void:
+	buttons.erase(id)
+	for index: int in _pointers.keys():
+		if _pointers[index]["kind"] == &"button" and _pointers[index]["id"] == id:
+			_pointers.erase(index)
+
+
+# --- Gestures (source classifySwipe / isDoubleTap / fireGesture) -----------------------------
+
+## A swipe? Mostly vertical, long enough and quick enough: "swipeUp", "swipeDown" or "".
+static func classify_swipe(dx: float, dy: float, seconds: float) -> String:
+	if seconds > InputCfg.SWIPE_MAX_TIME or absf(dy) < InputCfg.SWIPE_MIN or absf(dy) < absf(dx) * InputCfg.SWIPE_RATIO:
+		return ""
+	return "swipeUp" if dy < 0.0 else "swipeDown"
+
+
+## Is a press at `p` (logic clock `at`) the second tap of a double tap after `prev`?
+static func is_double_tap(prev: Variant, p: Vector2, at: float) -> bool:
+	if prev == null:
+		return false
+	var dt := at - float(prev["at"])
+	return dt >= 0.0 and dt <= InputCfg.DOUBLE_TAP_TIME and p.distance_to(prev["p"]) <= InputCfg.DOUBLE_TAP_DIST
+
+
+## A gesture was made: queue what it is bound to, remember it.
+func _fire_gesture(kind: String, p: Vector2) -> void:
+	var a: StringName = GESTURE_ACTIONS.get(String(gesture_bindings.get(kind, "off")), &"")
+	if a == &"run_toggle":
+		_run_latched = not _run_latched
+	elif a != &"":
+		trigger(a)
+	_gesture_seq += 1
+	last_gesture = {"kind": kind, "at": p, "seq": _gesture_seq}
+
+
 func pointer_down(index: int, p: Vector2) -> void:
 	using_touch = true
 	for id: StringName in buttons:
@@ -228,6 +290,14 @@ func pointer_down(index: int, p: Vector2) -> void:
 			trigger(b["action"])
 			_pointers[index] = {"kind": &"button", "id": id, "start": p, "pos": p}
 			return
+	# Right-hand side, over the buttons: gestures (the second tap of a double tap fires on press).
+	if gestures_enabled and gesture_zone.has_point(p):
+		var second := is_double_tap(_last_tap, p, _now)
+		if second:
+			_last_tap = null
+			_fire_gesture("doubleTap", p)
+		_pointers[index] = {"kind": &"gesture", "start": p, "pos": p, "start_at": _now, "fired": second}
+		return
 	if joystick_enabled and _joystick_pointer == -1 and joystick_zone.has_point(p):
 		_joystick_pointer = index
 		joystick["active"] = true
@@ -243,6 +313,16 @@ func pointer_move(index: int, p: Vector2) -> void:
 		return
 	var t: Dictionary = _pointers[index]
 	t["pos"] = p
+	if t["kind"] == &"gesture":
+		# A swipe fires as soon as it is one (no waiting for the finger to lift).
+		if not t["fired"]:
+			var from: Vector2 = t["start"]
+			var swipe := classify_swipe(p.x - from.x, p.y - from.y, _now - float(t["start_at"]))
+			if swipe != "":
+				t["fired"] = true
+				_last_tap = null
+				_fire_gesture(swipe, from)
+		return
 	if t["kind"] == &"joystick":
 		joystick["knob"] = p
 		# The base follows the thumb when dragged beyond the radius.
@@ -265,6 +345,14 @@ func pointer_up(index: int, p: Vector2, cancelled: bool = false) -> void:
 		&"joystick":
 			_joystick_pointer = -1
 			joystick["active"] = false
+		&"gesture":
+			if cancelled or t["fired"]:
+				return
+			var from: Vector2 = t["start"]
+			if (p - from).length() <= InputCfg.TAP_SLOP:
+				# A plain tap: still a tap (dialogue, choices), and maybe the first of a double tap.
+				_taps.append(p)
+				_last_tap = {"p": p, "at": _now} if _now - float(t["start_at"]) <= InputCfg.TAP_MAX_TIME else null
 		_:
 			if not cancelled and (p - t["start"]).length() <= InputCfg.TAP_SLOP:
 				_taps.append(p)
@@ -272,6 +360,7 @@ func pointer_up(index: int, p: Vector2, cancelled: bool = false) -> void:
 
 func release_all() -> void:
 	_pointers.clear()
+	_last_tap = null
 	_joystick_pointer = -1
 	joystick["active"] = false
 	for id: StringName in buttons:

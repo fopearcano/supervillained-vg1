@@ -11,6 +11,8 @@ const MAIN := preload("res://main/main.tscn")
 const DT := 1.0 / 60.0
 const NOW := 1795608000000
 const IDS := ["1.1", "1.2", "1.3", "1.4", "1.5"]
+## Each scene's completion boundary (spec §9).
+const BOUNDARY_OF := {"1.5": "sleep"}
 
 var main: Node
 var scenes: Array = []
@@ -80,18 +82,6 @@ func _play(id: String, state: Dictionary, policy: Dictionary = {}, gate: String 
 			out["ticks"] = k + 1
 			break
 	return out
-
-
-func test_CONTENT_001_002_chapter_1_validates_in_catalog_order() -> void:
-	var v := StoryValidator.for_project()
-	var ch := StoryLibrary.chapter(1)
-	assert_true(ch != null, "chapter 1 Resource")
-	assert_eq(v.validate_chapter(ch), PackedStringArray(), "chapter 1 and its scenes validate")
-	assert_eq(ch.scenes.map(func(s: StorySceneData) -> String: return s.id), IDS, "1.1–1.5 in catalog order")
-	assert_eq(Array(SaveService.CATALOG.ids()).size(), 37, "the 37-entry catalog is unchanged")
-	for id in IDS:
-		assert_true(StoryLibrary.has_scene(id) and SaveService.CATALOG.playable_in_build(id), "%s playable" % id)
-	assert_false(StoryLibrary.has_scene("2.1"), "Level 2 not implemented")
 
 
 func test_SLICE_scripted_smoke_every_level_1_scene() -> void:
@@ -189,11 +179,154 @@ func test_STY_101_bucket_visor_slap_and_helmet_setup() -> void:
 		InputService.update(DT)
 		s.tick(DT)
 	assert_true(s.ctx.visor > 0.5, "standing still lets it slide down (%.2f)" % s.ctx.visor)
-	assert_eq([s.ctx.action_label, s.ctx.no_run, s.hud.objective], ["BARK", true, "WALK HOME TO THE HEDGE GAP. KEEP YOUR HEAD UP"], "the walk's action, no running, objective line")
+	assert_eq([s.ctx.actions.label(), s.ctx.no_run, s.hud.objective], ["BARK", true, "WALK HOME TO THE HEDGE GAP. KEEP YOUR HEAD UP"], "the walk's action, no running, objective line")
 	_no_armour(s, "1.1")
 
 
-func test_STY_102_lecture_scraps_and_jacks_gate_success() -> void:
+## The 37 catalog IDs in order, and the scenes per chapter (src/campaign/chapters CHAPTERS).
+const CATALOG_IDS := ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "3.4", "4.1", "4.2", "4.3",
+	"5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7", "7.8", "7.9", "8.1", "8.2", "8.3", "8.4"]
+const CHAPTER_COUNTS := [6, 3, 4, 3, 5, 3, 9, 4]
+
+
+## A Resource as plain data (its stored properties, nested Resources included), to prove a run
+## never changes it.
+static func _snap(v: Variant) -> Variant:
+	if v is Resource:
+		var out := {}
+		for pr: Dictionary in (v as Resource).get_property_list():
+			if int(pr["usage"]) & PROPERTY_USAGE_STORAGE and String(pr["name"]) != "script":
+				out[pr["name"]] = _snap((v as Resource).get(pr["name"]))
+		return out
+	if v is Array:
+		return (v as Array).map(func(x: Variant) -> Variant: return _snap(x))
+	if v is Dictionary:
+		var d := {}
+		for k: Variant in v:
+			d[k] = _snap(v[k])
+		return d
+	return v
+
+
+## CONTENT-001/002: exactly eight chapters; the exact 37-ID sequence and order; the per-chapter
+## counts; no retired or unknown ID (a save holding one drops it); the exact Green Zone dispatch
+## (1.0 only); the frozen compatibility catalog gives the same IDs; Chapter 1's Resources validate in
+## catalog order, and every run starts from fresh state (two runs at once share nothing; a run never
+## changes the Resource); every scene without Resources reaches the explicit "not in this build"
+## boundary through Main; rewritten titles are shown, draft titles only where nothing is rewritten.
+func test_CONTENT_001_002_catalog_exact_dispatch_fresh_steps_and_boundaries() -> void:
+	var cat := SaveService.CATALOG
+	assert_eq(cat.chapters.map(func(c: Dictionary) -> int: return int(c["number"])), [1, 2, 3, 4, 5, 6, 7, 8], "exactly eight chapters, in order")
+	assert_eq(Array(cat.ids()), CATALOG_IDS, "the exact 37-ID sequence")
+	assert_eq(cat.chapters.map(func(c: Dictionary) -> int: return (c["sub_levels"] as Array).size()), CHAPTER_COUNTS, "the per-chapter counts")
+	for ch: Dictionary in cat.chapters:
+		for sub: Dictionary in ch["sub_levels"]:
+			assert_eq(int(sub["green_zone"]), 1 if sub["id"] == "1.0" else 0, "%s: Green Zone dispatch" % sub["id"])
+	for retired in ["1.6", "2.4", "3.5", "4.4", "5.6", "6.4", "7.10", "8.5", "0.1", "9.1"]:
+		assert_false(cat.has_id(retired) or StoryLibrary.has_scene(retired), "%s is not a catalog ID" % retired)
+	var old := CampaignSchema.new_campaign()
+	old["completed"] = ["1.0", "2.4", "1.1", "7.10"]
+	assert_eq(CampaignSchema.normalize(old, cat.ids())["data"]["completed"], ["1.0", "1.1"], "a save's unknown IDs are dropped")
+	var v := StoryValidator.for_project()
+	assert_eq(v.compat_ids(), CATALOG_IDS, "the frozen compatibility catalog: the same IDs and order")
+	# Implemented: Chapter 1, validated, in catalog order, fresh on every run.
+	var ch := StoryLibrary.chapter(1)
+	assert_eq(v.validate_chapter(ch), PackedStringArray(), "chapter 1 and its scenes validate")
+	assert_eq(ch.scenes.map(func(x: StorySceneData) -> String: return x.id), CATALOG_IDS.slice(1, 6), "1.1–1.5 in catalog order")
+	for id in IDS:
+		var data := StoryLibrary.scene(id)
+		var before := var_to_str(_snap(data))
+		var a := _play(id, _entry(id), {}, "bark", true)
+		assert_eq(var_to_str(_snap(data)), before, "%s: the Resource is unchanged by a run" % id)
+		var b := _play(id, _entry(id), {"s16": "water", "s08": "quiet"}, "bark", true)
+		assert_true(a.has("result") and b.has("result"), "%s: two runs from the same Resource both complete" % id)
+		var sa: StoryScene = a["scene"]
+		var sb: StoryScene = b["scene"]
+		assert_false(is_same(sa.ctx, sb.ctx) or is_same(sa.ctx.state, sb.ctx.state) or is_same(sa.runner, sb.runner), "%s: each run has its own context, state and runner" % id)
+		assert_eq(var_to_str(_snap(data)), before, "%s: and the Resource is still unchanged" % id)
+	# Not implemented: every other scripted ID has no Resource and stops at the explicit boundary.
+	await _main_start()
+	await _settle()
+	for id in CATALOG_IDS.slice(6):
+		assert_false(StoryLibrary.has_scene(id) or cat.playable_in_build(id), "%s: not in this build" % id)
+		main._play_scene(id)
+		var top := main.top_overlay() as MessageOverlay
+		var f := cat.find(id)
+		var label := "LEVEL %d: %s %s" % [f["chapter"]["number"], id, String(f["sub"]["title"]).to_upper()]
+		assert_true(top != null and top.heading == "NOT IN THIS BUILD" and top.paragraphs[0][0] == label, "%s: the explicit boundary (%s)" % [id, label])
+	# Display titles: the Resources' where rewritten, the compatibility fallback elsewhere.
+	for id in CATALOG_IDS.slice(1):
+		var shown := String(cat.find(id)["sub"]["title"])
+		var want := StoryLibrary.scene(id).title if StoryLibrary.has_scene(id) else String(v.compat_find(id)["sub"]["title"])
+		assert_eq(shown, want, "%s: displayed title" % id)
+	assert_eq([cat.chapter(1)["title"], cat.chapter(1)["menu_title"]], [ch.title, ch.menu_title], "chapter 1: the Resource's titles")
+
+
+## The Godot Resources are the display authority (correction 31): a title changed in the rewritten
+## Resources reaches the Title's CONTINUE, the Couch, the level list, the chapter list and the scene
+## card through generation (StoryCatalog.overlay over the frozen compatibility catalog); the PixiJS
+## source and the compatibility catalog stay untouched; the shipped catalog is that generation's
+## output on the shipped Resources (and tools/build_resources.gd --check holds it to that).
+func test_CONTENT_001_002_rewritten_titles_reach_every_menu_and_card() -> void:
+	var compat_path := "res://data/campaign/story_catalog.json"
+	var compat_bytes := FileAccess.get_file_as_bytes(compat_path)
+	var compat: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(compat_path))
+	assert_eq(SaveService.CATALOG.chapters, StoryCatalog.overlay(compat, StoryCatalog.rewrite_titles()), "the shipped catalog = overlay(compatibility, Resources)")
+	# Mutation: a copy of the Resources with a new scene title and a new chapter menu title.
+	var dir := SaveService.base_dir.path_join("rewrite_copy")
+	for sub in ["chapters", "scenes"]:
+		DirAccess.make_dir_recursive_absolute(dir.path_join(sub))
+		for f in DirAccess.get_files_at("res://data/story".path_join(sub)):
+			if f.ends_with(".tres"):
+				var text := FileAccess.get_file_as_string("res://data/story".path_join(sub).path_join(f))
+				text = text.replace('title = "Under the Professor\'s desk"', 'title = "A desk for a ship"').replace('menu_title = "The Greenzone"', 'menu_title = "Lawn and lane"')
+				var w := FileAccess.open(dir.path_join(sub).path_join(f), FileAccess.WRITE)
+				w.store_string(text)
+				w.close()
+	var chapters := StoryCatalog.overlay(compat, StoryCatalog.rewrite_titles(dir))
+	assert_eq([chapters[0]["menu_title"], chapters[0]["sub_levels"][2]["title"], chapters[1]["title"]], ["Lawn and lane", "A desk for a ship", compat["chapters"][1]["title"]], "the copy's titles override; Level 2 keeps its fallback")
+	# Run time: that generated catalog, and the scene Resource with the same title.
+	var runtime: StoryCatalog = SaveService.CATALOG
+	var shipped: Array = runtime.chapters
+	var scene12 := StoryLibrary.scene("1.2")
+	var shipped_title := scene12.title
+	runtime.chapters = chapters
+	scene12.title = "A desk for a ship"
+	var st := CampaignSchema.new_campaign()
+	st["completed"] = ["1.0", "1.1"]
+	SaveService.save_campaign(st, NOW - 1000)
+	await _main_start()
+	await _settle()
+	var cont := AppState.continue_label()
+	main.open_couch()
+	var couch := main.top_overlay() as CouchOverlay
+	var couch_lines := couch.lines() if couch else PackedStringArray()
+	main.clear_overlays()
+	main.open_levels()
+	var levels: Array = (main.top_overlay() as OverlayPanel).items.map(func(i: Dictionary) -> String: return i["label"])
+	main.clear_overlays()
+	main.open_chapter(1)
+	var rows: Array = (main.top_overlay() as OverlayPanel).items.map(func(i: Dictionary) -> String: return i["label"])
+	main.clear_overlays()
+	main.show_story_card("1.2")
+	var card := main.top_overlay() as MessageOverlay
+	var card_title: String = card.paragraphs[0][0] if card else ""
+	runtime.chapters = shipped
+	scene12.title = shipped_title
+	assert_eq(cont, "LEVEL 1: 1.2 A DESK FOR A SHIP", "the Title's CONTINUE")
+	assert_true(couch_lines.has("LEVEL 1: 1.2 A DESK FOR A SHIP"), "the Couch: %s" % [couch_lines])
+	assert_true(levels.has("1 LAWN AND LANE 2/6"), "the level list: %s" % [levels])
+	assert_true(rows.has(ChapterListOverlay.fit_label("1.2", "A desk for a ship")), "the chapter list: %s" % [rows])
+	assert_eq(card_title, "1.2 A DESK FOR A SHIP", "the scene card")
+	assert_eq(FileAccess.get_file_as_bytes(compat_path), compat_bytes, "the compatibility catalog is untouched")
+	assert_eq(SaveService.CATALOG.chapters, StoryCatalog.overlay(compat, StoryCatalog.rewrite_titles()), "and the shipped catalog is back")
+
+
+## STY-102 (Level 1 reality as rewritten): the lecture's scraps, then Jack's gate — success
+## (three barks: echoes, heads, the window, through) by the scripted smoke and by real input, and
+## failure and recovery by real input (pushing into him only gets NOPE!, a hint after 3 and 8 pushes,
+## and after 14 the window creaks anyway; RD-19).
+func test_STY_102_lecture_scraps_and_jacks_gate_success_failure_and_recovery() -> void:
 	_snapshot(_play("1.2", _entry("1.2"), {}, "bark", true), "1.2", "", "1.2 scripted smoke")
 	var out := _play("1.2", _entry("1.2"))
 	_snapshot(out, "1.2", "", "1.2 real input")
@@ -203,18 +336,14 @@ func test_STY_102_lecture_scraps_and_jacks_gate_success() -> void:
 	assert_eq(s.ctx.map_id, "neighborhood", "ends outside, at the bowl")
 	assert_eq((out["result"]["state"]["book"]["remembered"] as Array).size(), 1, "one remembered line (RD-06)")
 	_no_armour(s, "1.2")
-
-
-## Jack's gate, failure and recovery: pushing into him only gets NOPE!, a hint after 3 and 8 pushes,
-## and after 14 the window creaks anyway (RD-19).
-func test_SLICE_jacks_gate_failure_and_recovery() -> void:
-	var out := _play("1.2", _entry("1.2"), {}, "push")
-	_snapshot(out, "1.2", "", "1.2 pushing")
-	var s: StoryScene = out["scene"]
-	assert_eq(s.ctx.metrics["echoes"], 0, "no bark")
-	assert_eq(s.ctx.metrics["bumps"], 14, "recovered at the 14th push")
-	var hints := (s.ctx.metrics["notices"] as Array).filter(func(n: String) -> bool: return n == "JACK WILL NOT MOVE. BARK?")
+	var push := _play("1.2", _entry("1.2"), {}, "push")
+	_snapshot(push, "1.2", "", "1.2 pushing")
+	var p: StoryScene = push["scene"]
+	assert_eq([p.ctx.metrics["echoes"], p.ctx.metrics["bumps"]], [0, 14], "no bark; recovered at the 14th push")
+	assert_true(p.hud.shown_texts.has("NOPE!"), "NOPE! at each push")
+	var hints := (p.ctx.metrics["notices"] as Array).filter(func(n: String) -> bool: return n == "JACK WILL NOT MOVE. BARK?")
 	assert_eq(hints.size(), 2, "the hint after 3 and 8 pushes")
+	assert_eq(p.ctx.map_id, "neighborhood", "through to the bowl all the same")
 
 
 func test_STY_103_both_toll_choices_and_the_long_way() -> void:
@@ -587,8 +716,76 @@ func test_SLICE_story_pause_through_main_back_resume_and_quit() -> void:
 	main.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 	(main.top_overlay() as StoryPauseOverlay).activate(2)
 	assert_true(await _until(func() -> bool: return main.current_scene is TitleScreen), "QUIT TO TITLE: the title")
+	await tree.process_frame
+	assert_false(InputService.buttons.has(&"story_action") or InputService.buttons.has(&"story_menu") or InputService.gestures_enabled, "the story's buttons and gestures left with it")
 	assert_eq(_committed(), committed, "nothing of the scene saved")
 	assert_eq(String(AppState.continue_target()["id"]), "1.1", "CONTINUE plays 1.1 again")
+
+
+## Entry conditions are enforced at run time (spec §5.1): a scene whose `requires_completed` or
+## `requires_abilities` do not hold never starts — Main shows the story error card instead; a
+## StoryScene given such a state stops with the explicit error and runs no step.
+func test_SLICE_entry_conditions_are_enforced_before_a_scene_starts() -> void:
+	var cap: ErrorCapture = tree.get("_capture")
+	var st := _entry("1.2")
+	SaveService.save_campaign(st, NOW - 1000)
+	await _main_start()
+	await _settle()
+	main.start_story("1.3")
+	var top := main.top_overlay() as MessageOverlay
+	assert_true(top != null and top.has_meta(&"story_error") and String(top.get_meta(&"story_error")) == "story 1.3: entry condition: 1.2 is not completed", "the story error card says why")
+	assert_true(main.current_scene is TitleScreen, "1.3 never started")
+	assert_eq(cap.take().filter(func(e: Dictionary) -> bool: return String(e["code"]).contains("entry condition")).size(), 1, "reported once")
+	var s := _scene("1.3", _entry("1.2"))
+	var out := {}
+	s.failed.connect(func(m: String) -> void: out["error"] = m)
+	await tree.process_frame
+	s.tick(DT)
+	assert_eq(out.get("error", ""), "story 1.3: entry condition: 1.2 is not completed", "the scene reports it")
+	assert_eq([s.runner.trace.size(), s.finished, s.world == null], [0, true, true], "and runs no step")
+	var data: StorySceneData = StoryLibrary.scene("1.1").duplicate()
+	data.entry_conditions = {"requires_completed": ["1.0"], "requires_abilities": ["cross"]}
+	var s2: StoryScene = STORY.instantiate()
+	s2.manual_ticks = true
+	s2.setup(data, _entry("1.1"), true)
+	scenes.append(s2)
+	var out2 := {}
+	s2.failed.connect(func(m: String) -> void: out2["error"] = m)
+	tree.root.add_child(s2)
+	await tree.process_frame
+	assert_eq(out2.get("error", ""), "story 1.1: entry condition: the ability 'cross' is not held", "a missing ability")
+	assert_eq(cap.take().filter(func(e: Dictionary) -> bool: return String(e["code"]).contains("entry condition")).size(), 2, "both reported")
+
+
+## Reality owns the appearance (spec §2.4, StorySceneData.reality): replaying every Level 1 scene
+## from a campaign that already holds the dream's cross, sermon and knight keeps Zampanò in his
+## plain reality skin at every stage of every scene, and the replay changes nothing.
+func test_SLICE_level_1_replayed_with_dream_abilities_stays_plain() -> void:
+	var st := _entry("1.5")
+	st["completed"] = ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "2.1", "2.2", "2.3"]
+	st["abilities"] = ["cross", "sermon", "knight"]
+	SaveService.save_campaign(st, NOW - 1000)
+	var saved := SaveService.get_campaign().duplicate(true)
+	for id in IDS:
+		AppState.begin_replay(id)
+		var s := _scene(id, AppState.story_entry_state(), AppState.persists())
+		assert_false(s.persist, "%s: a replay" % id)
+		var d := StoryDriver.new(s)
+		var stages := -1
+		var checked := 0
+		for k in 60 * 240:
+			if s.finished:
+				break
+			d.drive(DT)
+			InputService.update(DT)
+			s.tick(DT)
+			if s.stage_changes != stages and s.world != null:
+				stages = s.stage_changes
+				checked += 1
+				_no_armour(s, "%s stage %d (cross, sermon and knight held)" % [id, stages])
+		assert_true(s.finished and s.ctx.error == "" and checked >= 1, "%s: replayed to the end, %d stage(s) checked" % [id, checked])
+		AppState.end_replay()
+	assert_eq(SaveService.get_campaign(), saved, "the replays changed nothing")
 
 
 ## Replaying every finished Level 1 scene from the level list changes no persistent byte and
@@ -728,17 +925,23 @@ static func _texts(steps: Array) -> PackedStringArray:
 	return out
 
 
-## CONTENT-003: the rewrite metadata on every Level 1 Resource; titles equal the catalog's.
+## CONTENT-003: every metadata field of spec §5.1 on every Level 1 scene Resource and of §5.2 on
+## the chapter Resource, with the values the rewrite records (the validator checks the same fields
+## for every implemented Resource). Display titles are the Resources' own (no Pixi equality).
 func test_CONTENT_003_rewrite_metadata_on_every_resource() -> void:
 	var ch := StoryLibrary.chapter(1)
-	assert_true(ch.title == "The Greenzone" and ch.intro != "" and ch.professor_aside != "" and ch.review_status == "draft_implemented_review_pending", "chapter metadata")
-	for s: StorySceneData in ch.scenes:
-		var f := SaveService.CATALOG.find(s.id)
-		assert_eq(s.title, String(f["sub"]["title"]), "%s title" % s.id)
-		assert_true(s.content_version >= 1 and s.level == 1 and s.map != "" and s.music == "greenzone" and not s.cast.is_empty(), "%s: version, level, map, music, cast" % s.id)
-		assert_true(not s.entry_conditions.is_empty() and not s.persistent_effects.is_empty() and s.completion.has("boundary"), "%s: entry, effects, completion" % s.id)
-		assert_true(not s.historical_tags.is_empty() and not s.source_refs.is_empty() and s.reality, "%s: tags, sources, reality" % s.id)
-		assert_eq([s.review_status, s.technical_status], ["draft_implemented_review_pending", "technically_complete"], "%s: technically complete, narrative review pending" % s.id)
+	assert_eq([ch.number, ch.title, ch.menu_title, ch.music, ch.content_version, ch.review_status], [1, "The Greenzone", "The Greenzone", "greenzone", 1, "draft_implemented_review_pending"], "chapter fields")
+	assert_true(ch.intro != "" and ch.cast_note != "" and ch.professor_aside != "" and not ch.review_notes.is_empty() and ch.scenes.size() == 5, "chapter intro, cast note, aside, review notes, scenes")
+	for sc: StorySceneData in ch.scenes:
+		var w := sc.id
+		assert_true(sc.title != "" and sc.old_title != "" and sc.summary != "", "%s: title, old title, summary" % w)
+		assert_eq([sc.level, sc.content_version, sc.music, sc.reality], [1, 1, "greenzone", true], "%s: level, version, music, reality" % w)
+		assert_true(["neighborhood", "study"].has(sc.map) and not sc.cast.is_empty() and not sc.steps.is_empty(), "%s: map, cast, steps" % w)
+		assert_eq(sc.entry_conditions, {"requires_completed": [CATALOG_IDS[CATALOG_IDS.find(sc.id) - 1]]}, "%s: entry conditions" % w)
+		assert_true(not sc.persistent_effects.is_empty() and BOUNDARY_OF.get(sc.id, "scene") == String(sc.completion["boundary"]), "%s: persistent effects, completion boundary" % w)
+		assert_true(not sc.historical_tags.is_empty() and not sc.source_refs.is_empty() and not sc.review_notes.is_empty(), "%s: tags, sources, review notes" % w)
+		assert_eq([sc.review_status, sc.technical_status], ["draft_implemented_review_pending", "technically_complete"], "%s: technically complete, narrative review pending" % w)
+		assert_eq(SaveService.CATALOG.find(sc.id)["sub"]["title"], sc.title, "%s: the catalog displays the Resource's title" % w)
 
 
 ## CONTENT-004: all story text is in the Resources (none in the engine's scripts); every scene's
@@ -763,6 +966,30 @@ func test_CONTENT_004_text_lives_in_resources_and_is_versioned() -> void:
 			# No silent placeholder: no draft markers, no template braces or brackets.
 			for marker in ["TODO", "TBD", "FIXME", "PLACEHOLDER", "LOREM", "XXX", "???", "[", "]", "{", "}", "%S", "%D"]:
 				assert_false(t.contains(marker), "%s: '%s' holds the placeholder '%s'" % [s.id, t, marker])
+
+
+## The owner's narrative-review package (docs/porting/manual_evidence/m5r_level1_narrative_review/)
+## lists every player-visible line of every Level 1 Resource — the scene card, every line, choice,
+## objective, pickup and rule line — in its scene file, and the level card and the aside in
+## level_1.md: it cannot drift from the Resources unseen.
+func test_SLICE_owner_review_package_lists_every_line() -> void:
+	var dir := ProjectSettings.globalize_path("res://").path_join("../docs/porting/manual_evidence/m5r_level1_narrative_review")
+	for id in IDS:
+		var doc := FileAccess.get_file_as_string(dir.path_join("%s.md" % id))
+		if not assert_true(doc != "", "%s.md exists" % id):
+			continue
+		var data := StoryLibrary.scene(id)
+		var texts := _texts(data.steps)
+		texts.append(data.summary)
+		texts.append(data.title)
+		for t in texts:
+			assert_true(doc.contains(t), "%s.md lists '%s'" % [id, t])
+	var level := FileAccess.get_file_as_string(dir.path_join("level_1.md"))
+	var ch := StoryLibrary.chapter(1)
+	assert_true(level.contains(ch.intro) and level.contains(ch.professor_aside), "level_1.md: the level card and the aside")
+	var readme := FileAccess.get_file_as_string(dir.path_join("README.md"))
+	for outcome in ["APPROVE LEVEL 1 DRAFT", "REQUEST CHANGES", "DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT"]:
+		assert_true(readme.contains("- [ ] **%s**" % outcome), "the outcome '%s' is offered, unticked" % outcome)
 
 
 ## CONTENT-005: the cast, source and review metadata never reach a player-facing card or line.

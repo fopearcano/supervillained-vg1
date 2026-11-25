@@ -39,6 +39,11 @@ func on_action(ctx: StoryContext, step: ObjectiveStep, st: Dictionary) -> void:
 		_open(ctx, step, st)
 
 
+## Any bark near him is echoed (RD-28): B, a double tap, the action button in either mode.
+func on_bark(ctx: StoryContext, step: ObjectiveStep, st: Dictionary) -> void:
+	on_action(ctx, step, st)
+
+
 func tick(ctx: StoryContext, step: ObjectiveStep, st: Dictionary, dt: float) -> bool:
 	if st["open"]:
 		return true

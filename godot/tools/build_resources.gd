@@ -114,20 +114,16 @@ func _save_resource(res: Resource, res_path: String) -> void:
 	_write_if_changed(res_path, text.to_utf8_buffer())
 
 
-## The story catalog (ids and titles from the source CHAPTERS) as an exported Resource.
+## The story catalog as an exported Resource: IDs, order and Green Zone dispatch from the frozen
+## compatibility catalog (the source CHAPTERS), titles from the Godot story Resources where they
+## exist (StoryCatalog.overlay; the draft titles stay for chapters not rewritten yet).
 func _build_story_catalog() -> void:
 	var j := _json("res://data/campaign/story_catalog.json")
 	if j.is_empty():
 		_failures.append("story catalog JSON missing (run the extractor)")
 		return
 	var cat := StoryCatalog.new()
-	var chapters: Array = []
-	for ch: Dictionary in j["chapters"]:
-		var subs: Array = []
-		for sub: Dictionary in ch["subLevels"]:
-			subs.append({"id": String(sub["id"]), "title": String(sub["title"]), "green_zone": int(sub["greenZone"])})
-		chapters.append({"number": int(ch["number"]), "title": String(ch["title"]), "menu_title": String(ch["menuTitle"]), "sub_levels": subs})
-	cat.chapters = chapters
+	cat.chapters = StoryCatalog.overlay(j, StoryCatalog.rewrite_titles("res://data/story"))
 	_save_resource(cat, "res://data/campaign/story_catalog.tres")
 
 

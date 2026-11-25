@@ -21,7 +21,8 @@ var visor := 0.0
 var controls := false
 var no_run := false
 ## The current objective's action button ("" = none) and the carried thing ("" = none).
-var action_label := ""
+## What J/X, Space, B, the touch buttons and the gestures do in a walk (the objective configures it).
+var actions := StoryActionRouter.new()
 var carrying := ""
 var map_id := ""
 ## A scripted walk of the player in progress (MoveStep): its target grid point, or null.
@@ -29,7 +30,7 @@ var move_target: Variant = null
 ## choice id -> option ids taken in this run (once_each choices offer the rest).
 var choices_taken: Dictionary = {}
 ## Run metrics: choices taken, bumps and echoes at a gate, notices shown.
-var metrics: Dictionary = {"choices": [], "bumps": 0, "echoes": 0, "notices": []}
+var metrics: Dictionary = {"choices": [], "bumps": 0, "echoes": 0, "notices": [], "actions": []}
 
 var world: IsoWorld:
 	get:
