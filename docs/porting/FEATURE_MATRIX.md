@@ -36,8 +36,10 @@ before any later owner review.
 architect review; M3 stays Partial** — its manual runs (MAN-GZ: healthy, polluted and game-over runs;
 portrait phone checks with both hands; background/resume during warning, attack and result) are not
 executed, UI-001–006 and FLOW-005 are partial, and the story after 1.0 and M4 persistence are out of
-scope (CONTINUE hands `{result, time, coins}` to a stub receiver). Evidence: M3 report 25 in
-`docs/porting/IMPLEMENTATION_LOG.md`, `docs/porting/captures/m3_green_zone_prototype/` (5 PNGs).
+scope (CONTINUE hands `{result, time, coins}` to a stub receiver). Evidence: M3 report 25 and
+correction report 26 (the level freezes under the Supervillained snap, the result card and game over;
+strengthened GZ-032/043/044/045 cases) in `docs/porting/IMPLEMENTATION_LOG.md`,
+`docs/porting/captures/m3_green_zone_prototype/` (5 PNGs, M3 report 25).
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title captures: `…_49` and `…_98` of commit `16b5619`; `…_00`
 regenerated as rendered frame 0 in correction report 22 after the `title_capture.gd` fix; the earlier
@@ -56,7 +58,7 @@ rendered clauses under the acceptance conditions the architect set, below), or o
 architect-accepted command evidence (AST-019 and CORE-001, below). `test_P_<ID>_…` cases alone are partial evidence and satisfy nothing; `test_SLICE_…` cases
 check port behaviour that has no plan ID.
 
-**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; current tree verified on the Windows console build (`godot/` tree `21ce8a2`, 139 passed), Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed):**
+**Acceptance IDs satisfied by a full suite case (92, counting split-ID parts), Godot 4.7.2; last architect-accepted M1/M2 baseline verified on the Windows console build (`godot/` tree `21ce8a2`, 139 passed, correction report 24); the current correction tree `0684cc9` passes the same cases (161 passed, 0 failed in total, correction report 26); Linux (Ubuntu 26.04, WSL 2) on the prior tree `d12bedd` (128 passed; not rerun since):**
 CORE-002; RNG-001–003; VIEW-001, VIEW-002 (source algorithm, M2 review resolution), VIEW-003; ISO-001–004; MOVE-001–005; COLL-001–004, COLL-005a, COLL-006;
 DEPTH-001–004; WORLD-004, WORLD-005; CAM-001–003; MAP-001–007;
 DOG-001–004, DOG-005a, DOG-006, DOG-007; GZ-008, GZ-009, GZ-019, GZ-020, GZ-024; AST-001–018, AST-020; AUD-001–008;
@@ -112,7 +114,10 @@ play checks (below).
 
 **Claimed by full suite cases in M3 report 25 (pending architect review; not counted above):**
 GZ-001, GZ-016, GZ-017, GZ-031, GZ-032, GZ-034–036, GZ-037, GZ-038–041, GZ-042–045, DOG-005b,
-FLOW-003, FLOW-004, AUTO-001 — `godot/` tree `b93d332aa607d56c7ef465617688afba3ab0d57a`, 156 passed on a fresh Windows clone. The threat
+FLOW-003, FLOW-004, AUTO-001 — first on `godot/` tree `b93d332` (M3 report 25, 156 passed); the GZ-032 and
+GZ-042–045 cases were strengthened in correction report 26 (input-driven bark, in-cone and
+out-of-cone critters, travel delay, ordered hits, exact bump cost and cooldown, the flee award once);
+current correction tree `0684cc95bfebbaa1016fdeddf8f755696e90b340`, 161 passed, 0 failed on a fresh Windows clone. The threat
 cases compare with fixtures executed from the audited `src/systems/threats.ts`, `threatLogic.ts` and
 `src/entities/critters.ts` (the source's unseeded `Math.random` in the flee steering replaced by the
 port's seeded critter RNG during extraction, D-16).
@@ -124,14 +129,16 @@ FLOW-005 (M3: `test_P_FLOW_005_starvation_game_over_retry_and_continue_handoff`;
 
 **Command-level evidence (no suite case):** AST-019, **counted as satisfied** (accepted; all 206 generated
 outputs byte-identical under the Chromium build pinned by the locked playwright-core, 153.0.8010.12:
-`pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true` for the current tree,
+`pwsh godot/tools/build_assets.ps1 -Check` on Windows 11 with `core.autocrlf=true` for the M1/M2 baseline tree
+`21ce8a2`, and again for the correction-26 tree `0684cc9` (207 + 55 outputs: M3 added the logo copy),
 and `build_assets.sh --check` on Ubuntu 26.04 for `d12bedd`, the same bytes; the generated outputs
 did not change between the two trees). CORE-001, **counted as satisfied** (accepted by the
 architect on review of `46d7ad9`): the clean import (exit 0, no ERROR/WARNING line) and the 600-frame
-headless Main launch (exit 0, engine banner only) on a fresh Windows 11 clone of the current tree
+headless Main launch (exit 0, engine banner only) on a fresh Windows 11 clone of the then-current tree
 (`godot/` `9bbe179`, correction report 12, `windows_evidence/correction-12-godot-tree-9bbe179/`
-`step_b_import.txt` and `step_d_main_600_frames.txt`; the current tree `21ce8a2` passed the same
-two steps in correction report 24, `windows_evidence/m1-review-godot-tree-21ce8a2/`, `c9de0e5` in
+`step_b_import.txt` and `step_d_main_600_frames.txt`; the correction-26 tree `0684cc9` passed the same two
+steps in correction report 26 (commands and results in the log), the M1/M2 baseline tree `21ce8a2`
+in correction report 24, `windows_evidence/m1-review-godot-tree-21ce8a2/`, `c9de0e5` in
 correction report 23, `windows_evidence/m1-review-godot-tree-c9de0e5/`, `11330ef` in
 correction report 22, `windows_evidence/m1-review-godot-tree-11330ef/`, `4ac0aed` in
 progress report 21, `windows_evidence/m1-review-godot-tree-4ac0aed/`, and `2ffca5f` in
@@ -147,7 +154,14 @@ frames in `captures/m2_rendered/godot-tree-2ffca5f/`): the focused resets sectio
 `tools/interpolation_probe.gd` stays supplemental command evidence for its trees (`9bbe179`,
 correction report 12; the architect's run on `1532143`).
 
-**Host verification.** *Current tree* (`godot/` tree `21ce8a2d6e4fca5a578a3bc6931ece48309573c0`, correction report 24: the
+**Host verification.** *Current correction tree* (`godot/` tree `0684cc95bfebbaa1016fdeddf8f755696e90b340`, correction report 26): a
+fresh Windows 11 25H2 clone passed the asset check (207 + 55 outputs identical), the clean import (no
+ERROR/WARNING line), the suite **161 passed, 0 failed**, the focused M3 and terminal-freeze cases, AUTO-001 twice
+(identical summaries), the 600-frame Main run, the hermetic PCK smoke (264 runtime resources, 531 packed
+files, 32,959,440 bytes; no `tools/` file packed), the PixiJS baseline (248 tests, build OK), `git diff
+--check`, `git show --check`, a clean status and the source-tree guard (correction report 26 lists
+the commands; no evidence archive). *M3 report 25's tree* `b93d332` (156 passed). *Last
+architect-accepted M1/M2 baseline* (`godot/` tree `21ce8a2d6e4fca5a578a3bc6931ece48309573c0`, correction report 24: the
 `2ffca5f` tree plus the development-only review tools under `tools/` and README sections; every
 runtime, test and asset file identical): a fresh Windows 11 25H2 clone passed the asset check
 (206 + 55 outputs identical), the clean import, the suite **139 passed, 0 failed**, the 600-frame
@@ -200,10 +214,12 @@ REPORT.md), and `sv_m1_api24`
 
 **Export evidence (SLICE, no plan ID):** the Android preset exports as a PCK with the test binary and
 runs as a packed runtime with an empty isolated `--path`, so no checkout file can answer a `res://`
-lookup (correction report 15): every runtime resource (254; `.gdignore` folders and the
+lookup (correction report 15): every runtime resource (254 at the M1/M2 baseline, 264 on the
+correction-26 tree; `.gdignore` folders and the
 development-only `platform/` tree excluded) loads from the pack; no source-only path resolves (a
 `tests/` sentinel and every `platform/` file), while a control run with the checkout as `--path`
-does resolve them; no JSON/tests/tools/platform/environment manifest is packed (512 files); the
+does resolve them; no JSON/tests/tools/platform/environment manifest is packed (512 files at the
+baseline, 531 on the correction-26 tree); the
 exported leading-silence Resource reaches AudioService; a 600-frame packed startup logs no engine
 error or warning. Not an APK and not device evidence.
 
@@ -255,7 +271,7 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 
 | Matrix row | Godot status | Evidence (suite case IDs; P = partial case) | Gap / note |
 |---|---|---|---|
-| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the current tree (correction report 24, `godot/` `21ce8a2`; accepted on correction report 12, `9bbe179`); supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
+| Godot project isolated under `/godot` | Slice | CORE-001 on architect-accepted command evidence: clean import and 600-frame headless launch on a fresh Windows 11 clone of the M1/M2 baseline (correction report 24, `godot/` `21ce8a2`) and of the correction-26 tree `0684cc9` (correction report 26); accepted on correction report 12, `9bbe179`; supplemental: Ubuntu 26.04 clean clone of the prior tree `d12bedd`; source-tree guard on the current tree | — |
 | Fixed 60 Hz game rules | Slice | CORE-002 (30/60/90/120 FPS caps, logic identical to the 60 Hz reference) | — |
 | Adaptive pixel-perfect viewport | Slice | VIEW-001, VIEW-002, VIEW-003; VIEW-004 on combined evidence, accepted on review of `9c4cd52` (`test_P_VIEW_004` + the renderer-backed probe on a real RTX 3090 at 30/60/90/120 FPS); underlay/letterbox SLICE case; 4 viewport captures | device safe area unverified |
 | Portrait / Back / immersive / keep-awake | Config | project settings (`quit_on_go_back=false`, keep_screen_on), SLICE Back case | not run on a device or the emulator yet |
@@ -297,7 +313,7 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Bagnaskiz | Slice (M3, pending review) | GZ-042–045 claimed | — |
 | Pollution waves | Slice (M3, pending review) | GZ-037 claimed; one shared threat RNG drawn in the source order (GZ-001) | — |
 | HUD/radar/touch controls | Partial | VIEW-003; P: UI-001–006 (M3: threat radar dots, attack banner and hints, button state); SLICE multi-touch routing; captures | gestures/switcher (D-09); device safe area |
-| Briefing/level end/game over | Partial | FLOW-001, FLOW-002; FLOW-003, FLOW-004 claimed (M3); P: FLOW-005; Supervillained snap; glitch transition; CONTINUE → stub handoff; captures 23, 14 | title (M4); the 1.1 receiver (M5) |
+| Briefing/level end/game over | Partial | FLOW-001, FLOW-002; FLOW-003, FLOW-004 claimed (M3); P: FLOW-005; Supervillained snap; glitch transition; CONTINUE → stub handoff; the level frozen under the terminal overlays (SLICE, correction report 26); captures 23, 14 | title (M4); the 1.1 receiver (M5) |
 | Green Zone automated full-play coverage | Slice (M3, pending review) | AUTO-001 claimed (seeded real-input run with an attack); SLICE reproducibility | MAN-GZ manual runs |
 | Press Start 2P pixel font | Slice | AST-020 (glyphs, metrics, wrapping, fallback, IPA, schwa); OFL exported | glow (D-06) |
 | Recorded music/effects | Slice | AUD-001–004 (5 tracks, 12 effects); leading-silence offsets (exported Resource); lossless drink WAV; background suspension of playing/scheduled sounds; SLICE source `play()` parity: requests while muted or suspended dropped, same cue within 45 ms dropped, volume 0 is silence; live probe on a real device | routing/duck/volume AUD-009–013 (M8) |

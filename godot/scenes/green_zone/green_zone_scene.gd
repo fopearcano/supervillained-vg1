@@ -41,6 +41,10 @@ var ticks := 0
 ## Smoothed visual strength of the "under attack" look (0..1) and the current glitch burst.
 var attack_fx := 0.0
 var burst := 0.0
+## Terminal presentation (Supervillained snap, result card, game over): the level below is frozen
+## like the source's overlay scenes with `pausesBelow` — no logic tick, no rule/map timer, no
+## camera motion, no attack look update, no world animation; the overlays keep running.
+var terminal_frozen := false
 
 var _treat_views: Dictionary = {}
 var _poop_views: Dictionary = {}
@@ -277,7 +281,10 @@ func _physics_process(delta: float) -> void:
 
 
 ## One logic tick in source order (GameScene.update): rules, threats, world end step, end check.
+## Nothing runs once the terminal presentation has frozen the level.
 func tick(dt: float) -> void:
+	if terminal_frozen:
+		return
 	_time += dt
 	ticks += 1
 	if active:
@@ -349,6 +356,8 @@ func attack_hint() -> String:
 
 
 func _process(delta: float) -> void:
+	if terminal_frozen:
+		return
 	world.render(delta)
 	_exit_ring.modulate.a = 0.5 + 0.5 * sin(_time * 5.0)
 	var warn := rules.poop_warning()
@@ -470,9 +479,23 @@ func resume() -> void:
 		AudioService.loop(&"siren", GameConfig.Audio.SIREN_VOLUME)
 
 
+## Freezes the level under the terminal overlays (source SupervillainedScene, LevelEndScene and
+## GameOverScene pause the scene below): logic ticks, rule and map timers, the camera, the attack
+## look and every world node (dog, critters, popups, animated sprites) stop; the scene's own
+## overlay canvas and Main's overlay host keep processing, so the overlays still take input.
+func _freeze_terminal() -> void:
+	if terminal_frozen:
+		return
+	terminal_frozen = true
+	_set_controls(false)
+	world.process_mode = Node.PROCESS_MODE_DISABLED
+	world.reset_physics_interpolation()
+
+
 ## Level end: final health with the pee deficit, stars, bonuses; the record is saved at once
 ## (SAV-004, M2 boundary). "You've been supervillained" snaps in first, then the result card.
 func _on_complete() -> void:
+	_freeze_terminal()
 	var st := rules.stats
 	var health := ScoringRules.final_health(world.map.health(), st["pees"], st["poops"])
 	var stars := ScoringRules.stars_from_health(health)
@@ -505,6 +528,7 @@ func _open_level_end() -> void:
 
 
 func _on_game_over() -> void:
+	_freeze_terminal()
 	result = {"state": "gameover", "stats": rules.stats.duplicate()}
 	finished.emit(result)
 	_set_controls(false)

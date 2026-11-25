@@ -345,3 +345,152 @@ func test_FLOW_004_level_end_summary_snap_and_safe_skip() -> void:
 		scene.get_parent().remove_child(scene)
 		scene.free()
 		scene = null
+
+
+# --- Terminal freeze (correction 26) -------------------------------------------------------------
+
+## Everything the frozen level must keep: dog, critters (models and their AnimatedSprite2D),
+## rule time, map dirt and fresh timers, camera, attack director and look, scene clocks.
+func _frozen_state() -> Dictionary:
+	var dog := scene.world.player
+	var cam := scene.world.camera_rig
+	var critters: Array = []
+	for model: RefCounted in scene._critter_views:
+		var v: CritterView = scene._critter_views[model]
+		var sp: AnimatedSprite2D = v._sprite
+		critters.append([model.get("gx"), model.get("gy"), v.position, sp.animation if sp else &"", sp.frame if sp else -1, sp.frame_progress if sp else -1.0])
+	var rect := scene._attack_rect
+	return {
+		"dog": [dog.gx, dog.gy, dog.vx, dog.vy, dog.position, dog.state, dog.state_time, dog.invulnerable],
+		"dog_sprite": [dog.body_sprite.animation, dog.body_sprite.frame, dog.body_sprite.frame_progress, dog.visual_root.scale],
+		"critters": critters,
+		"rules": [scene.rules.stats.duplicate(), scene.rules.ended_for(), scene.rules.hunger.value, scene.rules.state],
+		"clocks": [scene.ticks, scene._time],
+		"map": [Marshalls.raw_to_base64(scene.world.map.dirt.to_byte_array()).sha256_text(), scene.world.map.fresh.duplicate(), scene.world.map.health()],
+		# The HUD clock (radar sweep, blinks) and the exit ring pulse: the presentation pass is frozen too.
+		"presentation": [scene.hud._clock, scene._exit_ring.modulate, scene.world.visible_count],
+		"camera": [cam.position, cam.model.x, cam.model.y, cam.model.shake_x, cam.model.shake_y, cam.model._shake_amp, cam.model._time],
+		"attack": [scene.threats.director.state, scene.threats.director.elapsed, scene.attack_fx, scene.burst,
+			rect.sepia, rect.scanlines, rect.glitch, rect.rgb, rect.fx_time, rect.visible, scene.banner._t],
+	}
+
+
+func _assert_same(frozen: Dictionary, where: String) -> void:
+	var now := _frozen_state()
+	for k: String in frozen:
+		assert_eq(now[k], frozen[k], "%s unchanged %s" % [k, where])
+
+
+## Tries hard to move the frozen level: manual ticks and presentation passes, then real frames
+## with the scene ticking on its own physics callback (as in the shipped game).
+func _push_frozen_level(overlay: Control) -> Dictionary:
+	for k in 30:
+		scene.tick(DT)
+		scene._process(DT)
+	scene.manual_ticks = false
+	var t0: float = overlay.get("time")
+	for k in 12:
+		await tree.physics_frame
+		await tree.process_frame
+	scene.manual_ticks = true
+	return {"overlay_time_before": t0, "overlay_time_after": overlay.get("time")}
+
+
+## A level with a cat, a ball and Bagnaskiz on stage and the attack look running.
+func _busy_level() -> void:
+	_spawn()
+	var dog := scene.world.player
+	var th := scene.threats
+	_to_progress(0.57)
+	_step(1)
+	var cat := CritterControllers.CatController.new(dog.gx + 4.0, dog.gy, Color.WHITE)
+	th.cats.append(cat)
+	th.cat_added.emit(cat)
+	var ball := CritterControllers.BallController.new(dog.gx - 5.0, dog.gy)
+	th.balls.append(ball)
+	th.ball_added.emit(ball)
+	_step(40)
+	assert_true(th.director.state == "attack" and th.pug != null and scene.attack_fx > 0.0, "busy level: attack, Bagnaskiz, attack look")
+
+
+## The level stops under the Supervillained snap and the result card (source scenes pause the
+## scene below), after the unchanged 1.1 s post-exit delay; the overlays keep running and taking
+## input; CONTINUE and RETRY still emit their requests.
+func test_SLICE_terminal_freeze_under_snap_and_result_card() -> void:
+	_busy_level()
+	var m := scene.world.map
+	scene.world.player.set_grid_position(m.exit.x + 0.3, m.exit.y + 0.3)
+	_step(1)
+	assert_eq(scene.rules.state, "complete", "at the exit")
+	# The post-exit delay: the level still ticks (and its sprites animate) until ended_for > 1.1.
+	var before_delay := _frozen_state()
+	for k in 6:
+		await tree.process_frame
+	_step(30)
+	assert_false(scene.terminal_frozen, "not frozen during the post-exit delay")
+	assert_true(scene._overlay == null, "no overlay during the delay")
+	var during := _frozen_state()
+	assert_true(during["rules"][1] > before_delay["rules"][1] and during["clocks"] != before_delay["clocks"], "the delay ticks on")
+	assert_true(during["dog_sprite"] != before_delay["dog_sprite"] or during["critters"] != before_delay["critters"], "control: world sprites animate before the freeze")
+	var n := 0
+	while scene._overlay == null and n < 120:
+		_step(1)
+		n += 1
+	var sv := scene._overlay as SupervillainedOverlay
+	if not assert_true(sv != null and scene.terminal_frozen, "snap opened, level frozen"):
+		return
+	assert_true(scene.rules.ended_for() > 1.1 and scene.rules.ended_for() < 1.1 + 2.0 * DT, "opened right after the 1.1 s delay (%.4f s)" % scene.rules.ended_for())
+	assert_eq(scene.world.process_mode, Node.PROCESS_MODE_DISABLED, "world nodes disabled")
+	var frozen := _frozen_state()
+	var push := await _push_frozen_level(sv)
+	_assert_same(frozen, "under the snap")
+	assert_true(push["overlay_time_after"] > push["overlay_time_before"], "the snap keeps running")
+	# Input still reaches the snap: confirm after SKIP_AFTER opens the result card.
+	sv.step(GameConfig.Supervillained.SKIP_AFTER)
+	InputService.trigger(&"confirm")
+	sv.step(DT)
+	var end := scene._overlay as LevelEndOverlay
+	if not assert_true(end != null, "confirm moved on to the result card"):
+		return
+	push = await _push_frozen_level(end)
+	_assert_same(frozen, "under the result card")
+	assert_true(push["overlay_time_after"] > push["overlay_time_before"], "the result card keeps running")
+	InputService.trigger(&"confirm")
+	end._process(DT)
+	assert_true(end.skip and end.menu_visible(), "confirm still skips the reveal")
+	var got := {"handoff": 0, "retry": 0}
+	scene.campaign_handoff.connect(func(_d: Dictionary) -> void: got["handoff"] += 1)
+	scene.restart_requested.connect(func() -> void: got["retry"] += 1)
+	end.activate(0)
+	end.activate(1)
+	assert_eq(got, {"handoff": 1, "retry": 1}, "CONTINUE and RETRY still emit")
+	_assert_same(frozen, "after the menu")
+
+
+## The level stops under GAME OVER (after the same delay); the card keeps running; RETRY and
+## QUIT TO TITLE still emit.
+func test_SLICE_terminal_freeze_under_game_over() -> void:
+	_busy_level()
+	scene.rules.stats["lives"] = 1
+	scene.rules.hunger.value = 0.01
+	_step(1)
+	assert_eq(scene.rules.state, "gameover", "starved")
+	var n := 0
+	while scene._overlay == null and n < 120:
+		_step(1)
+		n += 1
+	var over := scene._overlay as GameOverOverlay
+	if not assert_true(over != null and scene.terminal_frozen, "game over opened, level frozen"):
+		return
+	assert_true(scene.rules.ended_for() > 1.1 and scene.rules.ended_for() < 1.1 + 2.0 * DT, "opened right after the 1.1 s delay")
+	var frozen := _frozen_state()
+	var push := await _push_frozen_level(over)
+	_assert_same(frozen, "under GAME OVER")
+	assert_true(push["overlay_time_after"] > push["overlay_time_before"], "the card keeps running")
+	var got := {"retry": 0, "title": 0}
+	scene.restart_requested.connect(func() -> void: got["retry"] += 1)
+	scene.title_requested.connect(func() -> void: got["title"] += 1)
+	over.activate(0)
+	over.activate(1)
+	assert_eq(got, {"retry": 1, "title": 1}, "RETRY and QUIT TO TITLE still emit")
+	_assert_same(frozen, "after the menu")

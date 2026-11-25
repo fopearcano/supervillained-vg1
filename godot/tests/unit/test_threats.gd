@@ -265,44 +265,274 @@ func test_GZ_037_three_waves_once_with_seeded_placement_and_cue() -> void:
 	assert_eq(trace[trace.size() - 1]["summary"]["waves_left"], 0, "all three consumed, never again")
 
 
-## GZ-042–045: Bagnaskiz spawns with the scripted attack, roams toward green targets leaving a
-## pollution trail, bumps the dog (knockback, hurt, hunger), takes delayed bark hits inside the
-## cone, flees after three, awards FLEE_SCORE once and leaves; positions and states equal the
-## source run.
-func test_GZ_042_045_bagnaskiz_targets_trails_bumps_hits_and_flees_like_source() -> void:
+## A world with the dog on open ground facing grid +x (in cone ahead, out of cone behind): the
+## first tile (row-major) from which a critter circle is free 3 tiles behind to 4.5 ahead along
+## the facing line and 0.8 tiles to either side, so knockback and fleeing are never blocked.
+func _facing_world() -> Dictionary:
+	var w := _world()
+	var dog: PlayableDog = w["dog"]
+	var m: WorldMapModel = w["map"]
+	dog.face(IsoGrid.dir_from_grid_vector(1.0, 0.0))
+	var f := IsoGrid.dir_to_grid_xy(dog.facing)
+	var fl := JsMath.hypot(f[0], f[1])
+	var ux := f[0] / fl
+	var uy := f[1] / fl
+	var found: Array = []
+	for j in m.height:
+		for i in m.width:
+			if not found.is_empty() or not m.is_walkable(i, j) or m.is_water_at(i + 0.5, j + 0.5) or m.exit_distance[m.index(i, j)] < 0:
+				continue
+			var x := i + 0.5
+			var y := j + 0.5
+			var clear := true
+			for t in range(-30, 46):
+				for side in [-0.8, 0.0, 0.8]:
+					var px: float = x + ux * t * 0.1 - uy * side
+					var py: float = y + uy * t * 0.1 + ux * side
+					if not m.in_bounds(int(floor(px)), int(floor(py))) or m.circle_blocked(px, py, 0.35) or m.is_water_at(px, py):
+						clear = false
+						break
+				if not clear:
+					break
+			if clear:
+				found = [x, y]
+	assert_false(found.is_empty(), "open ground for the facing tests")
+	dog.set_grid_position(found[0], found[1])
+	w["f"] = [f[0], f[1]]
+	return w
+
+
+## Bagnaskiz `d` tiles from the dog along the facing vector (negative: behind him).
+func _place_pug(w: Dictionary, pug: CritterControllers.BagnaskizController, d: float) -> void:
+	var dog: PlayableDog = w["dog"]
+	var f: Array = w["f"]
+	var len := JsMath.hypot(f[0], f[1])
+	pug.gx = dog.gx + f[0] / len * d
+	pug.gy = dog.gy + f[1] / len * d
+
+
+## GZ-042: Bagnaskiz spawns with the scripted attack, heads for the greenest nearby spot (the
+## source's 14 seeded samples scored by clean tiles minus distance) and stamps his pollution trail
+## every TRAIL_INTERVAL; in the source threats run every sampled position, state and the zone
+## health (trail dirt) equal the source; directly, his first roam step stamps the trail formula.
+func test_GZ_042_bagnaskiz_targets_green_and_trails_like_source() -> void:
 	var run := _threats_run()
-	var ev: Array = run["events"]
-	var names: Array = ev.map(func(e: Array) -> String: return e[1])
+	var names: Array = run["events"].map(func(e: Array) -> String: return e[1])
 	assert_eq(names.count("attackStart"), 1, "one attack")
-	assert_eq(names.count("bump"), 1, "bumped once (cooldown and invulnerability)")
-	assert_eq(names.count("barkHit"), 3, "three hits")
-	assert_eq(names.count("bagnaskizFled"), 1, "fled once")
-	var hits: Array = ev.filter(func(e: Array) -> bool: return e[1] == "barkHit").map(func(e: Array) -> int: return e[2][2])
-	assert_eq(hits, [1, 2, 3], "hit counter")
-	var fled: Array = ev.filter(func(e: Array) -> bool: return e[1] == "bagnaskizFled")[0]
-	assert_eq(fled[2][2], GameConfig.Bagnaskiz.FLEE_SCORE, "flee award")
-	var bump_tick: int = ev.filter(func(e: Array) -> bool: return e[1] == "bump")[0][0]
-	var after: Array = run["trace"].filter(func(t: Dictionary) -> bool: return t["tick"] > bump_tick)
-	assert_true(after.size() > 0 and after[0]["hunger"] < 100.0, "hunger after the bump")
-	var pugs: Array = run["trace"].filter(func(t: Dictionary) -> bool: return t["summary"]["pug"] != null)
-	assert_true(pugs.size() >= 4, "Bagnaskiz on stage for a while (%d samples)" % pugs.size())
-	var states := {}
-	for t: Dictionary in pugs:
-		states[t["summary"]["pug"][2]] = true
-	assert_true(states.has("roam") and states.has("flee"), "roamed and fled (%s)" % [states.keys()])
-	assert_eq(run["trace"][run["trace"].size() - 1]["summary"]["pug"], null, "gone at the end")
-	# Targeting and trail: every sampled position, state and the zone health (trail dirt) equal the source.
 	var src: Array = fixture()["threats_run"]["trace"]
+	var on_stage := 0
 	for i in mini(run["trace"].size(), src.size()):
 		var g: Dictionary = run["trace"][i]
 		var e: Dictionary = src[i]
 		if e["pug"] == null:
+			assert_eq(g["summary"]["pug"], null, "tick %d no pug" % e["tick"])
 			continue
+		on_stage += 1
 		var p: Array = g["summary"]["pug"]
 		assert_eq([p[2], p[3]], [e["pug"][2], int(e["pug"][3])], "tick %d pug state" % e["tick"])
-		assert_near(p[0], e["pug"][0], 1e-6, "tick %d pug x" % e["tick"])
-		assert_near(p[1], e["pug"][1], 1e-6, "tick %d pug y" % e["tick"])
+		assert_near(p[0], e["pug"][0], 1e-6, "tick %d pug x (targeting)" % e["tick"])
+		assert_near(p[1], e["pug"][1], 1e-6, "tick %d pug y (targeting)" % e["tick"])
 		assert_near(g["health"], e["health"], 1e-9, "tick %d trail health" % e["tick"])
+	assert_true(on_stage >= 4, "Bagnaskiz on stage for a while (%d samples)" % on_stage)
+	# Trail, directly: the first roam step stamps strength * (1 - 0.55 (d/r)^2) under him.
+	var w := _facing_world()
+	var m: WorldMapModel = w["map"]
+	var th: GreenZoneThreats = w["threats"]
+	var pug := CritterControllers.BagnaskizController.new(0.0, 0.0)
+	th.pug = pug
+	for d in [3.0, 2.5, 3.5, 4.0, -3.0, -2.5]:
+		_place_pug(w, pug, d)
+		if m.in_bounds(int(floor(pug.gx)), int(floor(pug.gy))) and m.playable[m.index(int(floor(pug.gx)), int(floor(pug.gy)))]:
+			break
+	var x0 := pug.gx
+	var y0 := pug.gy
+	assert_true(m.playable[m.index(int(floor(x0)), int(floor(y0)))], "on a playable tile")
+	var tiles_before := m.health()
+	th.update(DT, FakeInput.new())
+	const G := GameConfig.Bagnaskiz
+	var i := int(floor(x0))
+	var j := int(floor(y0))
+	var d := JsMath.hypot(i + 0.5 - x0, j + 0.5 - y0)
+	assert_near(m.dirt[m.index(i, j)], G.TRAIL_STRENGTH * (1.0 - 0.55 * pow(d / G.TRAIL_RADIUS, 2.0)), 1e-6, "trail stamp under him")
+	assert_true(m.health() < tiles_before, "the trail pollutes")
+	var dog: PlayableDog = w["dog"]
+	assert_true(JsMath.hypot(pug.target_x - dog.gx, pug.target_y - dog.gy) <= 6.0 + 0.75, "green target picked near the dog (within 6 tiles + a tile centre)")
+	(w["dog"] as PlayableDog).free()
+
+
+## GZ-043: a roaming Bagnaskiz touching the dog bumps him: exactly BUMP_HUNGER of hunger, hurt for
+## 0.35 s, knockback 6 tiles/s directly away from him; no second bump before BUMP_COOLDOWN, the
+## next one right after it; none while the dog is invulnerable or leaving by the exit; the source
+## run's single bump costs the same hunger.
+func test_GZ_043_bump_hunger_hurt_knockback_and_cooldown() -> void:
+	const G := GameConfig.Bagnaskiz
+	var w := _facing_world()
+	var dog: PlayableDog = w["dog"]
+	var rules: GreenZoneRules = w["rules"]
+	var th: GreenZoneThreats = w["threats"]
+	var pug := CritterControllers.BagnaskizController.new(0.0, 0.0)
+	th.pug = pug
+	var bumps: Array = []
+	var tick := [0]
+	th.bumped.connect(func(_x: float, _y: float) -> void: bumps.append(tick[0]))
+	var hunger0: float = rules.hunger.value
+	_place_pug(w, pug, 0.2)
+	th.update(DT, FakeInput.new())
+	assert_eq(bumps, [0], "bumped at once")
+	assert_eq(rules.hunger.value, hunger0 - G.BUMP_HUNGER, "exactly BUMP_HUNGER")
+	assert_eq([dog.state, dog.state_duration, dog.controllable], ["hurt", 0.35, false], "hurt for 0.35 s")
+	var dx := dog.gx - pug.gx
+	var dy := dog.gy - pug.gy
+	var len := JsMath.hypot(dx, dy)
+	assert_near(dog.knock_x, dx / len * 6.0, 1e-12, "knockback x away from him")
+	assert_near(dog.knock_y, dy / len * 6.0, 1e-12, "knockback y away from him")
+	# Cooldown: held against the dog, the next bump comes BUMP_COOLDOWN later.
+	for k in range(1, 100):
+		tick[0] = k
+		_place_pug(w, pug, 0.2)
+		th.update(DT, FakeInput.new())
+	assert_eq(bumps.size(), 2, "two bumps in 100 ticks")
+	assert_true(bumps[1] >= int(G.BUMP_COOLDOWN / DT) - 1 and bumps[1] <= int(G.BUMP_COOLDOWN / DT) + 1, "second bump after BUMP_COOLDOWN (tick %d)" % bumps[1])
+	assert_eq(rules.hunger.value, hunger0 - 2.0 * G.BUMP_HUNGER, "hunger per bump")
+	# Invulnerable or leaving: no bump effect.
+	for blocker in ["invulnerable", "exit"]:
+		var n0 := bumps.size()
+		var h0: float = rules.hunger.value
+		for k in 200:
+			tick[0] = 1000 + k
+			if blocker == "invulnerable":
+				dog.invulnerable = 1.0
+			else:
+				dog.invulnerable = 0.0
+				dog.state = "exit"
+			_place_pug(w, pug, 0.2)
+			th.update(DT, FakeInput.new())
+		assert_eq([bumps.size(), rules.hunger.value], [n0, h0], "no bump while %s" % blocker)
+	# The source run's bump: the same hunger cost between the samples around it.
+	var src: Dictionary = fixture()["threats_run"]
+	var bump_tick := -1
+	for e: Array in src["events"]:
+		if e[1] == "bump":
+			bump_tick = int(e[0])
+	assert_true(bump_tick >= 0, "the source run has a bump")
+	var run := _threats_run()
+	var got_bump: Array = run["events"].filter(func(e: Array) -> bool: return e[1] == "bump")
+	assert_eq(got_bump.size(), 1, "one bump in the port run")
+	assert_eq(got_bump[0][0], bump_tick, "on the source tick")
+	dog.free()
+
+
+## GZ-044: BARK (through the input) queues a hit only for Bagnaskiz inside the cone and range
+## (source inBarkCone, the fixture's pug-range samples); the hit lands after the sound wave's
+## travel time d / WAVE_SPEED, not before; hits count up 1, 2, 3 in order (stunned, stunned, flee)
+## with a knockback away from the dog.
+func test_GZ_044_bark_cone_travel_delay_and_ordered_hits() -> void:
+	const R := GameConfig.Bark
+	for smp: Array in fixture()["threat_logic"]["bark_cone"]:
+		if smp[6] == R.RANGE:
+			assert_eq(ThreatLogic.in_bark_cone(smp[0], smp[1], smp[2], smp[3], smp[4], smp[5], smp[6], smp[7]), smp[8], "source cone sample %s" % [smp])
+	var w := _facing_world()
+	var dog: PlayableDog = w["dog"]
+	var th: GreenZoneThreats = w["threats"]
+	var pug := CritterControllers.BagnaskizController.new(0.0, 0.0)
+	th.pug = pug
+	var input := FakeInput.new()
+	var hits: Array = []
+	var tick := [0]
+	th.bark_hit.connect(func(_x: float, _y: float, n: int) -> void: hits.append([tick[0], n, pug.state]))
+	# Behind him, and ahead but out of range: barks queue nothing, no hit ever lands.
+	for d in [-2.0, R.RANGE + 0.2]:
+		th.bark_cooldown = 0.0
+		_place_pug(w, pug, d)
+		input.pending["bark"] = true
+		th.update(DT, input)
+		assert_eq(th.pending_hits.size(), 0, "no hit queued at %.1f tiles" % d)
+		for k in 30:
+			_place_pug(w, pug, d)
+			th.update(DT, FakeInput.new())
+		assert_eq([hits.size(), pug.hits], [0, 0], "no hit at %.1f tiles" % d)
+	# Ahead at 2 tiles: three barks, each hit after the travel time.
+	var expected_n := 0
+	var left := 2.0 / R.WAVE_SPEED
+	while left > 0.0:
+		left -= DT
+		expected_n += 1
+	var barked_at: Array = []
+	for k in 400:
+		tick[0] = k
+		if pug.is_active():
+			_place_pug(w, pug, 2.0)
+			if th.bark_cooldown <= 0.0 and th.pending_hits.is_empty() and barked_at.size() < 3:
+				input.pending["action"] = true
+				barked_at.append(k)
+		var before := JsMath.hypot(pug.gx - dog.gx, pug.gy - dog.gy)
+		th.update(DT, input)
+		if hits.size() > 0 and hits[hits.size() - 1][0] == k:
+			assert_true(JsMath.hypot(pug.gx - dog.gx, pug.gy - dog.gy) > before, "knocked away from the dog on hit %d (%.6f -> %.6f, k %.3f,%.3f)" % [hits.size(), before, JsMath.hypot(pug.gx - dog.gx, pug.gy - dog.gy), pug._kx, pug._ky])
+		if hits.size() == 3:
+			break
+	assert_eq(hits.map(func(h: Array) -> int: return h[1]), [1, 2, 3], "ordered hit counts")
+	assert_eq(hits.map(func(h: Array) -> String: return h[2]), ["stunned", "stunned", "flee"], "stunned, stunned, flee")
+	for i in 3:
+		assert_eq(hits[i][0] - barked_at[i], expected_n - 1, "hit %d lands after the travel time (%d ticks)" % [i + 1, expected_n])
+	assert_eq(int((w["rules"] as GreenZoneRules).stats["barkHits"]), 3, "bark hits counted")
+	dog.free()
+
+
+## GZ-045: the third hit makes Bagnaskiz flee and raises the rules score by exactly FLEE_SCORE,
+## once ("BYE PUG!"); later barks at the fleeing pug queue nothing and award nothing; he fades out
+## and leaves the stage; the source run's flee award is the same.
+func test_GZ_045_flee_awards_flee_score_exactly_once() -> void:
+	const G := GameConfig.Bagnaskiz
+	var w := _facing_world()
+	var dog: PlayableDog = w["dog"]
+	var rules: GreenZoneRules = w["rules"]
+	var th: GreenZoneThreats = w["threats"]
+	var pug := CritterControllers.BagnaskizController.new(0.0, 0.0)
+	th.pug = pug
+	var input := FakeInput.new()
+	var scores: Array = []
+	rules.score_added.connect(func(_x: float, _y: float, amount: int, label: String) -> void: scores.append([amount, label]))
+	var fled := [0]
+	th.bagnaskiz_fled.connect(func(_x: float, _y: float, s: int) -> void:
+		fled[0] += 1
+		assert_eq(s, G.FLEE_SCORE, "event score"))
+	var gone := [0]
+	th.pug_removed.connect(func(_p: RefCounted) -> void: gone[0] += 1)
+	var score_before_flee := -1
+	for k in 400:
+		if pug.is_active():
+			_place_pug(w, pug, 2.0)
+			if th.bark_cooldown <= 0.0 and th.pending_hits.is_empty():
+				input.pending["action"] = true
+			if pug.hits == 2 and score_before_flee < 0:
+				score_before_flee = rules.stats["score"]
+		th.update(DT, input)
+		if pug.state == "flee":
+			break
+	assert_eq(pug.state, "flee", "three hits: flee")
+	assert_eq(rules.stats["score"] - score_before_flee, G.FLEE_SCORE, "score raised by exactly FLEE_SCORE")
+	assert_eq(scores, [[G.FLEE_SCORE, "BYE PUG!"]], "one award, labelled")
+	var after_flee: int = rules.stats["score"]
+	# Barks at the fleeing pug, in cone and range, until he is gone.
+	var barks_after := 0
+	for k in 400:
+		if th.pug == null:
+			break
+		if th.bark_cooldown <= 0.0 and JsMath.hypot(pug.gx - dog.gx, pug.gy - dog.gy) <= GameConfig.Bark.RANGE:
+			dog.face(IsoGrid.dir_from_grid_vector(pug.gx - dog.gx, pug.gy - dog.gy, dog.facing))
+			input.pending["bark"] = true
+			barks_after += 1
+		th.update(DT, input)
+		assert_true(th.pending_hits.is_empty(), "no hit queued at a fleeing pug")
+	assert_true(barks_after >= 1, "barked at him while he fled (%d)" % barks_after)
+	assert_eq([rules.stats["score"], fled[0], scores.size(), pug.hits], [after_flee, 1, 1, 3], "never awarded again")
+	assert_eq([th.pug, gone[0], pug.state], [null, 1, "gone"], "left the stage")
+	# The source run: one flee event carrying FLEE_SCORE, and the score jump at that point.
+	var src_fled: Array = fixture()["threats_run"]["events"].filter(func(e: Array) -> bool: return e[1] == "bagnaskizFled")
+	assert_eq(src_fled.size(), 1, "one flee in the source run")
+	assert_eq(int(src_fled[0][2]["score"]), G.FLEE_SCORE, "source award")
+	dog.free()
 
 
 ## DOG-005b: the forced fetch (a grabbed magnet ball) cannot overlap illegally with bark, pee,
@@ -373,10 +603,10 @@ func test_DOG_005b_forced_fetch_never_overlaps_illegally_like_source() -> void:
 
 
 ## GZ-031–032: a cat sits (facing the dog) until he is within ALERT_DISTANCE, then flees on the
-## shared solver; a bark startles it (0.8 s hop) before it flees; after LIFETIME it leaves and fades
-## out over 1.2 s; touching one catches it (coins, score, removal). The bark cone that startles cats
-## (×1.3) is in test_SLICE_bark_cone_and_magnet_curve_match_source; the cue pair (GZ-033) in
-## test_green_zone_m3.gd.
+## shared solver; a startle (0.8 s hop) precedes fleeing; after LIFETIME it leaves and fades out over
+## 1.2 s; touching one catches it once (coins, score, removal, never paid again); a BARK through
+## GreenZoneThreats and the input startles only a cat inside the widened cone. The cue pair (GZ-033)
+## is in test_green_zone_m3.gd.
 func test_GZ_031_032_cat_idle_flee_startle_and_leave() -> void:
 	var w := _world()
 	var m: WorldMapModel = w["map"]
@@ -423,7 +653,37 @@ func test_GZ_031_032_cat_idle_flee_startle_and_leave() -> void:
 	threats.update(DT, FakeInput.new())
 	assert_eq(got, [[GameConfig.Cat.COINS, GameConfig.Cat.SCORE]], "one catch")
 	assert_eq([rules.stats["coins"], rules.stats["score"], threats.cats.size()], [GameConfig.Cat.COINS, GameConfig.Cat.SCORE, 0], "coins, score, removed")
+	for k in 30:
+		threats.update(DT, FakeInput.new())
+	assert_eq([got.size(), rules.stats["coins"], rules.stats["score"]], [1, GameConfig.Cat.COINS, GameConfig.Cat.SCORE], "paid once, never again")
 	dog.free()
+	# Bark through GreenZoneThreats and the input: a cat inside the widened cone (×1.3 range and
+	# angle, the source predicate on the fixture's cat-range samples) is startled; one behind the
+	# dog and one ahead beyond the range are only alerted by distance.
+	const R := GameConfig.Bark
+	for smp: Array in fixture()["threat_logic"]["bark_cone"]:
+		if smp[6] == R.RANGE * 1.3:
+			assert_eq(ThreatLogic.in_bark_cone(smp[0], smp[1], smp[2], smp[3], smp[4], smp[5], smp[6], smp[7]), smp[8], "source cat-cone sample %s" % [smp])
+	var w2 := _facing_world()
+	var dog2: PlayableDog = w2["dog"]
+	var th2: GreenZoneThreats = w2["threats"]
+	var f: Array = w2["f"]
+	var fl := JsMath.hypot(f[0], f[1])
+	var at := func(d: float) -> CritterControllers.CatController:
+		return CritterControllers.CatController.new(dog2.gx + f[0] / fl * d, dog2.gy + f[1] / fl * d, Color.WHITE)
+	var cat_in: CritterControllers.CatController = at.call(2.0)
+	var cat_out: CritterControllers.CatController = at.call(-2.0)
+	var cat_far: CritterControllers.CatController = at.call(R.RANGE * 1.3 + 0.3)
+	th2.cats.append_array([cat_in, cat_out, cat_far])
+	var barks := [0]
+	th2.barked.connect(func(_x: float, _y: float, _d: String) -> void: barks[0] += 1)
+	var input := FakeInput.new()
+	input.pending["bark"] = true
+	th2.update(DT, input)
+	assert_eq([barks[0], input.pending.has("bark")], [1, false], "one bark from the input, consumed")
+	assert_eq([cat_in.state, cat_out.state, cat_far.state], ["startled", "flee", "flee"], "in cone: startled; behind or beyond range: alerted only")
+	assert_true(cat_in.z > 0.0 and cat_out.z == 0.0 and cat_far.z == 0.0, "only the startled cat hops")
+	dog2.free()
 
 
 ## GZ-034–036: the magnet pull beats walking near the ball but not running; a grab starts the

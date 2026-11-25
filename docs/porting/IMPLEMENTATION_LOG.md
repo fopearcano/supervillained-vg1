@@ -6,14 +6,156 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. M3 report 25 is current. Erratum for the historical reports: their
+in progress report 5. Correction report 26 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## M3 report 25: playable Green Zone 1.0 prototype and core arcade flow; M1/M2 manual checks owner-deferred (M1 Partial, M2 Partial, M3 Partial) — current
+## Correction report 26: terminal freeze and strengthened GZ-032/043/044/045 evidence (M1 Partial, M2 Partial, M3 Partial) — current
+
+Scope: the architect's narrow M3 correction after `be6f9dd`: freeze the level under the terminal
+presentation, strengthen four named Green Zone cases, correct the documentation. Changed:
+`godot/scenes/green_zone/green_zone_scene.gd`, `godot/tests/integration/test_green_zone_m3.gd`,
+`godot/tests/unit/test_threats.gd`, this log and FEATURE_MATRIX.md. No other file changed: no
+shipping rule, threat, audio, asset, save, touch, Android or PixiJS change, no story content, no M4
+or M8 work.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (manual checks owner-deferred for prototype development: not passed, not cancelled, not release-approved, still release-blocking); **M3 Partial** (playable prototype; 21 M3 IDs claimed by full suite cases, pending architect review; UI-001–006, FLOW-005, GZ-033 partial; MAN-GZ not executed) |
+| Base | `be6f9dd` (M3 report 25; `godot/` tree `b93d332`) |
+| Last architect-accepted M1/M2 baseline | `godot/` tree `21ce8a2` (correction report 24; 139 passed) — kept as the accepted baseline, not the current tree |
+| Current `godot/` tree | `0684cc95bfebbaa1016fdeddf8f755696e90b340`; verified on a fresh Windows clone of the local verification commit `81d8d10` (the same `godot/` tree; this commit adds only `docs/porting/`) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090, OpenGL 3.3 Compatibility renderer; Linux not run |
+| Android | not run (no device or emulator claim for the game) |
+
+### Corrections
+
+1. **Terminal freeze.** `GreenZoneScene._freeze_terminal()` runs first in `_on_complete()` (before
+   the Supervillained snap and the result card) and in `_on_game_over()`, after the unchanged 1.1 s
+   post-exit delay (`rules.ended_for() > 1.1`; during the delay the level still ticks, as before and
+   as in the source). Once frozen: `tick()` returns at once (no logic tick, no rule or map timer, no
+   camera step, no attack-look update, no critter or view sync), `_process()` returns at once (no
+   world render pass, HUD, exit-ring pulse or magnet rings), the touch controls and MENU are off,
+   and `IsoWorld` is set to `PROCESS_MODE_DISABLED` (the dog's and critters' AnimatedSprite2D, the
+   score popups and the camera stop; physics interpolation is reset so nothing settles afterwards).
+   The overlays are outside the world (the scene's overlay canvas, or Main's overlay host) and keep
+   processing and taking input; CONTINUE, RETRY, QUIT TO TITLE and the pause menu's RESTART (only
+   available while playing) are unchanged. Source note: `SceneStack` stops updating the scene below
+   an overlay with `pausesBelow` but still renders it, so the source's HUD radar sweep and hunger
+   blink keep animating under the dimmed overlays; here the HUD is frozen with the rest
+   (presentation only; added to the M8 presentation debt below).
+   Cases (SLICE: no plan ID covers the freeze): `test_SLICE_terminal_freeze_under_snap_and_result_card`
+   and `test_SLICE_terminal_freeze_under_game_over` build a level with a cat, a ball, Bagnaskiz and
+   the attack look running, reach the exit (or starve), check that the level still ticks and its
+   sprites animate during the 1.1 s delay and that the overlay opens right after it, then compare
+   the dog (position, velocity, state, timers), its AnimatedSprite2D animation/frame/progress and
+   squash, every critter's position and AnimatedSprite2D frame/progress, the rule stats, exit time
+   and hunger, the scene clocks, the map dirt (SHA-256), fresh timers and health, the camera (node
+   position, model origin, shake), the attack director, the attack look's values and the banner
+   clock, the HUD clock and the exit-ring pulse before and after 30 manual ticks and presentation
+   passes plus 12 real frames with the scene ticking on its own physics callback, under the snap,
+   under the result card and under GAME OVER; the overlays' own clocks advance meanwhile; confirm
+   still skips the snap and the reveal; CONTINUE, RETRY and QUIT TO TITLE still emit. Mutation
+   check (session script, the scene restored byte-for-byte): without the world disable, without the
+   `tick()` guard and without the `_process()` guard, both cases fail.
+2. **Strengthened named cases** (`tests/unit/test_threats.gd`; the former combined
+   `test_GZ_042_045_…` is replaced by four cases that keep all its source-run checks):
+   - `test_GZ_031_032_cat_idle_flee_startle_and_leave`: a BARK pressed through the input and
+     resolved by `GreenZoneThreats.update` startles the cat 2 tiles ahead (in the ×1.3 cone; hop),
+     while one 2 tiles behind and one ahead beyond the ×1.3 range are only alerted by distance (flee,
+     no hop); the source predicate is checked on the fixture's cat-range cone samples; a catch pays 5
+     coins and 250 once, removes the cat, and 30 more ticks pay nothing.
+   - `test_GZ_042_bagnaskiz_targets_green_and_trails_like_source`: every sampled position and state
+     of Bagnaskiz in the source threats run (green targeting) and the zone health (trail) equal the
+     source; directly, his first roam step stamps `TRAIL_STRENGTH × (1 − 0.55 (d/TRAIL_RADIUS)²)` on
+     the tile under him and picks a target within 6 tiles of the dog.
+   - `test_GZ_043_bump_hunger_hurt_knockback_and_cooldown`: a touching roaming Bagnaskiz costs
+     exactly BUMP_HUNGER (6), hurt 0.35 s without control, knockback 6 tiles/s straight away from
+     him; held against the dog, the second bump comes BUMP_COOLDOWN (1.2 s) later and costs another
+     6; no bump effect while invulnerable or leaving by the exit; the port run's single bump is on
+     the source run's tick.
+   - `test_GZ_044_bark_cone_travel_delay_and_ordered_hits`: the source cone predicate on the
+     fixture's pug-range samples; BARK through the input queues nothing for Bagnaskiz behind the
+     dog or ahead beyond 2.8 tiles (no hit ever lands); ahead at 2 tiles each hit lands after the
+     wave's travel time `d / WAVE_SPEED` (the computed tick, not before), with a knockback away from
+     the dog; hit counts 1, 2, 3 in order with states stunned, stunned, flee; three bark hits counted.
+   - `test_GZ_045_flee_awards_flee_score_exactly_once`: the third hit raises the rules score by
+     exactly FLEE_SCORE (400) with one "BYE PUG!" award and one flee event; barks at the fleeing pug
+     (in cone and range) queue nothing and award nothing until he has left the stage; the source
+     run's one flee award carries FLEE_SCORE.
+   Mutation check (session script, `systems/green_zone_threats.gd` restored byte-for-byte): a 180°
+   cat cone fails GZ-031/032; a 180° pug cone fails GZ-044; a halved wave speed fails GZ-044 (and the
+   source-run cases); BUMP_HUNGER − 1 fails GZ-043 (and DOG-005b and the run cases); bumps during the
+   exit fail GZ-043; a flee award on every hit after the second fails GZ-045 (and the run cases); a
+   caught cat left on stage fails GZ-031/032 (and the run cases).
+3. **Documentation.** FEATURE_MATRIX: the current host and export evidence names this tree and
+   these counts; `21ce8a2` stays the last architect-accepted M1/M2 baseline. M3 report 25 is kept as
+   historical; correction report 24's supersession note now says it no longer gates prototype
+   development and that the M1 manual checks remain unpassed and release-blocking.
+
+Prototype presentation debt, unchanged and planned for M8 (not addressed here): D-17 (Supervillained
+logo halving resize and blurred halo), D-18 (siren fade-out), D-19 (glitch/sepia look compared side
+by side), plus the HUD frozen under the terminal overlays (above).
+
+### Commands executed and results
+
+| Command | Exit | Result |
+|---|---|---|
+| `git clone --branch claude/gallant-keller-rbvtvy <session clone> <fresh dir>`; `npm ci`; `npx playwright install chromium` | 0 / 0 / 0 | fresh clone of the verification commit; `godot/` tree as above |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (deterministic asset check) | 0 | asset check OK: 207 outputs identical (73 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12); build_resources check (all): OK, 55 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | 0 | 0 ERROR/WARNING lines; `git status --porcelain` afterwards empty: yes |
+| `… --script res://tests/test_runner.gd -- --suite all` (full suite) | 0 | 161 passed, 0 failed, 161 total (87.8 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_threats` (focused M3) | 0 | 13 passed, 0 failed, 13 total (2.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3` (focused M3) | 0 | 7 passed, 0 failed, 7 total (8.0 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3 --case AUTO_001`, twice (deterministic AUTO-001) | 0 / 0 | identical lines: yes — `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` |
+| `… -- --suite integration --file test_green_zone_m3 --case terminal_freeze` (focused terminal freeze) | 0 | 2 passed, 0 failed, 2 total (1.8 s), Godot 4.7.2-stable (official) |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame Main launch) | 0 | 0 ERROR/WARNING lines |
+| `… -- --suite integration --file test_export_pack` (hermetic PCK smoke) | 0 | 1 passed, 0 failed, 1 total (16.5 s): PCK 32,959,440 bytes, 264 runtime resources loaded from the pack, 531 packed files, 18 source-only paths unresolved (the control with the checkout resolved 18) |
+| `npm test` (PixiJS) | 0 | Tests  248 passed (248) |
+| `npm run build` (PixiJS) | 0 | built in 312ms |
+| `git status --porcelain` after the checks (clean status) | 0 | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check --format= HEAD` | 0 / 0 | no output |
+| `bash godot/tools/source_tree_guard.sh` | 0 | source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265 |
+| `git diff --stat 95b69c0 HEAD -- src public assets android ios package.json package-lock.json` | 0 | empty (PixiJS untouched) |
+| `git status --porcelain` after all steps | 0 | empty |
+
+These ran on the fresh clone of the verification commit. The final commit (the same `godot/` tree plus
+`docs/porting/`) is checked with `git show --check`, `git status` and the source-tree guard right after
+committing; those results are reported with the commit, not recorded here.
+
+Not run: Linux; Android (no APK of the game, no device or emulator run); any manual check (M1/M2
+deferred; MAN-GZ); listening to the audio; the M2 rendered presentation probe and the capture suite
+(not needed for this correction; the M3 screenshots are M3 report 25's).
+
+### Remaining manual gaps
+
+- MAN-GZ: no healthy, polluted or game-over run by a person on desktop or a portrait phone; no check
+  of both hand layouts or the safe area on hardware; no background/resume during the warning, the
+  attack or the result screen on a device.
+- The M1 manual checks (363 fields, NOT EXECUTED) and the M2 desktop and touch play checks: deferred
+  by the owner for prototype development, not passed, still release-blocking; the M1 package must be
+  regenerated against the current tree before an owner review.
+- No audio has been listened to (cue mapping, loops and ducking are checked by request counts only).
+- Visual review of the M3 presentation (critter art, attack look, Supervillained snap, freeze).
+
+### Development attempts (kept as found)
+
+- The first GZ-044 run failed its knockback checks: the open spot chosen for the dog had scenery 2
+  tiles ahead, so Bagnaskiz's knockback was blocked (the knockback velocity was set, the solver
+  stopped him). The facing cases now pick the first tile with a clear corridor (3 tiles behind to
+  4.5 ahead, 0.8 to either side).
+- The first freeze snapshot did not include the HUD clock or the exit-ring pulse, so removing the
+  `_process()` guard went unnoticed by the mutation check; both were added and the check repeated
+  (all three mutations caught).
+
+---
+
+## Historical — M3 report 25: playable Green Zone 1.0 prototype and core arcade flow; M1/M2 manual checks owner-deferred (`be6f9dd`; M1 Partial, M2 Partial, M3 Partial)
+
+> Corrected by correction report 26: the level now freezes under the Supervillained snap, the result card and game over; the GZ-032 and GZ-042–045 cases were strengthened (the combined `test_GZ_042_045_…` named below was replaced by four cases); the current tree and counts are correction report 26's.
 
 Scope: the owner's M3 instruction after `d2f1c02`: implement M3 (the complete Green Zone 1.0 and the
 core arcade flow) as a functional prototype on the accepted M1/M2 foundations, in one implementation
@@ -212,7 +354,7 @@ M1 review station was not run.
 
 ## Historical — correction report 24: crash-safe M1 owner evidence and corrected scope claims (`d2f1c02`; M1 Partial, M2 Partial)
 
-> Superseded by M3 report 25: the owner deferred the M1/M2 manual checks for prototype development, so this report's "the owner is not asked to review until … independent review" no longer gates anything; its package is stale against tree `b93d332` (see M3 report 25).
+> Superseded by M3 report 25: the owner deferred the M1/M2 manual checks for prototype development, so this report's "the owner is not asked to review until … independent review" no longer gates prototype development; the M1 manual checks remain unpassed and release-blocking, and its package is stale against tree `b93d332` (see M3 report 25).
 
 Scope: the architect's correction 24 after `9ca2ec5`: make the M1 owner evidence crash-safe and
 correct the remaining scope claims, in one commit of review-tool, evidence and documentation
