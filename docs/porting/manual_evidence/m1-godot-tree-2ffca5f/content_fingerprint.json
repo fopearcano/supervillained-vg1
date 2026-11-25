@@ -1,6 +1,6 @@
 {
   "algorithm": "SHA-256 of the sorted '<res path> <file sha256>' lines followed by 'review-contract <sha256>', LF-terminated; the review contract's SHA-256 is of its JSON with sorted keys and no indentation plus LF",
-  "file_count": 88,
+  "file_count": 89,
   "files": [
     [
       "res://assets/audio/recorded/alarm-greenzone-under-attack.mp3",
@@ -339,8 +339,12 @@
       "7040b5cfc374325b7e7c6600f0213409a0349fafcd7e559ceea70b551b673ba2"
     ],
     [
+      "res://scenes/green_zone/green_zone_scene.gd",
+      "9852aeec94949b3141c1e4f31cd4c7a12836a20fb5b559e6e4dd0e70237202c7"
+    ],
+    [
       "res://tools/m1_review.gd",
-      "dc2161cbad1688c9152e092cbc954eb2a5063cf528c79423425f7bceedf3e9e8"
+      "a60e3a4a5635fc054355679e0f8998e27df23809de3b3779188dce33973e1bac"
     ],
     [
       "res://tools/m1_review.tscn",
@@ -1460,7 +1464,7 @@
       "display/window/stretch/mode": "disabled",
       "rendering/textures/canvas_textures/default_texture_filter": 0
     },
-    "schema_version": 3,
+    "schema_version": 4,
     "siren_event": {
       "bus": "SFX",
       "delay_s": 3.9,
@@ -1473,6 +1477,7 @@
       "start_s": 0.0,
       "volume": 0.45
     },
+    "source_uses_scope": "Selected representative source variants for M1 cue review: the Green Zone variants of splash, coin, warning and empty (src/fx/gameAudio.ts), the story boat's splash and bark's middle rate. Not an exhaustive event-sequencing matrix: other call options are listed in each item's source column but not played separately (for example star's delayed marking call and its rate steps on the end screen and the SUPERVILLAINED screen, click's story-minigame volumes and rates, the cat cash's 0.35 s delay after the meow, bark's random rate, the alarm-then-siren timing outside the [E] attack event).",
     "stop_loop": {
       "end_s": 0.4,
       "tau_s": 0.08
@@ -1502,7 +1507,7 @@
       ]
     }
   },
-  "review_contract_sha256": "2fa10012e6a4d500548bca84f9debfe6df9cc9583a3d1f3409c67e0039a06404",
-  "schema_version": 3,
-  "sha256": "67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d"
+  "review_contract_sha256": "28f1ec911e3c9f5ce429e8ec3bdfa051134abd93e3001732c2a33aa1bd3bcda6",
+  "schema_version": 4,
+  "sha256": "879ed918e744755b29468d703f45405d20f114e7641d113d180db161603ad3c5"
 }

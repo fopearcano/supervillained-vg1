@@ -35,4 +35,6 @@ OpenGL 3.3 Compatibility renderer, 60 Hz display; Godot 4.7.2 console build; por
 
 No manual check was executed: nobody watched the animations, listened to the audio or judged the
 title for a decision; the self-test plays with the master bus at volume 0. Not run here: Linux,
-Android, the rendered probe (no rendering, camera, interpolation or presentation file changed).
+Android. The M2 rendered probe was not rerun because no shipping/runtime camera, interpolation or presentation file changed.\*\*
+
+\*\* Corrected in correction report 24: this paragraph first said the rendered probe was not run because "no rendering, camera, interpolation or presentation file changed"; the review tools under `godot/tools/` did change, so the reason is stated for shipping/runtime files only. The logs are unchanged.

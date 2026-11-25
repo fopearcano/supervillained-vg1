@@ -107,40 +107,53 @@ godot --path godot --rendering-driver opengl3 res://tools/m1_review.tscn -- --se
 ```
 
 `m1_review.tscn` presents the material of the manual M1 checks and records only the reviewer's own
-PASS / FAIL / NOT EXECUTED decisions for 363 fields (`<dir>/m1_owner_decisions.json` and `.md`, saved
-on every change). Each save is one transaction: both copies are written as `.new` files and read
-back, the current pair is kept as `m1_owner_decisions.previous.json` / `.md`, and the new pair is
-renamed into place; any failure removes the new files, puts the earlier pair back and is shown in red
-as NOT SAVED. Saved decisions carry the decisions schema (3), a save ID in both copies, the review
-contract and the content fingerprint (SHA-256 over the reviewed profile, costume resources, sheets and
-atlas pages, the 32 audio files, the title resources, the station's own code and `AudioService`, plus
-the review contract: `GameConfig.Audio`, the relevant project settings, `AudioService`'s tables and
-offsets, every item's source uses and effective gains, the siren event, the title widths and the field
-list). A pair is resumed only when all of these match and both copies carry the same save ID;
-otherwise it is set aside as `.stale-<time>` files and every field starts NOT EXECUTED (a pair left
-incomplete by an interrupted save falls back to the `.previous` pair). Every tab scrolls inside the
-window, so the save-status line stays visible and every control stays reachable down to 1280 x 720.
-Tab 1 plays every Zampanò animation of the profile (normal and armoured costumes, which the cross
-costume aliases; every action including tired) in all eight directions at once, at the authored frame
-timing with nearest filtering, with pause, replay and frame step. Tab 2 plays the five recorded tracks,
-twelve recorded effects, the generated medieval loop and the fourteen generated cues through
-`AudioService` (or the raw file from 0 s) from a 25 % master volume, with stop, previous/next, mute
-and volume. An effect's game path ([Enter]) uses its source use's volume and rate (splash: the Green
-Zone's 0.7); where the source has a second use, [V] plays it (splash: the story boat's 0.5; coin,
-warning and tired/empty: their rate and volume variants). The siren also has the source's attack event
-([E]: the alarm, then the siren after `SIREN_DELAY` at `SIREN_VOLUME`, looping until Stop) on a
-review-only player, because the shipping `AudioService` has no looping effect. The station's own
-players pause while the window is in the background. Tab 3 plays the title portrait at the three
-review widths with pause, step, first/middle/last and the memory report. Tab 4 records the owner, date,
-equipment, environment and final decision; APPROVED needs every field PASS and a nonblank owner name,
-date and equipment. `--export` writes the machine-readable inventories, the content fingerprint and
-review contract, the blank checklist, labelled contact sheets, title stills and screen captures (1320
-x 900, and the title tab's end at 1280 x 720), checks the layout at both sizes, verifies that each
-expected file exists, is nonempty and parses, and exits 1 on any failed check, write or file (facts
-only, never a manual decision). `--selftest` drives the station's own code in a scratch folder (the
-save transaction and its failures, resume, stale content, contract and schema, approval and
-attribution refusal, the effects' source uses on `AudioService`'s players, the siren event with a real
-loop wrap, pausing in the background, the layout) and exits 1 on any failure.
+PASS / FAIL / NOT EXECUTED decisions for 363 fields, saved on every change. Each save writes an
+immutable generation pair `<dir>/m1_owner_decisions.<save ID>.md` and `.json` (the JSON copy records
+the save ID, the generation number and the Markdown copy's SHA-256), reads both back and verifies
+them, and only then replaces one small pointer, `m1_owner_decisions.active.json` (written as
+`.active.json.new`, then renamed onto it), to select the new pair. The previously active pair is kept
+and older generation files are pruned. A failure removes the new files, leaves (or puts back) the
+earlier pointer and is shown in red as NOT SAVED. On Linux and Android the pointer rename is one atomic
+step; on Windows Godot 4.7.2's `DirAccess.rename` deletes the old pointer and then moves the new one,
+so the loader treats "no pointer, a valid `.active.json.new`" as that midpoint. On start the pointed
+pair is resumed when both files match the pointer's SHA-256 values (computed with CRLF line ends read
+as LF, so a Windows git checkout of committed copies still verifies) and the decisions schema (4), the
+review contract and the content fingerprint match this station. The fingerprint is a SHA-256 over the
+reviewed profile, costume resources, sheets and atlas pages, the 32 audio files, the title resources,
+the station's own code, `AudioService` and the Green Zone scene script whose calls the source-use
+checks compare, plus the review contract (`GameConfig.Audio`, the relevant project settings,
+`AudioService`'s tables and offsets, every item's source uses and effective gains, the source-use
+scope, the siren event, the title widths and the field list). When the pointer is missing or unusable,
+the newest complete matching pair in the folder is recovered, whatever its files are named: copies
+saved under the correction-23 names (`m1_owner_decisions.json` / `.md`, `.previous.*`, `.*.new`) are
+paired by the save ID they carry. Stale decisions are set aside as `.stale-<time>` files and every
+field starts NOT EXECUTED. Every tab scrolls inside the window, so the save-status line stays visible
+and every control stays reachable down to 1280 x 720. Tab 1 plays every Zampanò animation of the
+profile (normal and armoured costumes, which the cross costume aliases; every action including tired)
+in all eight directions at once, at the authored frame timing with nearest filtering, with pause,
+replay and frame step. Tab 2 plays the five recorded tracks, twelve recorded effects, the generated
+medieval loop and the fourteen generated cues through `AudioService` (or the raw file from 0 s) from a
+25 % master volume, with stop, previous/next, mute and volume. An effect's game path ([Enter]) uses
+its source use's volume and rate (splash: the Green Zone's 0.7); where a second use was selected, [V]
+plays it (splash: the story boat's 0.5; coin, warning and tired/empty: their Green Zone rate and volume
+variants). These are selected representative source variants for M1 cue review, not an exhaustive
+event-sequencing matrix: other call options (for example star's rate steps and delayed marking call,
+click's story-minigame volumes, the cat cash delay, bark's random rate) are listed in each item's
+source column but not played separately. The siren also has the source's attack event ([E]: the alarm,
+then the siren after `SIREN_DELAY` at `SIREN_VOLUME`, looping until Stop) on a review-only player,
+because the shipping `AudioService` has no looping effect. The station's own players pause while the
+window is in the background. Tab 3 plays the title portrait at the three review widths with pause,
+step, first/middle/last and the memory report. Tab 4 records the owner, date, equipment, environment and
+final decision; APPROVED needs every field PASS and a nonblank owner name, date and equipment.
+`--export` writes the machine-readable inventories, the content fingerprint and review contract, the
+blank checklist, labelled contact sheets, title stills and screen captures (1320 x 900, and the title
+tab's end at 1280 x 720), checks the layout at both sizes, verifies that each expected file exists, is
+nonempty and parses, and exits 1 on any failed check, write or file (facts only, never a manual
+decision). `--selftest` drives the station's own code in a scratch folder (generation saves and their
+failures, the state after every save step as if the station had stopped there, torn and damaged files,
+legacy split pairs, resume, stale content, schema, contract and call site, approval and attribution
+refusal, the effects' source uses on `AudioService`'s players, the siren event with a real loop wrap,
+pausing in the background, the layout) and exits 1 on any failure.
 `tools/` is excluded from every export preset.
 
 ## Regenerating assets

@@ -11,7 +11,9 @@ extends Control
 ##     fourteen generated cues (AUD-001-008), played through AudioService (the game path: leading
 ##     silence skipped, gains, buses) or raw from 0 s, starting at a safe master volume. An effect's
 ##     game path [Enter] uses the volume and rate of its source use (splash: the Green Zone's 0.7);
-##     a second source use, where the source has one, plays with [V] (splash: the story boat's 0.5).
+##     a second source use, where one was selected, plays with [V] (splash: the story boat's 0.5).
+##     These are selected representative source variants for M1 cue review (SOURCE_USES_SCOPE), not
+##     an exhaustive matrix of every event's call options or sequencing.
 ##     The siren also has the source's attack event (alarm, then the siren after
 ##     AUDIO.SIREN_DELAY at AUDIO.SIREN_VOLUME, looping until Stop) on a review-only player: the
 ##     shipping AudioService has no looping effect yet and is not changed for the station.
@@ -21,13 +23,17 @@ extends Control
 ##     final decision (APPROVED needs every field PASS and a nonblank owner, date and equipment).
 ## Every tab scrolls inside the window, so the save-status line at the bottom stays visible and
 ## every control is reachable down to SUPPORTED_MIN_SIZE.
-## Decisions are saved on every change to <decisions dir>/m1_owner_decisions.json and .md as one
-## transaction: both are written to .new files and verified, the current pair is kept as
-## m1_owner_decisions.previous.json/.md, and the new pair is promoted; any failure removes the new
-## files and puts the earlier pair back, and is shown in red as NOT SAVED. A pair is resumed on the
-## next start only when its schema, content fingerprint and review contract match this station and
-## its two files carry the same save ID; otherwise it is set aside as .stale-<time> files (an
-## interrupted save falls back to the .previous pair). Nothing is written to the game's save files.
+## Decisions are saved on every change as an immutable generation pair in <decisions dir>:
+## m1_owner_decisions.<save ID>.md and .json (the JSON copy records the save ID, the generation and
+## the Markdown copy's SHA-256). Both are written and verified first; only then is the one small
+## pointer m1_owner_decisions.active.json replaced (written as .active.json.new, then renamed into
+## place) to select the new pair. The previously active pair is kept and older generation files are
+## pruned. A failed save removes its new files, leaves the pointer on the earlier pair and is shown
+## in red as NOT SAVED. On start the pointed pair is resumed when its files match the pointer's
+## digests and its schema, content fingerprint and review contract match this station; when the
+## pointer is missing or unusable, the newest complete matching pair in the folder is recovered,
+## whatever its files are named (pairs of the schema-3 names are paired by the save ID they carry).
+## Stale decisions are set aside as .stale-<time> files. Nothing is written to the game's saves.
 ##
 ##   godot --path godot res://tools/m1_review.tscn -- [--decisions <absolute dir>]
 ##   godot --path godot res://tools/m1_review.tscn -- --export <absolute dir>
@@ -37,10 +43,11 @@ extends Control
 ## only, never a manual decision, including the layout at SUPPORTED_MIN_SIZE), verifies that every
 ## expected file exists, is nonempty and parses, and exits 0 only when everything holds (any write
 ## or check failure: ok:false, exit 1).
-## --selftest exercises the station itself in a scratch directory (transactional save and its
-## failures, resume, stale content and contract, approval and attribution refusal, the effects'
-## source uses, the siren event mode with a real loop wrap, pausing on focus loss, the layout) and
-## exits 0 only when every check holds. All three need a renderer (not --headless).
+## --selftest exercises the station itself in a scratch directory (generation saves and their
+## failures, the state after every save step as if the station stopped there, recovery, legacy
+## split pairs, stale content, contract and call site, approval and attribution refusal, the
+## effects' source uses, the siren event mode with a real loop wrap, pausing on focus loss, the
+## layout) and exits 0 only when every check holds. All three need a renderer (not --headless).
 
 const PROFILE_PATH := "res://data/characters/zampano_profile.tres"
 const MANIFEST_PATH := "res://data/source_asset_manifest.json"
@@ -62,20 +69,39 @@ const SAFE_VOLUME := 0.25
 ## Version of the decisions file layout and of the field list; saved decisions of another version
 ## are set aside, never merged (version 1: progress report 21, no version key, 362 fields;
 ## version 2: correction report 22, 363 fields, content fingerprint; version 3: correction report
-## 23, save ID pairing, review contract, the station's code in the fingerprint).
-const SCHEMA_VERSION := 3
+## 23, save ID pairing, review contract, the station's code in the fingerprint; version 4:
+## correction report 24, generation pairs selected by a pointer, the Green Zone call site in the
+## fingerprint).
+const SCHEMA_VERSION := 4
 const DECISIONS_FILE := "m1_owner_decisions"
-## The station's own code and the shipping playback code: part of the content fingerprint, so a
-## change to how anything is presented or played invalidates earlier decisions.
-const CODE_FILES: Array[String] = ["res://tools/m1_review.gd", "res://tools/m1_review.tscn", "res://autoload/audio_service.gd"]
+## The one small pointer that selects the active generation pair (replaced by renaming a verified
+## <pointer>.new onto it). On Linux and Android that rename is a single atomic step; Godot 4.7.2's
+## Windows DirAccess.rename deletes the old file and then moves the new one, so the loader treats
+## "no pointer, a valid <pointer>.new" as that step's midpoint and uses the .new copy.
+const POINTER_FILE := "m1_owner_decisions.active.json"
+const POINTER_VERSION := 1
+## Generation files: m1_owner_decisions.<save ID>.json/.md, save ID g<6-digit generation>-<date and
+## time>-<engine microseconds>.
+const GENERATION_PATTERN := "^m1_owner_decisions\\.(g(\\d{6})-[0-9T-]+)\\.(json|md)$"
+## File names of the schema-3 station (correction report 23) and earlier, still read so that a pair
+## split across them is recovered by the save ID its copies carry; [JSON name, its Markdown partner].
+const LEGACY_PAIRS := [[".json", ".md"], [".previous.json", ".previous.md"], [".json.new", ".md.new"]]
+## Returned by a save the self-test stops on purpose at a step (_crash_at), as if the station had
+## stopped there: nothing is undone.
+const CRASH := "SIMULATED STOP"
+## The station's own code, the shipping playback code and the call site the source-use checks
+## inspect: part of the content fingerprint, so a change to how anything is presented or played,
+## or to the port's calls the station compares with, invalidates earlier decisions.
+const CODE_FILES: Array[String] = ["res://tools/m1_review.gd", "res://tools/m1_review.tscn", "res://autoload/audio_service.gd",
+	"res://scenes/green_zone/green_zone_scene.gd"]
 ## Project settings that shape what the reviewer sees or hears (part of the review contract).
 const PROJECT_KEYS: Array[String] = ["audio/buses/default_bus_layout", "audio/driver/mix_rate", "display/window/stretch/mode",
 	"rendering/textures/canvas_textures/default_texture_filter"]
-## Source uses of an effect whose call options are not play(cue) alone: [use id, volume, rate,
-## source call, where it is heard, the port's own call ("" when the port has no such use yet)].
-## "Play, game path [Enter]" plays the first use and "Other source use [V]" the second. Every
-## other effect is played at volume 1.0 and rate 1.0, its source use (src/fx/gameAudio.ts and the
-## other play() calls listed in the item's source column).
+## Selected source uses of an effect whose call options are not play(cue) alone: [use id, volume,
+## rate, source call, where it is heard, the port's own call ("" when the port has no such use
+## yet)]. "Play, game path [Enter]" plays the first use and "Other source use [V]" the second.
+## Every other effect is played at volume 1.0 and rate 1.0. This is SOURCE_USES_SCOPE: selected
+## representative variants for M1 cue review, not every call option of every event.
 const SOURCE_USES := {
 	"splash": [["green_zone_water", 0.7, 1.0, "src/fx/gameAudio.ts: events.on('splash') -> play('splash', {volume: 0.7})",
 			"Green Zone: Zampanò steps into water", "AudioService.play(&\"splash\", 0.7)"],
@@ -96,7 +122,8 @@ const SOURCE_USES := {
 	"bark": [["bark", 1.0, 1.0, "src/fx/gameAudio.ts: events.on('bark') -> play('bark', {rate: 0.95 + Math.random() * 0.1}); the station plays the middle rate 1.0",
 			"Zampanò barks", "AudioService.play(&\"bark\", 1.0, 0.95 + randf() * 0.1)"]],
 }
-## The port's Green Zone scene, where the shipping calls of SOURCE_USES are checked.
+const SOURCE_USES_SCOPE := "Selected representative source variants for M1 cue review: the Green Zone variants of splash, coin, warning and empty (src/fx/gameAudio.ts), the story boat's splash and bark's middle rate. Not an exhaustive event-sequencing matrix: other call options are listed in each item's source column but not played separately (for example star's delayed marking call and its rate steps on the end screen and the SUPERVILLAINED screen, click's story-minigame volumes and rates, the cat cash's 0.35 s delay after the meow, bark's random rate, the alarm-then-siren timing outside the [E] attack event)."
+## The port's Green Zone scene, where the shipping calls of SOURCE_USES are checked (one of CODE_FILES).
 const GREEN_ZONE_SCENE_SCRIPT := "res://scenes/green_zone/green_zone_scene.gd"
 ## The station window: 1320 x 900 where the screen allows (the captured size); every tab must keep
 ## the status line visible and every control reachable down to SUPPORTED_MIN_SIZE.
@@ -219,6 +246,15 @@ var _status_note := ""
 ## Self-test only: the save step made to fail on purpose ("promote.json", "promote.md"), standing
 ## in for a rename the operating system refuses; empty in every other mode.
 var _fault := ""
+## Self-test only: the save step at which a save stops as if the station had stopped there
+## ("md", "json", "pointer.new", "rename_gap", "pointer", "prune.1"), a fixed save ID for a save
+## (so a folder can be put in its way) and replacement SHA-256 values of fingerprinted files.
+var _crash_at := ""
+var _save_id_override := ""
+var _digest_overrides: Dictionary = {}
+## The generation and save ID of the pair now resumed or last saved (-1 / "" when none).
+var _active_generation := -1
+var _active_save_id := ""
 ## Working copy of SOURCE_USES (the self-test changes it to prove the contract binds decisions).
 var _source_uses: Dictionary = {}
 var _export_errors := PackedStringArray()
@@ -446,7 +482,7 @@ func _review_contract() -> Dictionary:
 	return {"schema_version": SCHEMA_VERSION, "fields": ids, "game_config_audio": cfg, "project_settings": project,
 		"audio_service": {"music": AudioService.MUSIC, "sfx": AudioService.SFX, "synth": AudioService.SYNTH, "restarting_tracks": AudioService.RESTARTING_TRACKS,
 			"leading_silence_offsets": offsets, "same_cue_gap_s": AudioService.SAME_CUE_GAP, "pool_size": AudioService.POOL_SIZE},
-		"playback": playback, "siren_event": siren, "stop_loop": {"tau_s": STOP_LOOP_TAU, "end_s": STOP_LOOP_END},
+		"playback": playback, "source_uses_scope": SOURCE_USES_SCOPE, "siren_event": siren, "stop_loop": {"tau_s": STOP_LOOP_TAU, "end_s": STOP_LOOP_END},
 		"master_volume_at_start": SAFE_VOLUME, "duration_tolerance_s": DURATION_TOLERANCE,
 		"title": {"widths_px": TITLE_WIDTHS, "views_px": TITLE_VIEWS, "display_scale": 2, "memory_limit_bytes": TITLE_MEMORY_LIMIT},
 		"window": {"size": [WINDOW_SIZE.x, WINDOW_SIZE.y], "supported_min_size": [SUPPORTED_MIN_SIZE.x, SUPPORTED_MIN_SIZE.y]}}
@@ -486,7 +522,7 @@ func _content_fingerprint() -> Dictionary:
 	var files: Array = []
 	var lines := PackedStringArray()
 	for p: String in sorted:
-		var sha := FileAccess.get_sha256(p) if FileAccess.file_exists(p) else ""
+		var sha := String(_digest_overrides[p]) if _digest_overrides.has(p) else (FileAccess.get_sha256(p) if FileAccess.file_exists(p) else "")
 		files.append([p, sha])
 		lines.append("%s %s" % [p, sha if sha != "" else "MISSING"])
 	var contract := _review_contract()
@@ -925,7 +961,7 @@ func _build_signoff_tab() -> Control:
 	for k: String in _env:
 		env.append("%s: %s" % [k, _env[k]])
 	root.add_child(_lbl("Environment (recorded automatically):\n" + "\n".join(env), true))
-	root.add_child(_lbl("Reviewed content (decisions schema %d): fingerprint %s over %d files (the profile, both costume resources and sheets, the 32 audio files, the title resources, this station's code and AudioService) and the review contract %s (how every item is presented and played). Saved decisions are resumed only for this exact content and contract." % [
+	root.add_child(_lbl("Reviewed content (decisions schema %d): fingerprint %s over %d files (the profile, both costume resources and sheets, the 32 audio files, the title resources, this station's code, AudioService and the Green Zone scene script whose calls it compares) and the review contract %s (how every item is presented and played). Saved decisions are resumed only for this exact content and contract." % [
 		SCHEMA_VERSION, _fingerprint["sha256"], _fingerprint["file_count"], _fingerprint["review_contract_sha256"]], true))
 	_summary = _lbl("", true)
 	root.add_child(_summary)
@@ -1428,7 +1464,7 @@ func _refresh_all() -> void:
 		("\n" + _load_message) if _load_message != "" else "", ("\n" + _status_note) if _status_note != "" and _status_note != _load_message else ""]
 	_status.text = "PASS %d  FAIL %d  NOT EXECUTED %d  of %d fields   |   %s%s" % [_count("PASS"), _count("FAIL"), _count("NOT EXECUTED"), _fields.size(), where,
 		("   |   " + _status_note) if _status_note != "" else ""]
-	var bad := _save_state == "failed" or _save_blocked
+	var bad := _save_state == "failed" or _save_state == "stopped" or _save_blocked
 	_status.add_theme_color_override("font_color", Color("#ff6b6b") if bad else Color("#e8e8ee"))
 	_summary.add_theme_color_override("font_color", Color("#ff6b6b") if bad else Color("#e8e8ee"))
 
@@ -1444,7 +1480,7 @@ func _save_line() -> String:
 	match _save_state:
 		"ok":
 			return "saved %s to %s" % [_save_message, where]
-		"failed":
+		"failed", "stopped":
 			return "NOT SAVED: " + _save_message
 	return "not saved yet (folder %s)" % where
 
@@ -1465,91 +1501,224 @@ func _tag(group: String) -> String:
 	return "-" if passed == 0 else "%d/%d PASS" % [passed, total]
 
 
-## Reads the pair <base>.json/.md: {"status": "none" | "ok" | "stale" | "broken", "reason",
-## "data", "save_id"}. "stale": another decisions schema, review contract or content fingerprint;
-## "broken": the JSON copy is missing or does not parse, or the Markdown copy is missing or carries
-## another save ID (a save that did not finish).
-func _read_pair(base: String) -> Dictionary:
-	var json_path := base + ".json"
-	var md_path := base + ".md"
-	if not FileAccess.file_exists(json_path):
-		if FileAccess.file_exists(md_path):
-			return {"status": "broken", "reason": "the JSON copy is missing"}
-		return {"status": "none", "reason": "no file"}
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(json_path))
-	if not (data is Dictionary):
-		return {"status": "broken", "reason": "the JSON copy is not a decisions file"}
-	var d: Dictionary = data
-	var schema := int(d.get("schema_version", 1))
-	if schema != SCHEMA_VERSION:
-		return {"status": "stale", "reason": "they were saved by decisions schema %d (this station: %d)" % [schema, SCHEMA_VERSION]}
-	var contract := String(d.get("review_contract_sha256", ""))
-	if contract != String(_fingerprint["review_contract_sha256"]):
-		return {"status": "stale", "reason": "they were made under another review contract, so something was presented or played differently (contract %s; this station: %s)" % [
-			contract.left(16) if contract != "" else "none", String(_fingerprint["review_contract_sha256"]).left(16)]}
-	var fp := String(d.get("content_fingerprint", ""))
-	if fp != String(_fingerprint["sha256"]):
-		return {"status": "stale", "reason": "they were made for other content (fingerprint %s; this station: %s)" % [fp.left(16) if fp != "" else "none", String(_fingerprint["sha256"]).left(16)]}
-	var save_id := String(d.get("save_id", ""))
-	if save_id == "" or not FileAccess.file_exists(md_path) or not FileAccess.get_file_as_string(md_path).contains(_save_id_line(save_id)):
-		return {"status": "broken", "reason": "the Markdown copy is missing or belongs to another save (the JSON copy's save ID: %s)" % (save_id if save_id != "" else "none")}
-	return {"status": "ok", "reason": "", "data": d, "save_id": save_id}
+## The save ID of a Markdown copy (its "| Save ID ... | `<id>` |" row, in the wording of any schema
+## from 3 on, with LF or CRLF line ends), or "".
+static func _md_save_id(text: String) -> String:
+	var m := RegEx.create_from_string("(?m)^\\| Save ID[^|]*\\| `([^`]+)` \\|$").search(text.replace("\r\n", "\n"))
+	return m.get_string(1) if m != null else ""
+
+
+## SHA-256 of a decisions file's text with CRLF line ends read as LF: a pair and its pointer stay
+## valid when a Windows git checkout of docs/ converts them to CRLF.
+static func _text_sha256(path: String) -> String:
+	return FileAccess.get_file_as_string(path).replace("\r\n", "\n").sha256_text()
 
 
 ## The Markdown row that pairs a checklist copy with its JSON copy.
 static func _save_id_line(save_id: String) -> String:
-	return "| Save ID (the same as in m1_owner_decisions.json) | `%s` |" % save_id
+	return "| Save ID (the same as in its JSON copy) | `%s` |" % save_id
 
 
-## Resumes the saved pair only when _read_pair() finds it current and complete. A pair of another
-## schema, contract or content is set aside as m1_owner_decisions.stale-<time>.* (with the
-## .previous pair) and every field starts NOT EXECUTED. When the last pair is incomplete or missing
-## (a save that did not finish) and the .previous pair is current and complete, the last pair is
-## set aside and the previous one resumed. If a set-aside rename fails, saving is disabled so
-## nothing is overwritten.
+## A JSON copy of the decisions: {"status": "ok" | "stale" | "broken", "reason", "data", "save_id",
+## "generation"}. "stale": another decisions schema, review contract or content fingerprint;
+## "broken": it does not parse (for example a write cut short) or lacks its save ID or the
+## Markdown copy's SHA-256.
+func _read_json_copy(path: String) -> Dictionary:
+	var j := JSON.new()
+	if j.parse(FileAccess.get_file_as_string(path)) != OK or not (j.data is Dictionary):
+		return {"status": "broken", "reason": "%s is not a complete decisions file" % path.get_file(), "data": {}, "save_id": "", "generation": -1}
+	var d: Dictionary = j.data
+	var out := {"data": d, "save_id": String(d.get("save_id", "")), "generation": int(d.get("generation", -1))}
+	var schema := int(d.get("schema_version", 1))
+	var contract := String(d.get("review_contract_sha256", ""))
+	var fp := String(d.get("content_fingerprint", ""))
+	if schema != SCHEMA_VERSION:
+		out.merge({"status": "stale", "reason": "they were saved by decisions schema %d (this station: %d)" % [schema, SCHEMA_VERSION]})
+	elif contract != String(_fingerprint["review_contract_sha256"]):
+		out.merge({"status": "stale", "reason": "they were made under another review contract, so something was presented or played differently (contract %s; this station: %s)" % [
+			contract.left(16) if contract != "" else "none", String(_fingerprint["review_contract_sha256"]).left(16)]})
+	elif fp != String(_fingerprint["sha256"]):
+		out.merge({"status": "stale", "reason": "they were made for other content (fingerprint %s; this station: %s)" % [fp.left(16) if fp != "" else "none", String(_fingerprint["sha256"]).left(16)]})
+	elif String(out["save_id"]) == "" or String(d.get("md_sha256", "")).length() != 64:
+		out.merge({"status": "broken", "reason": "%s has no save ID or Markdown digest" % path.get_file()})
+	else:
+		out.merge({"status": "ok", "reason": ""})
+	return out
+
+
+## Every decisions file in the folder: {"jsons": [...], "mds": [...]}; each entry has "name", "path",
+## "legacy" (the JSON or Markdown suffix of a schema-3 name, or "") and "file_generation" (from a
+## generation name, else -1); a JSON entry adds _read_json_copy()'s fields, a Markdown entry its
+## "save_id" and "sha256". Set-aside (.stale-) files and the pointer are not decisions files.
+func _scan_decisions() -> Dictionary:
+	var jsons: Array = []
+	var mds: Array = []
+	if not DirAccess.dir_exists_absolute(_decisions_dir):
+		return {"jsons": jsons, "mds": mds}
+	var rx := RegEx.create_from_string(GENERATION_PATTERN)
+	for f in DirAccess.get_files_at(_decisions_dir):
+		var m := rx.search(f)
+		var legacy := ""
+		var legacy_json := false
+		for pair: Array in LEGACY_PAIRS:
+			if f == DECISIONS_FILE + String(pair[0]):
+				legacy = String(pair[0])
+				legacy_json = true
+			elif f == DECISIONS_FILE + String(pair[1]):
+				legacy = String(pair[1])
+		if m == null and legacy == "":
+			continue
+		var e := {"name": f, "path": _decisions_dir.path_join(f), "legacy": legacy, "file_generation": int(m.get_string(2)) if m != null else -1}
+		if (m != null and m.get_string(3) == "json") or legacy_json:
+			e.merge(_read_json_copy(String(e["path"])))
+			jsons.append(e)
+		else:
+			e["save_id"] = _md_save_id(FileAccess.get_file_as_string(String(e["path"])))
+			e["sha256"] = _text_sha256(String(e["path"]))
+			mds.append(e)
+	return {"jsons": jsons, "mds": mds}
+
+
+## The Markdown copy completing a current JSON copy: one that carries its save ID and has the SHA-256
+## the JSON copy records (a generation-named one first), or {}.
+static func _md_half(json_entry: Dictionary, scan: Dictionary) -> Dictionary:
+	var want := String((json_entry["data"] as Dictionary).get("md_sha256", ""))
+	var found := {}
+	for md: Dictionary in (scan["mds"] as Array):
+		if md["save_id"] == json_entry["save_id"] and md["sha256"] == want and (found.is_empty() or String(md["legacy"]) == ""):
+			found = md
+	return found
+
+
+## A pointer file: {} when missing, {"invalid": true} when unreadable or incomplete, else its fields.
+static func _read_pointer(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		return {}
+	var j := JSON.new()
+	if j.parse(FileAccess.get_file_as_string(path)) != OK or not (j.data is Dictionary):
+		return {"invalid": true}
+	var d: Dictionary = j.data
+	for k: String in ["save_id", "json", "md", "json_sha256", "md_sha256"]:
+		if String(d.get(k, "")) == "":
+			return {"invalid": true}
+	return d
+
+
+## The pair a pointer selects, {"json", "md"}, when both files exist under the names and with the
+## SHA-256 it records, the JSON copy is current and complete and carries the pointer's save ID; {}
+## otherwise.
+static func _pointed_pair(ptr: Dictionary, scan: Dictionary) -> Dictionary:
+	if ptr.is_empty() or ptr.has("invalid"):
+		return {}
+	for e: Dictionary in (scan["jsons"] as Array):
+		if e["name"] == ptr["json"] and e["status"] == "ok" and e["save_id"] == ptr["save_id"] and _text_sha256(String(e["path"])) == ptr["json_sha256"]:
+			var md := _md_half(e, scan)
+			if not md.is_empty() and md["name"] == ptr["md"] and md["sha256"] == ptr["md_sha256"]:
+				return {"json": e, "md": md}
+	return {}
+
+
+## The newest complete current pair in the folder, whatever its files are named: {"json", "md"} or {}.
+static func _newest_pair(scan: Dictionary) -> Dictionary:
+	var best := {}
+	for e: Dictionary in (scan["jsons"] as Array):
+		if e["status"] != "ok":
+			continue
+		var md := _md_half(e, scan)
+		if not md.is_empty() and (best.is_empty() or int(e["generation"]) > int((best["json"] as Dictionary)["generation"])):
+			best = {"json": e, "md": md}
+	return best
+
+
+## Resumes the pair the pointer selects. When the pointer is missing and a valid <pointer>.new
+## exists (the midpoint of the pointer's replacement on Windows), that one is used; when neither
+## selects a complete current pair, the newest complete current pair in the folder is recovered,
+## whatever its files are named. Stale decisions (another schema, contract or content), with their
+## Markdown copies and a pointer selecting them, are set aside as m1_owner_decisions.stale-<time>.*;
+## incomplete or unpaired files are left as found. If a set-aside rename fails, saving is disabled.
 func _load_decisions() -> void:
 	_save_blocked = false
-	var base := _decisions_dir.path_join(DECISIONS_FILE)
-	var last := _read_pair(base)
-	if last["status"] == "ok":
-		_apply_saved(last["data"])
-		_load_message = "Resumed the saved decisions (schema %d, fingerprint %s, save %s)." % [SCHEMA_VERSION, String(_fingerprint["sha256"]).left(16), last["save_id"]]
-		return
-	var prev := _read_pair(base + ".previous")
-	if last["status"] == "none" and prev["status"] == "none":
-		_load_message = "No saved decisions in this folder: every field starts NOT EXECUTED."
-		return
-	var recover: bool = prev["status"] == "ok" and last["status"] != "stale"
-	var suffixes: Array[String] = [".json", ".md"]
-	if not recover:
-		suffixes.append_array([".previous.json", ".previous.md"])
+	_active_generation = -1
+	_active_save_id = ""
+	var scan := _scan_decisions()
+	var pointer_path := _decisions_dir.path_join(POINTER_FILE)
+	var ptr := _read_pointer(pointer_path)
+	var ptr_new := _read_pointer(pointer_path + ".new")
+	var chosen := _pointed_pair(ptr, scan)
+	var how := "pointer"
+	if chosen.is_empty() and ptr.is_empty():
+		chosen = _pointed_pair(ptr_new, scan)
+		how = "pointer.new"
+	if chosen.is_empty():
+		chosen = _newest_pair(scan)
+		how = "recovered"
+	# Stale decisions are set aside; a pointer selecting them goes with them.
+	var aside: Array[String] = []
+	var reason := ""
+	var stale_ids := {}
+	for e: Dictionary in (scan["jsons"] as Array):
+		if e["status"] != "stale":
+			continue
+		aside.append(String(e["name"]))
+		if reason == "" or e["name"] == ptr.get("json", ""):
+			reason = String(e["reason"])
+		if String(e["save_id"]) != "":
+			stale_ids[String(e["save_id"])] = true
+		for pair: Array in LEGACY_PAIRS:
+			var partner := DECISIONS_FILE + String(pair[1])
+			if e["legacy"] == pair[0] and FileAccess.file_exists(_decisions_dir.path_join(partner)) and _md_save_id(FileAccess.get_file_as_string(_decisions_dir.path_join(partner))) == "":
+				aside.append(partner)
+	for md: Dictionary in (scan["mds"] as Array):
+		if stale_ids.has(String(md["save_id"])) and not aside.has(String(md["name"])):
+			aside.append(String(md["name"]))
+	for pair: Array in [[ptr, POINTER_FILE], [ptr_new, POINTER_FILE + ".new"]]:
+		var p: Dictionary = pair[0]
+		if not p.is_empty() and not p.has("invalid") and stale_ids.has(String(p["save_id"])):
+			aside.append(String(pair[1]))
 	var stamp := Time.get_datetime_string_from_system().replace(":", "-")
 	var moved := PackedStringArray()
 	var failed := PackedStringArray()
-	for suffix in suffixes:
-		var from := base + suffix
-		if not FileAccess.file_exists(from):
-			continue
-		var to := _decisions_dir.path_join("%s.stale-%s%s" % [DECISIONS_FILE, stamp, suffix])
-		if DirAccess.rename_absolute(from, to) == OK and FileAccess.file_exists(to) and not FileAccess.file_exists(from):
+	for f in aside:
+		var to := _decisions_dir.path_join("%s.stale-%s.%s" % [DECISIONS_FILE, stamp, f.trim_prefix(DECISIONS_FILE + ".")])
+		if DirAccess.rename_absolute(_decisions_dir.path_join(f), to) == OK and FileAccess.file_exists(to):
 			moved.append(to.get_file())
 		else:
-			failed.append(from.get_file())
-	var reason := String(last["reason"]) if last["status"] != "none" else String(prev["reason"])
+			failed.append(f)
+	var stale_text := ""
+	if not aside.is_empty():
+		stale_text = "Saved decisions that cannot be resumed (%s) were set aside as %s." % [reason, ", ".join(moved)]
 	if not failed.is_empty():
 		_save_blocked = true
-		_save_message = "saved decisions that cannot be resumed (%s) could not be set aside (%s); nothing will be saved, so they are not overwritten" % [reason, ", ".join(failed)]
-		_load_message = "Saved decisions NOT resumed: " + _save_message + "."
-		_status_note = _load_message
+		_save_message = "saved decisions that cannot be resumed (%s) could not be set aside (%s); nothing will be saved" % [reason, ", ".join(failed)]
+		stale_text = "Saved decisions NOT resumed: " + _save_message + "."
+	if chosen.is_empty():
+		if not aside.is_empty():
+			_load_message = ("Saved decisions NOT resumed: %s. They were set aside as %s; every field starts NOT EXECUTED." % [reason, ", ".join(moved)]) if failed.is_empty() else stale_text
+		elif not scan["jsons"].is_empty() or not scan["mds"].is_empty():
+			var left := PackedStringArray()
+			for e: Dictionary in (scan["jsons"] as Array) + (scan["mds"] as Array):
+				left.append(String(e["name"]))
+			_load_message = "No complete saved pair in this folder (incomplete or unpaired files left as found: %s): every field starts NOT EXECUTED." % ", ".join(left)
+		else:
+			_load_message = "No saved decisions in this folder: every field starts NOT EXECUTED."
+		_status_note = _load_message if not aside.is_empty() or _load_message.begins_with("No complete") else ""
 		return
-	if recover:
-		_apply_saved(prev["data"])
-		_load_message = "Resumed the previous saved pair (m1_owner_decisions.previous.json/.md, save %s): the last pair could not be used (%s)%s." % [
-			prev["save_id"], reason if last["status"] != "none" else "it is missing", (" and was set aside as " + ", ".join(moved)) if not moved.is_empty() else ""]
-		_status_note = _load_message
-		return
-	_load_message = "Saved decisions NOT resumed: %s. They were set aside as %s; every field starts NOT EXECUTED." % [reason, ", ".join(moved)]
-	_status_note = _load_message
+	var data: Dictionary = (chosen["json"] as Dictionary)["data"]
+	_apply_saved(data)
+	_active_generation = int(data.get("generation", -1))
+	_active_save_id = String(data["save_id"])
+	var names := "%s and %s" % [(chosen["json"] as Dictionary)["name"], (chosen["md"] as Dictionary)["name"]]
+	match how:
+		"pointer":
+			_load_message = "Resumed the saved decisions (schema %d, fingerprint %s, save %s)." % [SCHEMA_VERSION, String(_fingerprint["sha256"]).left(16), _active_save_id]
+		"pointer.new":
+			_load_message = "Resumed save %s (%s): the pointer was being replaced when the station stopped, and %s.new selects it." % [_active_save_id, names, POINTER_FILE]
+		_:
+			_load_message = "Recovered save %s (%s), the newest complete pair in this folder: the pointer %s." % [_active_save_id, names,
+				"is missing" if ptr.is_empty() else ("is unreadable" if ptr.has("invalid") else "selects a pair that is missing, incomplete, changed or stale")]
+	if stale_text != "":
+		_load_message += " " + stale_text
+	_status_note = _load_message if how != "pointer" or stale_text != "" else ""
 
 
 func _apply_saved(d: Dictionary) -> void:
@@ -1568,39 +1737,31 @@ func _apply_saved(d: Dictionary) -> void:
 		_owner_info["final"] = "NOT DECIDED"
 
 
-## Saves the JSON and Markdown copies as one transaction (_commit_pair); returns false and shows
-## NOT SAVED when anything fails, in which case the earlier pair is what is on disk.
+## Saves the decisions as a new generation pair (_commit_generation); returns false and shows NOT
+## SAVED when anything fails, in which case the pointer still selects the earlier pair.
 func _save() -> bool:
 	if _export_dir != "":
 		return true
 	if _save_blocked:
 		return false
 	var errors := PackedStringArray()
+	var note := ""
 	var dir_error := _ensure_dir(_decisions_dir)
 	if dir_error != "":
 		errors.append(dir_error)
 	else:
-		var save_id := "%s-%d" % [Time.get_datetime_string_from_system().replace(":", "-"), Time.get_ticks_usec()]
-		var data := {
-			"tool": "res://tools/m1_review.gd",
-			"schema_version": SCHEMA_VERSION,
-			"save_id": save_id,
-			"content_fingerprint": _fingerprint["sha256"],
-			"content_fingerprint_files": _fingerprint["file_count"],
-			"review_contract_sha256": _fingerprint["review_contract_sha256"],
-			"saved_at": Time.get_datetime_string_from_system(),
-			"environment": _env,
-			"owner": _owner_info,
-			"decisions": _decisions,
-			"notes": _notes,
-			"summary": {"PASS": _count("PASS"), "FAIL": _count("FAIL"), "NOT EXECUTED": _count("NOT EXECUTED"), "fields": _fields.size()},
-		}
-		var e := _commit_pair(_decisions_dir.path_join(DECISIONS_FILE), JSON.stringify(data, "  ", true) + "\n", _markdown(false, save_id), save_id)
-		if e != "":
+		var e := _commit_generation()
+		if e == CRASH:
+			_save_state = "stopped"
+			_save_message = "the self-test stopped this save at step '%s' on purpose" % _crash_at
+			return false
+		if e.begins_with("OK"):
+			note = e.trim_prefix("OK")
+		elif e != "":
 			errors.append(e)
 	if errors.is_empty():
 		_save_state = "ok"
-		_save_message = Time.get_time_string_from_system()
+		_save_message = Time.get_time_string_from_system() + note
 		return true
 	_save_state = "failed"
 	_save_message = "; ".join(errors)
@@ -1608,66 +1769,146 @@ func _save() -> bool:
 	return false
 
 
-## The save transaction of <base>.json/.md: (1, 2) both new copies are written as <base>.json.new
-## and <base>.md.new and read back, (3) they are verified as a pair (the JSON parses, both carry
-## `save_id`), (4) the current pair is kept as <base>.previous.json/.md and (5) the new pair is
-## renamed into place. Any failure removes the new files and puts the earlier pair back; returns ""
-## or the failure.
-func _commit_pair(base: String, json_text: String, md_text: String, save_id: String) -> String:
-	var texts := {".json": json_text, ".md": md_text}
+## The next generation number: one more than any generation in the folder (file names, JSON copies
+## and pointers).
+func _next_generation() -> int:
+	var top := 0
+	var rx := RegEx.create_from_string(GENERATION_PATTERN)
+	for f in DirAccess.get_files_at(_decisions_dir):
+		var m := rx.search(f)
+		if m != null:
+			top = maxi(top, int(m.get_string(2)))
+	var scan := _scan_decisions()
+	for e: Dictionary in (scan["jsons"] as Array):
+		top = maxi(top, int(e["generation"]))
+	for p in [POINTER_FILE, POINTER_FILE + ".new"]:
+		top = maxi(top, int(_read_pointer(_decisions_dir.path_join(p)).get("generation", 0)))
+	return top + 1
+
+
+## One save: (1) the Markdown copy m1_owner_decisions.<save ID>.md, (2) the JSON copy with the save
+## ID, generation and the Markdown copy's SHA-256, both read back and verified as a pair, (3) the
+## new pointer as <pointer>.new, verified, (4) renamed onto the pointer: from here the new pair is
+## the active one; (5) every generation file other than the new pair and the previously active
+## pair is pruned. A failure before (4) completes removes the new files and leaves (or puts back)
+## the earlier pointer; returns "" or "OK<note>" on success, else the failure (CRASH when the
+## self-test stops the save at a step, with nothing undone).
+func _commit_generation() -> String:
+	var base := _decisions_dir.path_join(DECISIONS_FILE)
+	var gen := _next_generation()
+	var save_id := _save_id_override if _save_id_override != "" else "g%06d-%s-%d" % [gen, Time.get_datetime_string_from_system().replace(":", "-"), Time.get_ticks_usec()]
+	var md_path := "%s.%s.md" % [base, save_id]
+	var json_path := "%s.%s.json" % [base, save_id]
+	var pointer_path := _decisions_dir.path_join(POINTER_FILE)
+	var old_pointer := FileAccess.get_file_as_string(pointer_path) if FileAccess.file_exists(pointer_path) else ""
 	var created := PackedStringArray()
-	for ext: String in [".json", ".md"]:
-		var tmp := base + ext + ".new"
-		if FileAccess.file_exists(tmp):
-			DirAccess.remove_absolute(tmp)
-		var e := _write(tmp, String(texts[ext]))
-		if FileAccess.file_exists(tmp):
-			created.append(tmp)
-		if e != "":
-			return _rollback(base, PackedStringArray(), PackedStringArray(), created, "the new %s copy could not be written (%s)" % [ext.trim_prefix("."), e])
-	var check: Variant = JSON.parse_string(FileAccess.get_file_as_string(base + ".json.new"))
-	if not (check is Dictionary) or String((check as Dictionary).get("save_id", "")) != save_id \
-			or not FileAccess.get_file_as_string(base + ".md.new").contains(_save_id_line(save_id)):
-		return _rollback(base, PackedStringArray(), PackedStringArray(), created, "the new pair does not verify (save ID %s)" % save_id)
-	var kept := PackedStringArray()
-	for ext: String in [".json", ".md"]:
-		var current := base + ext
-		if not FileAccess.file_exists(current):
-			continue
-		var prev := base + ".previous" + ext
-		var err := DirAccess.remove_absolute(prev) if FileAccess.file_exists(prev) else OK
-		if err == OK:
-			err = DirAccess.rename_absolute(current, prev)
-		if err != OK or FileAccess.file_exists(current) or not FileAccess.file_exists(prev):
-			return _rollback(base, kept, PackedStringArray(), created, "the current %s copy could not be kept as %s (%s)" % [ext.trim_prefix("."), prev.get_file(), error_string(err)])
-		kept.append(ext)
-	var promoted := PackedStringArray()
-	for ext: String in [".json", ".md"]:
-		var err := ERR_CANT_CREATE if _fault == "promote" + ext else DirAccess.rename_absolute(base + ext + ".new", base + ext)
-		if err != OK or not FileAccess.file_exists(base + ext):
-			return _rollback(base, kept, promoted, created, "the new %s copy could not be put in place as %s (%s%s)" % [
-				ext.trim_prefix("."), (base + ext).get_file(), error_string(err), ", injected by the self-test" if _fault == "promote" + ext else ""])
-		promoted.append(ext)
-		created.remove_at(created.find(base + ext + ".new"))
-	return ""
+	var e := _write(md_path, _markdown(false, save_id))
+	if FileAccess.file_exists(md_path):
+		created.append(md_path)
+	if e != "":
+		return _undo(created, pointer_path, old_pointer, "the new Markdown copy could not be written (%s)" % e)
+	if _crash_at == "md":
+		return CRASH
+	var data := {
+		"tool": "res://tools/m1_review.gd",
+		"schema_version": SCHEMA_VERSION,
+		"save_id": save_id,
+		"generation": gen,
+		"md_file": md_path.get_file(),
+		"md_sha256": _text_sha256(md_path),
+		"content_fingerprint": _fingerprint["sha256"],
+		"content_fingerprint_files": _fingerprint["file_count"],
+		"review_contract_sha256": _fingerprint["review_contract_sha256"],
+		"saved_at": Time.get_datetime_string_from_system(),
+		"environment": _env,
+		"owner": _owner_info,
+		"decisions": _decisions,
+		"notes": _notes,
+		"summary": {"PASS": _count("PASS"), "FAIL": _count("FAIL"), "NOT EXECUTED": _count("NOT EXECUTED"), "fields": _fields.size()},
+	}
+	e = _write(json_path, JSON.stringify(data, "  ", true) + "\n")
+	if FileAccess.file_exists(json_path):
+		created.append(json_path)
+	if e != "":
+		return _undo(created, pointer_path, old_pointer, "the new JSON copy could not be written (%s)" % e)
+	var check := _read_json_copy(json_path)
+	if check["status"] != "ok" or check["save_id"] != save_id or _md_save_id(FileAccess.get_file_as_string(md_path)) != save_id \
+			or _text_sha256(md_path) != data["md_sha256"]:
+		return _undo(created, pointer_path, old_pointer, "the new pair does not verify (save %s)" % save_id)
+	if _crash_at == "json":
+		return CRASH
+	var pointer_text := JSON.stringify({"pointer_version": POINTER_VERSION, "schema_version": SCHEMA_VERSION, "save_id": save_id, "generation": gen,
+		"json": json_path.get_file(), "md": md_path.get_file(), "json_sha256": _text_sha256(json_path), "md_sha256": data["md_sha256"]}, "  ", true) + "\n"
+	e = _write(pointer_path + ".new", pointer_text)
+	if FileAccess.file_exists(pointer_path + ".new"):
+		created.append(pointer_path + ".new")
+	if e != "":
+		return _undo(created, pointer_path, old_pointer, "the new pointer could not be written (%s)" % e)
+	if _crash_at == "pointer.new":
+		return CRASH
+	if _crash_at == "rename_gap":
+		# What Godot's Windows DirAccess.rename does before it moves the new file: delete the old one.
+		DirAccess.remove_absolute(pointer_path)
+		return CRASH
+	var err := OK
+	if _fault == "pointer":
+		err = ERR_CANT_CREATE
+	elif _fault == "pointer_gap":
+		DirAccess.remove_absolute(pointer_path)
+		err = ERR_CANT_CREATE
+	else:
+		err = DirAccess.rename_absolute(pointer_path + ".new", pointer_path)
+	if err != OK or not FileAccess.file_exists(pointer_path) or FileAccess.get_file_as_string(pointer_path) != pointer_text:
+		return _undo(created, pointer_path, old_pointer, "the pointer could not be switched to the new pair (%s%s)" % [error_string(err),
+			", injected by the self-test" if _fault != "" else ""])
+	if _crash_at == "pointer":
+		return CRASH
+	var previous := _active_generation
+	_active_generation = gen
+	_active_save_id = save_id
+	return _prune(gen, previous)
 
 
-## Undoes a failed _commit_pair(): removes the promoted new copies, renames the kept earlier copies
-## back and removes the new files that were not promoted. Returns `reason` with what was undone.
-func _rollback(base: String, kept: PackedStringArray, promoted: PackedStringArray, created: PackedStringArray, reason: String) -> String:
+## Removes the new files of a failed save and, if the pointer no longer holds its earlier text, puts
+## that text back. Returns `reason` with what was undone.
+func _undo(created: PackedStringArray, pointer_path: String, old_pointer: String, reason: String) -> String:
 	var problems := PackedStringArray()
-	for ext in promoted:
-		if DirAccess.remove_absolute(base + ext) != OK:
-			problems.append("cannot remove the new " + (base + ext).get_file())
-	for ext in kept:
-		if DirAccess.rename_absolute(base + ".previous" + ext, base + ext) != OK:
-			problems.append("cannot put back " + (base + ext).get_file())
 	for p in created:
 		if FileAccess.file_exists(p) and DirAccess.remove_absolute(p) != OK:
 			problems.append("cannot remove " + p.get_file())
+	var restored := false
+	if old_pointer != "" and (not FileAccess.file_exists(pointer_path) or FileAccess.get_file_as_string(pointer_path) != old_pointer):
+		var w := _write(pointer_path, old_pointer)
+		if w != "":
+			problems.append("cannot put the earlier pointer back (%s)" % w)
+		restored = w == ""
 	if not problems.is_empty():
 		return reason + "; ROLLBACK INCOMPLETE: " + "; ".join(problems)
-	return reason + "; nothing was changed (the new files were removed%s)" % (" and the earlier pair put back" if not kept.is_empty() else "")
+	return reason + "; nothing was changed (the new files were removed%s)" % (" and the earlier pointer put back" if restored else "")
+
+
+## Removes every generation file except the new pair (generation `keep`) and the previously active
+## pair (`previous`), each JSON copy before its Markdown copy. A failure here does not undo the save.
+func _prune(keep: int, previous: int) -> String:
+	if previous < 0:
+		return ""
+	var rx := RegEx.create_from_string(GENERATION_PATTERN)
+	var victims: Array = []
+	for f in DirAccess.get_files_at(_decisions_dir):
+		var m := rx.search(f)
+		if m != null and int(m.get_string(2)) != keep and int(m.get_string(2)) != previous:
+			victims.append([m.get_string(1), 0 if m.get_string(3) == "json" else 1, f])
+	victims.sort()
+	var failed := PackedStringArray()
+	var n := 0
+	for v: Array in victims:
+		if DirAccess.remove_absolute(_decisions_dir.path_join(String(v[2]))) != OK:
+			failed.append(String(v[2]))
+			continue
+		n += 1
+		if _crash_at == "prune.%d" % n:
+			return CRASH
+	return "OK" + ((" (older files not removed: %s)" % ", ".join(failed)) if not failed.is_empty() else "")
 
 
 func _save_now() -> void:
@@ -1710,7 +1951,7 @@ func _markdown(blank: bool, save_id := "") -> String:
 	var o := PackedStringArray()
 	o.append("# M1 manual checklist (SUPERVILLAINED Godot port)")
 	o.append("")
-	o.append("Generated by `res://tools/m1_review.gd`: `--export` writes this blank copy; the review station saves the owner's filled copy as `m1_owner_decisions.md` (with `m1_owner_decisions.json`). Every field is PASS, FAIL or NOT EXECUTED and is set only by the human reviewer; automated facts are in `animation_inventory.json`, `audio_inventory.json` and `title_facts.json` and are not decisions.")
+	o.append("Generated by `res://tools/m1_review.gd`: `--export` writes this blank copy; the review station saves each state of the owner's filled copy as a pair `m1_owner_decisions.<save ID>.md` and `.json`, and `m1_owner_decisions.active.json` names the current pair. Every field is PASS, FAIL or NOT EXECUTED and is set only by the human reviewer; automated facts are in `animation_inventory.json`, `audio_inventory.json` and `title_facts.json` and are not decisions.")
 	o.append("")
 	o.append("## Owner sign-off")
 	o.append("")
@@ -1761,7 +2002,7 @@ func _markdown(blank: bool, save_id := "") -> String:
 	o.append("")
 	o.append("## B. Audio (AUD-001-008: recorded and generated cues at a safe volume)")
 	o.append("")
-	o.append("A cell's field ID is `B-<cue>-<observation>`: AUDIBLE (clearly audible at the safe volume), INTENT (right for its expected use), START (no late start or cut attack; recorded effects skip their leading silence in the game), END (ends or loops cleanly; music: loop seam and track switch), CLEAN (no obvious clipping, distortion or artifacts). The siren is judged on both of its game uses: the one-shot game path and the attack event ([E] in the station: the alarm, then the siren after %s s at SIREN_VOLUME, looping until Stop). An effect's game path ([Enter]) plays its source use's volume and rate; where the source has a second use, [V] plays it (both listed below with their effective gains)." % _siren_config()["delay_s"])
+	o.append("A cell's field ID is `B-<cue>-<observation>`: AUDIBLE (clearly audible at the safe volume), INTENT (right for its expected use), START (no late start or cut attack; recorded effects skip their leading silence in the game), END (ends or loops cleanly; music: loop seam and track switch), CLEAN (no obvious clipping, distortion or artifacts). The siren is judged on both of its game uses: the one-shot game path and the attack event ([E] in the station: the alarm, then the siren after %s s at SIREN_VOLUME, looping until Stop). An effect's game path ([Enter]) plays its source use's volume and rate; where a second representative source use was selected, [V] plays it (both listed below with their effective gains)." % _siren_config()["delay_s"])
 	o.append("")
 	o.append("| # | Cue | Provenance | Resource | Format | Ch | Rate (Hz) | Duration (s) | Expected use | AUDIBLE | INTENT | START | END | CLEAN | Notes |")
 	o.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
@@ -1776,7 +2017,7 @@ func _markdown(blank: bool, save_id := "") -> String:
 	o.append("| B-MUTE | %s | %s |" % [MUTE_LABEL, dec.call("B-MUTE")])
 	o.append("| B-VOLUME | %s | %s |" % [VOLUME_LABEL, dec.call("B-VOLUME")])
 	o.append("")
-	o.append("Effects played with source call options (every other effect: volume x1.0, rate 1.0; effective gain = SFX volume x file gain x use volume, before the master volume):")
+	o.append("Effects played with selected source call options (every other effect: volume x1.0, rate 1.0; effective gain = SFX volume x file gain x use volume, before the master volume). Scope: " + SOURCE_USES_SCOPE)
 	o.append("")
 	o.append("| Cue | Control | Source use | Volume | Rate | Effective gain | Source call |")
 	o.append("|---|---|---|---|---|---|---|")
@@ -1976,7 +2217,7 @@ func _fingerprint_check() -> Dictionary:
 	var code := true
 	for p in CODE_FILES:
 		code = code and listed.has(p)
-	return {"check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources, the station's code and AudioService) and the review contract included",
+	return {"check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources, the station's code, AudioService and the Green Zone call site) and the review contract included",
 		"ok": again["sha256"] == _fingerprint["sha256"] and again["review_contract_sha256"] == _fingerprint["review_contract_sha256"] and String(_fingerprint["sha256"]).length() == 64
 			and String(_fingerprint["review_contract_sha256"]).length() == 64 and all_present and code and int(_fingerprint["file_count"]) > 40,
 		"value": {"sha256": _fingerprint["sha256"], "files": _fingerprint["file_count"], "review_contract_sha256": _fingerprint["review_contract_sha256"]}}
@@ -2142,6 +2383,7 @@ func _audio_inventory(checks: Array[Dictionary]) -> Dictionary:
 	return {"items": _audio, "counts": counts, "master_volume_at_start": SAFE_VOLUME, "duration_tolerance_s": DURATION_TOLERANCE,
 		"siren_attack_event": _siren_config(),
 		"source_uses_note": "every item's 'uses': the source use(s) the station plays, with volume and rate multipliers and the effective gain (SFX volume x file gain x use volume for effects; music_level for music), before the master volume; [Enter] plays the first use, [V] the second",
+		"source_uses_scope": SOURCE_USES_SCOPE,
 		"review": "listened to in tools/m1_review.tscn (tab 2); these facts do not replace the human decisions B-*"}
 
 
@@ -2441,11 +2683,13 @@ func _audio_cue_index(cue: String) -> int:
 # --- Self-test: the station's own behaviour, in a scratch folder ----------------------------------
 
 ## --selftest <dir>: drives the station's own code (no human decision is made or implied) in
-## <dir>/run-<time>: the transactional save and its failures, resume, stale content, schema and
-## review contract, approval and attribution refusal, the effects' source uses on AudioService's
-## players, the siren attack event (with a real loop wrap in mixer time), pausing on focus loss and
-## the layout at 1320 x 900 and the smallest supported size. The master bus is silent throughout
-## (volume 0). Writes <dir>/station_selftest.json and exits 0 only when every check holds.
+## <dir>/run-<time>: generation saves and their failures, the state after every save step as if
+## the station stopped there, torn and damaged files, legacy split pairs, resume, stale content,
+## schema, review contract and call site, approval and attribution refusal, the effects' source
+## uses on AudioService's players, the siren attack event (with a real loop wrap in mixer time),
+## pausing on focus loss and the layout at 1320 x 900 and the smallest supported size. The master
+## bus is silent throughout (volume 0). Writes <dir>/station_selftest.json and exits 0 only when
+## every check holds.
 func _run_selftest() -> void:
 	var checks: Array[Dictionary] = []
 	var root_error := _ensure_dir(_selftest_dir)
@@ -2472,113 +2716,246 @@ func _run_selftest() -> void:
 	checks.append(_siren_config_check())
 	checks.append(_source_uses_check())
 
-	# Transactional save: write both copies, verify, keep the earlier pair, promote.
-	_decisions_dir = run.path_join("transaction")
-	var base := _decisions_dir.path_join(DECISIONS_FILE)
+	# Generation saves: every save writes an immutable pair, then one pointer selects it.
+	_use_dir(run.path_join("generations"))
+	var dir := _decisions_dir
+	var pointer_path := dir.path_join(POINTER_FILE)
 	_reset_decisions()
 	_decisions["A-normal-idle-n"] = "PASS"
 	_decisions["C-MEMORY"] = "PASS"
-	_notes["C"] = "pair A"
 	_owner_info["name"] = "Self-test"
+	_notes["C"] = "state 1"
+	var saved_1 := _save()
+	var id_1 := _active_save_id
+	_notes["C"] = "state A"
 	var saved_a := _save()
-	var a_json := FileAccess.get_file_as_bytes(base + ".json")
-	var a_md := FileAccess.get_file_as_bytes(base + ".md")
-	var a_data: Variant = JSON.parse_string(a_json.get_string_from_utf8())
-	var a_id := String((a_data as Dictionary).get("save_id", "")) if a_data is Dictionary else ""
-	add.call("save: m1_owner_decisions.json and .md written as a pair (schema %d, the same save ID in both, content fingerprint, review contract); no .new or .previous file left" % SCHEMA_VERSION,
-		saved_a and _save_state == "ok" and a_id != "" and a_md.get_string_from_utf8().contains(_save_id_line(a_id))
-		and int((a_data as Dictionary).get("schema_version", 0)) == SCHEMA_VERSION and (a_data as Dictionary).get("content_fingerprint", "") == fp
-		and (a_data as Dictionary).get("review_contract_sha256", "") == rc and a_md.get_string_from_utf8().contains(fp) and a_md.get_string_from_utf8().contains(rc)
-		and _files_in(_decisions_dir) == [DECISIONS_FILE + ".json", DECISIONS_FILE + ".md"], {"save_id": a_id, "files": _files_in(_decisions_dir)})
+	var a_id := _active_save_id
+	var ptr_a := _read_pointer(pointer_path)
+	var a_json_path := dir.path_join(_pair_names(a_id)[0])
+	var a_md_path := dir.path_join(_pair_names(a_id)[1])
+	var a_copy := _read_json_copy(a_json_path)
+	var a_data: Dictionary = a_copy["data"]
+	var a_md_text := FileAccess.get_file_as_string(a_md_path)
+	add.call("save: each save writes m1_owner_decisions.<save ID>.md and .json (schema %d, generation, the same save ID, the Markdown copy's SHA-256, content fingerprint, review contract) and then points %s at the pair (with both files' SHA-256); the previous pair is kept" % [SCHEMA_VERSION, POINTER_FILE],
+		saved_1 and saved_a and a_id != id_1 and a_copy["status"] == "ok" and int(a_data.get("schema_version", 0)) == SCHEMA_VERSION and a_data.get("save_id", "") == a_id
+		and int(a_data.get("generation", 0)) == 2 and a_data.get("md_sha256", "") == FileAccess.get_sha256(a_md_path) and a_data.get("md_sha256", "") == _text_sha256(a_md_path) and a_data.get("content_fingerprint", "") == fp
+		and a_data.get("review_contract_sha256", "") == rc and _md_save_id(a_md_text) == a_id and a_md_text.contains(fp) and a_md_text.contains(rc)
+		and ptr_a.get("save_id", "") == a_id and ptr_a.get("json_sha256", "") == FileAccess.get_sha256(a_json_path) and ptr_a.get("md_sha256", "") == FileAccess.get_sha256(a_md_path)
+		and _files_in(dir) == _sorted([POINTER_FILE] + _pair_names(id_1) + _pair_names(a_id)), {"save_id": a_id, "files": _files_in(dir)})
+	_notes["C"] = "state B"
+	_save()
+	var b_id := _active_save_id
+	add.call("a third save prunes the oldest pair: the folder holds only the pointer, the new pair and the previously active pair",
+		_files_in(dir) == _sorted([POINTER_FILE] + _pair_names(a_id) + _pair_names(b_id)), _files_in(dir))
 	_reset_decisions()
 	_load_decisions()
-	add.call("resume: decisions, notes and owner restored from the saved pair", _decisions["A-normal-idle-n"] == "PASS" and _decisions["C-MEMORY"] == "PASS"
-		and _notes.get("C", "") == "pair A" and _owner_info["name"] == "Self-test" and _count("NOT EXECUTED") == 361 and _load_message.begins_with("Resumed") and _load_message.contains(a_id),
-		_count("NOT EXECUTED"))
+	add.call("resume: the pointed pair's decisions, notes and owner are restored", _notes.get("C", "") == "state B" and _decisions["A-normal-idle-n"] == "PASS"
+		and _decisions["C-MEMORY"] == "PASS" and _owner_info["name"] == "Self-test" and _count("NOT EXECUTED") == 361 and _load_message.begins_with("Resumed")
+		and _load_message.contains(b_id) and _active_save_id == b_id, _load_message.left(160))
+
+	# Handled save failures: the new files are removed and the pointer keeps (or gets back) the
+	# earlier pair. Folders are put in the way of real writes; the two pointer-switch failures are
+	# injected, because a rename that fails between two successful steps cannot be provoked reliably.
 	var failures := [
-		["JSON first: the new JSON copy cannot be written (a folder named m1_owner_decisions.json.new is in the way)", ".json.new", ""],
-		["Markdown second: the new Markdown copy cannot be written after the new JSON copy was (a folder named m1_owner_decisions.md.new is in the way)", ".md.new", ""],
-		["promotion: the new Markdown copy cannot be put in place after the new JSON copy was (rename failure injected by the self-test)", "", "promote.md"],
-		["promotion: the new JSON copy cannot be put in place (rename failure injected by the self-test)", "", "promote.json"],
+		["the new Markdown copy cannot be written (a folder has its name)", "md", ""],
+		["the new JSON copy cannot be written after the Markdown copy was (a folder has its name)", "json", ""],
+		["the new pointer cannot be written (a folder named %s.new is in the way)" % POINTER_FILE, "pointer.new", ""],
+		["the pointer cannot be switched (rename failure injected by the self-test)", "", "pointer"],
+		["the pointer cannot be switched after the old pointer was deleted (the first step of Godot's Windows rename; failure injected by the self-test)", "", "pointer_gap"],
 	]
-	print("m1_review self-test: %d save-failure checks below print expected ERROR records (the first %d in the transaction checks, the last two in the obstacle checks)" % [failures.size() + 2, failures.size()])
-	for f: Array in failures:
-		if String(f[1]) != "":
-			DirAccess.make_dir_recursive_absolute(base + String(f[1]))
+	print("m1_review self-test: %d save-failure checks below print expected ERROR records (the first %d in the generation-save checks, the last one in the folder check)" % [failures.size() + 1, failures.size()])
+	for k in failures.size():
+		var f: Array = failures[k]
+		var before_files := _files_in(dir)
+		var before_ptr := FileAccess.get_file_as_bytes(pointer_path)
+		var obstacle := ""
+		if f[1] == "md" or f[1] == "json":
+			_save_id_override = "g%06d-2026-01-01T00-00-00-%d" % [900000 + k, k]
+			obstacle = dir.path_join("%s.%s.%s" % [DECISIONS_FILE, _save_id_override, f[1]])
+		elif f[1] == "pointer.new":
+			obstacle = pointer_path + ".new"
+		if obstacle != "":
+			DirAccess.make_dir_recursive_absolute(obstacle)
 		_fault = String(f[2])
-		_decisions["A-normal-idle-n"] = "FAIL"
-		_notes["C"] = "pair B"
+		_notes["C"] = "state not saved"
 		_save_state = ""
 		var ok := _save()
 		_fault = ""
+		_save_id_override = ""
 		_refresh_all()
 		var red := _status.get_theme_color("font_color") == Color("#ff6b6b") and _summary.get_theme_color("font_color") == Color("#ff6b6b")
 		var shown := _status.text.contains("NOT SAVED") and _summary.text.contains("NOT SAVED") and not _status.text.contains("saved ")
-		var same := FileAccess.get_file_as_bytes(base + ".json") == a_json and FileAccess.get_file_as_bytes(base + ".md") == a_md
-		var files := _files_in(_decisions_dir)
-		if String(f[1]) != "":
-			DirAccess.remove_absolute(base + String(f[1]))
+		var same_ptr := FileAccess.get_file_as_bytes(pointer_path) == before_ptr
+		var files := _files_in(dir)
+		if obstacle != "":
+			DirAccess.remove_absolute(obstacle)
 		_reset_decisions()
 		_load_decisions()
-		var resumed_a: bool = _decisions["A-normal-idle-n"] == "PASS" and _notes.get("C", "") == "pair A" and _load_message.contains(a_id)
-		add.call("save failure, %s: _save() is false, NOT SAVED in red, the earlier pair is byte-identical, no new or partial file is left, and the earlier pair (not the new one) is what resumes" % f[0],
-			not ok and _save_state == "failed" and red and shown and same and files == [DECISIONS_FILE + ".json", DECISIONS_FILE + ".md"] and resumed_a,
-			{"returned": ok, "earlier_pair_identical": same, "files": files, "resumed_earlier": resumed_a, "message": _save_message.left(160)})
-	_decisions["A-normal-idle-n"] = "FAIL"
-	_notes["C"] = "pair B"
-	var saved_b := _save()
-	_refresh_all()
-	var b_json := FileAccess.get_file_as_bytes(base + ".json")
-	var b_data: Variant = JSON.parse_string(b_json.get_string_from_utf8())
-	var b_id := String((b_data as Dictionary).get("save_id", "")) if b_data is Dictionary else ""
-	add.call("after the failures a save succeeds: the new pair is in place, the earlier pair is kept byte-identical as m1_owner_decisions.previous.json/.md, no .new file is left, the status is no longer red",
-		saved_b and b_id != "" and b_id != a_id and FileAccess.get_file_as_string(base + ".md").contains(_save_id_line(b_id))
-		and FileAccess.get_file_as_bytes(base + ".previous.json") == a_json and FileAccess.get_file_as_bytes(base + ".previous.md") == a_md
-		and _files_in(_decisions_dir) == [DECISIONS_FILE + ".json", DECISIONS_FILE + ".md", DECISIONS_FILE + ".previous.json", DECISIONS_FILE + ".previous.md"]
-		and not _status.text.contains("NOT SAVED"), _files_in(_decisions_dir))
-	# A save that stopped between its two renames: the JSON copy is new, the Markdown copy is not.
-	_write(base + ".md", a_md.get_string_from_utf8())
-	_reset_decisions()
-	_load_decisions()
-	var stale_count := 0
-	for file_name in _files_in(_decisions_dir):
-		if file_name.begins_with(DECISIONS_FILE + ".stale-"):
-			stale_count += 1
-	add.call("a pair whose copies carry different save IDs (a save stopped between its renames) is not resumed: it is set aside and the previous pair is resumed",
-		_decisions["A-normal-idle-n"] == "PASS" and _notes.get("C", "") == "pair A" and stale_count == 2 and _load_message.contains("previous")
-		and not FileAccess.file_exists(base + ".json"), {"stale_files": stale_count, "message": _load_message.left(160)})
-	# Leftover .new files of an interrupted save are never resumed and are replaced by the next save.
-	_decisions_dir = run.path_join("leftover")
-	base = _decisions_dir.path_join(DECISIONS_FILE)
-	_reset_decisions()
-	_notes["C"] = "pair A"
-	_save()
-	var left_json := FileAccess.get_file_as_string(base + ".json").replace("\"pair A\"", "\"interrupted\"")
-	_write(base + ".json.new", left_json)
-	_write(base + ".md.new", FileAccess.get_file_as_string(base + ".md"))
-	_reset_decisions()
-	_load_decisions()
-	var not_new: bool = _notes.get("C", "") == "pair A"
-	_notes["C"] = "pair C"
-	_save()
-	add.call("leftover .new files of an interrupted save are not resumed, and the next save replaces them (none left)", not_new and _files_in(_decisions_dir).size() == 4
-		and not FileAccess.file_exists(base + ".json.new") and not FileAccess.file_exists(base + ".md.new") and FileAccess.get_file_as_string(base + ".json").contains("pair C"),
-		_files_in(_decisions_dir))
+		var resumed_b: bool = _notes.get("C", "") == "state B" and _active_save_id == b_id
+		add.call("save failure, %s: _save() is false, NOT SAVED in red, the pointer is byte-identical afterwards, no new file is left, and the earlier pair resumes" % f[0],
+			not ok and _save_state != "ok" and red and shown and same_ptr and files == before_files and resumed_b,
+			{"returned": ok, "pointer_identical": same_ptr, "files": files, "resumed_earlier": resumed_b, "message": _save_message.left(160)})
 
-	# Stale content, contract or schema (the 10eec20 layout has no schema_version; 6dc585a's is 2).
+	# The station stopped after each save step (nothing undone): the state on disk, then a restart.
+	var steps := [["md", "the new Markdown copy written", false, "Resumed the saved decisions"], ["json", "the new pair written and verified", false, "Resumed the saved decisions"],
+		["pointer.new", "the new pointer written as .new", false, "Resumed the saved decisions"],
+		["rename_gap", "the old pointer deleted, the new one not yet moved (Windows rename midpoint)", true, "the pointer was being replaced"],
+		["pointer", "the pointer switched, nothing pruned", true, "Resumed the saved decisions"], ["prune.1", "the pointer switched, one old file pruned", true, "Resumed the saved decisions"]]
+	var x_note := "state B"
+	var x_id := b_id
+	for st: Array in steps:
+		var step := String(st[0])
+		var y_note := "state stopped after %s" % step
+		_notes["C"] = y_note
+		_crash_at = step
+		var stopped := not _save() and _save_state == "stopped"
+		_crash_at = ""
+		var state_files := _files_in(dir)
+		_reset_decisions()
+		_load_decisions()
+		var want := y_note if bool(st[2]) else x_note
+		var resumed: bool = _notes.get("C", "") == want and _load_message.contains(String(st[3]))
+		var none_aside := true
+		for name_on_disk: String in _files_in(dir):
+			none_aside = none_aside and not name_on_disk.contains(".stale-")
+		var x_kept := FileAccess.file_exists(dir.path_join(_pair_names(x_id)[0])) and FileAccess.file_exists(dir.path_join(_pair_names(x_id)[1]))
+		var resumed_id := _active_save_id
+		_notes["C"] = "state saved after %s" % step
+		var again := _save()
+		var tidy := _files_in(dir) == _sorted([POINTER_FILE] + _pair_names(resumed_id) + _pair_names(_active_save_id))
+		add.call("stopped after step '%s' (%s): on restart %s resumes (selected by %s), nothing is set aside, the earlier pair is still on disk; the next save succeeds and leaves only the pointer, the resumed pair and the new pair" % [
+			step, st[1], "the new pair" if bool(st[2]) else "the earlier pair", "the .new pointer" if step == "rename_gap" else "the pointer"], stopped and resumed and none_aside and x_kept and again and tidy,
+			{"files_when_stopped": state_files, "resumed_note": _notes.get("C", ""), "message": _load_message.left(200), "tidy": tidy})
+		x_note = "state saved after %s" % step
+		x_id = _active_save_id
+
+	# Torn writes and damage: the pointed or newest pair is checked, never trusted by name alone.
+	var damage := [
+		["the pointer is missing and the newest pair's JSON copy is torn (a write cut short)", "torn_json"],
+		["the pointer is unreadable (torn)", "torn_pointer"],
+		["the pointed pair's Markdown copy was changed (its SHA-256 no longer matches)", "changed_md"],
+		["the pointer is missing and its .new copy is torn", "torn_pointer_new"],
+	]
+	for d: Array in damage:
+		var case := String(d[1])
+		var prev_id := x_id
+		_notes["C"] = "state %s" % case
+		var expect := ""
+		if case == "torn_json":
+			_crash_at = "json"
+			_save()
+			_crash_at = ""
+			var torn := dir.path_join(_pair_names(_newest_generation_id(dir))[0])
+			var text := FileAccess.get_file_as_string(torn)
+			_write(torn, text.left(text.length() / 2))
+			DirAccess.remove_absolute(pointer_path)
+			expect = prev_id
+		elif case == "torn_pointer":
+			_save()
+			expect = _active_save_id
+			var text := FileAccess.get_file_as_string(pointer_path)
+			_write(pointer_path, text.left(text.length() / 2))
+		elif case == "changed_md":
+			_save()
+			_write(dir.path_join(_pair_names(_active_save_id)[1]), FileAccess.get_file_as_string(dir.path_join(_pair_names(_active_save_id)[1])) + "changed\n")
+			expect = prev_id
+		else:
+			_crash_at = "pointer.new"
+			_save()
+			_crash_at = ""
+			expect = _newest_generation_id(dir)
+			var text := FileAccess.get_file_as_string(pointer_path + ".new")
+			_write(pointer_path + ".new", text.left(text.length() / 2))
+			DirAccess.remove_absolute(pointer_path)
+		_reset_decisions()
+		_load_decisions()
+		var recovered := _active_save_id == expect and _load_message.begins_with("Recovered save " + expect)
+		var resumed_id := _active_save_id
+		_notes["C"] = "state saved after %s" % case
+		var again := _save()
+		var tidy := _files_in(dir) == _sorted([POINTER_FILE] + _pair_names(resumed_id) + _pair_names(_active_save_id))
+		add.call("damage, %s: the newest complete pair that matches (%s) is recovered and named; the next save succeeds and tidies the folder" % [
+			d[0], "the previous one" if expect == prev_id else "the new one"], recovered and again and tidy, {"expected": expect, "resumed": resumed_id, "message": _load_message.left(200)})
+		x_id = _active_save_id
+
+	# A Windows git checkout of docs/ converts the copies and the pointer to CRLF line ends: the pair
+	# still resumes through the pointer.
+	var crlf_id := _active_save_id
+	for f_name: String in [POINTER_FILE] + _pair_names(crlf_id):
+		var f_path := dir.path_join(f_name)
+		_write(f_path, FileAccess.get_file_as_string(f_path).replace("\n", "\r\n"))
+	var converted := FileAccess.get_file_as_string(dir.path_join(_pair_names(crlf_id)[1])).contains("\r\n")
+	_reset_decisions()
+	_load_decisions()
+	add.call("line ends: after the pointer and the pair are converted to CRLF (as a Windows git checkout of docs/ does), the pair still resumes through the pointer",
+		converted and _active_save_id == crlf_id and _load_message.begins_with("Resumed the saved decisions"), _load_message.left(160))
+
+	# The state a correction-23 save left when it stopped between its renames, built with a pair
+	# that matches this station: m1_owner_decisions.md = save A, .previous.json = save A,
+	# m1_owner_decisions.json missing, .previous.md older or missing. Save A must resume.
+	_use_dir(run.path_join("legacy_source"))
+	_reset_decisions()
+	_notes["C"] = "legacy save A0"
+	_save()
+	var a0_md := FileAccess.get_file_as_string(_decisions_dir.path_join(_pair_names(_active_save_id)[1]))
+	_notes["C"] = "legacy save A"
+	_decisions["B-bark-AUDIBLE"] = "FAIL"
+	_save()
+	var la_id := _active_save_id
+	var la_json := FileAccess.get_file_as_string(_decisions_dir.path_join(_pair_names(la_id)[0]))
+	var la_md := FileAccess.get_file_as_string(_decisions_dir.path_join(_pair_names(la_id)[1]))
+	for variant: String in ["older", "missing"]:
+		_use_dir(run.path_join("legacy_split_previous_md_" + variant))
+		_ensure_dir(_decisions_dir)
+		_write(_decisions_dir.path_join(DECISIONS_FILE + ".md"), la_md)
+		_write(_decisions_dir.path_join(DECISIONS_FILE + ".previous.json"), la_json)
+		if variant == "older":
+			_write(_decisions_dir.path_join(DECISIONS_FILE + ".previous.md"), a0_md)
+		var before := _files_in(_decisions_dir)
+		_reset_decisions()
+		_load_decisions()
+		var resumed: bool = _notes.get("C", "") == "legacy save A" and _decisions["B-bark-AUDIBLE"] == "FAIL" and _active_save_id == la_id \
+			and _load_message.begins_with("Recovered save " + la_id)
+		var kept := _files_in(_decisions_dir) == before
+		_notes["C"] = "legacy save A, saved again"
+		var again := _save()
+		var after := _files_in(_decisions_dir)
+		add.call("legacy split pair (previous.md %s): save A resumes from m1_owner_decisions.previous.json and m1_owner_decisions.md (paired by the save ID they carry), nothing is set aside, and the next save adds a generation pair and the pointer without touching the old files" % variant,
+			resumed and kept and again and after == _sorted(before + [POINTER_FILE] + _pair_names(_active_save_id)), {"files_before": before, "files_after": after, "message": _load_message.left(200)})
+	# The same split state as a real correction-23 station leaves it (schema 3): another schema and
+	# station, so it is set aside with the reason, never resumed.
+	_use_dir(run.path_join("legacy_split_schema_3"))
+	_ensure_dir(_decisions_dir)
+	_write(_decisions_dir.path_join(DECISIONS_FILE + ".previous.json"), JSON.stringify({"schema_version": 3, "save_id": "c23-save-A", "content_fingerprint": "67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d",
+		"review_contract_sha256": "2fa10012e6a4d500548bca84f9debfe6df9cc9583a3d1f3409c67e0039a06404", "decisions": {"C-CROP": "PASS"}, "owner": {"name": "Earlier"}}))
+	_write(_decisions_dir.path_join(DECISIONS_FILE + ".md"), "# M1 manual checklist\n| Save ID (the same as in m1_owner_decisions.json) | `c23-save-A` |\n")
+	_write(_decisions_dir.path_join(DECISIONS_FILE + ".previous.md"), "# M1 manual checklist\n| Save ID (the same as in m1_owner_decisions.json) | `c23-save-older` |\n")
+	_reset_decisions()
+	_load_decisions()
+	var aside_23 := 0
+	for name_on_disk: String in _files_in(_decisions_dir):
+		if name_on_disk.begins_with(DECISIONS_FILE + ".stale-"):
+			aside_23 += 1
+	add.call("the same split state written by the correction-23 station (schema 3) is not resumable here: its two halves are set aside with the reason, the unpaired older Markdown copy is left as found, every field NOT EXECUTED",
+		aside_23 == 2 and _count("NOT EXECUTED") == 363 and _load_message.contains("schema 3") and FileAccess.file_exists(_decisions_dir.path_join(DECISIONS_FILE + ".previous.md")),
+		{"set_aside": aside_23, "message": _load_message.left(200)})
+
+	# Stale content, contract or schema (10eec20's layout has no schema_version; 6dc585a's is 2;
+	# 9ca2ec5's is 3).
 	var stale_cases := [
-		["stale_fingerprint", {"schema_version": SCHEMA_VERSION, "review_contract_sha256": rc, "content_fingerprint": "0".repeat(64), "save_id": "x"}, "other content"],
-		["stale_review_contract", {"schema_version": SCHEMA_VERSION, "review_contract_sha256": "f".repeat(64), "content_fingerprint": fp, "save_id": "x"}, "review contract"],
-		["old_schema_1", {}, "schema 1"],
-		["old_schema_2", {"schema_version": 2, "content_fingerprint": "406f37285e283d40a123cbd5135f6430ea85b4f569565d900cf58eef54f24994"}, "schema 2"]]
+		["stale_fingerprint", {"schema_version": SCHEMA_VERSION, "review_contract_sha256": rc, "content_fingerprint": "0".repeat(64), "save_id": "x"}, "other content", true],
+		["stale_review_contract", {"schema_version": SCHEMA_VERSION, "review_contract_sha256": "f".repeat(64), "content_fingerprint": fp, "save_id": "x"}, "review contract", true],
+		["old_schema_1", {}, "schema 1", false],
+		["old_schema_2", {"schema_version": 2, "content_fingerprint": "406f37285e283d40a123cbd5135f6430ea85b4f569565d900cf58eef54f24994"}, "schema 2", false],
+		["old_schema_3", {"schema_version": 3, "save_id": "x", "content_fingerprint": "67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d"}, "schema 3", true]]
 	for case: Array in stale_cases:
-		_decisions_dir = run.path_join(String(case[0]))
+		_use_dir(run.path_join(String(case[0])))
 		_ensure_dir(_decisions_dir)
 		var stale: Dictionary = (case[1] as Dictionary).duplicate()
 		stale["decisions"] = {"A-normal-idle-n": "PASS", "C-CROP": "PASS"}
 		stale["owner"] = {"name": "Earlier", "date": "2026-01-01", "equipment": "old", "final": "NOT APPROVED"}
 		_write(_decisions_dir.path_join(DECISIONS_FILE + ".json"), JSON.stringify(stale))
-		_write(_decisions_dir.path_join(DECISIONS_FILE + ".md"), "# old\n" + _save_id_line("x") + "\n")
+		_write(_decisions_dir.path_join(DECISIONS_FILE + ".md"), "# old\n" + ((_save_id_line("x") + "\n") if bool(case[3]) else ""))
 		_reset_decisions()
 		_load_decisions()
 		var set_aside := 0
@@ -2590,17 +2967,17 @@ func _run_selftest() -> void:
 			and not FileAccess.file_exists(_decisions_dir.path_join(DECISIONS_FILE + ".json")) and _load_message.contains(String(case[2]))
 			and _status_note == _load_message and not _save_blocked, {"set_aside": set_aside, "message_has_reason": _load_message.contains(String(case[2]))})
 		var fresh := _save()
-		var fresh_data: Variant = JSON.parse_string(FileAccess.get_file_as_string(_decisions_dir.path_join(DECISIONS_FILE + ".json")))
-		add.call("%s: the next save writes a fresh pair for this content and contract and keeps the set-aside files" % case[0], fresh and fresh_data is Dictionary
-			and (fresh_data as Dictionary).get("content_fingerprint", "") == fp and (fresh_data as Dictionary).get("review_contract_sha256", "") == rc
-			and _files_in(_decisions_dir).size() == 4, fresh)
+		var fresh_data: Dictionary = _active_json_data()
+		add.call("%s: the next save writes a fresh generation pair and pointer for this content and contract and keeps the set-aside files" % case[0], fresh
+			and fresh_data.get("content_fingerprint", "") == fp and fresh_data.get("review_contract_sha256", "") == rc
+			and _files_in(_decisions_dir).size() == 5, fresh)
 
 	# Decisions are bound to how things are played: changing a playback parameter or a source use
 	# changes the review contract and the fingerprint, and saved decisions are then set aside.
 	var mutations := [["AudioService's start offset of splash moved by 0.001 s (a playback parameter)", "offset"],
 		["the splash game-path volume changed from 0.7 to 0.71 (a source use)", "use"]]
 	for m: Array in mutations:
-		_decisions_dir = run.path_join("binding_" + String(m[1]))
+		_use_dir(run.path_join("binding_" + String(m[1])))
 		_reset_decisions()
 		_decisions["C-CROP"] = "PASS"
 		var bound := _save()
@@ -2613,16 +2990,37 @@ func _run_selftest() -> void:
 		var changed: bool = _fingerprint["review_contract_sha256"] != rc and _fingerprint["sha256"] != fp
 		_reset_decisions()
 		_load_decisions()
-		var invalidated: bool = _count("NOT EXECUTED") == 363 and _load_message.contains("review contract") and not FileAccess.file_exists(_decisions_dir.path_join(DECISIONS_FILE + ".json"))
+		var invalidated: bool = _count("NOT EXECUTED") == 363 and _load_message.contains("review contract") and not FileAccess.file_exists(_decisions_dir.path_join(POINTER_FILE))
 		AudioService.offsets[&"splash"] = offset
 		_source_uses = SOURCE_USES.duplicate(true)
 		_fingerprint = _content_fingerprint()
 		var restored: bool = _fingerprint["sha256"] == fp and _fingerprint["review_contract_sha256"] == rc
 		add.call("binding: after %s the review contract and the fingerprint change and the saved decisions are set aside, not resumed; undoing the change restores both" % m[0],
 			bound and changed and invalidated and restored, {"contract_changed": changed, "invalidated": invalidated, "restored": restored})
+	# The call site the source-use checks read is fingerprinted: a changed digest of it (the SHA-256
+	# of a modified copy) makes saved decisions be set aside.
+	_use_dir(run.path_join("binding_call_site"))
+	_reset_decisions()
+	_decisions["C-CROP"] = "PASS"
+	var bound_site := _save()
+	var changed_copy := run.path_join("green_zone_scene_changed.gd")
+	_write(changed_copy, FileAccess.get_file_as_string(GREEN_ZONE_SCENE_SCRIPT) + "\n# a changed call site\n")
+	_digest_overrides[GREEN_ZONE_SCENE_SCRIPT] = FileAccess.get_sha256(changed_copy)
+	_fingerprint = _content_fingerprint()
+	var site_changed: bool = _fingerprint["sha256"] != fp and _fingerprint["review_contract_sha256"] == rc
+	_reset_decisions()
+	_load_decisions()
+	var site_invalidated: bool = _count("NOT EXECUTED") == 363 and _load_message.contains("other content") and not FileAccess.file_exists(_decisions_dir.path_join(POINTER_FILE))
+	_digest_overrides.clear()
+	_fingerprint = _content_fingerprint()
+	var site_listed := false
+	for f: Array in (_fingerprint["files"] as Array):
+		site_listed = site_listed or f[0] == GREEN_ZONE_SCENE_SCRIPT
+	add.call("binding: a changed digest of %s (the call site the source-use checks read) changes the fingerprint and the saved decisions are set aside, not resumed; undoing it restores the fingerprint" % GREEN_ZONE_SCENE_SCRIPT,
+		bound_site and site_listed and site_changed and site_invalidated and _fingerprint["sha256"] == fp, {"listed": site_listed, "changed": site_changed, "invalidated": site_invalidated})
 
 	# Approval: every field PASS and a nonblank owner name, date and equipment.
-	_decisions_dir = run.path_join("approval")
+	_use_dir(run.path_join("approval"))
 	_reset_decisions()
 	_status_note = ""
 	_owner_info["name"] = "Self-test"
@@ -2654,9 +3052,9 @@ func _run_selftest() -> void:
 	_owner_info["date"] = "2026-11-25"
 	_owner_info["equipment"] = "none (automated self-test)"
 	_on_final(FINALS.find("APPROVED"))
-	var approved_file: Variant = JSON.parse_string(FileAccess.get_file_as_string(_decisions_dir.path_join(DECISIONS_FILE + ".json")))
+	var approved_file := _active_json_data()
 	add.call("approval accepted only with every field PASS and all attribution (scratch folder only)", _owner_info["final"] == "APPROVED"
-		and approved_file is Dictionary and ((approved_file as Dictionary)["owner"] as Dictionary)["final"] == "APPROVED", _owner_info["final"])
+		and (approved_file.get("owner", {}) as Dictionary).get("final", "") == "APPROVED", _owner_info["final"])
 	_set_owner("equipment", "")
 	add.call("clearing the equipment after approval returns the final decision to NOT DECIDED", _owner_info["final"] == "NOT DECIDED", _owner_info["final"])
 	_set_owner("equipment", "none (automated self-test)")
@@ -2666,24 +3064,17 @@ func _run_selftest() -> void:
 	_set_decision("C-MEMORY", "PASS")
 	_loading = false
 
-	# Save failures with real obstacles: the folder cannot be created / the new pair cannot be put
-	# in place because a folder has the decisions file's name.
+	# Save failure with a real obstacle: the decisions folder cannot be created (a file is in the way).
 	var blocker := run.path_join("blocker_file")
 	_write(blocker, "not a folder\n")
-	for target: Array in [["the decisions folder cannot be created (a file is in the way)", blocker.path_join("decisions"), false],
-			["the new pair cannot be put in place (a folder named m1_owner_decisions.json is in the way)", run.path_join("unwritable"), true]]:
-		if bool(target[2]):
-			_ensure_dir(String(target[1]).path_join(DECISIONS_FILE + ".json"))
-		_decisions_dir = String(target[1])
-		_save_state = ""
-		var ok := _save()
-		_refresh_all()
-		var red := _status.get_theme_color("font_color") == Color("#ff6b6b")
-		var left := _files_in(_decisions_dir) if DirAccess.dir_exists_absolute(_decisions_dir) else []
-		add.call("save failure when %s: _save() is false, status and summary say NOT SAVED in red, nothing says saved, no new file is left" % target[0],
-			not ok and _save_state == "failed" and _status.text.contains("NOT SAVED") and _summary.text.contains("NOT SAVED")
-			and not _status.text.contains("saved ") and red and left.is_empty(), {"returned": ok, "state": _save_state, "files_left": left})
-	_decisions_dir = run.path_join("approval")
+	_use_dir(blocker.path_join("decisions"))
+	var blocked_ok := _save()
+	_refresh_all()
+	var blocked_red := _status.get_theme_color("font_color") == Color("#ff6b6b")
+	add.call("save failure when the decisions folder cannot be created (a file is in the way): _save() is false, status and summary say NOT SAVED in red, nothing says saved",
+		not blocked_ok and _save_state == "failed" and _status.text.contains("NOT SAVED") and _summary.text.contains("NOT SAVED")
+		and not _status.text.contains("saved ") and blocked_red and not DirAccess.dir_exists_absolute(_decisions_dir), {"returned": blocked_ok, "state": _save_state})
+	_use_dir(run.path_join("approval"))
 	_save()
 	_refresh_all()
 	add.call("a later successful save clears the failure", _save_state == "ok" and not _status.text.contains("NOT SAVED"), _save_state)
@@ -2828,6 +3219,48 @@ func _run_selftest() -> void:
 		result["write_error"] = write_error
 	print("M1SELFTEST ", JSON.stringify(result))
 	get_tree().quit(0 if result["ok"] else 1)
+
+
+## Self-test: switches to another decisions folder with nothing active.
+func _use_dir(dir: String) -> void:
+	_decisions_dir = dir
+	_active_generation = -1
+	_active_save_id = ""
+	_save_blocked = false
+	_save_state = ""
+
+
+## The generation pair's file names of `save_id`: [JSON, Markdown].
+static func _pair_names(save_id: String) -> Array:
+	return ["%s.%s.json" % [DECISIONS_FILE, save_id], "%s.%s.md" % [DECISIONS_FILE, save_id]]
+
+
+static func _sorted(names: Array) -> Array:
+	var out := names.duplicate()
+	out.sort()
+	return out
+
+
+## The save ID of the highest generation file in `dir`.
+static func _newest_generation_id(dir: String) -> String:
+	var rx := RegEx.create_from_string(GENERATION_PATTERN)
+	var best := ""
+	var top := -1
+	for f in DirAccess.get_files_at(dir):
+		var m := rx.search(f)
+		if m != null and int(m.get_string(2)) > top:
+			top = int(m.get_string(2))
+			best = m.get_string(1)
+	return best
+
+
+## The JSON copy the pointer selects ({} if none).
+func _active_json_data() -> Dictionary:
+	var ptr := _read_pointer(_decisions_dir.path_join(POINTER_FILE))
+	if ptr.is_empty() or ptr.has("invalid"):
+		return {}
+	var c := _read_json_copy(_decisions_dir.path_join(String(ptr["json"])))
+	return c["data"]
 
 
 ## The file names in `dir`, sorted.

@@ -28,5 +28,6 @@ OpenGL 3.3 Compatibility renderer, 60 Hz display; Godot 4.7.2 console build; por
 | q `git status --porcelain` after all steps | `step_q_git_status_after.txt` | empty |
 
 No manual check was executed: nobody watched the animations, listened to the audio or judged the
-title for a decision. Not run here: Linux, Android, the rendered probe (no rendering, camera,
-interpolation or presentation file changed).
+title for a decision. Not run here: Linux, Android. The M2 rendered probe was not rerun because no shipping/runtime camera, interpolation or presentation file changed.\*\*
+
+\*\* Corrected in correction report 24: this paragraph first said the rendered probe was not run because "no rendering, camera, interpolation or presentation file changed"; the review tools under `godot/tools/` did change, so the reason is stated for shipping/runtime files only. The logs are unchanged.

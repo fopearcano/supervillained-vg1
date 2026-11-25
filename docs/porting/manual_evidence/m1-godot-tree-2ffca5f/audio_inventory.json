@@ -1299,5 +1299,6 @@
     "stop": "gain to 0 with time constant 0.08 s, stopped after 0.4 s (source stopLoop)",
     "volume": 0.45
   },
-  "source_uses_note": "every item's 'uses': the source use(s) the station plays, with volume and rate multipliers and the effective gain (SFX volume x file gain x use volume for effects; music_level for music), before the master volume; [Enter] plays the first use, [V] the second"
+  "source_uses_note": "every item's 'uses': the source use(s) the station plays, with volume and rate multipliers and the effective gain (SFX volume x file gain x use volume for effects; music_level for music), before the master volume; [Enter] plays the first use, [V] the second",
+  "source_uses_scope": "Selected representative source variants for M1 cue review: the Green Zone variants of splash, coin, warning and empty (src/fx/gameAudio.ts), the story boat's splash and bark's middle rate. Not an exhaustive event-sequencing matrix: other call options are listed in each item's source column but not played separately (for example star's delayed marking call and its rate steps on the end screen and the SUPERVILLAINED screen, click's story-minigame volumes and rates, the cat cash's 0.35 s delay after the meow, bark's random rate, the alarm-then-siren timing outside the [E] attack event)."
 }

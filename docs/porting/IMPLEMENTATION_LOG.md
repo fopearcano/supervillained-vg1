@@ -6,14 +6,240 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. Correction report 23 is current. Erratum for the historical reports: their
+in progress report 5. Correction report 24 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## Correction report 23: M1 review station hardened before owner use (second pass); owner decisions not yet requested (M1 Partial, M2 Partial) — current
+## Correction report 24: crash-safe M1 owner evidence and corrected scope claims; owner decisions not yet requested (M1 Partial, M2 Partial) — current
+
+Scope: the architect's correction 24 after `9ca2ec5`: make the M1 owner evidence crash-safe and
+correct the remaining scope claims, in one commit of review-tool, evidence and documentation
+changes. Changed: `godot/tools/m1_review.gd`, `godot/README.md` (review section), this log,
+FEATURE_MATRIX.md, the regenerated package `docs/porting/manual_evidence/m1-godot-tree-2ffca5f/`,
+marked wording corrections in the evidence reports of trees `4ac0aed`, `11330ef` and `c9de0e5`, and
+the host logs `docs/porting/windows_evidence/m1-review-godot-tree-21ce8a2/`. No shipping gameplay,
+asset, `AudioService`, save, touch-control, Android or PixiJS file changed (`AudioService` and the
+Green Zone scene script are only read and fingerprinted). All 363 human fields are NOT EXECUTED. The
+owner is not asked to review until this correction passes independent review; M2 manual validation
+and M3 are not started.
+
+| Field | Value |
+|---|---|
+| Milestone status | **M1 Partial, M2 Partial** (neither milestone completion accepted); every automated M1 and M2 acceptance ID is satisfied; the M1 manual checks are prepared and **not executed**; the M2 desktop and touch play checks are open |
+| Base | `9ca2ec5` (correction report 23; `godot/` tree `c9de0e5`) |
+| Current `godot/` tree | `21ce8a2d6e4fca5a578a3bc6931ece48309573c0` = `c9de0e5` with `tools/m1_review.gd` and `README.md` changed; every runtime, test and asset file identical to `2ffca5f`'s; verified on a fresh Windows clone (below) |
+| Host | Windows 11 Pro N for Workstations 25H2 (build 10.0.26200), NVIDIA GeForce RTX 3090 (driver 610.47), OpenGL 3.3 Compatibility renderer, 60 Hz display; GUI and audio output available; Linux not rerun |
+| Android | not rerun (no device claim); the accepted M1 spike evidence is correction report 17's, on emulators `sv_m1_api36` (`emulator-5554`, Android 16 / API 36), `sv_m1_api34` (`emulator-5556`, Android 14 / API 34) and `sv_m1_api24` (`emulator-5558`, Android 7.0 / API 24); no physical device |
+
+### Manual decisions received
+
+**None.** No owner decision has been requested or returned: all 363 fields of
+`manual_evidence/m1-godot-tree-2ffca5f/M1_MANUAL_CHECKLIST.md` are NOT EXECUTED and the final
+decision is NOT DECIDED. Nothing here is a visual or audio PASS; inventories, hashes, the content
+fingerprint and review contract, contact sheets, stills, screen captures and the station's self-test
+are supporting facts only. The self-test's decision files exist only in its scratch folder (not
+committed).
+
+### Corrections (architect's items 1-7)
+
+1. **Crash-safe format (decisions schema 4).** The current/previous rotation is replaced by immutable
+   generation pairs `m1_owner_decisions.<save ID>.md` and `.json` (save ID
+   `g<6-digit generation>-<date and time>-<engine microseconds>`; the JSON copy records the save ID,
+   the generation and the Markdown copy's SHA-256). A save (1) writes the Markdown copy, (2) writes
+   the JSON copy, reads both back and verifies them as a pair, (3) writes the new pointer as
+   `m1_owner_decisions.active.json.new` and verifies it, (4) renames it onto
+   `m1_owner_decisions.active.json`, the one small pointer that selects the active pair (with both
+   files' SHA-256), and (5) prunes every generation file except the new pair and the previously
+   active pair. A failure before step 4 completes removes the new files and leaves or puts back the
+   earlier pointer (NOT SAVED in red). **Atomicity, as verified in Godot 4.7.2's source:** on Linux
+   and Android `DirAccess.rename` is one `rename()` call, so step 4 is atomic; on Windows it deletes
+   the existing pointer and then calls `MoveFileW` (`drivers/windows/dir_access_windows.cpp`), so
+   step 4 has a midpoint with no pointer. The station does not depend on step 4 being atomic: the
+   loader treats "no pointer and a valid `.active.json.new`" as that midpoint and resumes the pair it
+   names, and the self-test reproduces that exact state. On start the pointed pair is resumed when
+   its two files carry the pointer's SHA-256 values and the schema, review contract and content
+   fingerprint match (these digests and the save-ID row are read with CRLF line ends as LF, because a
+   Windows git checkout of `docs/` converts committed copies to CRLF; a self-test check converts the
+   pointer and a pair and resumes it); otherwise the newest complete matching pair in the folder is
+   recovered, whatever its files are named, and the message says which pair and why. Halves under the
+   correction-23 names (`m1_owner_decisions.json` / `.md`, `.previous.*`, `.json.new` / `.md.new`)
+   are paired by the save ID they carry, never by their names. Stale decisions (another schema,
+   contract or content) are set aside as `.stale-<time>` files with the pointer that selects them;
+   incomplete or unpaired files are left as found (and generation-named ones are pruned by a later
+   save).
+2. **Crash-state tests after every step.** The self-test stops a real save after each step, as if
+   the station had stopped there with nothing undone, then restarts the loader: after step 1 (new
+   Markdown copy only), after step 2 (new pair, old pointer) and after step 3 (old pointer, new
+   `.new`) the earlier pair resumes; at the Windows midpoint of step 4 (no pointer, new `.new`; the
+   self-test deletes the old pointer as Godot's Windows rename does first), after step 4 and after
+   the first pruning deletion the new pair resumes. Each time nothing is set aside, the earlier pair
+   is still on disk, and the next save succeeds and leaves only the pointer, the resumed pair and the
+   new pair. Damage cases: a torn newest JSON copy with no pointer and a changed Markdown copy of the
+   pointed pair recover the previous complete pair; a torn pointer and a torn `.new` with no pointer
+   recover the newest complete pair. **The exact correction-23 failure state** (`m1_owner_decisions.md`
+   = save A, `m1_owner_decisions.previous.json` = save A, `m1_owner_decisions.json` missing,
+   `m1_owner_decisions.previous.md` older or missing), built with a save A that matches this station:
+   save A resumes in both variants, nothing is set aside, and the next save adds a generation pair
+   and the pointer without touching the old files. The same split state written by the real
+   correction-23 station (schema 3, its fingerprint and contract) is of another schema and station,
+   so it is set aside with the reason "schema 3" and never resumed; the unpaired older Markdown copy
+   is left as found. Handled failures: folders in the way of the new Markdown copy, the new JSON copy
+   and the new pointer (real write failures) and two injected pointer-switch failures (one after the
+   old pointer was deleted, which the undo puts back) each leave the pointer byte-identical and the
+   earlier pair resuming.
+3. **Source-use scope.** The station's source uses are now described everywhere as selected
+   representative source variants for M1 cue review, not an exhaustive event-sequencing matrix: the
+   constant `SOURCE_USES_SCOPE` (code comments, the review contract, `audio_inventory.json`
+   `source_uses_scope`, the checklist's section B), `godot/README.md` and the package README name what
+   is not played separately (for example star's delayed marking call and its rate steps, click's
+   story-minigame volumes and rates, the cat cash's 0.35 s delay, bark's random rate).
+4. **Call site fingerprinted.** `res://scenes/green_zone/green_zone_scene.gd`, the only implemented
+   call site the source-use parity check reads, is now one of the fingerprinted files (89). Self-test:
+   replacing its digest with the SHA-256 of a modified copy changes the fingerprint (the contract is
+   unchanged) and makes the saved pair be set aside, not resumed; undoing it restores the fingerprint.
+5. **Evidence wording.** The evidence reports of trees `4ac0aed`, `11330ef` and `c9de0e5` now say
+   "The M2 rendered probe was not rerun because no shipping/runtime camera, interpolation or
+   presentation file changed.", each with a marked correction note (the review tools did change); the
+   logs are unchanged. This report and the new evidence report use the same sentence. The historical
+   log sections keep their submitted text.
+6. **Package and evidence regenerated** on the verification clone; every human decision is
+   NOT EXECUTED. Fingerprint `879ed918e744755b29468d703f45405d20f114e7641d113d180db161603ad3c5`, review contract `28f1ec911e3c9f5ce429e8ec3bdfa051134abd93e3001732c2a33aa1bd3bcda6`.
+7. **Checks rerun** (below).
+
+Mutation check of the self-test (session script, not committed; the tool restored byte-for-byte after
+each run): ignoring the `.new` pointer when the pointer is missing, accepting a Markdown copy whose
+SHA-256 does not match, pruning the previously active pair, not scanning the correction-23 names, not
+fingerprinting the Green Zone call site, not putting the pointer back after a failed switch, digests
+that read CRLF line ends as they are, and setting aside incomplete files like stale ones each made
+`--selftest` exit 1, each with its own check among the failures (the Windows-midpoint crash check,
+the changed-Markdown damage check, the pruning check, the legacy split-pair check, the call-site
+binding check, the pointer-switch failure check, the line-ends check and the torn-JSON damage check).
+
+### Commands executed and results
+
+| Command | Result |
+|---|---|
+| Fresh `git clone` of the commit with the tool changes (local `d9b90aa`, `core.autocrlf=true`; tested `godot/` tree `21ce8a2d6e4fca5a578a3bc6931ece48309573c0` = `git rev-parse HEAD:godot` of this commit; only docs and the evidence folders were written after it), `npm ci`, `npx playwright install chromium` | exit 0 each |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` | exit 0: 206 + 55 outputs identical |
+| `<console exe> --headless --path godot --import`; `git status --porcelain` | exit 0, no ERROR/WARNING line; status empty |
+| `… --script res://tests/test_runner.gd -- --suite all` | exit 0: **139 passed, 0 failed, 139 total** |
+| `<console exe> --headless --path godot --quit-after 600` | exit 0, engine banner only |
+| `… --suite integration --file test_export_pack` (hermetic PCK smoke) | exit 0: 32,906,024 bytes, **254** runtime resources, **512** packed files, 18 source-only paths unresolved, control resolved 18; no `tools/` file packed |
+| `npm test`; `npm run build` | exit 0: 30 files, 248 tests passed; build OK |
+| `git status --porcelain`; `git diff --check 95b69c0 HEAD`; `git show --check HEAD` | exit 0, all empty (HEAD: `d9b90aa`, folded into this commit with the same `godot/` tree) |
+| `bash godot/tools/source_tree_guard.sh` | `source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265` |
+| `git diff --name-status 9ca2ec5 HEAD -- godot` | `M godot/README.md`, `M godot/tools/m1_review.gd` |
+| `<console exe> --path godot --rendering-driver opengl3 --quit-after 6000 res://tools/m1_review.tscn -- --export <dir>` (`--quit-after` only as a safety net; the tool quits itself) | exit 0: `M1REVIEW {"artifact_problems":[],"artifacts_expected":26,"checks":25,…,"failed":[],"fields":363,"ok":true,"write_errors":[]}`; content fingerprint `879ed918e744755b29468d703f45405d20f114e7641d113d180db161603ad3c5`, review contract `28f1ec911e3c9f5ce429e8ec3bdfa051134abd93e3001732c2a33aa1bd3bcda6`; layout checks and captures at 1320 x 900 and 1280 x 720 as in correction report 23; contact sheets, stills, `animation_inventory.json` and `title_facts.json` byte-identical to correction report 23's |
+| the same with `--export <a regular file>` (failure control) | **exit 1 (expected)**: `"ok":false`, write error "cannot create the folder … (the path exists and is not a folder)" |
+| the same into a folder holding a file named `contact_sheets` (failure control) | **exit 1 (expected)**: `"ok":false`, one write error, the 12 contact sheets reported missing, the other 14 files verified |
+| `… --quit-after 8000 res://tools/m1_review.tscn -- --selftest <dir>` | exit 0: `M1SELFTEST {"checks":74,…,"failed":[],…,"ok":true,…,"schema_version":4}`, including the six stopped-save states, four damage cases, the line-ends case, two legacy split pairs and the schema-3 split pair; seven ERROR records from the six expected save-failure checks, announced in the log |
+| `<console exe> --path godot --rendering-driver opengl3 --script res://tools/title_capture.gd -- --out <dir>` | exit 0; portraits on frames 0, 49 and 98; the three images byte-identical to the export's `title_stills/` (`728ff267…`, `95840694…`, `c0f46e0f…`) |
+| `… --quit-after 600 res://tools/m1_review.tscn -- --decisions <empty dir>` | exit 0, engine banner only; no decisions folder created (nothing decided) |
+| the same with a correction-23 pair split across its names (schema 3: `.previous.json` and `m1_owner_decisions.md`) in the folder | exit 0; both halves renamed to `m1_owner_decisions.stale-<time>.*`; nothing resumed or saved |
+| `git status --porcelain` after all steps | empty |
+| `git diff --cached --check 9ca2ec5` (this commit, staged) | clean |
+| `python docs_consistency_check.py` (session tool, not committed) | `OK: 97 checks` |
+
+Evidence: `docs/porting/windows_evidence/m1-review-godot-tree-21ce8a2/` (REPORT.md, every step's log,
+`exit_codes.txt`, the self-test result) and the package above. Not run: Linux; Android; any manual
+check. The M2 rendered probe was not rerun because no shipping/runtime camera, interpolation or
+presentation file changed.
+
+Host evidence: current tree `21ce8a2` above (139 passed). Previous Windows trees: `c9de0e5`
+(correction report 23, 139 passed), `11330ef` (correction report 22, 139 passed), `4ac0aed` (progress
+report 21, 139 passed), `2ffca5f` (correction report 19, 139 passed), `366eb3b` (correction report 18,
+139 passed), `51ad8b3` (correction report 17, 138 passed), `591e2df` (correction report 16, 138
+passed), `cd87171` (correction report 15, 138 passed), `ef6c318` (progress report 14, 138 passed),
+`9bbe179` (correction report 12, 138 passed), `a06b1df` (correction report 11, 138 passed), `1532143`
+(correction report 10, 137 passed), `6a3c53b` (correction report 9, 137 passed), `b1c3595` (correction
+report 8, 137 passed), `b8535ab` (correction report 7 addendum, 137 passed), `81906cd` /
+`fd20ac1f3c8ac95fb197fd7bcca6a5d4c2c95876` (correction report 6, 134 passed). Linux: the prior tree
+`d12bedd`, 128 passed (progress report 5). Correction 6 was not rerun on Linux, and neither were
+correction 7's addendum, corrections 8 to 13, progress report 14, correction reports 15 to 19,
+progress report 21, correction reports 22 and 23 and this report.
+
+### Development attempts (kept as found)
+
+- A sudden shutdown of the host interrupted the first attempt at this correction before anything was
+  changed (the clone was clean at `9ca2ec5`); the work was restarted from scratch.
+- The first self-test run of the new code stopped at a GDScript parse error (a two-line condition
+  without a line continuation); the scene then ran without its script until `--quit-after` ended it.
+  Fixed; a small session script now lists such lines before a run (none left).
+- The first passing run (73 of 73) showed that the Windows-midpoint crash check would also pass
+  without the loader's `.new` branch, because the folder scan finds the same pair; each crash check
+  now also asserts how the pair was selected, and the mutation check confirms it.
+- **First verification clone (tree `28f2435`, local commit `63b0542`), superseded:** every step had its
+  expected exit code (suite 139 passed, export ok, both failure controls exit 1, self-test 73 of 73,
+  title images identical), but step p2 set aside only the JSON half of the correction-23 split pair:
+  its Markdown half, written by PowerShell (its Save ID row ends in CRLF), was not recognised (the
+  save-ID pattern expected LF) and was left as found. Because a Windows git checkout of `docs/`
+  converts committed copies to CRLF, the station now reads CRLF as LF for the save-ID row and for
+  every decisions digest, a self-test check converts a pair and its pointer to CRLF and resumes it
+  (74 checks), and the mutation check gained the matching mutation. The whole verification was
+  repeated on a new clone of tree `21ce8a2` (local commit `d9b90aa`); its logs are the committed
+  ones. The first clone's logs were kept in the session's scratch folder, not committed.
+- The first redaction of the verification logs left one local scratch path in `station_selftest.json`:
+  the self-test cuts a failure message to 160 characters, which cut the path before the part the
+  session normalizer matched. The normalizer now also matches such cut-short paths; the logs were
+  regenerated and rescanned (no user path or personal data).
+- A first, malformed session mutation script failed to parse before running anything, so it never
+  touched the tool file; the rewritten script ran the mutations (seven, then eight after the line-end
+  change), and the tool file's SHA-256 was the same before and after them.
+
+### Legacy-save plan (unchanged; MILESTONES.md M1/M4/M9, ARCHITECTURE.md §17.2–17.3)
+
+1. **M1 — feasibility spike: executed and hardened, accepted by the architect on review of
+   `8f8dcb6`.** The throwaway native migration plugin under `/godot/platform/android/` read the five
+   legacy keys of a controlled same-package/same-signature lineage on three emulators. The
+   native-bridge versus staged-Capacitor decision stands: `native_bridge_viable_for_controlled_lineage`
+   (controlled lineage, emulators, test key; not a production approval).
+2. **M4 — deterministic format-3 converter and SaveService integration**, plus the fixture/simulated
+   MIG-005 (raw five-key payload written exactly with timestamp and SHA-256 before any parsing).
+3. **M9 — production proof:** the installed lineage and signing certificate, representative real
+   user data, two WebView/device versions, end-to-end MIG-001–010.
+
+### Deviations
+
+| ID | Status |
+|---|---|
+| D-11 | Campaign save: the pure v1→v2 rules are ported (SAV-013–017) and the accepted M1 spike found the native bridge viable for a controlled lineage. Remaining: the M4 format-3 converter, SaveService integration and fixture/simulated MIG-005; the M9 production-lineage / two WebView-device / MIG-001–010 proof |
+| D-13 | M1 migration spike done on emulators (API 36, 34, 24) with a throwaway key, accepted by the architect on review of `8f8dcb6`; physical devices and the production lineage are M9 |
+| D-05, D-14, D-15 | As in progress report 5 |
+| D-01–D-04, D-06–D-10 | As in correction report 1 |
+
+### Still required before requesting M1/M2 completion review
+
+- **Independent review of this correction**, then the owner's decisions for the M1 manual checks
+  (package README, "Owner: running the review"): the animation review (192 cells and A-FILTER), the
+  listening review on a computer with speakers or headphones (160 fields including the siren's
+  attack event and the effects' second source uses, B-MUTE, B-VOLUME), the title review (8 fields
+  including C-MEMORY) and the sign-off (name, date, equipment). A FAIL is recorded with exact
+  reproduction steps and stops the M1 sign-off; nothing is repaired in the evidence commit.
+- **Manual desktop play (M2):** five minutes with keyboard/controller; occlusion at every approach
+  angle; camera bounds at map edges; crisp rendering at two window sizes and one non-integer aspect.
+- **Manual touch play (M2):** five minutes on a portrait Android device or touch surface (move,
+  simultaneous RUN, PEE, pointer ownership, left/right edges); touch video/capture.
+
+### Architect review result
+
+Pending.
+
+---
+
+## Historical — correction report 23: M1 review station hardened before owner use (second pass); owner decisions not yet requested (`9ca2ec5`; M1 Partial, M2 Partial)
+
+> Historical record of `9ca2ec5`, superseded by correction report 24 (text below kept as
+> submitted). **Supersession:** its split current/previous rotation could lose a complete save when the
+> station stopped between two renames; correction report 24 replaced it with immutable generation
+> pairs selected by one pointer (decisions schema 4), recovery of the newest complete pair under any
+> file names, crash-state tests after every save step, the Green Zone call site in the fingerprint and
+> the source-use scope statement. Its evidence reports' rendered probe sentence was corrected ("The M2
+> rendered probe was not rerun because no shipping/runtime camera, interpolation or presentation file
+> changed."). Its current tree `c9de0e5` is superseded by `21ce8a2` (runtime files identical). No owner
+> decision was returned; the owner is asked only after the independent review of correction report 24.
 
 Scope: the architect's correction 23 after `6dc585a`: final hardening of the M1 owner-review station,
 in one commit of review-tool, evidence and documentation corrections. Changed:

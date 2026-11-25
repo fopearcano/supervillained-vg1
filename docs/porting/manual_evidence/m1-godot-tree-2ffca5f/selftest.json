@@ -101,12 +101,12 @@
       "value": 363
     },
     {
-      "check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources, the station's code and AudioService) and the review contract included",
+      "check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources, the station's code, AudioService and the Green Zone call site) and the review contract included",
       "ok": true,
       "value": {
-        "files": 88,
-        "review_contract_sha256": "2fa10012e6a4d500548bca84f9debfe6df9cc9583a3d1f3409c67e0039a06404",
-        "sha256": "67cf406c4fb70150c2cf1739c9845dd9e017dbb6b105f20727e757d005551d4d"
+        "files": 89,
+        "review_contract_sha256": "28f1ec911e3c9f5ce429e8ec3bdfa051134abd93e3001732c2a33aa1bd3bcda6",
+        "sha256": "879ed918e744755b29468d703f45405d20f114e7641d113d180db161603ad3c5"
       }
     },
     {
