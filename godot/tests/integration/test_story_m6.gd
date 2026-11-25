@@ -13,7 +13,7 @@ const DT := 1.0 / 60.0
 const NOW := 1795608000000
 const CB := GameConfig.Combat
 ## Every M6 scene in catalog order (this build's).
-const IDS := ["2.1", "2.2", "2.3"]
+const IDS := ["2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "3.4"]
 ## Choices a run takes (choice id -> option id) and the branches the snapshots cover.
 const BRANCHES := {"2.2": [{"s13": "glad"}, {"s13": "proud"}]}
 ## What each scene commits on top of its entry state: meter deltas, flags, abilities, how many book
@@ -23,6 +23,10 @@ const SNAP := {
 	"2.2/glad": {"meters": {"commozione": 9, "grace": 5, "standing": 2}, "flags": {"vow": true}, "abilities": ["sermon"], "book": {"remembered": 1}},
 	"2.2/proud": {"meters": {"commozione": 6, "grace": 5, "supervillain": 3, "standing": -2}, "flags": {"vow": true}, "abilities": ["sermon"], "book": {"remembered": 1}},
 	"2.3": {"meters": {"supervillain": 8}, "flags": {}, "abilities": ["knight"], "book": {"remembered": 1}},
+	"3.1": {"meters": {"commozione": 9}, "flags": {}, "abilities": [], "book": {"marvels": 3, "items": 1, "remembered": 1}},
+	"3.2": {"meters": {}, "flags": {"shortfall": 36000}, "abilities": [], "book": {"remembered": 1}},
+	"3.3": {"meters": {"commozione": 10}, "flags": {"weptWell": true}, "abilities": [], "book": {"remembered": 1}},
+	"3.4": {"meters": {}, "flags": {"zaraDeal": true}, "abilities": [], "book": {"remembered": 1}},
 }
 
 var main: Node
@@ -175,6 +179,8 @@ func test_SLICE_m6_real_input_completes_every_scene_and_branch() -> void:
 			if not assert_true(out.has("result"), "%s/%s: real input reaches the completion boundary (%s ticks)" % [id, branch, out.get("ticks", "timeout")]):
 				continue
 			_check_snapshot(id, branch, entry, out["result"]["state"])
+			var sc: StoryScene = out["scene"]
+			assert_eq([sc.ctx.metrics["caught"], sc.ctx.metrics["knockdowns"]], [[], []], "%s/%s: never caught, never knocked down" % [id, branch])
 			if branch == "" or branch == _first_branch(id):
 				completion[id] = {"ticks": out["ticks"], "seconds": snappedf(out["ticks"] * DT, 0.1)}
 	print("M6 real-input completion: ", completion)
@@ -347,6 +353,298 @@ func test_STY_203_sparring_loss_resets_without_state_change() -> void:
 	InputService.guard_hold_injected = false
 	assert_true(s.runner.current == null or s.runner.current.id != "s29", "the retried sparring is won")
 	assert_eq(s.ctx.metrics["knockdowns"], ["s29"], "one knockdown")
+
+
+# --- Level 3 -------------------------------------------------------------------------------------------
+
+## Plays `s` with the real-input driver until `cond` holds (or the scene ends).
+func _drive_until(s: StoryScene, cond: Callable, limit: int = 60 * 120, policy: Dictionary = {}) -> bool:
+	var d := StoryDriver.new(s, policy)
+	for k in limit:
+		if cond.call():
+			InputService.guard_hold_injected = false
+			return true
+		if s.finished:
+			break
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	InputService.guard_hold_injected = false
+	return bool(cond.call())
+
+
+## STY-301: 3.1 — following Pierre along the quay while the harbour bell clangs over the water
+## (the sounder: CLONG at the bell every 1.6 s); LOOK (the walk's own action) says OOOH; the three
+## marvels go into the book, each once (a second pass awards nothing); MERAVIGLIA is received; the
+## three empty berths are counted.
+func test_STY_301_quay_bell_marvels_once_meraviglia_and_berths() -> void:
+	var s := _scene("3.1", _entry("3.1"))
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s04"), "past the quay")
+	assert_true((s.ctx.metrics.get("sounds", []) as Array).count("s03") >= 3, "the bell rang along the quay (%d)" % (s.ctx.metrics.get("sounds", []) as Array).count("s03"))
+	InputService.trigger(&"pee")
+	_ticks(s, 1)
+	assert_true(s.hud.floats.any(func(f: Dictionary) -> bool: return f["text"] == "OOOH."), "LOOK: OOOH.")
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s07"), "the ships looked at")
+	var book: Dictionary = s.ctx.state["book"]
+	var marvels: Array = book["marvels"]
+	marvels.sort()
+	assert_eq(marvels, ["THE GALLEYS", "THE GREAT SHIPS", "THE HORSE TRANSPORTS"], "three marvels")
+	assert_eq(book["items"], ["MERAVIGLIA, THE BOOK OF MARVELS"], "Meraviglia received")
+	assert_eq(s.ctx.state["meters"]["commozione"], _entry("3.1")["meters"]["commozione"] + 9.0, "Commozione +3 per marvel")
+	# A second pass over the same marvels awards nothing (unique book entries).
+	var again := CampaignRules.apply_effects(s.ctx.state, {"marvel": "THE GALLEYS"})
+	assert_eq([again, (s.ctx.state["book"]["marvels"] as Array).count("THE GALLEYS")], [[], 1], "a marvel is awarded once")
+	# Replay on a state that already holds them: no duplicates.
+	var full := _entry("3.1")
+	full["book"]["marvels"] = ["THE HORSE TRANSPORTS", "THE GALLEYS", "THE GREAT SHIPS"]
+	full["book"]["items"] = ["MERAVIGLIA, THE BOOK OF MARVELS"]
+	var out := _play("3.1", full, {}, true)
+	assert_true(out.has("result"), "3.1 again")
+	if out.has("result"):
+		assert_eq([(out["result"]["state"]["book"]["marvels"] as Array).size(), (out["result"]["state"]["book"]["items"] as Array).size()], [3, 1], "no duplicate marvel or item")
+
+
+## STY-302: 3.2 — the bowl carried (on his back, on the HUD) through two collections (six pilgrims,
+## then five lords), both chroniclers' counts kept apart (Clari's 50,000 and 36,000 on the cards, the
+## marshal's 34,000 in his line), the bowl handed over, and `shortfall` = 36000 (Clari's count, as
+## authored) set once.
+func test_STY_302_two_collections_two_counts_and_the_shortfall() -> void:
+	var s := _scene("3.2", _entry("3.2"))
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s06"), "at the first collection")
+	assert_eq([s.ctx.carrying, s.hud.carry_label], ["THE COLLECTING BOWL", "THE COLLECTING BOWL"], "the bowl is carried")
+	var cards := []
+	var lines := []
+	var d := StoryDriver.new(s)
+	var out := {}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	for k in 60 * 120:
+		if out.has("r"):
+			break
+		if s.hud.card_visible and not cards.has(s.hud.card_big):
+			cards.append(s.hud.card_big)
+		if s.hud.line_visible and not lines.has(s.hud.full_text):
+			lines.append(s.hud.full_text)
+		if s.runner.current != null and s.runner.current.id == "s13":
+			assert_eq(s.ctx.carrying, "", "the bowl handed over")
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	assert_true(out.has("r"), "3.2 completes")
+	assert_eq(cards, ["50,000 STILL OWED", "36,000 STILL OWED"], "Clari's two counts, in order")
+	assert_true(lines.has("THIRTY-FOUR THOUSAND STILL OWED.") and lines.has("I COUNTED THIRTY-SIX."), "the marshal's count and Zampano's, side by side")
+	if out.has("r"):
+		assert_eq(out["r"]["state"]["flags"]["shortfall"], 36000, "shortfall: Clari's 36,000, as authored")
+		assert_eq(s.runner.trace.count("s06") + s.runner.trace.count("s09"), 2, "two collections")
+
+
+## STY-303 and WALK-015: 3.3 — at the front of the envoys he kneels and weeps; under the trumpets a
+## sob is lost; in a lull it is heard: the first moves one Venetian (his notice), the second the
+## whole square, each Commozione +5; `weptWell` set once; the unused weeping() minigame does not
+## exist in the port.
+func test_STY_303_weeping_in_the_lulls_moves_the_square() -> void:
+	var s := _scene("3.3", _entry("3.3"))
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s05"), "kneeling at the front")
+	var st: Dictionary = s.runner.st
+	_ticks_until(s, func() -> bool: return bool(s.runner.st.get("talking", false)), 300)
+	InputService.trigger(&"action")
+	_ticks(s, 1)
+	assert_eq([int(st["good"]), (s.ctx.metrics["notices"] as Array).has("A SOB UNDER A TRUMPET IS LOST. WAIT")], [0, true], "under the trumpets the sob is lost")
+	assert_true(_drive_until(s, func() -> bool: return int(s.runner.st.get("good", 0)) >= 1), "a sob in a lull")
+	assert_true((s.ctx.metrics["notices"] as Array).has("THE FIRST VENETIAN IS MOVED. HIS NEIGHBOUR LOOKS AT HIM"), "the first Venetian is moved")
+	var out := {}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	assert_true(_drive_until(s, func() -> bool: return out.has("r"), 60 * 90), "the square answers; 3.3 completes")
+	if out.has("r"):
+		assert_eq([out["r"]["state"]["flags"].get("weptWell"), out["r"]["state"]["meters"]["commozione"]], [true, _entry("3.3")["meters"]["commozione"] + 10.0], "weptWell; Commozione +5 per heard sob")
+	assert_false(ResourceLoader.exists("res://story/minigames/weeping_game.gd"), "no weeping() minigame")
+	var mini_files: PackedStringArray = DirAccess.get_files_at("res://story/minigames") if DirAccess.dir_exists_absolute("res://story/minigames") else PackedStringArray()
+	for f: String in mini_files:
+		assert_false(FileAccess.get_file_as_string("res://story/minigames/" + f).contains("weeping"), f + ": no weeping game")
+
+
+## WALK-010–013 (rules): a watcher sees within its range and cone and only with a clear line of sight
+## (walls and tall props block it); in a bush, or by a hiding spot a scene placed, he is seen only from
+## within BUSH_HIDE; on a stealth walk a full cone or a hostile's touch catches him.
+func test_WALK_010_013_sight_cone_range_los_hiding_and_contact() -> void:
+	var m: StoryMapData = load("res://data/story/maps/neighborhood.tres")
+	var map := WorldMapModel.new(m.parse()["level"])
+	var w := StoryActor.new()
+	w.sight_range = 5.0
+	w.sight_half_angle = 0.5
+	w.gx = 2.5
+	w.gy = 9.5
+	w.face("E")
+	w.facing_vec = Vector2(1, 0)
+	assert_true(StorySight.can_see(map, w, 5.5, 9.5), "in front, in range, clear: seen")
+	assert_false(StorySight.can_see(map, w, 8.5, 9.5), "beyond the range")
+	assert_false(StorySight.can_see(map, w, 4.5, 11.5), "outside the cone")
+	assert_false(StorySight.can_see(map, w, 1.5, 9.5), "behind")
+	assert_true(StorySight.can_see(map, w, 2.9, 9.0), "right next to him: seen whatever the cone")
+	# The bush at (7, 9): from 5 tiles, hidden; a hiding spot placed by the scene hides likewise.
+	w.gx = 2.5
+	assert_false(StorySight.can_see(map, w, 7.5, 9.5), "in a bush (beyond BUSH_HIDE): hidden")
+	w.gx = 6.6
+	assert_true(StorySight.can_see(map, w, 7.5, 9.5), "in a bush but within BUSH_HIDE: seen")
+	w.gx = 2.5
+	assert_true(StorySight.can_see(map, w, 5.5, 9.5), "open ground")
+	assert_false(StorySight.can_see(map, w, 5.5, 9.5, [Vector2(5.6, 9.4)]), "by a hiding spot: hidden")
+	# Line of sight: the wall row 6 blocks a watcher below it from seeing above it.
+	var v := StoryActor.new()
+	v.sight_range = 6.0
+	v.sight_half_angle = 0.8
+	v.gx = 4.5
+	v.gy = 8.5
+	v.facing_vec = Vector2(0, -1)
+	assert_false(StorySight.line_of_sight(map, 4.5, 8.5, 4.5, 4.5), "the wall blocks the line")
+	assert_false(StorySight.can_see(map, v, 4.5, 4.5), "so he is not seen through it")
+	w.free()
+	v.free()
+
+
+## STY-304, WALK-010–014 (in play): 3.4 — the guard's cone fills while he is in it; a full cone shows
+## A GUARD SAW YOU and sends him back to the walk's start (or, once passed, the checkpoint by the
+## tents), cones emptied; the seller waits while he lags and walks on when he catches up; a hostile's
+## touch catches him too; the real-input driver then follows unseen to the awning, overhears five
+## seconds, finds the gangplank by the bell's sound (no ring), and the Zara deal is in the working copy
+## only (the save gets it with the completion, once).
+func test_STY_304_stealth_detection_checkpoint_recovery_and_the_deal() -> void:
+	var entry := _entry("3.4")
+	SaveService.save_campaign(entry, NOW - 1000)
+	var s := _scene("3.4", AppState.story_entry_state())
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s11"), "at the stealth walk")
+	var st: Dictionary = s.runner.st
+	var start: Vector2 = st["start"]
+	var g: StoryActor = s.actors["g1"]
+	var seller: StoryActor = s.actors["seller"]
+	# Detection: stand in front of the guard, in his cone.
+	g.set_grid_position(13.5, 13.5)
+	g.set_idle()
+	g.face("S")
+	g.facing_vec = Vector2(0, 1)
+	s.world.player.set_grid_position(13.5, 15.0)
+	assert_true(_ticks_until(s, func() -> bool: return g.alert > 0.3, 120), "the cone fills while he is in it")
+	assert_true(_ticks_until(s, func() -> bool: return s.runner.st.has("interrupt"), 120), "caught when it is full")
+	assert_eq([s.hud.card_big, s.ctx.metrics["caught"]], ["A GUARD SAW YOU", ["s11"]], "the caught card")
+	assert_true(_ticks_until(s, func() -> bool: return not s.runner.st.has("interrupt"), 200), "the card passes")
+	assert_vec_near(s.ctx.player_pos(), start, 0.01, "back at the walk's start")
+	assert_eq(g.alert, 0.0, "the cones emptied")
+	# A hostile's touch catches him as well.
+	g.hostile = true
+	g.set_grid_position(s.ctx.player_pos().x + 0.3, s.ctx.player_pos().y)
+	g.sight_range = 0.0
+	_ticks(s, 1)
+	assert_true(s.runner.st.has("interrupt"), "a hostile's touch catches him")
+	_ticks_until(s, func() -> bool: return not s.runner.st.has("interrupt"), 200)
+	g.hostile = false
+	# (The guard looks away while the leader and the checkpoint are checked.)
+	g.sight_range = 0.0
+	g.patrol([s.ctx.marker("5"), s.ctx.marker("8")], 1.0, 1.2)
+	# The seller waits while he lags (WALK-014).
+	assert_true(_ticks_until(s, func() -> bool: return bool(s.runner.st.get("waiting", false)), 400), "the seller waits for him")
+	var held := Vector2(seller.gx, seller.gy)
+	_ticks(s, 30)
+	assert_vec_near(Vector2(seller.gx, seller.gy), held, 0.01, "and stays put while he lags")
+	# The checkpoint: once passed it is where a capture sends him.
+	var cp := s.ctx.marker("1")
+	s.world.player.set_grid_position(cp.x, cp.y)
+	_ticks(s, 1)
+	assert_vec_near(s.runner.st["start"], cp, 0.01, "checkpoint passed: the restart point")
+	s.world.player.set_grid_position(start.x, start.y)
+	g.sight_range = 3.0
+	# Then the real-input driver follows unseen, overhears and finds the gangplank by ear.
+	var caught_before := (s.ctx.metrics["caught"] as Array).size()
+	var hidden_ok := [false]
+	var out := {}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	var d := StoryDriver.new(s)
+	for k in 60 * 180:
+		if out.has("r"):
+			break
+		if s.runner.current != null and s.runner.current.id == "s19" and not hidden_ok[0]:
+			hidden_ok[0] = not s.runner.st.has("goal_node")
+		if s.runner.current != null and s.runner.current.id == "s18":
+			assert_eq([s.ctx.state["flags"].get("zaraDeal"), SaveService.get_campaign()["flags"].get("zaraDeal")], [true, null], "the deal is in the working copy, not the save")
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	assert_true(out.has("r"), "3.4 completes by real input")
+	assert_true(hidden_ok[0], "the gangplank has no ring: found by the bell")
+	print("3.4 captures after the forced ones: ", (s.ctx.metrics["caught"] as Array).size() - caught_before)
+	if out.has("r"):
+		assert_eq(SaveService.get_campaign()["flags"].get("zaraDeal"), null, "nothing saved before the completion")
+		var r := AppState.commit_scene("3.4", out["r"]["state"], float(out["r"]["play_time"]))
+		assert_eq([r["saved"], SaveService.get_campaign()["flags"].get("zaraDeal")], [true, true], "the deal commits with the completion")
+
+
+## WALK-016–017: a hidden sound goal shows no ring and sounds at the goal; movement modifiers: a
+## no-run walk refuses RUN (2.1), heavy mail walks at 0.8 unless he runs (2.3).
+func test_WALK_016_017_hidden_sound_goal_and_movement_modifiers() -> void:
+	var s := _scene("3.4", _entry("3.4"))
+	assert_true(_to_step(s, "s19"), "at the bell walk")
+	assert_false(s.runner.st.has("goal_node"), "no ring at the hidden goal")
+	_ticks(s, 2)
+	var goal: Vector2 = s.runner.st["goal"]
+	assert_true(s.hud.floats.any(func(f: Dictionary) -> bool: return f["text"] == "CLONG." and (f["at"] as Vector2).distance_to(goal) < 0.01), "the sound pops at the goal")
+	var a := _scene("2.1", _entry("2.1"))
+	assert_true(_to_step(a, "s06"), "2.1's walk")
+	InputService.inject_move(0.0, -1.0, true)
+	_ticks(a, 30)
+	assert_eq([a.ctx.no_run, a.world.player.running, a.controls.can_run], [true, false, false], "no-run: RUN refused, no RUN button")
+	InputService.clear_injection()
+	var b := _scene("2.3", _entry("2.3"))
+	assert_true(_to_step(b, "s19"), "2.3's charge")
+	InputService.inject_move(0.0, -1.0, false)
+	_ticks(b, 40)
+	assert_eq([b.world.player.speed_mul, b.world.player.running], [0.8, false], "walking in mail: 0.8")
+	InputService.inject_move(0.0, -1.0, true)
+	_ticks(b, 5)
+	assert_eq([b.world.player.speed_mul, b.world.player.running], [1.0, true], "charging: full speed")
+	InputService.clear_injection()
+
+
+## The Meraviglia book: opened from the level list and OPTIONS, it shows the committed campaign's
+## meters, things, marvels, values, scraps and remembered lines, paged by height (a heading is never
+## left alone at a page's foot); NEXT, PREV, a tap on the page and BACK work; replaying a scene
+## changes nothing it shows.
+func test_SLICE_meraviglia_book_opens_pages_and_persists() -> void:
+	var st := _entry("3.2")
+	st["book"]["marvels"] = ["THE HORSE TRANSPORTS", "THE GALLEYS", "THE GREAT SHIPS"]
+	st["book"]["items"] = ["MERAVIGLIA, THE BOOK OF MARVELS"]
+	st["book"]["remembered"] = ["THERE WAS A CITY, AND IT WAS ALWAYS ONE STEP FURTHER ON.", "THERE WAS A LIST, AND MY NAME WAS AT THE BOTTOM OF IT.", "THERE WAS A COAT OF MAIL, AND I WAS SOMEWHERE INSIDE IT.", "THERE WERE SHIPS, AND THEY WERE TALLER THAN THE CHURCH."]
+	st["book"]["shards"] = ["A FLEET BOUGHT ON CREDIT", "A KNIGHT WHO KEPT WALKING", "A CITY SEEN FROM ITS WALLS"]
+	SaveService.save_campaign(st, NOW - 1000)
+	await _main_start()
+	await _settle()
+	main.clear_overlays()
+	main.open_levels()
+	var levels := main.top_overlay() as LevelListOverlay
+	levels.actions["book"].call()
+	var b := main.top_overlay() as MeravigliaOverlay
+	if not assert_true(b != null, "the book opens from the level list"):
+		return
+	await tree.process_frame
+	await tree.process_frame
+	assert_true(b.pages.size() >= 2, "several pages (%d)" % b.pages.size())
+	var all := ""
+	for p: Array in b.pages:
+		assert_false(bool((p.back() as Dictionary)["head"]), "no heading alone at a page's foot")
+		for r: Dictionary in p:
+			all += String(r["text"]) + "\n"
+	for want: String in ["COMMOZIONE %s" % CampaignSchema.clean_number(float(st["meters"]["commozione"])), "THE GALLEYS", "MERAVIGLIA, THE BOOK OF MARVELS", "\"THERE WERE SHIPS, AND THEY WERE TALLER THAN THE CHURCH.\"", "A FLEET BOUGHT ON CREDIT", "NOTHING IN THE BOOK YET."]:
+		assert_true(all.contains(want), "the book lists %s" % want)
+	b.time = 1.0
+	b.next_page()
+	assert_eq(b.page, 1, "NEXT")
+	b.prev_page()
+	assert_eq(b.page, 0, "PREV")
+	b.on_tap(Vector2(20, 60))
+	assert_eq(b.page, 1, "a tap on the page turns it")
+	b.close()
+	assert_false(main.top_overlay() is MeravigliaOverlay, "BACK closes it")
+	main.clear_overlays()
+	main.open_options()
+	(main.top_overlay() as OptionsOverlay).actions["book"].call()
+	assert_true(main.top_overlay() is MeravigliaOverlay, "and from OPTIONS")
 
 
 # --- Restart, replay, force-close -----------------------------------------------------------------

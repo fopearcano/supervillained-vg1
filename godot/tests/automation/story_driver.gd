@@ -106,6 +106,15 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 	if step.rule == "lull":
 		_lull(step, pos)
 		return
+	if step.rule == "listen":
+		var lp: Variant = step.rule_params["point"]
+		var at: Vector2 = scene.ctx.marker(lp) if lp is String else lp
+		if pos.distance_to(at) > float(step.rule_params["radius"]) - 0.6:
+			if scripted:
+				dog.set_grid_position(at.x, at.y)
+			else:
+				_steer(pos, at, [])
+		return
 	var target: Variant = null
 	var blocked: Array = []
 	var bark_here := false
@@ -137,6 +146,9 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 				target = at
 		if target == null and st.get("goal") != null:
 			target = st["goal"]
+			# A goal found by ear: walk to where the sound was last heard (no ring is shown).
+			if step.rule == "sounder" and bool(step.rule_params.get("hidden", false)):
+				target = _heard(String(step.rule_lines["sound"]), target)
 	if bark_here:
 		if t >= _next_action:
 			_next_action = t + 0.45
@@ -147,6 +159,8 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 		return
 	if scripted:
 		dog.set_grid_position((target as Vector2).x, (target as Vector2).y)
+		return
+	if step.caught != "" and _stealthy(pos, target):
 		return
 	_steer(pos, target, blocked)
 
@@ -187,6 +201,50 @@ func _fight(pos: Vector2) -> void:
 			scene.world.player.set_grid_position(to.x, to.y)
 		else:
 			_steer(pos, to, [])
+
+
+## Where `sound` was last seen floating (the place a hidden goal is heard from), else `fallback`.
+func _heard(sound: String, fallback: Vector2) -> Vector2:
+	var best: Variant = null
+	var age := INF
+	for f: Dictionary in scene.hud.floats:
+		if String(f["text"]) == sound and float(f["t"]) < age:
+			age = float(f["t"])
+			best = f["at"]
+	return best if best != null else fallback
+
+
+## Stealth, from what a player sees (the cones, red while they fill; the bushes): inside a cone, get
+## out of it (to the nearest cover, or straight away from the watcher); if the next step would enter
+## one, wait. True when this tick's movement was decided here.
+func _stealthy(pos: Vector2, target: Vector2) -> bool:
+	var map := scene.world.map
+	var hides: Array = scene.ctx.hides
+	var watchers: Array = []
+	for a: StoryActor in scene.actors.values():
+		if a.sight_range > 0.0:
+			watchers.append(a)
+	if watchers.is_empty():
+		return false
+	var seen_by: StoryActor = null
+	for a: StoryActor in watchers:
+		if StorySight.can_see(map, a, pos.x, pos.y, hides):
+			seen_by = a
+	if seen_by != null:
+		var away := (pos - Vector2(seen_by.gx, seen_by.gy)).normalized()
+		var cover: Variant = null
+		for h: Vector2 in hides:
+			if h.distance_to(pos) < 2.5 and (cover == null or h.distance_to(pos) < (cover as Vector2).distance_to(pos)):
+				cover = h
+		var to: Vector2 = cover if cover != null else pos + away * 1.5
+		_steer(pos, to, [])
+		return true
+	var ahead := pos + (target - pos).normalized() * 0.9
+	for a: StoryActor in watchers:
+		if StorySight.can_see(map, a, ahead.x, ahead.y, hides):
+			InputService.inject_move(0.0, 0.0)
+			return true
+	return false
 
 
 ## The lull: stand within range, press the walk's action once in each pause the gauge shows.

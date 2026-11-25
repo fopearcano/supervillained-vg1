@@ -15,11 +15,12 @@ extends StoryStep
 ## to the start or the last checkpoint), and one scene rule (STORY_REWRITE_SPEC.md §5.3): "visor"
 ## (1.1, the bucket), "jack_gate" (1.2, Jack blocks a gap: barks echo, pushes bump), "cut_off"
 ## (1.3, Jack cuts off the direct path), "receding" (2.1, the gate steps back; the helmet slips),
-## "lull" (2.2 and 3.3, act in the pauses of a voice), "listen" (3.4, stay close to overhear).
+## "lull" (2.2 and 3.3, act in the pauses of a voice), "listen" (3.4, stay close to overhear),
+## "sounder" (3.1's harbour bell; 3.4's goal found by ear: `hidden` takes its ring away).
 ## Rule numbers are in `rule_params`; every line a rule shows is in `rule_lines`.
 
 const KINDS := ["reach", "collect", "follow", "fight", "rule"]
-const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen"]
+const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder"]
 const RULE_SCRIPTS := {
 	"visor": preload("res://story/rules/visor_rule.gd"),
 	"jack_gate": preload("res://story/rules/jack_gate_rule.gd"),
@@ -27,6 +28,7 @@ const RULE_SCRIPTS := {
 	"receding": preload("res://story/rules/receding_rule.gd"),
 	"lull": preload("res://story/rules/lull_rule.gd"),
 	"listen": preload("res://story/rules/listen_rule.gd"),
+	"sounder": preload("res://story/rules/sounder_rule.gd"),
 }
 const FIGHT_KEYS := ["foes", "hp", "speed", "radius", "leash", "health", "parry", "rout"]
 const PICKUP_KINDS := ["shard", "spot", "coin", "marvel"]
@@ -121,7 +123,7 @@ func marker_refs() -> PackedStringArray:
 	out.append_array(path)
 	for h: Dictionary in rule_params.get("heads", []):
 		out.append(String(h.get("at", "")))
-	for k in ["blocker_home", "stand", "point", "goal_marker"]:
+	for k in ["blocker_home", "stand", "point", "goal_marker", "at"]:
 		if rule_params.has(k) and rule_params[k] is String and String(rule_params[k]) != "":
 			out.append(String(rule_params[k]))
 	return out
@@ -251,6 +253,10 @@ func check(errors: PackedStringArray) -> void:
 			for k in ["close", "far", "fragments"]:
 				_need(errors, rule_lines.has(k), "objective %s: listen needs rule_lines.%s" % [id, k])
 			_need(errors, float(rule_params.get("seconds", 0.0)) > 0.0, "objective %s: listen needs positive seconds" % id)
+		"sounder":
+			_need(errors, float(rule_params.get("every", 0.0)) > 0.0, "objective %s: sounder needs a positive interval" % id)
+			_need(errors, rule_lines.has("sound"), "objective %s: sounder needs rule_lines.sound" % id)
+			_need(errors, rule_params.has("at") or goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: sounder needs a place (at, or the goal)" % id)
 
 
 # --- Execution ----------------------------------------------------------------------------------

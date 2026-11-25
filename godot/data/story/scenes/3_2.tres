@@ -1,0 +1,390 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=41 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="5_carrystep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="7_storypickup"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="8_cardstep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="9_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="10_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "marshal"
+role = "bagnaskizMarshal"
+at = "9"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "lido"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "marshal"
+text = "I SIGNED IT MYSELF: FOUR MARKS A HORSE, TWO A MAN, FOOD FOR NINE MONTHS. EIGHTY-FIVE THOUSAND MARKS. WE PROMISED THAT THE WHOLE ARMY WOULD COME."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("4_dialoguestep")
+id = "s03"
+speaker = "marshal"
+text = "A MARK IS NOT A COIN, LITTLE KNIGHT. IT IS A WEIGHT OF SILVER. AND WHATEVER WE WIN WE SHARE HALF AND HALF WITH VENICE, FOR AS LONG AS OUR COMPANY LASTS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("4_dialoguestep")
+id = "s04"
+speaker = "marshal"
+text = "THE WHOLE ARMY DID NOT COME. TAKE THE BOWL ROUND."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("5_carrystep")
+id = "s05"
+label = "THE COLLECTING BOWL"
+sprite = "bowl_0"
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_storypickup")
+id = "p0"
+at = "1"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A PILGRIM: WHAT HE HAS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("7_storypickup")
+id = "p1"
+at = "2"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A PILGRIM: WHAT HE HAS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_storypickup")
+id = "p2"
+at = "3"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A PILGRIM: WHAT HE HAS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("7_storypickup")
+id = "p3"
+at = "4"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A PILGRIM: WHAT HE HAS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_storypickup")
+id = "p4"
+at = "5"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A PILGRIM: WHAT HE HAS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("7_storypickup")
+id = "p5"
+at = "6"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A PILGRIM: WHAT HE HAS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("6_objectivestep")
+id = "s06"
+objective = "FIRST ROUND: THE PILGRIMS PAY THEIR FARES"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("8_cardstep")
+id = "s07"
+big = "50,000 STILL OWED"
+small = "BY CLARI'S COUNT"
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("4_dialoguestep")
+id = "s08"
+speaker = "marshal"
+text = "AGAIN. THE GREAT LORDS THIS TIME: THEIR PLATE, THEIR CUPS, WHATEVER SHINES."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("7_storypickup")
+id = "l0"
+at = "3"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A LORD: HIS CUPS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("7_storypickup")
+id = "l1"
+at = "5"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A LORD: HIS PLATE"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("7_storypickup")
+id = "l2"
+at = "7"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A LORD: HIS SPURS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("7_storypickup")
+id = "l3"
+at = "8"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A LORD: HIS BELT"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("7_storypickup")
+id = "l4"
+at = "6"
+point = Vector2(0.0, 0.0)
+kind = "coin"
+label = "A LORD: HIS RINGS"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("6_objectivestep")
+id = "s09"
+objective = "SECOND ROUND: THE GREAT LORDS GIVE UP THEIR PLATE"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("8_cardstep")
+id = "s10"
+big = "36,000 STILL OWED"
+small = "BY CLARI'S COUNT"
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("6_objectivestep")
+id = "s11"
+objective = "HAND THE BOWL TO THE MARSHAL"
+objective_kind = "reach"
+goal_marker = "9"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE MARSHAL"
+goal_radius = 1.2
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("5_carrystep")
+id = "s12"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("4_dialoguestep")
+id = "s13"
+speaker = "marshal"
+text = "THIRTY-FOUR THOUSAND STILL OWED."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("4_dialoguestep")
+id = "s14"
+speaker = "zampano"
+text = "I COUNTED THIRTY-SIX."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("4_dialoguestep")
+id = "s15"
+speaker = "marshal"
+text = "THEN ONE OF US IS WRONG, AND IT IS NOT THE ONE WHO SIGNED. BLAME THE MEN WHO SAILED FROM OTHER PORTS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("9_effectstep")
+id = "s16"
+effects = {
+"flags": {
+"shortfall": 36000
+}
+}
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("4_dialoguestep")
+id = "s17"
+speaker = "zampano"
+text = "THERE WAS A BOWL, AND IT NEVER FILLED."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_30"]
+script = ExtResource("10_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "3.2"
+content_version = 1
+title = "The price of passage"
+old_title = "The price of passage"
+level = 3
+summary = "THE MARSHAL EXPLAINS THE CONTRACT HE SIGNED: SO MUCH A HORSE, SO MUCH A MAN, EIGHTY-FIVE THOUSAND MARKS. CARRY THE COLLECTING BOWL ROUND THE CAMP TWICE: THE PILGRIMS PAY THEIR FARES, THEN THE GREAT LORDS GIVE UP THEIR PLATE. ZAMPANO KEEPS CLARI'S COUNT; THE MARSHAL KEEPS HIS OWN. THEY DO NOT AGREE."
+map = "lido"
+music = "level3"
+cast = PackedStringArray("zampano", "marshal")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28"), SubResource("Resource_29"), SubResource("Resource_30")]
+entry_conditions = {
+"requires_completed": ["3.1"]
+}
+persistent_effects = PackedStringArray("flags.shortfall", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["shortfall"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the Lido, 1202", "the treaty of 1201: 85,000 marks", "the collections", "two counts kept apart: 34,000 (Villehardouin) and 36,000 (Clari)")
+source_refs = PackedStringArray("Villehardouin pp. 6-7 (the treaty: 4 marks a horse, 2 a man, 85,000 marks)", "Villehardouin pp. 15-16 (more than half missing; the rich give their plate; 34,000 still owed)", "Clari XI-XII (Munro): 50,000 still due after the first collection, 36,000 after the second", "docs/STORY-SOURCES.md \"Kept disagreements\" and \"Period words\": A WEIGHT OF SILVER, OUR COMPANY", "docs/STORY.md 3.2", "src/campaign/chapters/ch3.ts 3.2 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "Both counts are kept and never merged: the marshal says 34,000 (Villehardouin); Zampano keeps Clari's 50,000 then 36,000; the campaign's `shortfall` is Clari's 36,000.", "The bowl carried round the tents is adaptation.")
+technical_status = "technically_complete"

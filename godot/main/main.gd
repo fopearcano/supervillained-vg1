@@ -387,16 +387,18 @@ func open_options() -> void:
 		"levels": func() -> void:
 			pop_overlay(o)
 			open_levels(),
-		"book": func() -> void: _book_boundary(),
+		"book": func() -> void: open_book(),
 		"back": func() -> void: pop_overlay(o),
 	})
 	push_overlay(o)
 
 
-func _book_boundary() -> void:
-	var m := MessageOverlay.new()
-	m.setup("MERAVIGLIA BOOK", [[TEXT.get_text("book_body"), PixelText.WHITE]], [{"label": "BACK", "color": PixelText.WHITE, "action": func() -> void: pop_overlay(m)}], Callable(), 0.96)
-	push_overlay(m)
+## The Meraviglia book (M6): the committed campaign's meters and book, paginated.
+func open_book() -> void:
+	AudioService.play(&"click")
+	var b := MeravigliaOverlay.new()
+	b.setup(SaveService.get_campaign(), TEXT, func() -> void: pop_overlay(b))
+	push_overlay(b)
 
 
 ## The level list (source StoryFlow.openMenu) over the title.
@@ -407,7 +409,7 @@ func open_levels() -> void:
 			pop_overlay(l)
 			continue_game(),
 		"level": func(n: int) -> void: open_chapter(n),
-		"book": func() -> void: _book_boundary(),
+		"book": func() -> void: open_book(),
 		"back": func() -> void: pop_overlay(l),
 	})
 	push_overlay(l)

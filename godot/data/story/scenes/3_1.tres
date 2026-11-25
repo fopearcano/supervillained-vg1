@@ -1,0 +1,284 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=28 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="5_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="6_storypickup"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="7_effectstep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="8_cardstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="9_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "pierre"
+role = "sbrimbrulonKnight"
+at = ""
+point = Vector2(14.7, 17.9)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "venice"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "sbrimbrulon"
+text = "KEEP BEHIND ME, LITTLE ONE, AND LOOK AT THOSE SHIPS: THE RICH SHIPS, THE GREAT DROMONS, THE UISSIERS THAT CARRY THE HORSES, AND THE GALLEYS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_objectivestep")
+id = "s03"
+objective = "WALK THE QUAY BEHIND PIERRE"
+objective_kind = "follow"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = "pierre"
+path = PackedStringArray("3", "2", "8", "1")
+leader_speed = 2.2
+leader_lines = PackedStringArray("HALF A LOAF TODAY. THE COOK SAYS TOMORROW TOO.", "THEY BUILT ALL OF IT FOR US. EVERY PLANK.", "LISTEN TO THAT BELL.", "WE WAIT HERE UNTIL WE ARE TOLD.")
+rule = "sounder"
+rule_params = {
+"at": Vector2(14.5, 3.5),
+"every": 1.6
+}
+rule_lines = {
+"sound": "CLONG."
+}
+hint = ""
+hint_after = 0.6
+leader_leg_timeout = 16.0
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_storypickup")
+id = "uissiers"
+at = "1"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE HORSE TRANSPORTS"
+text = "THE UISSIERS: A DOOR IN THE HULL. THE HORSES GO IN ON FOOT, AND ONE DAY THE KNIGHTS WILL RIDE OUT."
+sprite = ""
+effects = {
+"marvel": "THE HORSE TRANSPORTS",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_storypickup")
+id = "galleys"
+at = "2"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE GALLEYS"
+text = "LONG AND LOW, AND ALL OARS."
+sprite = ""
+effects = {
+"marvel": "THE GALLEYS",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("6_storypickup")
+id = "dromons"
+at = "3"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE GREAT SHIPS"
+text = "TALLER THAN THE CHURCH AT HOME."
+sprite = ""
+effects = {
+"marvel": "THE GREAT SHIPS",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("5_objectivestep")
+id = "s04"
+objective = "LOOK AT THE SHIPS"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7")]
+no_run = false
+action_label = "LOOK"
+action_text = "OOOH."
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_effectstep")
+id = "s05"
+effects = {
+"item": "MERAVIGLIA, THE BOOK OF MARVELS"
+}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("8_cardstep")
+id = "s06"
+big = "MERAVIGLIA"
+small = "HIS BOOK OF MARVELS IS OPEN. EVERYTHING HE LOOKS AT GOES IN."
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("4_dialoguestep")
+id = "s07"
+speaker = "sbrimbrulon"
+text = "NOW TURN ROUND AND COUNT THE EMPTY BERTHS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("6_storypickup")
+id = "b1"
+at = ""
+point = Vector2(7.5, 13.5)
+kind = "spot"
+label = "AN EMPTY BERTH"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("6_storypickup")
+id = "b2"
+at = ""
+point = Vector2(7.5, 18.5)
+kind = "spot"
+label = "ANOTHER EMPTY BERTH"
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_storypickup")
+id = "b3"
+at = ""
+point = Vector2(7.5, 6.5)
+kind = "spot"
+label = "EMPTY. EMPTY. EMPTY."
+text = ""
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("5_objectivestep")
+id = "s08"
+objective = "COUNT THE EMPTY BERTHS"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("8_cardstep")
+id = "s09"
+big = "EVERY SHIP"
+small = "AND HARDLY ANY OF THE MEN WHO WERE MEANT TO PAY FOR THEM"
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("4_dialoguestep")
+id = "s10"
+speaker = "zampano"
+text = "THERE WERE SHIPS, AND THEY WERE TALLER THAN THE CHURCH."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("9_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "3.1"
+content_version = 1
+title = "Look at those ships"
+old_title = "Look at those ships"
+level = 3
+summary = "WALK THE QUAY BEHIND PIERRE WHILE THE HARBOUR BELL CLANGS LIKE THE BOWL AT HOME. LOOK AT THE GREAT SHIPS, THE GALLEYS AND THE TRANSPORTS WITH A DOOR IN THE SIDE FOR THE HORSES: MERAVIGLIA, HIS BOOK OF MARVELS, OPENS. THEN TURN ROUND AND COUNT THE EMPTY BERTHS."
+map = "venice"
+music = "level3"
+cast = PackedStringArray("zampano", "sbrimbrulon")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18")]
+entry_conditions = {
+"requires_completed": ["2.3"]
+}
+persistent_effects = PackedStringArray("book.marvels", "meter.commozione", "book.items", "book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Venice, summer 1202", "the fleet ready, the army short", "the horse transports (uissiers)")
+source_refs = PackedStringArray("Clari XI (Munro): far fewer came than the fleet was built for (his numbers are a claim)", "Clari 13: each high man has \"his own transport to carry his horses\" (quoted per docs/STORY-SOURCES.md)", "Villehardouin pp. 13-16: many sailed from other ports", "docs/STORY-SOURCES.md \"Period words\": DROMONS, UISSIERS", "docs/STORY.md 3.1", "src/campaign/chapters/ch3.ts 3.1 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The door in the hull described as the horses going in on foot, and the bell that clangs like the bowl, are adaptation.", "Meraviglia (the book of marvels) opens here: three marvels, each awarded once.")
+technical_status = "technically_complete"

@@ -1,0 +1,399 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=39 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="5_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="6_actorstep"]
+[ext_resource type="Script" path="res://story/steps/prop_step.gd" id="7_propstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="8_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="9_cardstep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="10_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="11_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "doge"
+role = "doge"
+at = "2"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "lido"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "doge"
+text = "YOU ORDERED SHIPS FOR AN ARMY AND I BUILT THEM. FOR A YEAR AND A HALF NOT ONE OF MY MERCHANTS HAS TRADED. NOW PAY WHAT YOU PROMISED."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_narrationstep")
+id = "s03"
+text = "NOBODY LEAVES THE ISLAND. THE CAMP COUNTS ITS BREAD."
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_actorstep")
+id = "s04"
+actor = "doge"
+action = "despawn"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_actorstep")
+id = "s05"
+actor = "seller"
+action = "spawn"
+role = "venetian"
+at = "7"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("6_actorstep")
+id = "s06"
+actor = "g1"
+action = "spawn"
+role = "knight"
+at = "5"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = "S"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("6_actorstep")
+id = "s07"
+actor = "g1"
+action = "patrol"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 1.0
+run = false
+wait_arrival = false
+points = PackedStringArray("5", "8")
+pause = 1.2
+sight_range = 3.0
+sight_half_angle = 0.5
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_propstep")
+id = "s08"
+prop = "bush1"
+sprite = "bush_0"
+action = "place"
+at = ""
+point = Vector2(8.5, 14.5)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+hides = true
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("7_propstep")
+id = "s09"
+prop = "bush2"
+sprite = "bush_1"
+action = "place"
+at = ""
+point = Vector2(6.5, 10.5)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+hides = true
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("5_narrationstep")
+id = "s10"
+text = "A BREAD SELLER STILL SLIPS BETWEEN THE TENTS. FOOD STILL COMES."
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("8_objectivestep")
+id = "s11"
+objective = "FOLLOW THE BREAD SELLER TO THE AWNING. KEEP OUT OF SIGHT"
+objective_kind = "follow"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray("1")
+leader = "seller"
+path = PackedStringArray("6", "1", "2", "9")
+leader_speed = 1.8
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = "KEEP OUT OF THE GUARD'S CONE. IN A BUSH NOBODY SEES YOU"
+hint_after = 1.0
+leader_leg_timeout = 20.0
+caught = "restart"
+caught_text = "A GUARD SAW YOU"
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("6_actorstep")
+id = "s12"
+actor = "seller"
+action = "goto"
+role = ""
+at = "3"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_actorstep")
+id = "s13"
+actor = "council1"
+action = "spawn"
+role = "doge"
+at = ""
+point = Vector2(12.5, 9.9)
+near_player = false
+face = "SW"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("6_actorstep")
+id = "s14"
+actor = "council2"
+action = "spawn"
+role = "bagnaskizMarshal"
+at = ""
+point = Vector2(12.7, 11.5)
+near_player = false
+face = "W"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("8_objectivestep")
+id = "s15"
+objective = "OVERHEAR THE COUNCIL. STAY CLOSE"
+objective_kind = "rule"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "listen"
+rule_params = {
+"point": "9",
+"radius": 1.8,
+"seconds": 5.0,
+"fragment_every": 1.25
+}
+rule_lines = {
+"close": "LISTENING...",
+"far": "GET CLOSE TO THE AWNING",
+"fragments": ["...THE DEBT...", "...WINTER...", "...THE KING OF HUNGARY...", "...ZARA..."]
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("9_cardstep")
+id = "s16"
+big = "ZARA"
+small = "WINTER IS COMING. TAKE BACK ZARA FOR VENICE, AND THE DEBT CAN WAIT."
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("10_effectstep")
+id = "s17"
+effects = {
+"flags": {
+"zaraDeal": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("9_cardstep")
+id = "s18"
+big = ""
+small = "NOBODY IN THE ARMY KNOWS THE PLAN, EXCEPT THE LEADERS"
+color = Color(0.603921569, 0.643137255, 0.752941176, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("8_objectivestep")
+id = "s19"
+objective = "BACK TO THE GANGPLANK. FOLLOW THE BELL"
+objective_kind = "reach"
+goal_marker = "3"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE GANGPLANK"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "sounder"
+rule_params = {
+"hidden": true,
+"every": 1.6
+}
+rule_lines = {
+"sound": "CLONG."
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("6_actorstep")
+id = "s20"
+actor = "doge2"
+action = "spawn"
+role = "doge"
+at = ""
+point = Vector2(-1.2, -1.0)
+near_player = true
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("9_cardstep")
+id = "s21"
+big = "SAINT MARK'S"
+small = "THE OLD, BLIND DOGE TAKES THE CROSS. THEY SEW IT ON HIS GREAT COTTON HAT."
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("4_dialoguestep")
+id = "s22"
+speaker = "doge"
+text = "I AM OLD AND I CANNOT SEE. I WILL COME WITH YOU. SOMEBODY HAS TO STEER."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("4_dialoguestep")
+id = "s23"
+speaker = "zampano"
+text = "WHERE ARE THE TURKS?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("5_narrationstep")
+id = "s24"
+text = "FIRST, ZARA."
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("4_dialoguestep")
+id = "s25"
+speaker = "zampano"
+text = "THERE WAS AN ISLAND, AND NOBODY LEFT IT."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("11_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "3.4"
+content_version = 1
+title = "Nobody leaves the Lido"
+old_title = "Nobody leaves the Lido"
+level = 3
+summary = "THE DOGE WANTS HIS MONEY, AND THE ARMY IS KEPT ON THE ISLAND. A BREAD SELLER STILL SLIPS BETWEEN THE TENTS: FOLLOW HIM UNSEEN TO THE COUNCIL'S AWNING (A GUARD WATCHES; BUSHES HIDE YOU) AND OVERHEAR WHAT THE LEADERS DECIDE. WINTER IS COMING, AND A CITY CALLED ZARA WILL PAY FOR THE DELAY. NOBODY TELLS THE ARMY. THE OLD, BLIND DOGE TAKES THE CROSS."
+map = "lido"
+music = "level3"
+cast = PackedStringArray("zampano", "doge")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27")]
+entry_conditions = {
+"requires_completed": ["3.3"]
+}
+persistent_effects = PackedStringArray("flags.zaraDeal", "book.remembered")
+completion = {
+"boundary": "chapter_end",
+"requires_flags": ["zaraDeal"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the Lido (the isle of Saint Nicholas), 1202", "the food threatened", "the Zara deal, kept from the army", "the Doge takes the cross at Saint Mark's")
+source_refs = PackedStringArray("Clari 10-13 (De Re Militari; XI-XIII in Munro): the island; the Doge demands the sum and threatens the food, which still comes; winter; Zara; \"No one in the army knew this plan, except the leaders\" (Clari XIII, quoted per docs/STORY-SOURCES.md)", "Villehardouin pp. 16-17: Zara, held by the king of Hungary; the Doge takes the cross, sewn on \"a great cotton hat\" (p. 17)", "docs/STORY.md 3.4", "src/campaign/chapters/ch3.ts 3.4 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The bread seller, the guard, the bushes and the overheard fragments are adaptation.", "REVIEW REQUIRED: the card \"WINTER IS COMING. TAKE BACK ZARA FOR VENICE, AND THE DEBT CAN WAIT.\" paraphrases the proposal (Clari XIII; Villehardouin p. 16); it is not a quotation.", "The card \"NOBODY IN THE ARMY KNOWS THE PLAN, EXCEPT THE LEADERS\" paraphrases Clari XIII.")
+technical_status = "technically_complete"
