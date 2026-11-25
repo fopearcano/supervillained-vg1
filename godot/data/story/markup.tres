@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="StoryMarkup" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://story/story_markup.gd" id="1_markup"]
+
+[resource]
+script = ExtResource("1_markup")
+names = PackedStringArray("ZAMPANO", "BAGNASKIZ", "SANTINA", "JACK", "WATSON", "SBRIMBRULON", "CONFUSIONE", "PROFESSOR", "ALEAUME", "ALEXIOS", "BONIFACE", "CHONIATES", "CLARI", "DANDOLO", "FULK", "GEOFFROI", "INNOCENT", "ISAAC", "MOURTZOUPHLOS", "NIKETAS", "PIERRE", "D'AMIENS", "ROBERT", "SAINT-POL", "VILLEHARDOUIN")
+old_words = PackedStringArray("THE HOLY VOYAGE", "THE GENERAL PASSAGE", "CRUCESIGNATI", "PILGRIMS", "MESSIRE", "DROMONS", "UISSIERS", "A WEIGHT OF SILVER", "OUR COMPANY", "IN THRALL TO THE TURKS", "OUTREMER", "THE LOMBARD", "LI RIKE HOMME", "LI POVRE CHEVALIER", "IN GOD'S NAME", "THOSE OF THE WEST", "LATINS", "BARBARIANS", "ROMANS", "THE YEAR 6711", "ON THE SAINTS", "MERVEILLE")
+name_color = Color(1, 0.88627451, 0.22745098, 1)
+old_word_color = Color(1, 0.705882353, 0.352941176, 1)

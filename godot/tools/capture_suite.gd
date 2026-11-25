@@ -46,6 +46,9 @@ func _run() -> void:
 	if _mode == "shell":
 		await _shell()
 		return
+	if _mode == "story":
+		await _story()
+		return
 	if _mode == "run":
 		await _full_run()
 		return
@@ -254,4 +257,112 @@ func _shell() -> void:
 		root.remove_child(_main)
 		_main.free()
 	root.get_node("AudioService").stop_all()
+	quit(0)
+
+
+# --- M5R story (Level 1) ------------------------------------------------------------------------
+
+var _story_scene: Node = null
+var _driver: RefCounted = null
+
+
+## Plays `id` through Main from `state`, ticking the story scene by hand with the real-input driver
+## (tests/automation/story_driver.gd) under `policy`; the frames are drawn as it goes.
+func _start_story(id: String, state: Dictionary, policy: Dictionary = {}, gate: String = "bark") -> void:
+	var save := root.get_node("SaveService")
+	save.call("save_campaign", state, 1795608000000)
+	_main.call("clear_overlays")
+	_main.call("start_story", id)
+	await _frames(2)
+	_story_scene = _main.get("current_scene")
+	_story_scene.set("manual_ticks", true)
+	root.get_node("InputService").set("auto_update", false)
+	_driver = load("res://tests/automation/story_driver.gd").new(_story_scene, policy, gate, false)
+
+
+## Ticks until `cond` holds (one logic tick per drawn frame), then draws a few frames.
+func _story_until(cond: Callable, limit: int = 60 * 90) -> void:
+	var input := root.get_node("InputService")
+	for k in limit:
+		if cond.call():
+			break
+		_driver.call("drive", 1.0 / 60.0)
+		input.call("update", 1.0 / 60.0)
+		_story_scene.call("tick", 1.0 / 60.0)
+		await process_frame
+	await _frames(2)
+
+
+func _current_id() -> String:
+	var step: Variant = _story_scene.get("runner").get("current")
+	return String((step as Resource).get("id")) if step != null else ""
+
+
+## Level 1 at the target width (432 x 864 window, logical 216): the scene card, the bucket's visor,
+## a dialogue line, the lecture while following the Professor, Jack's gate with the heads up, the
+## toll choice, the cut-off, Santina's second ask, the rag carried, the sleep card, the Professor's
+## aside and the explicit Level 2 boundary. The save is in memory.
+func _story() -> void:
+	root.size = Vector2i(432, 864)
+	await _frames(5)
+	_main = load("res://main/main.tscn").instantiate()
+	root.add_child(_main)
+	await _frames(30)
+	var campaign := func(done: Array) -> Dictionary:
+		var st: Dictionary = load("res://campaign/campaign_schema.gd").call("new_campaign")
+		st["completed"] = ["1.0"] + done
+		st["coins"] = 12
+		return st
+	_main.call("show_story_card", "1.1")
+	await _frames(40)
+	await _shot("40_story_card_1_1")
+	await _start_story("1.1", campaign.call([]))
+	await _story_until(func() -> bool: return _current_id() == "s06")
+	for k in 80:
+		root.get_node("InputService").call("inject_move", 0.0, 0.0)
+		root.get_node("InputService").call("update", 1.0 / 60.0)
+		_story_scene.call("tick", 1.0 / 60.0)
+		await process_frame
+	await _shot("41_1_1_bucket_visor_down")
+	await _story_until(func() -> bool: return _current_id() == "s12")
+	await _story_until(func() -> bool: return not _story_scene.get("hud").get("typing"), 120)
+	await _shot("42_1_1_confusione_dialogue")
+	await _start_story("1.2", campaign.call(["1.1"]))
+	await _story_until(func() -> bool: return _current_id() == "s03")
+	await _story_until(func() -> bool: return int(_story_scene.get("runner").get("st").get("leg", 0)) >= 2)
+	await _shot("43_1_2_following_the_lecture")
+	await _story_until(func() -> bool: return _story_scene.get("actors").has("h1"))
+	await _frames(10)
+	await _shot("44_1_2_jacks_gate_heads_up")
+	await _start_story("1.3", campaign.call(["1.1", "1.2"]), {"s16": "paw"})
+	await _story_until(func() -> bool: return _current_id() == "s16" and String(_story_scene.get("runner").get("st").get("phase", "")) == "choosing")
+	await _shot("45_1_3_the_toll_choice")
+	await _story_until(func() -> bool: return _current_id() == "s20")
+	for k in 150:
+		root.get_node("InputService").call("inject_move", 0.894, 0.447)
+		root.get_node("InputService").call("update", 1.0 / 60.0)
+		_story_scene.call("tick", 1.0 / 60.0)
+		await process_frame
+		if int(_story_scene.get("ctx").get("metrics").get("cuts", 0)) >= 1 and k > 100:
+			break
+	await _shot("46_1_3_jack_cuts_him_off")
+	await _start_story("1.4", campaign.call(["1.1", "1.2", "1.3"]))
+	await _story_until(func() -> bool: return _current_id() == "s06" and (_story_scene.get("ctx").get("choices_taken").get("s06", []) as Array).size() == 1 and String(_story_scene.get("runner").get("st").get("phase", "")) == "choosing")
+	await _shot("47_1_4_santina_asks_again")
+	await _start_story("1.5", campaign.call(["1.1", "1.2", "1.3", "1.4"]), {"s08": "one"})
+	await _story_until(func() -> bool: return _current_id() == "s03")
+	await _story_until(func() -> bool: return _story_scene.get("world").get("player").get("gx") < 15.0)
+	await _shot("48_1_5_carrying_the_rag")
+	await _story_until(func() -> bool: return _current_id() == "s19")
+	await _frames(20)
+	await _shot("49_1_5_the_sleep_boundary")
+	_main.call("clear_overlays")
+	_main.call("_professor_aside", 1)
+	await _frames(40)
+	await _shot("50_professor_aside_level_1")
+	_main.call("show_boundary", "2.1")
+	await _frames(40)
+	await _shot("51_level_2_not_in_this_build")
+	root.get_node("InputService").set("auto_update", true)
+	root.get_node("AudioService").call("stop_all")
 	quit(0)

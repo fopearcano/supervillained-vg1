@@ -1,0 +1,260 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=38 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/prop_step.gd" id="4_propstep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="5_cardstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="6_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/move_step.gd" id="7_movestep"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="8_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="9_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="10_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="11_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="12_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "santina"
+role = "santina"
+at = "9"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "friend"
+role = "lady"
+at = "0"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "neighborhood"
+player_at = ""
+player_point = Vector2(18.5, 3.5)
+player_face = "E"
+actors = [SubResource("Resource_1"), SubResource("Resource_2")]
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("4_propstep")
+id = "s02"
+prop = "ball"
+sprite = "ball_0"
+action = "place"
+at = ""
+point = Vector2(21.2, 3.75)
+tint = Color(1.0, 0.250980392, 0.250980392, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("5_cardstep")
+id = "s03"
+big = "SANTINA'S GATE"
+small = "THE BAND IS ALREADY OUT OF EARSHOT."
+color = Color(1.0, 0.352941176, 0.839215686, 1)
+seconds = 1.8
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_dialoguestep")
+id = "s04"
+speaker = "santina"
+text = "ZAMPANO! MY BALL. THE RED ONE, THERE, BY YOUR PAW."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_movestep")
+id = "s05"
+to_marker = ""
+to_point = Vector2(20.6, 3.5)
+speed = 2.0
+face = "E"
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("10_narrationstep")
+id = "s06.bow.1"
+text = "HE PUTS A PAW ON THE BALL AND BOWS UNTIL HIS CHIN TOUCHES IT."
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("6_dialoguestep")
+id = "s06.bow.2"
+speaker = "santina"
+text = "THE BALL, ZAMPANO. YOU HAVE FOUND IT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("9_storychoiceoption")
+id = "bow"
+label = "A COURTLY BOW"
+said = ""
+silent = true
+cost = 0
+locked_text = ""
+effects = {}
+then_steps = [SubResource("Resource_8"), SubResource("Resource_9")]
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("10_narrationstep")
+id = "s06.strength.1"
+text = "HE TRIES TO LIFT THE GATE CLEAN OFF ITS HINGES. THE BALL RESTS BY HIS BACK PAW."
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("6_dialoguestep")
+id = "s06.strength.2"
+speaker = "lady"
+text = "IT FITS BETWEEN THE BARS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("9_storychoiceoption")
+id = "strength"
+label = "A DISPLAY OF STRENGTH"
+said = ""
+silent = true
+cost = 0
+locked_text = ""
+effects = {}
+then_steps = [SubResource("Resource_11"), SubResource("Resource_12")]
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("10_narrationstep")
+id = "s06.compliment.1"
+text = "SANTINA LOOKS AT THE GATE."
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("6_dialoguestep")
+id = "s06.compliment.2"
+speaker = "santina"
+text = "MY FATHER PAINTED IT YESTERDAY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("9_storychoiceoption")
+id = "compliment"
+label = "YOUR GATE SMELLS VERY NICE."
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {}
+then_steps = [SubResource("Resource_14"), SubResource("Resource_15")]
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("8_choicestep")
+id = "s06"
+speaker = "santina"
+prompt = "CAN YOU ROLL IT BACK TO ME?"
+prompt_again = "THE BALL, ZAMPANO. CAN YOU ROLL IT BACK?"
+options = [SubResource("Resource_10"), SubResource("Resource_13"), SubResource("Resource_16")]
+once_each = true
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("4_propstep")
+id = "s07"
+prop = "ball"
+sprite = ""
+action = "move"
+at = ""
+point = Vector2(21.4, 4.4)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("5_cardstep")
+id = "s08"
+big = ""
+small = "THE BALL SETTLES BESIDE THE GATEPOST. ON HIS SIDE."
+color = Color(1.0, 0.352941176, 0.839215686, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("10_narrationstep")
+id = "s09"
+text = "HE STRAIGHTENS UP, PLEASED WITH HIS PERFORMANCE."
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("7_movestep")
+id = "s10"
+to_marker = ""
+to_point = Vector2(16.5, 3.5)
+speed = 2.2
+face = ""
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("10_narrationstep")
+id = "s11"
+text = "SANTINA WATCHES HIM GO. THE BALL STAYS WHERE IT IS."
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("11_effectstep")
+id = "s12"
+effects = {
+"flags": {
+"santinaBall": "performed"
+}
+}
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("6_dialoguestep")
+id = "s13"
+speaker = "zampano"
+text = "THERE WAS A GATE, AND IT WAS A STAGE."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("12_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "1.4"
+content_version = 1
+title = "Santina wants her ball back"
+old_title = "Santina wants her ball back"
+level = 1
+summary = "A RED BALL HAS ROLLED THROUGH THE BARS OF SANTINA'S GATE. SHE ASKS ZAMPANO TO ROLL IT BACK. HE IS SINCERELY CONVINCED SHE WANTS TO SEE SOMETHING IMPRESSIVE."
+map = "neighborhood"
+music = "greenzone"
+cast = PackedStringArray("zampano", "santina", "lady")
+steps = [SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25")]
+entry_conditions = {
+"requires_completed": ["1.3"]
+}
+persistent_effects = PackedStringArray("flags.santinaBall", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["santinaBall"]
+}
+reality = true
+historical_tags = PackedStringArray("reality", "Santina's gate", "setup: the ball returned in 8.4", "echo: the ladies at the windows (Clari 47, in 7.3)")
+source_refs = PackedStringArray("docs/STORY.md 1.4, 8.4", "Clari 47 (attested per docs/STORY-SOURCES.md, for 7.3/8.4)", "src/campaign/chapters/ch1.ts 1.4 (draft)", "STORY_REWRITE_DECISIONS.md RD-06, RD-09, RD-11")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("OQ-05 (Santina's friend).")
+technical_status = "technically_complete"

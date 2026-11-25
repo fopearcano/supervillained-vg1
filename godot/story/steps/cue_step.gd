@@ -29,3 +29,23 @@ func sounds() -> PackedStringArray:
 func check(errors: PackedStringArray) -> void:
 	_need(errors, sound != "" or shake > 0.0 or flash or visor >= 0.0 or float_text != "", "cue %s does nothing" % id)
 	_need(errors, visor <= 1.0, "cue %s: visor above 1" % id)
+
+
+func begin(ctx: StoryContext, _st: Dictionary) -> void:
+	ctx.play_sound(sound)
+	if shake > 0.0:
+		ctx.shake(shake)
+	if flash:
+		ctx.flash()
+	if visor >= 0.0:
+		ctx.visor = visor
+	if float_text != "":
+		var at := float_point
+		if float_at == "player":
+			at = ctx.player_pos()
+		elif ctx.has_actor(float_at):
+			var a := ctx.actor(float_at)
+			at = Vector2(a.gx, a.gy)
+		elif float_at != "":
+			at = ctx.marker(float_at)
+		ctx.say_float(float_text, at, float_color)

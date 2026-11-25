@@ -57,3 +57,22 @@ func check(errors: PackedStringArray) -> void:
 		_need(errors, s.name != "" and s.role != "", "stage actor without name or role")
 		_need(errors, ["idle", "goto", "follow"].has(s.behavior), "actor %s: bad behavior '%s'" % [s.name, s.behavior])
 		_need(errors, StoryDirs.ALL.has(s.face), "actor %s: bad facing '%s'" % [s.name, s.face])
+
+
+func begin(ctx: StoryContext, _st: Dictionary) -> void:
+	if not ctx.scene.build_stage(map, player_at, player_point, player_face):
+		return
+	for s: StoryActorSpec in actors:
+		var p := ctx.place(s.at, s.point)
+		if ctx.error != "":
+			return
+		var a := ctx.scene.spawn_actor(s.name, s.role, p, s.face)
+		if a == null:
+			return
+		if s.face_player:
+			a.face_point(ctx.player_pos())
+		match s.behavior:
+			"goto":
+				a.go_to(ctx.place(s.target, s.target_point), s.speed)
+			"follow":
+				a.follow(s.speed)

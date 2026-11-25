@@ -482,9 +482,9 @@ func test_UI_007_new_game_confirms_over_a_story_and_starts_the_walk() -> void:
 
 ## UI-007 CONTINUE, through the title's own row: NEW GAME preselected without progress and CONTINUE
 ## with it; the one-time migration notice first (cleared and saved once, savedAt = now as the
-## source); without progress it starts 1.0 as the story's scene; after the walk it reaches the
-## honest 1.1 boundary over the title (the scene named, progress kept, no other run); a finished
-## story opens the level list.
+## source); without progress it starts 1.0 as the story's scene; after the walk it reaches 1.1's
+## scene card over the title (the scene named, progress kept, no other run; M5R); a finished story
+## opens the level list.
 func test_UI_007_continue_preselection_notice_and_destinations() -> void:
 	var st := CampaignSchema.new_campaign()
 	st["notice"] = "dream-rewritten"
@@ -509,8 +509,8 @@ func test_UI_007_continue_preselection_notice_and_destinations() -> void:
 	t = _ready_title()
 	assert_eq(t.selected, 1, "progress: CONTINUE preselected")
 	t.activate(1)
-	assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).heading == "NOT IN THIS BUILD"), "1.1: the boundary")
-	assert_eq((main.top_overlay() as MessageOverlay).paragraphs[0][0], "LEVEL 1: 1.1 A BUCKET ON HIS HEAD", "the next scene named")
+	assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().get_meta(&"story_card", "") == "1.1"), "1.1: its scene card (M5R)")
+	assert_eq([(main.top_overlay() as MessageOverlay).heading, (main.top_overlay() as MessageOverlay).paragraphs[0][0]], ["LEVEL 1", "1.1 A BUCKET ON HIS HEAD"], "the next scene named")
 	assert_true(main.current_scene is TitleScreen, "no other run started")
 	assert_eq(SaveService.get_campaign()["completed"], ["1.0"], "progress kept")
 	await _settle()
@@ -606,7 +606,7 @@ func test_SLICE_continue_save_failure_stays_on_the_result_card() -> void:
 	assert_near(float(c["playTime"]), walk_time, 1e-9, "and the time, once")
 	end.activate(0)
 	assert_eq([int(SaveService.get_campaign()["coins"]), main.campaign.handoffs.size()], [15, 1], "a repeated CONTINUE adds nothing")
-	assert_true(await _until(func() -> bool: return main.current_scene is TitleScreen and main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).heading == "NOT IN THIS BUILD"), "then 1.1's boundary")
+	assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().get_meta(&"story_card", "") == "1.1"), "then 1.1's scene card")
 
 
 ## A real future-format backup makes the whole session read-only: NEW GAME and the walk's CONTINUE

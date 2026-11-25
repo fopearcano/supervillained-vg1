@@ -108,6 +108,111 @@ atlas = ExtResource("1_1grbl")
 region = Rect2(283, 69, 32, 40)
 filter_clip = true
 
+[sub_resource type="AtlasTexture" id="spr_column_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(39, 69, 16, 52)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_desk_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(375, 69, 40, 30)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_shelf_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(93, 69, 32, 48)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_house_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(341, 1, 40, 58)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_house_1"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(383, 1, 40, 58)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_tent_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(127, 69, 40, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_tent_1"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(169, 69, 40, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_galley_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(67, 1, 72, 60)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_galley_1"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(141, 1, 72, 60)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_rock_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(241, 127, 24, 18)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_statue_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(71, 69, 20, 50)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_crate_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(163, 127, 20, 20)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_palm_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(1, 69, 36, 56)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_altar_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(417, 69, 28, 26)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_stall_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(211, 69, 36, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_throne_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(317, 69, 28, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_vine_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(33, 127, 26, 24)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_gate_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(1, 1, 64, 66)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_bones_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(375, 477, 22, 10)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_table_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(467, 69, 40, 24)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="spr_wicket_0"]
+atlas = ExtResource("1_1grbl")
+region = Rect2(1, 127, 30, 24)
+filter_clip = true
+
 [sub_resource type="AtlasTexture" id="spr_treat_0"]
 atlas = ExtResource("2_m3j16")
 region = Rect2(0, 0, 13, 8)
@@ -406,6 +511,11 @@ filter_clip = true
 [resource]
 script = ExtResource("42_t22ol")
 entries = {
+"altar_0": {
+"anchor": Vector2i(14, 20),
+"size": Vector2i(28, 26),
+"texture": SubResource("spr_altar_0")
+},
 "ball_0": {
 "anchor": Vector2i(4, 8),
 "size": Vector2i(9, 9),
@@ -436,6 +546,11 @@ entries = {
 "size": Vector2i(16, 9),
 "texture": SubResource("spr_belt_0")
 },
+"bones_0": {
+"anchor": Vector2i(11, 6),
+"size": Vector2i(22, 10),
+"texture": SubResource("spr_bones_0")
+},
 "bowl_0": {
 "anchor": Vector2i(7, 6),
 "size": Vector2i(14, 8),
@@ -456,10 +571,25 @@ entries = {
 "size": Vector2i(7, 7),
 "texture": SubResource("spr_coin_0")
 },
+"column_0": {
+"anchor": Vector2i(8, 48),
+"size": Vector2i(16, 52),
+"texture": SubResource("spr_column_0")
+},
+"crate_0": {
+"anchor": Vector2i(10, 16),
+"size": Vector2i(20, 20),
+"texture": SubResource("spr_crate_0")
+},
 "cross_0": {
 "anchor": Vector2i(2, 2),
 "size": Vector2i(5, 5),
 "texture": SubResource("spr_cross_0")
+},
+"desk_0": {
+"anchor": Vector2i(20, 22),
+"size": Vector2i(40, 30),
+"texture": SubResource("spr_desk_0")
 },
 "dogFace_0": {
 "anchor": Vector2i(0, 0),
@@ -536,6 +666,21 @@ entries = {
 "size": Vector2i(18, 26),
 "texture": SubResource("spr_fountain_0")
 },
+"galley_0": {
+"anchor": Vector2i(36, 44),
+"size": Vector2i(72, 60),
+"texture": SubResource("spr_galley_0")
+},
+"galley_1": {
+"anchor": Vector2i(36, 44),
+"size": Vector2i(72, 60),
+"texture": SubResource("spr_galley_1")
+},
+"gate_0": {
+"anchor": Vector2i(32, 58),
+"size": Vector2i(64, 66),
+"texture": SubResource("spr_gate_0")
+},
 "halo_0": {
 "anchor": Vector2i(4, 3),
 "size": Vector2i(9, 7),
@@ -555,6 +700,16 @@ entries = {
 "anchor": Vector2i(20, 31),
 "size": Vector2i(40, 34),
 "texture": SubResource("spr_horse_2")
+},
+"house_0": {
+"anchor": Vector2i(20, 48),
+"size": Vector2i(40, 58),
+"texture": SubResource("spr_house_0")
+},
+"house_1": {
+"anchor": Vector2i(20, 48),
+"size": Vector2i(40, 58),
+"texture": SubResource("spr_house_1")
 },
 "lamp_0": {
 "anchor": Vector2i(7, 11),
@@ -585,6 +740,11 @@ entries = {
 "anchor": Vector2i(4, 3),
 "size": Vector2i(9, 7),
 "texture": SubResource("spr_mask_0")
+},
+"palm_0": {
+"anchor": Vector2i(18, 52),
+"size": Vector2i(36, 56),
+"texture": SubResource("spr_palm_0")
 },
 "peeIcon_0": {
 "anchor": Vector2i(4, 5),
@@ -626,6 +786,11 @@ entries = {
 "size": Vector2i(6, 6),
 "texture": SubResource("spr_ring_0")
 },
+"rock_0": {
+"anchor": Vector2i(12, 14),
+"size": Vector2i(24, 18),
+"texture": SubResource("spr_rock_0")
+},
 "runIcon_0": {
 "anchor": Vector2i(0, 0),
 "size": Vector2i(13, 11),
@@ -651,6 +816,11 @@ entries = {
 "size": Vector2i(9, 13),
 "texture": SubResource("spr_shard_0")
 },
+"shelf_0": {
+"anchor": Vector2i(16, 42),
+"size": Vector2i(32, 48),
+"texture": SubResource("spr_shelf_0")
+},
 "shieldItem_0": {
 "anchor": Vector2i(7, 16),
 "size": Vector2i(14, 17),
@@ -665,6 +835,11 @@ entries = {
 "anchor": Vector2i(24, 42),
 "size": Vector2i(48, 46),
 "texture": SubResource("spr_stag_0")
+},
+"stall_0": {
+"anchor": Vector2i(18, 32),
+"size": Vector2i(36, 40),
+"texture": SubResource("spr_stall_0")
 },
 "star_0": {
 "anchor": Vector2i(0, 0),
@@ -681,20 +856,45 @@ entries = {
 "size": Vector2i(11, 11),
 "texture": SubResource("spr_star_2")
 },
+"statue_0": {
+"anchor": Vector2i(10, 46),
+"size": Vector2i(20, 50),
+"texture": SubResource("spr_statue_0")
+},
 "sword_0": {
 "anchor": Vector2i(10, 10),
 "size": Vector2i(20, 12),
 "texture": SubResource("spr_sword_0")
+},
+"table_0": {
+"anchor": Vector2i(20, 16),
+"size": Vector2i(40, 24),
+"texture": SubResource("spr_table_0")
 },
 "tear_0": {
 "anchor": Vector2i(2, 3),
 "size": Vector2i(5, 7),
 "texture": SubResource("spr_tear_0")
 },
+"tent_0": {
+"anchor": Vector2i(20, 34),
+"size": Vector2i(40, 40),
+"texture": SubResource("spr_tent_0")
+},
+"tent_1": {
+"anchor": Vector2i(20, 34),
+"size": Vector2i(40, 40),
+"texture": SubResource("spr_tent_1")
+},
 "thought_0": {
 "anchor": Vector2i(6, 13),
 "size": Vector2i(13, 14),
 "texture": SubResource("spr_thought_0")
+},
+"throne_0": {
+"anchor": Vector2i(14, 34),
+"size": Vector2i(28, 40),
+"texture": SubResource("spr_throne_0")
 },
 "treat_0": {
 "anchor": Vector2i(6, 7),
@@ -720,6 +920,11 @@ entries = {
 "anchor": Vector2i(3, 3),
 "size": Vector2i(7, 6),
 "texture": SubResource("spr_tri_0")
+},
+"vine_0": {
+"anchor": Vector2i(13, 20),
+"size": Vector2i(26, 24),
+"texture": SubResource("spr_vine_0")
 },
 "wallBlock_0": {
 "anchor": Vector2i(16, 32),
@@ -770,5 +975,10 @@ entries = {
 "anchor": Vector2i(8, 8),
 "size": Vector2i(16, 16),
 "texture": SubResource("spr_wave_7")
+},
+"wicket_0": {
+"anchor": Vector2i(15, 20),
+"size": Vector2i(30, 24),
+"texture": SubResource("spr_wicket_0")
 }
 }

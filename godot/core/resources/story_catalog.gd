@@ -56,7 +56,15 @@ func continue_label(completed: Array) -> String:
 	return "LEVEL %d: %s %s" % [n["level"], n["id"], String(n["title"]).to_upper()]
 
 
-## The sub-level is playable in this build (only the Green Zone walk until the story engine, M5).
+## The sub-level is playable in this build: the Green Zone walk, or a story scene whose rewritten
+## Resource exists (data/story/scenes/<id>.tres, M5R); the others show the "not in this build" card.
 func playable_in_build(id: String) -> bool:
 	var f := find(id)
-	return not f.is_empty() and int(f["sub"]["green_zone"]) > 0
+	if f.is_empty():
+		return false
+	return int(f["sub"]["green_zone"]) > 0 or ResourceLoader.exists(scene_path(id))
+
+
+## Where a story scene's Resource lives.
+static func scene_path(id: String) -> String:
+	return "res://data/story/scenes/%s.tres" % id.replace(".", "_")

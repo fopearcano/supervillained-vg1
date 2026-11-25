@@ -1,0 +1,226 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=27 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="5_cuestep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="6_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="7_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="8_actorstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="9_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "watson"
+role = "watson"
+at = ""
+point = Vector2(4.5, 10.4)
+face = "NW"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "neighborhood"
+player_at = ""
+player_point = Vector2(3.5, 9.5)
+player_face = "E"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_cardstep")
+id = "s02"
+big = ""
+small = "AFTER THE WALK, TIRED, HE DOZES OFF ON THE LAWN..."
+color = Color(0.301960784, 1.0, 0.352941176, 1)
+seconds = 1.8
+dim = 0.9
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_cuestep")
+id = "s03"
+sound = "hit"
+shake = 3.0
+flash = false
+visor = 0.86
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("4_cardstep")
+id = "s04"
+big = "CLONK"
+small = "SOMETHING HAS COME DOWN OVER HIS HEAD."
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 1.6
+dim = 0.2
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_dialoguestep")
+id = "s05"
+speaker = "watson"
+text = "OOPS, MAN. THE KIDS LEFT THEIR SAND BUCKET. IT SUITS YOU."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_objectivestep")
+id = "s06"
+objective = "WALK HOME TO THE HEDGE GAP. KEEP YOUR HEAD UP"
+objective_kind = "reach"
+goal_marker = "6"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE HEDGE GAP"
+goal_radius = 0.0
+pickups = []
+no_run = true
+action_label = "BARK"
+action_text = "WOOF! (IT ECHOES INSIDE THE BUCKET.)"
+action_sound = "bark"
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "visor"
+rule_params = {}
+rule_lines = {}
+hint = "WALK ON TO PUSH THE BUCKET UP. STOP AND IT SLIDES DOWN"
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("8_actorstep")
+id = "s07"
+actor = "conf"
+action = "spawn"
+role = "confusione"
+at = ""
+point = Vector2(2.6, -1.4)
+near_player = true
+face = "SW"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("8_actorstep")
+id = "s08"
+actor = "conf"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(0.6, -0.3)
+near_player = true
+face = ""
+face_player = false
+speed = 8.0
+run = true
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("4_cardstep")
+id = "s09"
+big = ""
+small = "A PAW COMES IN FROM OUTSIDE THE FRAME."
+color = Color(0.301960784, 1.0, 0.352941176, 1)
+seconds = 0.9
+dim = 0.0
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("5_cuestep")
+id = "s10"
+sound = "hurt"
+shake = 8.0
+flash = true
+visor = 0.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("4_cardstep")
+id = "s11"
+big = "SLAP!"
+small = "THE BUCKET ROLLS AWAY ACROSS THE LANE."
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 1.4
+dim = 0.2
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("6_dialoguestep")
+id = "s12"
+speaker = "confusione"
+text = "YOU WERE WALKING INTO THE HEDGE WITH A BUCKET ON. THE WHOLE LANE SAW."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_dialoguestep")
+id = "s13"
+speaker = "zampano"
+text = "I WAS KEEPING MY HEAD UP."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("6_dialoguestep")
+id = "s14"
+speaker = "confusione"
+text = "THE GAP IS RIGHT HERE. IT IS ALWAYS RIGHT HERE. GO HOME."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("6_dialoguestep")
+id = "s15"
+speaker = "zampano"
+text = "THERE WAS A BUCKET, AND IT FELT LIKE A HELMET."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("9_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "1.1"
+content_version = 1
+title = "A bucket on his head"
+old_title = "A bucket on his head"
+level = 1
+summary = "AFTER THE WALK HE DOZES ON THE LAWN AND WAKES WITH A CHILD'S SAND BUCKET OVER HIS HEAD. WALK HOME TO THE HEDGE GAP WITH YOUR HEAD UP: STOP, OR BARK, AND THE BUCKET SLIDES DOWN OVER HIS EYES."
+map = "neighborhood"
+music = "greenzone"
+cast = PackedStringArray("zampano", "watson", "confusione")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17")]
+entry_conditions = {
+"requires_completed": ["1.0"]
+}
+persistent_effects = PackedStringArray("book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = true
+historical_tags = PackedStringArray("reality", "the neighbourhood lane", "setup: the helmet of 2.1")
+source_refs = PackedStringArray("docs/STORY.md 1.1 (adaptation: all)", "src/campaign/chapters/ch1.ts 1.1 (draft)", "STORY_REWRITE_DECISIONS.md RD-20")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (tone, characterization, every line).")
+technical_status = "technically_complete"

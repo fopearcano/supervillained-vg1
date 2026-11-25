@@ -159,6 +159,28 @@ func complete_walk(coins: int, seconds: float, sub_id: String = "1.0") -> Dictio
 	return {"saved": ok, "replay": false, "applied": ok, "error": "" if ok else SaveService.last_error}
 
 
+## The campaign a story scene starts from: the replay's deep copy, or a copy of the saved campaign.
+func story_entry_state() -> Dictionary:
+	return campaign()
+
+
+## Commits a completed story scene (STORY_REWRITE_SPEC.md §7, RD-05): its working copy (every effect
+## of the scene already applied), the scene's completion and its story play time, in ONE atomic
+## campaign save with savedAt = now. A failed or refused save keeps the saved campaign exactly as it
+## was; a scene already completed is not committed twice; a replay commits nothing.
+## Returns {"saved": bool, "replay": bool, "applied": bool, "error": String}.
+func commit_scene(id: String, working: Dictionary, play_time: float) -> Dictionary:
+	if replaying:
+		return {"saved": false, "replay": true, "applied": false, "error": ""}
+	if (SaveService.get_campaign()["completed"] as Array).has(id):
+		return {"saved": true, "replay": false, "applied": false, "error": ""}
+	var st := working.duplicate(true)
+	st["playTime"] = float(st["playTime"]) + maxf(0.0, play_time)
+	CampaignRules.mark_complete(st, id)
+	var ok: bool = SaveService.save_campaign(st, now_ms())
+	return {"saved": ok, "replay": false, "applied": ok, "error": "" if ok else SaveService.last_error}
+
+
 ## A replay of a finished scene starts from a deep copy; persistence stays off until end_replay().
 func begin_replay(id: String) -> void:
 	replaying = true

@@ -317,8 +317,11 @@ func _build_sprite_catalog() -> void:
 	bank.set_id_for_path(SPRITES_OUT, "1_bank")
 	var cat := SpriteCatalog.new()
 	var entries := {}
-	# Props delivered in the Color Ink bank (current final art).
-	for key in ["tree", "forestTree", "bush", "pole", "fountain", "exitFlag", "exitRing", "wallBlock"]:
+	# Props delivered in the Color Ink bank (current final art): the Green Zone's, then every story
+	# prop of the shared legend (TileCatalog.PROP_SPRITE; the story stages draw them, M5R).
+	for key in ["tree", "forestTree", "bush", "pole", "fountain", "exitFlag", "exitRing", "wallBlock",
+			"column", "desk", "shelf", "house", "tent", "galley", "rock", "statue", "crate", "palm",
+			"altar", "stall", "throne", "vine", "gate", "bones", "table", "wicket"]:
 		# exitRing is a ground-contract tile frame (no SPRITES entry): one variant.
 		var n: int = int(variants[key]["variants"]) if variants.has(key) else 1
 		for v in n:

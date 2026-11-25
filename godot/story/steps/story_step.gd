@@ -81,3 +81,18 @@ func check(_errors: PackedStringArray) -> void:
 static func _need(errors: PackedStringArray, ok: bool, what: String) -> void:
 	if not ok:
 		errors.append(what)
+
+
+# --- Execution (StoryRunner) --------------------------------------------------------------------
+
+func begin(_ctx: StoryContext, _st: Dictionary) -> void:
+	pass
+
+
+## True when the step is done.
+func tick(_ctx: StoryContext, _st: Dictionary, _dt: float) -> bool:
+	return true
+
+
+func end(_ctx: StoryContext, _st: Dictionary) -> void:
+	pass

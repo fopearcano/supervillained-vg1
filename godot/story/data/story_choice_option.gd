@@ -8,6 +8,8 @@ extends Resource
 @export var label := ""
 ## What Zampanò says when picked ("" = the label itself).
 @export var said := ""
+## True: he says nothing (an action; its follow-up steps narrate it).
+@export var silent := false
 ## Commozione this action spends; without enough the option is locked ("an unmoved Zampanò cannot act").
 @export var cost := 0
 ## A permanent lock reason shown greyed ("" = not locked).

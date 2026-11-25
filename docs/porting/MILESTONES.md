@@ -323,7 +323,7 @@ The runner must return a nonzero process code on any failure. Do not add a third
 - 1.0 CONTINUE launches 1.1 from the saved M4 handoff; 1.1–1.5 play in catalog order and save correctly, with the exact reality/dream boundary at the last card of 1.5; no armour or dream-only capability in reality.
 - Dialogue, choices, costly/locked policy, effects, flags, scraps, remembered lines, carry, actor movement, Jack's gate (success and failure/recovery) and cards behave as the rewrite specification and its decisions define (not verbatim draft wording).
 - Each scene is one save transaction (RD-05): effects apply before the completion save; restart or force-close never applies an effect, meter change or reward twice.
-- Story pause (resume, restart, skip), text speed and replay behave as specified; finished-scene replay changes no persistent byte.
+- Story pause (resume, restart, quit to title; SKIP SCENE is not offered in M5R, RD-23/OQ-11), text speed and replay behave as specified; finished-scene replay changes no persistent byte.
 - The end of 1.5 reaches the Supervillained snap, the Level 1 Professor aside and an explicit "next chapter not implemented" boundary.
 - Names markup infrastructure works even though most period words arrive later; all story text is in Resources.
 
@@ -350,6 +350,8 @@ The runner must return a nonzero process code on any failure. Do not add a third
 - Complete Level 1 campaign flow; reusable story engine and its API documentation.
 - Story smoke and real-input completion reports for 1.1–1.5; gameplay and dialogue captures.
 - Narrative status "draft implemented, narrative review pending" until the owner reviews historical accuracy, tone and characterization, every dialogue and choice, Level 1 pacing and the setup for both endings.
+
+**Status (M5R-B, implementation log report 30):** the engine and Level 1 are implemented and technically complete (validator, scripted smoke, real-input completion, save/restart/replay tests); narrative status "draft implemented, narrative review pending". Gates still open: independent architectural review of the engine (`STORY_ENGINE_API.md`) and the owner's review of the Level 1 draft. M6 does not begin before both.
 
 ---
 

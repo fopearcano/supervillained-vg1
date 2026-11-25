@@ -40,3 +40,23 @@ func check(errors: PackedStringArray) -> void:
 	_need(errors, prop != "", "prop step %s without a prop handle" % id)
 	_need(errors, ACTIONS.has(action), "prop %s: bad action '%s'" % [prop, action])
 	_need(errors, action != "place" or sprite != "", "prop %s: place without a sprite" % prop)
+
+
+func begin(ctx: StoryContext, _st: Dictionary) -> void:
+	var p := ctx.place(at, point)
+	if ctx.error != "":
+		return
+	match action:
+		"place":
+			ctx.scene.place_prop(prop, sprite, p, tint)
+		"move":
+			var pr: StoryProp = ctx.scene.props.get(prop)
+			if pr == null:
+				ctx.fail("missing prop '%s'" % prop)
+				return
+			pr.set_grid_position(p.x, p.y)
+		"remove":
+			ctx.scene.remove_prop(prop)
+	ctx.play_sound(sound)
+	if float_text != "":
+		ctx.say_float(float_text, p, float_color)

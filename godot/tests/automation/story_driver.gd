@@ -1,0 +1,189 @@
+class_name StoryDriver
+extends RefCounted
+## Story driver for the tests and the completion reports. Real-input mode plays a StoryScene through
+## the same InputService path as a player: the joystick (injected movement toward what is on
+## screen), the action and confirm edges, and real pointer taps on the choice rows. It reads what a
+## player sees (the objective's goal and pickups, the choice rows, who stands in a gap) and never
+## calls a step's or a rule's methods. Scripted mode (the smoke) instead places Zampanò on each
+## target, a debug skip that still runs every step and rule.
+## Navigation is a breadth-first search over the stage's walkable tiles (a test aid; the game has
+## no pathfinding).
+
+const DT := 1.0 / 60.0
+
+var scene: StoryScene
+## choice id -> option id; a choice not listed takes its first open option.
+var policy: Dictionary = {}
+## Jack's gate (1.2): "bark" (success: bark near him) or "push" (failure, then recovery).
+var gate := "bark"
+var scripted := false
+var t := 0.0
+var actions := 0
+var taps := 0
+var _next_confirm := 0.0
+var _next_action := 0.0
+var _path: Array = []
+var _goal := Vector2(-99, -99)
+var _repath := 0.0
+
+
+func _init(p_scene: StoryScene, p_policy: Dictionary = {}, p_gate: String = "bark", p_scripted: bool = false) -> void:
+	scene = p_scene
+	policy = p_policy
+	gate = p_gate
+	scripted = p_scripted
+
+
+## The player's inputs for the next tick (before InputService.update and the scene's tick).
+func drive(dt: float) -> void:
+	t += dt
+	InputService.inject_move(0.0, 0.0)
+	if scene.finished or scene.paused or scene.world == null:
+		return
+	var step: StoryStep = scene.runner.current
+	var st: Dictionary = scene.runner.st
+	if step == null:
+		return
+	if step is ObjectiveStep:
+		_objective(step as ObjectiveStep, st)
+	elif step is ChoiceStep and st.get("phase", "") == "choosing":
+		_choose(step as ChoiceStep, st)
+	elif step is DialogueStep or step is NarrationStep or step is ChoiceStep or step is CardStep:
+		_confirm()
+
+
+func _confirm() -> void:
+	if t >= _next_confirm:
+		_next_confirm = t + GameConfig.Story.PILOT_CONFIRM_EVERY
+		InputService.trigger(&"confirm")
+
+
+## A real tap on the wanted option's row.
+func _choose(step: ChoiceStep, st: Dictionary) -> void:
+	var open: Array = st["open"]
+	var views: Array = st["views"]
+	var want := String(policy.get(step.id, ""))
+	var idx := -1
+	for k in open.size():
+		if (open[k] as StoryChoiceOption).id == want and String((views[k] as Dictionary)["locked"]) == "":
+			idx = k
+	if idx < 0:
+		for k in views.size():
+			if String((views[k] as Dictionary)["locked"]) == "":
+				idx = k
+				break
+	var rects: Array[Rect2] = scene.hud.choice_rects
+	if idx < 0 or idx >= rects.size() or t < _next_confirm:
+		return
+	_next_confirm = t + 0.3
+	var c := rects[idx].get_center()
+	InputService.pointer_down(9, c)
+	InputService.pointer_up(9, c)
+	taps += 1
+
+
+func _objective(step: ObjectiveStep, st: Dictionary) -> void:
+	var dog := scene.world.player
+	var pos := Vector2(dog.gx, dog.gy)
+	var target: Variant = null
+	var blocked: Array = []
+	var bark_here := false
+	if step.rule == "cut_off":
+		blocked.append(step.rule_params["gap"])
+	if step.rule == "jack_gate" and not st.get("open", false):
+		var gap: Rect2 = step.rule_params["gap"]
+		if gate == "bark":
+			var jack: StoryActor = scene.actors.get(String(step.rule_params["blocker"]))
+			var spot := Vector2(gap.position.x - 1.2, jack.gy if jack else gap.get_center().y)
+			blocked.append(gap)
+			if pos.distance_to(spot) < 0.4:
+				bark_here = true
+			else:
+				target = spot
+	if step.objective_kind == "follow":
+		var lead: StoryActor = scene.actors.get(step.leader)
+		if lead:
+			var lp := Vector2(lead.gx, lead.gy)
+			target = lp if pos.distance_to(lp) > 1.1 else null
+	elif target == null and not bark_here:
+		var best := INF
+		for p: StoryPickup in step.pickups:
+			if (st.get("picked", []) as Array).has(p.id):
+				continue
+			var at: Vector2 = (st["spots"][p.id] as Dictionary)["at"]
+			if pos.distance_to(at) < best:
+				best = pos.distance_to(at)
+				target = at
+		if target == null and st.get("goal") != null:
+			target = st["goal"]
+	if bark_here:
+		if t >= _next_action:
+			_next_action = t + 0.45
+			InputService.trigger(&"action")
+			actions += 1
+		return
+	if target == null:
+		return
+	if scripted:
+		dog.set_grid_position((target as Vector2).x, (target as Vector2).y)
+		return
+	_steer(pos, target, blocked)
+
+
+func _steer(pos: Vector2, target: Vector2, blocked: Array) -> void:
+	_repath -= DT
+	if _repath <= 0.0 or target.distance_to(_goal) > 0.01:
+		_path = _bfs(pos, target, blocked)
+		_goal = target
+		_repath = 0.25
+	while _path.size() > 1 and pos.distance_to(_path[0]) < 0.3:
+		_path.pop_front()
+	var aim: Vector2 = _path[0] if _path.size() > 1 else target
+	var d := aim - pos
+	if d.length() < 0.02:
+		return
+	var s := IsoGrid.grid_vec_to_screen(d.x, d.y).normalized()
+	InputService.inject_move(s.x, s.y, false)
+
+
+func _passable(map: WorldMapModel, i: int, j: int, blocked: Array) -> bool:
+	if i < 0 or j < 0 or i >= map.width or j >= map.height or map.is_blocked_tile(i, j):
+		return false
+	var p := map.prop_at(i, j)
+	if p != null and p.solid:
+		return false
+	var c := Vector2(i + 0.5, j + 0.5)
+	for r: Rect2 in blocked:
+		if r.grow(0.3).has_point(c):
+			return false
+	return true
+
+
+## Tile centres from `from` to `to` (8-connected, no corner cutting), ending at `to` exactly.
+func _bfs(from: Vector2, to: Vector2, blocked: Array) -> Array:
+	var map := scene.world.map
+	var start := Vector2i(int(floor(from.x)), int(floor(from.y)))
+	var goal := Vector2i(int(floor(to.x)), int(floor(to.y)))
+	var prev := {start: start}
+	var queue: Array[Vector2i] = [start]
+	var dirs := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)]
+	while not queue.is_empty():
+		var c: Vector2i = queue.pop_front()
+		if c == goal:
+			break
+		for d: Vector2i in dirs:
+			var n: Vector2i = c + d
+			if prev.has(n) or not _passable(map, n.x, n.y, blocked):
+				continue
+			if d.x != 0 and d.y != 0 and (not _passable(map, c.x + d.x, c.y, blocked) or not _passable(map, c.x, c.y + d.y, blocked)):
+				continue
+			prev[n] = c
+			queue.append(n)
+	if not prev.has(goal):
+		return [to]
+	var out: Array = [to]
+	var c: Vector2i = prev[goal]
+	while c != start:
+		out.push_front(Vector2(c.x + 0.5, c.y + 0.5))
+		c = prev[c]
+	return out

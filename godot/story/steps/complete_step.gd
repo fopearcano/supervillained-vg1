@@ -6,3 +6,17 @@ extends StoryStep
 
 func kind() -> String:
 	return "complete"
+
+
+## The boundary: the scene's required state must be in the working copy (else an explicit failure;
+## the validator proves every branch produces it).
+func begin(ctx: StoryContext, _st: Dictionary) -> void:
+	var c: Dictionary = ctx.data.completion
+	for f: String in c.get("requires_flags", []):
+		if not (ctx.state["flags"] as Dictionary).has(f):
+			ctx.fail("completion boundary reached without flag '%s'" % f)
+			return
+	for a: String in c.get("requires_abilities", []):
+		if not (ctx.state["abilities"] as Array).has(a):
+			ctx.fail("completion boundary reached without ability '%s'" % a)
+			return

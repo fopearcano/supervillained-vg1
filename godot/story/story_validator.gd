@@ -22,7 +22,7 @@ const BOOK_KEYS := {"marvel": "marvels", "item": "items", "value": "values", "re
 ## Reality levels (STORY_REWRITE_SPEC.md §2.4).
 const REALITY_LEVELS := [1, 8]
 ## Script folders whose code must hold no player text.
-const EXECUTION_DIRS := ["res://story", "res://scenes/story"]
+const EXECUTION_DIRS := ["res://story", "res://scenes/story", "res://ui/story"]
 
 var catalog: StoryCatalog
 var cast: StoryCast
@@ -117,6 +117,7 @@ func validate_scene(scene: StorySceneData) -> PackedStringArray:
 		return errors
 	# The final step, and only it, is the completion boundary.
 	_need(errors, scene.steps.back() is CompleteStep, "%s: the last step must be a CompleteStep" % where)
+	_need(errors, scene.steps[0] is StageStep, "%s: the first step must be a StageStep (it builds the first stage)" % where)
 	var ids: Array = []
 	var walk := {"map": scene.map, "actors": [], "errors": errors, "scene": scene, "ids": ids, "top": true}
 	_walk_steps(scene.steps, walk)

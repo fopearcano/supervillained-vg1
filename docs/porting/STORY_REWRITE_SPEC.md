@@ -166,6 +166,7 @@ All story content lives under `godot/data/story/`:
 ```text
 godot/data/story/
   cast.tres                       StoryCast: speakers (name, colour, portrait frames, actor role)
+  markup.tres                     StoryMarkup: the names drawn yellow on cards, the period words drawn amber in dialogue
   maps/neighborhood.tres          StoryMapData: ASCII rows, base symbol, environment bank, theme
   maps/study.tres
   chapters/ch1.tres               StoryChapterData: Level 1 metadata and its ordered scenes
@@ -191,6 +192,7 @@ godot/data/story/
 | `reality` | `true` for reality scenes (Levels 1 and 8): plain skin, no armour, no dream capability |
 | `historical_tags`, `source_refs` | the event/place tags and the references (`docs/STORY-SOURCES.md` short forms); tools only, never shown |
 | `review_status`, `review_notes` | §4; notes carry every `REVIEW REQUIRED` item |
+| `technical_status` | §4 (the technical axis) |
 
 ### 5.2 `StoryChapterData`
 
@@ -226,8 +228,9 @@ unique and stable scene IDs matching the catalog and its order; unique step ids;
 known speakers, maps, markers, cast roles, sprite keys, music and sound keys; reachable choice
 branches; no choice whose options can all be locked; effects limited to known meters, abilities,
 book keys and `CampaignFlagSchema` flags with valid values; effects declared in
-`persistent_effects`; exactly one final `CompleteStep` whose required state is produced by the
-scene on every branch; no missing source or review metadata; no player-visible text in execution
+`persistent_effects`; a `StageStep` as the first step (RD-26: the engine builds no stage of its
+own); exactly one final `CompleteStep` whose required state is produced by the scene on every
+branch; no missing source or review metadata; no player-visible text in execution
 scripts (a scan of the story scripts for string literals of player text). Missing markers, actors,
 maps or resources fail explicitly at validation and at stage load.
 
@@ -237,9 +240,12 @@ maps or resources fail explicitly at validation and at stage load.
   once to a working copy of the campaign (with their notices), and the campaign is saved **once, at
   the scene's completion boundary**, together with the completion, in one atomic SaveService
   transaction (M4 correction 28). A failed save keeps the player on the scene's last screen with the
-  save-error card and applies nothing.
+  save-error card and applies nothing: TRY AGAIN commits the same result once, TITLE abandons the
+  scene like a force-close; there is no BACK (a finished scene has nothing to go back to).
 - **Restart** (story pause) discards the working copy and starts the scene again from the state it
-  was entered with: no effect, meter change or reward is ever applied twice.
+  was entered with: no effect, meter change or reward is ever applied twice. **Quit to title** (story
+  pause, or Android Back then quit) discards it the same way. The story pause offers no SKIP SCENE
+  in M5R (RD-23, OQ-11).
 - **Force-close** at any point inside a scene loses only that scene's uncommitted progress; the next
   launch's CONTINUE replays the scene from its start. Force-close after a completion boundary
   continues with the next scene.

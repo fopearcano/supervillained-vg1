@@ -16,3 +16,7 @@ func effect_sets() -> Array:
 
 func check(errors: PackedStringArray) -> void:
 	_need(errors, not effects.is_empty(), "effect step %s without effects" % id)
+
+
+func begin(ctx: StoryContext, _st: Dictionary) -> void:
+	ctx.apply(effects)

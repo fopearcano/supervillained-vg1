@@ -16,3 +16,7 @@ func texts() -> PackedStringArray:
 
 func sprites() -> PackedStringArray:
 	return PackedStringArray([sprite]) if sprite != "" else PackedStringArray()
+
+
+func begin(ctx: StoryContext, _st: Dictionary) -> void:
+	ctx.carry(label, sprite)

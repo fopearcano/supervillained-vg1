@@ -321,6 +321,42 @@ class Glossary:
 
 
 ## Maps the source config group names to the inner classes above (CFG-001 parity test).
+## Story mode tuning (the parts of src/config.ts STORY the M5R engine uses; values as in the source).
+class Story:
+	## Dialogue typewriter, characters per second, per text-speed setting.
+	const TEXT_CPS := {"slow": 24.0, "normal": 45.0, "fast": 90.0, "instant": 10000.0}
+	const PICKUP_RADIUS := 0.7
+	## Reach goals count as reached within this radius (tiles) unless an objective sets its own.
+	const GOAL_RADIUS := 0.8
+	## 1.1: the bucket slips over his eyes when he lowers his head (stands still, barks).
+	const VISOR_STILL_AFTER := 0.7
+	const VISOR_DOWN_RATE := 2.4
+	const VISOR_UP_RATE := 1.5
+	const VISOR_MAX := 0.86
+	## Characters he follows wait while he lags this far behind.
+	const LEAD_WAIT_DISTANCE := 3.2
+	const LEAD_ARRIVE := 1.8
+	## Someone blocking a gap: pushing counts as one bump at most every BUMP_EVERY seconds.
+	const BUMP_EVERY := 0.5
+	## The dialogue box: bottom edge BOTTOM px above the screen's bottom, MIN_H tall, grows upward.
+	const DIALOGUE_BOTTOM := 18
+	const DIALOGUE_MIN_H := 74
+	const DIALOGUE_PAD := 32
+	## Speech above a character is kept this far inside the view (sides; top, below the HUD).
+	const SAY_INSET_SIDE := 4
+	const SAY_INSET_TOP := 76
+	## A tap/confirm is read after these guards (a held key does not skip): lines, cards.
+	const LINE_GUARD := 0.15
+	const CARD_GUARD := 0.4
+	## The options appear this long after the prompt has finished typing.
+	const CHOICE_DELAY := 0.3
+	## The real-input driver confirms every this many seconds.
+	const PILOT_CONFIRM_EVERY := 0.22
+	## Floating lines above characters live this long (s).
+	const FLOAT_TIME := 1.6
+	const NOTICE_TIME := 2.2
+
+
 static func groups() -> Dictionary:
 	return {
 		"DISPLAY": Display, "LOOP": Loop, "ISO": Iso, "CAMERA": Camera, "PLAYER": Player,

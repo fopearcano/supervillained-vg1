@@ -48,3 +48,45 @@ func check(errors: PackedStringArray) -> void:
 	_need(errors, action != "spawn" or role != "", "actor %s: spawn without a role" % actor)
 	_need(errors, face == "" or StoryDirs.ALL.has(face), "actor %s: bad facing '%s'" % [actor, face])
 	_need(errors, speed > 0.0, "actor %s: speed must be positive" % actor)
+
+
+func begin(ctx: StoryContext, _st: Dictionary) -> void:
+	var p := Vector2.ZERO
+	if ["spawn", "goto", "place"].has(action):
+		p = ctx.player_pos() + point if near_player else ctx.place(at, point)
+		if ctx.error != "":
+			return
+	if action == "spawn":
+		var s := ctx.scene.spawn_actor(actor, role, p, face if face != "" else "S")
+		if s != null and face_player:
+			s.face_point(ctx.player_pos())
+		return
+	if action == "despawn":
+		ctx.scene.despawn_actor(actor)
+		return
+	var a := ctx.actor(actor)
+	if a == null:
+		return
+	match action:
+		"goto":
+			a.go_to(p, speed, run)
+		"follow":
+			a.follow(speed)
+		"idle":
+			a.set_idle()
+		"gesture":
+			if not a.gesture():
+				a.play_action("bark", 0.5)
+		"place":
+			a.set_grid_position(p.x, p.y)
+	if face_player:
+		a.face_point(ctx.player_pos())
+	elif face != "":
+		a.face(face)
+
+
+func tick(ctx: StoryContext, _st: Dictionary, _dt: float) -> bool:
+	if action == "goto" and wait_arrival:
+		var a: StoryActor = ctx.scene.actors.get(actor)
+		return a == null or a.arrived
+	return true

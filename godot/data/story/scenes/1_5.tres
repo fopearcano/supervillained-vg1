@@ -1,0 +1,349 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=44 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="3_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="4_storypickup"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="5_carrystep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="6_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="7_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="8_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="9_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="10_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="11_cuestep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="12_actorstep"]
+[ext_resource type="Script" path="res://story/steps/wait_step.gd" id="13_waitstep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="14_cardstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="15_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "neighborhood"
+player_at = "8"
+player_point = Vector2(0.0, 0.0)
+player_face = "W"
+actors = []
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("4_storypickup")
+id = "rag"
+at = ""
+point = Vector2(20.5, 5.5)
+kind = "spot"
+label = "A SCRAP OF RED CLOTH"
+text = ""
+sprite = "rag_0"
+effects = {}
+carry_label = "RED CLOTH"
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_objectivestep")
+id = "s02"
+objective = "TAKE THE SCRAP OF RED CLOTH CAUGHT IN THE HEDGE"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_2")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_objectivestep")
+id = "s03"
+objective = "FOLLOW THE FAMILIAR LANE HOME"
+objective_kind = "reach"
+goal_marker = "S"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "HOME"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("5_carrystep")
+id = "s04"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_storyactorspec")
+name = "conf"
+role = "confusione"
+at = "6"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("6_storyactorspec")
+name = "prof"
+role = "legs"
+at = "2"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("2_stagestep")
+id = "s05"
+map = "study"
+player_at = "5"
+player_point = Vector2(0.0, 0.0)
+player_face = "NE"
+actors = [SubResource("Resource_6"), SubResource("Resource_7")]
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_dialoguestep")
+id = "s06"
+speaker = "professor"
+text = "...AND ONE BY ONE THEY TOOK THE CROSS. A CROSS OF CLOTH, SEWN ON THEIR CLOTHES. THAT WAS ENOUGH TO BELONG."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("8_narrationstep")
+id = "s07"
+text = "ZAMPANO LAYS THE RAG ON HIS BACK. IT SLIDES OFF. HE LAYS IT ON AGAIN."
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_dialoguestep")
+id = "s08.one.1"
+speaker = "confusione"
+text = "YOU HEARD A MAN TALKING TO HIS COAT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("10_storychoiceoption")
+id = "one"
+label = "I AM ONE OF THEM. I HEARD THE WHOLE THING."
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"unlock": "cross",
+"supervillain": 3
+}
+then_steps = [SubResource("Resource_11")]
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("8_narrationstep")
+id = "s08.quiet.1"
+text = "ZAMPANO SAYS NOTHING AND STANDS VERY STRAIGHT."
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("7_dialoguestep")
+id = "s08.quiet.2"
+speaker = "confusione"
+text = "NOBODY IS LOOKING, ZAMPANO."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("10_storychoiceoption")
+id = "quiet"
+label = "SAY NOTHING. LET THEM SEE IT."
+said = ""
+silent = true
+cost = 0
+locked_text = ""
+effects = {
+"unlock": "cross",
+"commozione": 3
+}
+then_steps = [SubResource("Resource_13"), SubResource("Resource_14")]
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("9_choicestep")
+id = "s08"
+speaker = "confusione"
+prompt = "AND WHAT IS THAT SUPPOSED TO BE?"
+prompt_again = ""
+options = [SubResource("Resource_12"), SubResource("Resource_15")]
+once_each = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("5_carrystep")
+id = "s09"
+label = "A RAG CROSS ON HIS BACK"
+sprite = "rag_0"
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("11_cuestep")
+id = "s10"
+sound = "star"
+shake = 0.0
+flash = false
+visor = -1.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("12_actorstep")
+id = "s11"
+actor = "prof"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(1.2, -0.8)
+near_player = true
+face = ""
+face_player = false
+speed = 1.2
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("13_waitstep")
+id = "s12"
+seconds = 1.4
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("14_cardstep")
+id = "s13"
+big = ""
+small = "THE PROFESSOR STEPS OVER HIM WITHOUT LOOKING DOWN."
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 1.8
+dim = 0.2
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("7_dialoguestep")
+id = "s14"
+speaker = "zampano"
+text = "HE WILL NOTICE TOMORROW."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("7_dialoguestep")
+id = "s15"
+speaker = "confusione"
+text = "TOMORROW. OBVIOUSLY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("7_dialoguestep")
+id = "s16"
+speaker = "zampano"
+text = "THERE WAS A RAG, AND IT WAS A CROSS, AND NOBODY LOOKED."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("3_objectivestep")
+id = "s17"
+objective = "CURL UP UNDER THE DESK"
+objective_kind = "reach"
+goal_marker = "0"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE DESK"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("7_dialoguestep")
+id = "s18"
+speaker = "professor"
+text = "...AND IN THE SPRING THEY SET OFF FOR VENICE, WHERE THE SHIPS WERE. THE MONEY WAS ANOTHER MATTER."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("14_cardstep")
+id = "s19"
+big = "UNDER THE DESK"
+small = "IN THE DARK, THE HEM OF HIS FATHER'S TROUSERS BECOMES THE EDGE OF A SAIL. THE UNDERSIDE OF THE DESK IS THE BOTTOM OF A SHIP."
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 0.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("15_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "1.5"
+content_version = 1
+title = "A cross of rag"
+old_title = "A cross of rag"
+level = 1
+summary = "A SCRAP OF RED CLOTH IS CAUGHT IN THE HEDGE. CARRY IT HOME. IN THE STUDY THE PROFESSOR IS STILL REHEARSING: THOSE WHO TOOK THE CROSS SEWED A CROSS OF CLOTH ON THEIR CLOTHES AND WENT. ZAMPANO PUTS THE RAG ON HIS OWN BACK AND WAITS FOR SOMEONE TO NOTICE."
+map = "neighborhood"
+music = "greenzone"
+cast = PackedStringArray("zampano", "professor", "confusione")
+steps = [SubResource("Resource_1"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28")]
+entry_conditions = {
+"requires_completed": ["1.4"]
+}
+persistent_effects = PackedStringArray("unlock.cross", "meter.supervillain", "meter.commozione", "book.remembered")
+completion = {
+"boundary": "sleep",
+"requires_abilities": ["cross"]
+}
+reality = true
+historical_tags = PackedStringArray("reality", "the Professor's study", "lecture: the taking of the cross, a cross of cloth sewn on (Villehardouin; crucesignati after Barbero)", "the sleep boundary")
+source_refs = PackedStringArray("Villehardouin pp. 1-4 (attested per docs/STORY-SOURCES.md)", "docs/STORY-SOURCES.md \"Period words\": CRUCESIGNATI, a cross sewn on the clothes (after Barbero)", "docs/STORY.md 1.5", "src/campaign/chapters/ch1.ts 1.5 (draft)", "STORY_REWRITE_DECISIONS.md RD-12, RD-25")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("REVIEW REQUIRED: \"...AND IN THE SPRING THEY SET OFF FOR VENICE\" (the date is not itemised in the sources).", "OQ-06 (the two answers' rewards), OQ-10 (the date line).")
+technical_status = "technically_complete"

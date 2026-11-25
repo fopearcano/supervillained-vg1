@@ -136,6 +136,9 @@ func test_SLICE_valid_scene_passes_and_every_defect_fails_explicitly() -> void:
 	s.steps = []
 	_expect(s, "no steps", "empty scene")
 	s = _valid()
+	s.steps.pop_front()
+	_expect(s, "the first step must be a StageStep", "no first stage")
+	s = _valid()
 	s.steps.insert(1, Resource.new())
 	_expect(s, "is not a StoryStep", "not a step")
 	# Assets.

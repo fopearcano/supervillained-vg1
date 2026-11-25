@@ -17,3 +17,5 @@ extends Resource
 @export var effects: Dictionary = {}
 ## When set, he carries the thing after picking it (CarryPresenter label).
 @export var carry_label := ""
+## Sound when picked (an AudioService cue).
+@export var sound := "jingle"

@@ -4,7 +4,10 @@ extends Node
 ##   Title → NEW GAME (confirmation over a saved story) | CONTINUE | COUCH | OPTIONS (CONTROLS,
 ##   LEVELS (REPLAY), MERAVIGLIA BOOK) | GLOSSARY | QUIT (Goodbye where an app cannot close);
 ##   1.0 = the Green Zone walk; its CONTINUE hands the walk to the campaign (AppState.complete_walk)
-##   and leads to 1.1, which this build shows honestly as not built yet (the story is M5).
+##   and leads to 1.1; story scenes (M5R: Level 1, 1.1–1.5) open with their scene card and play in
+##   StoryScene; each completion is one atomic save (AppState.commit_scene); after a level's last
+##   scene the Supervillained snap, the Professor's aside, then the next level (this build shows
+##   a scene without Resources honestly as not built yet).
 ## Every save the flow depends on is checked: a failed or refused NEW GAME stays on the title, a
 ## failed CONTINUE stays on the result card, a failed notice save keeps the notice; each shows the
 ## save-error card (what failed, that nothing changed, what to do) and never moves on.
@@ -13,6 +16,8 @@ extends Node
 
 const GREEN_ZONE_SCENE := preload("res://scenes/green_zone/green_zone_scene.tscn")
 const TITLE_SCENE := preload("res://scenes/title/title_screen.tscn")
+const STORY_SCENE := preload("res://scenes/story/story_scene.tscn")
+const MARKUP: StoryMarkup = preload("res://data/story/markup.tres")
 const TEXT: ShellText = preload("res://data/shell/shell_text.tres")
 
 @onready var viewport_controller: PixelViewportController = $ViewportController
@@ -217,12 +222,123 @@ func continue_game() -> void:
 	_glitch(func() -> void: _play_scene.call_deferred(String(target["id"])))
 
 
-## Plays a scene of the catalog: the Green Zone walk, or this build's boundary for a story scene.
+## Plays a scene of the catalog: the Green Zone walk, a rewritten story scene (its card first), or
+## this build's boundary for a scene without Resources.
 func _play_scene(id: String) -> void:
-	if SaveService.CATALOG.playable_in_build(id):
+	var f := SaveService.CATALOG.find(id)
+	if not f.is_empty() and int(f["sub"]["green_zone"]) > 0:
 		start_green_zone(true)
+	elif StoryLibrary.has_scene(id):
+		show_story_card(id)
 	else:
 		show_boundary(id)
+
+
+# --- Story scenes ---------------------------------------------------------------------------------
+
+## The scene card before a story scene (source StoryFlow.showSub): LEVEL n, the ID and title, what
+## happens; in a replay, that the campaign will not change. A tap starts the scene.
+func show_story_card(id: String) -> void:
+	var data := StoryLibrary.scene(id)
+	clear_overlays()
+	AudioService.play_music(&"intro")
+	var paragraphs := [["%s %s" % [id, data.title.to_upper()], PixelText.YELLOW], [data.summary, PixelText.WHITE]]
+	if AppState.replaying:
+		paragraphs.append([TEXT.get_text("story_replay_note"), PixelText.CYAN])
+	var m := MessageOverlay.new()
+	m.setup(TEXT.get_text("story_level") % data.level, paragraphs, [], func() -> void:
+		pop_overlay(m)
+		_glitch(func() -> void: start_story.call_deferred(id)), 0.97)
+	m.markup = MARKUP
+	m.set_meta(&"story_card", id)
+	push_overlay(m)
+
+
+## Starts a story scene from the campaign (or the replay's copy, which is never committed).
+func start_story(id: String) -> void:
+	var data := StoryLibrary.scene(id)
+	var scene: StoryScene = change_scene(STORY_SCENE, func(n: Node) -> void:
+		(n as StoryScene).setup(data, AppState.story_entry_state(), AppState.persists()))
+	scene.completed.connect(_on_story_completed)
+	scene.quit_requested.connect(quit_to_title)
+	scene.failed.connect(_on_story_failed)
+
+
+## A story scene reached its completion boundary: a replay returns to its level's list and saves
+## nothing; otherwise the scene is committed in one save (a failure stays on the scene's last
+## screen with the save-error card: TRY AGAIN commits the same result, TITLE abandons the scene
+## like a force-close), then the next scene, or the end of the level.
+func _on_story_completed(result: Dictionary) -> void:
+	var id := String(result["id"])
+	if AppState.replaying:
+		AppState.end_replay()
+		var f := SaveService.CATALOG.find(id)
+		transition.play(func() -> void:
+			show_title.call_deferred()
+			(func() -> void:
+				open_levels()
+				open_chapter(int(f["chapter"]["number"]) if not f.is_empty() else 1)).call_deferred())
+		return
+	var r := AppState.commit_scene(id, result["state"], float(result["play_time"]))
+	if not r["saved"]:
+		show_save_error("scene", String(r["error"]), func() -> void: _on_story_completed(result),
+			[{"label": "TITLE", "color": PixelText.PINK, "action": quit_to_title}], false)
+		return
+	var next := _next_in_level(id)
+	if next != "":
+		transition.play(func() -> void: _play_scene.call_deferred(next))
+	else:
+		_level_end(id)
+
+
+## The next scene of the same level ("" after its last).
+func _next_in_level(id: String) -> String:
+	var f := SaveService.CATALOG.find(id)
+	var subs: Array = f["chapter"]["sub_levels"]
+	for k in subs.size():
+		if String(subs[k]["id"]) == id and k + 1 < subs.size():
+			return String(subs[k + 1]["id"])
+	return ""
+
+
+## The end of a level (source StoryFlow.finishSub): the Supervillained snap over the frozen last
+## stage, then the Professor's aside, then the next level's first scene (its card, or this
+## build's boundary when it has no Resources yet).
+func _level_end(id: String) -> void:
+	var number := int(SaveService.CATALOG.find(id)["chapter"]["number"])
+	AudioService.play_music(&"intro")
+	var sv := SupervillainedOverlay.new()
+	sv.catalog = (current_scene as StoryScene).world.catalog if current_scene is StoryScene else load("res://data/environment/green_zone_sprites.tres")
+	sv.done.connect(func() -> void:
+		pop_overlay(sv)
+		_professor_aside(number))
+	sv.set_meta(&"level_end", number)
+	push_overlay(sv)
+
+
+func _professor_aside(number: int) -> void:
+	var chapter := StoryLibrary.chapter(number)
+	var next_ch := SaveService.CATALOG.chapter(number + 1)
+	var next_id := String((next_ch["sub_levels"] as Array)[0]["id"]) if not next_ch.is_empty() else ""
+	var m := MessageOverlay.new()
+	m.setup(TEXT.get_text("story_aside_title"), [[chapter.professor_aside if chapter else "", PixelText.WHITE]], [], func() -> void:
+		pop_overlay(m)
+		if next_id == "":
+			_glitch(func() -> void: show_title.call_deferred())
+		else:
+			_glitch(func() -> void: _play_scene.call_deferred(next_id)), 0.97)
+	m.markup = MARKUP
+	m.set_meta(&"professor_aside", number)
+	push_overlay(m)
+
+
+## Content that cannot run (a missing marker, actor or resource) stops with an explicit card.
+func _on_story_failed(message: String) -> void:
+	show_title()
+	var m := MessageOverlay.new()
+	m.setup(TEXT.get_text("story_error_title"), [[message, PixelText.WHITE]], [{"label": "TITLE", "color": PixelText.PINK, "action": func() -> void: pop_overlay(m)}], Callable(), 0.96)
+	m.set_meta(&"story_error", message)
+	push_overlay(m)
 
 
 ## Where a story scene would start (M5): what the save holds and that the scene is not built yet;
@@ -317,7 +433,9 @@ func play_from_list(id: String) -> void:
 ## read-only session (a newer save format, or a save that could not be safely copied) says why
 ## nothing can be saved instead. `extra` buttons ({"label", "color", "action"}) close the card
 ## first; BACK closes it and returns to the screen below.
-func show_save_error(context: String, reason: String, retry: Callable = Callable(), extra: Array = []) -> MessageOverlay:
+## With `back` false there is no BACK button and Android Back keeps the card (a finished story scene
+## behind it has nothing to go back to: the choice is TRY AGAIN or TITLE).
+func show_save_error(context: String, reason: String, retry: Callable = Callable(), extra: Array = [], back: bool = true) -> MessageOverlay:
 	var why := "save_error_retry"
 	if reason.begins_with("write_blocked_future"):
 		why = "save_error_future"
@@ -334,8 +452,11 @@ func show_save_error(context: String, reason: String, retry: Callable = Callable
 		buttons.append({"label": b["label"], "color": b["color"], "action": func() -> void:
 			pop_overlay(m)
 			act.call()})
-	buttons.append({"label": "BACK", "color": PixelText.WHITE, "action": func() -> void: pop_overlay(m)})
+	if back:
+		buttons.append({"label": "BACK", "color": PixelText.WHITE, "action": func() -> void: pop_overlay(m)})
 	m.setup(TEXT.get_text("save_error_title"), [[TEXT.get_text("save_error_" + context), PixelText.YELLOW], [TEXT.get_text(why), PixelText.WHITE]], buttons, Callable(), 0.92)
+	if not back:
+		m.back_action = Callable()
 	m.heading_color = PixelText.RED
 	m.set_meta(&"save_error", {"context": context, "reason": reason})
 	push_overlay(m)
@@ -429,3 +550,5 @@ func _notification(what: int) -> void:
 		top.call("back")
 	elif top == null and current_scene is TitleScreen:
 		quit()
+	elif top == null and current_scene is StoryScene:
+		(current_scene as StoryScene).open_pause()

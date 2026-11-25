@@ -10,8 +10,12 @@ game starts at the title (NEW GAME, CONTINUE, COUCH, OPTIONS with CONTROLS and L
 GLOSSARY, QUIT) over the format-3 save (`user://save_v3.json`: settings, independent records,
 passive legacy coins, the campaign v2, legacy-import metadata; atomic writes with recovery). The
 complete Green Zone 1.0 is playable from NEW GAME; its record saves at completion, its coins, time
-and 1.0 completion on CONTINUE, after which 1.1 is shown as not in this build (the story is M5). See
-`docs/porting/IMPLEMENTATION_LOG.md` for evidence and deviations and the status section of
+and 1.0 completion on CONTINUE. **M5R implemented, pending review**: CONTINUE launches the rewritten
+Level 1 (1.1–1.5) on the native story engine (`StoryScene`, `StoryRunner`, typed step Resources;
+`docs/porting/STORY_ENGINE_API.md`); each scene is one atomic save at its completion; after 1.5 the
+Professor's aside and an explicit "not in this build" card for 2.1 (Levels 2–8 are not started).
+The Level 1 prose is a rewritten draft, **narrative review pending** (`docs/porting/STORY_REWRITE_SPEC.md`).
+See `docs/porting/IMPLEMENTATION_LOG.md` for evidence and deviations and the status section of
 `docs/porting/FEATURE_MATRIX.md` for the acceptance IDs claimed and satisfied.
 
 ## Requirements
@@ -88,6 +92,7 @@ xvfb-run -a godot --path godot --rendering-driver opengl3 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode run # full real-input run (M3 shots 20-23)
 xvfb-run -a godot --path godot --rendering-driver opengl3 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode shell # M4 title, Couch, Glossary, options
+xvfb-run -a godot --path godot --rendering-driver opengl3   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode story # M5R Level 1 (shots 40-51)
 xvfb-run -a godot --path godot --rendering-driver opengl3 --resolution 800x600 \
   --script res://tools/capture_suite.gd -- --out /tmp/captures --mode diagnostic --size 800x600
 ```
@@ -239,12 +244,16 @@ world/       TileCatalog, AsciiMapLoader, WorldMapModel, IsoWorld scene, runtime
 entities/    PlayableDog, props, treat/poop views, critter controllers (cat, ball, Bagnaskiz) + views
 systems/     needs, Green Zone rules, threats (cats, balls, waves, attack director, Bagnaskiz, bark),
              threat helpers, scoring, lives, placement
-scenes/      title, shell overlays (confirm, message, options, controls, Couch, Glossary, levels),
-             Green Zone scene, its overlays (briefing, pause, Supervillained snap, level end, game over)
+scenes/      title, shell overlays (confirm, message, options, controls, Couch, Glossary, levels,
+             story pause), Green Zone scene, its overlays (briefing, pause, Supervillained snap,
+             level end, game over), story scene, story actors, props and objective markers
 campaign/    campaign schema/rules/flow/summary, v1 migration, legacy import, the walk's handoff data
+story/       story engine: StoryRunner, StoryContext, StoryValidator, StoryLibrary, StoryMarkup,
+             step classes (steps/), scene rules (rules/), Resource classes (data/)
 fx/          world text, glitch shader (transition and the Under Attack look)
-ui/          HUD, attack banner, touch controls, pixel text
-data/        generated Resources + layout data (from the source manifests)
+ui/          HUD, attack banner, touch controls, pixel text, story HUD and touch controls
+data/        generated Resources + layout data (from the source manifests); data/story/: the story
+             content (cast, maps, markup, chapters, scenes) — the narrative authority, all player text
 assets/      runtime copies and frozen generated art (see data/source_asset_manifest.json)
 tests/       first-party runner, unit/content/integration suites, fixtures, automation driver
 tools/       extraction/build/capture tools, source-tree guard (not exported)

@@ -69,3 +69,83 @@ func check(errors: PackedStringArray) -> void:
 		if opt.locked_text != "" or opt.cost > 0:
 			lockable += 1
 	_need(errors, options.is_empty() or lockable < options.size(), "choice %s: every option can be locked at once (all-locked dead end)" % id)
+
+
+## Options still offered (once_each: the ones not taken yet in this run).
+func open_options(ctx: StoryContext) -> Array:
+	var taken: Array = ctx.choices_taken.get(id, [])
+	return options.filter(func(o: StoryChoiceOption) -> bool: return not (once_each and taken.has(o.id)))
+
+
+## What the player sees for each open option: its label (with the cost) or its lock. If every
+## option is locked they are all offered unlocked (no dead end; source optionView/AskStep).
+func views(ctx: StoryContext, open: Array) -> Array:
+	var out: Array = []
+	var commozione := float((ctx.state["meters"] as Dictionary)["commozione"])
+	for o: StoryChoiceOption in open:
+		if o.locked_text != "":
+			out.append({"label": o.label, "locked": o.locked_text})
+		elif o.cost > 0 and commozione < o.cost:
+			out.append({"label": o.label, "locked": ctx.ui_text("story_too_unmoved") % o.cost})
+		elif o.cost > 0:
+			out.append({"label": o.label + ctx.ui_text("story_cost_suffix") % o.cost, "locked": ""})
+		else:
+			out.append({"label": o.label, "locked": ""})
+	if out.all(func(v: Dictionary) -> bool: return String(v["locked"]) != ""):
+		out = open.map(func(o: StoryChoiceOption) -> Dictionary: return {"label": o.label, "locked": o.locked_text})
+	return out
+
+
+func begin(ctx: StoryContext, st: Dictionary) -> void:
+	st["t"] = 0.0
+	st["phase"] = "typing"
+	st["open"] = open_options(ctx)
+	var again: bool = (ctx.choices_taken.get(id, []) as Array).size() > 0
+	ctx.hud.show_line(ctx.cast.display_name(speaker), ctx.cast.color(speaker), ctx.portrait_of(speaker), prompt_again if again and prompt_again != "" else prompt)
+	ctx.speaking_gesture(speaker)
+
+
+func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
+	st["t"] = float(st["t"]) + dt
+	if st["phase"] == "typing":
+		if ctx.hud.typing and ctx.tapped(st, GameConfig.Story.LINE_GUARD):
+			ctx.hud.finish_typing()
+		if not ctx.hud.typing and float(st["t"]) > GameConfig.Story.CHOICE_DELAY:
+			st["phase"] = "choosing"
+			st["views"] = views(ctx, st["open"])
+			ctx.hud.set_choices(st["views"])
+		return false
+	var pick := ctx.hud.read_choice()
+	if pick < 0:
+		return false
+	AudioService.play(&"click")
+	var lock := String((st["views"][pick] as Dictionary)["locked"])
+	if lock != "":
+		ctx.notice(lock, PixelText.RED)
+		return false
+	var o: StoryChoiceOption = (st["open"] as Array)[pick]
+	# The cost is spent only when he has it (source spend(): an all-locked fallback pick is free).
+	if o.cost > 0 and float((ctx.state["meters"] as Dictionary)["commozione"]) >= o.cost:
+		ctx.apply({"commozione": -o.cost})
+	(ctx.metrics["choices"] as Array).append("%s:%s" % [id, o.id])
+	var taken: Array = ctx.choices_taken.get(id, [])
+	taken.append(o.id)
+	ctx.choices_taken[id] = taken
+	if not o.effects.is_empty():
+		ctx.apply(o.effects)
+	var follow: Array = []
+	if not o.silent:
+		var line := DialogueStep.new()
+		line.id = "%s.%s.said" % [id, o.id]
+		line.speaker = "zampano"
+		line.text = o.said if o.said != "" else o.label
+		follow.append(line)
+	follow.append_array(o.then_steps)
+	if once_each and open_options(ctx).size() > 0:
+		follow.append(self)
+	ctx.insert(follow)
+	return true
+
+
+func end(ctx: StoryContext, _st: Dictionary) -> void:
+	ctx.hud.hide_line()

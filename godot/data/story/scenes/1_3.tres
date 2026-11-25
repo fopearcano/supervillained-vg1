@@ -1,0 +1,438 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=50 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/prop_step.gd" id="4_propstep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="5_cardstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="6_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="7_actorstep"]
+[ext_resource type="Script" path="res://story/steps/move_step.gd" id="8_movestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="9_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="10_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="11_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="12_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="13_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="14_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "bag"
+role = "bagnaskiz"
+at = ""
+point = Vector2(13.5, 2.6)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "sbrim"
+role = "sbrimbrulon"
+at = ""
+point = Vector2(13.5, 4.2)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "jack"
+role = "jack"
+at = ""
+point = Vector2(16.5, 4.5)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_storyactorspec")
+name = "watson"
+role = "watson"
+at = "7"
+point = Vector2(0.0, 0.0)
+face = "SW"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "neighborhood"
+player_at = ""
+player_point = Vector2(10.5, 3.5)
+player_face = "E"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4")]
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("4_propstep")
+id = "s02"
+prop = "bowl"
+sprite = "bowl_0"
+action = "place"
+at = "1"
+point = Vector2(0.0, 0.0)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("5_cardstep")
+id = "s03"
+big = "THE BOWL"
+small = "THE BAND'S TOLL."
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 1.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("6_dialoguestep")
+id = "s04"
+speaker = "bagnaskiz"
+text = "DRINK, SBRIMBRULON. TAKE YOUR TIME."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_actorstep")
+id = "s05"
+actor = "sbrim"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(20.5, 4.5)
+near_player = false
+face = ""
+face_player = false
+speed = 1.6
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("8_movestep")
+id = "s06"
+to_marker = ""
+to_point = Vector2(12.4, 3.5)
+speed = 2.0
+face = "E"
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_actorstep")
+id = "s07"
+actor = "bag"
+action = "place"
+role = ""
+at = ""
+point = Vector2(13.2, 3.1)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("7_actorstep")
+id = "s08"
+actor = "bag"
+action = "gesture"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("9_narrationstep")
+id = "s09"
+text = "BAGNASKIZ PUTS HIS PAW OVER THE BOWL."
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_dialoguestep")
+id = "s10"
+speaker = "bagnaskiz"
+text = "SIGNOR VILLANO. YOU KNOW THE TOLL. THE USUAL APOLOGY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("6_dialoguestep")
+id = "s11"
+speaker = "jack"
+text = "EVERYBODY! COME AND WATCH!"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("7_actorstep")
+id = "s12"
+actor = "h1"
+action = "spawn"
+role = "crowdA"
+at = "3"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("7_actorstep")
+id = "s13"
+actor = "h2"
+action = "spawn"
+role = "crowdB"
+at = "4"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("7_actorstep")
+id = "s14"
+actor = "h1"
+action = "gesture"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("7_actorstep")
+id = "s15"
+actor = "h2"
+action = "gesture"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("9_narrationstep")
+id = "s16.paw.1"
+text = "JACK OFFERS A PAW TOO, VERY SLOWLY."
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("6_dialoguestep")
+id = "s16.paw.2"
+speaker = "jack"
+text = "PAAARDON..."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("6_dialoguestep")
+id = "s16.paw.3"
+speaker = "bagnaskiz"
+text = "AND THE OTHER ONE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("11_storychoiceoption")
+id = "paw"
+label = "OFFER THE PAW: \"PARDON.\""
+said = "PARDON."
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"supervillain": -3,
+"flags": {
+"pawOffered": true
+}
+}
+then_steps = [SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22")]
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("9_narrationstep")
+id = "s16.water.1"
+text = "ZAMPANO LOOKS PAST HIM AT THE WATER."
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("6_dialoguestep")
+id = "s16.water.2"
+speaker = "bagnaskiz"
+text = "THE WATER IS NOT LOOKING AT YOU."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("11_storychoiceoption")
+id = "water"
+label = "LOOK PAST HIM AT THE WATER"
+said = ""
+silent = true
+cost = 0
+locked_text = ""
+effects = {
+"flags": {
+"pawOffered": false
+}
+}
+then_steps = [SubResource("Resource_24"), SubResource("Resource_25")]
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("10_choicestep")
+id = "s16"
+speaker = "bagnaskiz"
+prompt = "THE PAW, ZAMPANO."
+prompt_again = ""
+options = [SubResource("Resource_23"), SubResource("Resource_26")]
+once_each = false
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("4_propstep")
+id = "s17"
+prop = "bowl"
+sprite = ""
+action = "move"
+at = ""
+point = Vector2(14.6, 2.4)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = "CLONG."
+float_color = Color(0.784313725, 0.815686275, 1.0, 1)
+sound = "hit"
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("9_narrationstep")
+id = "s18"
+text = "WATSON DRAGS THE BOWL JUST OUT OF REACH."
+
+[sub_resource type="Resource" id="Resource_30"]
+script = ExtResource("6_dialoguestep")
+id = "s19"
+speaker = "watson"
+text = "OOPS, MAN."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_31"]
+script = ExtResource("12_objectivestep")
+id = "s20"
+objective = "GO HOME BY SANTINA'S GATE. ANY WAY YOU CAN"
+objective_kind = "reach"
+goal_marker = "8"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "SANTINA'S GATE"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray("6")
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "cut_off"
+rule_params = {
+"blocker": "jack",
+"gap": Rect2(17.4, 2.0, 1.5, 3.0),
+"block_point": Vector2(18.5, 3.5),
+"lane_y": 6.6,
+"joke_every": 2.4,
+"joke_y": 5.4
+}
+rule_lines = {
+"cut": "NOT THIS WAY, SIGNOR!",
+"notice": "JACK CUTS HIM OFF. THE HEDGE IS ALWAYS OPEN",
+"jokes": ["AND THEN HE WANTED A DRINK!", "HA HA HA!", "A DRINK! FROM OUR BOWL!", "HA HA!"]
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_32"]
+script = ExtResource("13_effectstep")
+id = "s21"
+effects = {
+"flags": {
+"longWay": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_33"]
+script = ExtResource("5_cardstep")
+id = "s22"
+big = "THE LONG WAY"
+small = "TO HIS OWN NEIGHBOR'S GATE."
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_34"]
+script = ExtResource("6_dialoguestep")
+id = "s23"
+speaker = "zampano"
+text = "THERE WAS A BOWL, AND IT WAS ALWAYS ONE STEP AWAY."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_35"]
+script = ExtResource("14_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "1.3"
+content_version = 1
+title = "The toll at the bowl"
+old_title = "The toll at the bowl"
+level = 1
+summary = "AT THE BOWL BAGNASKIZ'S BAND TAKES ITS TOLL. HE LETS SBRIMBRULON DRINK, THEN PUTS HIS PAW OVER THE WATER AND WAITS FOR THE USUAL APOLOGY. THE DIRECT PATH HOME IS NOT FOR ZAMPANO; THE HEDGE IS ALWAYS OPEN."
+map = "neighborhood"
+music = "greenzone"
+cast = PackedStringArray("zampano", "bagnaskiz", "sbrimbrulon", "jack", "watson")
+steps = [SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_27"), SubResource("Resource_28"), SubResource("Resource_29"), SubResource("Resource_30"), SubResource("Resource_31"), SubResource("Resource_32"), SubResource("Resource_33"), SubResource("Resource_34"), SubResource("Resource_35")]
+entry_conditions = {
+"requires_completed": ["1.2"]
+}
+persistent_effects = PackedStringArray("meter.supervillain", "flags.pawOffered", "flags.longWay", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["pawOffered", "longWay"]
+}
+reality = true
+historical_tags = PackedStringArray("reality", "the bowl", "the denied direct path (payoff: 8.3)")
+source_refs = PackedStringArray("docs/STORY.md 1.3 (adaptation: all)", "src/campaign/chapters/ch1.ts 1.3 (draft)", "STORY_REWRITE_DECISIONS.md RD-07, RD-08, RD-11, RD-24")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("OQ-01 (a later payoff of the paw or its refusal).")
+technical_status = "technically_complete"

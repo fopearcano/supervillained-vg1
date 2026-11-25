@@ -13,6 +13,17 @@ extends StoryStep
 
 const KINDS := ["reach", "collect", "follow"]
 const RULES := ["", "visor", "jack_gate", "cut_off"]
+const RULE_SCRIPTS := {
+	"visor": preload("res://story/rules/visor_rule.gd"),
+	"jack_gate": preload("res://story/rules/jack_gate_rule.gd"),
+	"cut_off": preload("res://story/rules/cut_off_rule.gd"),
+}
+const S := GameConfig.Story
+## Spot rings: goals, pickups (presentation).
+const GOAL_COLOR := Color("#4dff5a")
+const PICKUP_COLOR := Color("#3ff0ff")
+## Lecture scraps and the leader's lines (src/campaign/chapters/ch1.ts colour).
+const SCRAP_COLOR := Color("#f0d8a0")
 
 @export var objective := ""
 @export var objective_kind := "reach"
@@ -27,6 +38,8 @@ const RULES := ["", "visor", "jack_gate", "cut_off"]
 ## The action button's label ("" = no action button) and the line shown when pressed.
 @export var action_label := ""
 @export var action_text := ""
+## Sound of the action ("bark" also plays his bark animation).
+@export var action_sound := ""
 @export var checkpoints: PackedStringArray = []
 ## follow: the actor handle, its path (marker ids), speed and one line per stop.
 @export var leader := ""
@@ -89,6 +102,16 @@ func effect_sets() -> Array:
 	for p: StoryPickup in pickups:
 		if not p.effects.is_empty():
 			out.append(p.effects)
+	return out
+
+
+func sounds() -> PackedStringArray:
+	var out := PackedStringArray()
+	if action_sound != "":
+		out.append(action_sound)
+	for p: StoryPickup in pickups:
+		if p.sound != "":
+			out.append(p.sound)
 	return out
 
 
@@ -155,3 +178,140 @@ func check(errors: PackedStringArray) -> void:
 				_need(errors, rule_params.has(k), "objective %s: cut_off needs rule_params.%s" % [id, k])
 			for k in ["cut", "notice", "jokes"]:
 				_need(errors, rule_lines.has(k), "objective %s: cut_off needs rule_lines.%s" % [id, k])
+
+
+# --- Execution ----------------------------------------------------------------------------------
+
+func begin(ctx: StoryContext, st: Dictionary) -> void:
+	st["t"] = 0.0
+	st["hinted"] = false
+	st["goal"] = null
+	if goal_marker != "" or goal_point != Vector2.ZERO:
+		st["goal"] = ctx.place(goal_marker, goal_point)
+		if ctx.error != "":
+			return
+	st["radius"] = goal_radius if goal_radius > 0.0 else S.GOAL_RADIUS
+	st["picked"] = []
+	st["spots"] = {}
+	for p: StoryPickup in pickups:
+		var at := ctx.place(p.at, p.point)
+		if ctx.error != "":
+			return
+		var handle := ""
+		if p.sprite != "":
+			handle = "pickup_%s_%s" % [id, p.id]
+			ctx.scene.place_prop(handle, p.sprite, at, Color.WHITE)
+		st["spots"][p.id] = {"marker": ctx.scene.add_marker(at, S.PICKUP_RADIUS, PICKUP_COLOR), "prop": handle, "at": at}
+	if st["goal"] != null:
+		st["goal_node"] = ctx.scene.add_marker(st["goal"], st["radius"], GOAL_COLOR)
+	ctx.hud.objective = objective
+	ctx.no_run = no_run
+	ctx.action_label = action_label
+	ctx.set_controls(true)
+	if objective_kind == "follow":
+		st["leg"] = 0
+		st["waiting"] = false
+		var lead := ctx.actor(leader)
+		if lead:
+			lead.go_to(ctx.marker(path[0]), leader_speed)
+	if rule != "":
+		var r: ObjectiveRule = RULE_SCRIPTS[rule].new()
+		st["rule"] = r
+		r.begin(ctx, self, st)
+
+
+func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
+	st["t"] = float(st["t"]) + dt
+	if hint != "" and not st["hinted"] and float(st["t"]) > hint_after:
+		st["hinted"] = true
+		ctx.notice(hint, PixelText.CYAN)
+	if action_label != "" and InputService.consume(&"action"):
+		ctx.play_sound(action_sound)
+		if action_sound == "bark":
+			ctx.player.start_action("bark", 0.35)
+		if action_text != "":
+			ctx.say_float(action_text, ctx.player_pos(), Color.WHITE)
+		if st.has("rule"):
+			(st["rule"] as ObjectiveRule).on_action(ctx, self, st)
+	var pp := ctx.player_pos()
+	for p: StoryPickup in pickups:
+		if (st["picked"] as Array).has(p.id):
+			continue
+		var spot: Dictionary = st["spots"][p.id]
+		if pp.distance_to(spot["at"]) <= S.PICKUP_RADIUS:
+			(st["picked"] as Array).append(p.id)
+			_clear_spot(ctx, spot)
+			ctx.play_sound(p.sound)
+			if p.text != "":
+				ctx.notice(p.text, SCRAP_COLOR)
+			if not p.effects.is_empty():
+				ctx.apply(p.effects)
+			if p.carry_label != "":
+				ctx.carry(p.carry_label, p.sprite)
+	if st.has("rule") and (st["rule"] as ObjectiveRule).tick(ctx, self, st, dt):
+		return true
+	if ctx.error != "":
+		return true
+	if objective_kind == "follow":
+		return _tick_follow(ctx, st)
+	if (st["picked"] as Array).size() < pickups.size():
+		return false
+	if st["goal"] == null:
+		return true
+	return pp.distance_to(st["goal"]) <= float(st["radius"])
+
+
+## The leader walks the path, waiting while he lags; at each stop one line; done once he has caught
+## up at the last stop.
+func _tick_follow(ctx: StoryContext, st: Dictionary) -> bool:
+	var lead := ctx.actor(leader)
+	if lead == null:
+		return true
+	var lag := Vector2(lead.gx, lead.gy).distance_to(ctx.player_pos())
+	var leg := int(st["leg"])
+	if leg >= path.size():
+		return lag <= S.LEAD_ARRIVE
+	var wp := ctx.marker(path[leg])
+	if lag > S.LEAD_WAIT_DISTANCE:
+		if not st["waiting"]:
+			st["waiting"] = true
+			lead.set_idle()
+			lead.face_point(ctx.player_pos())
+		return false
+	if st["waiting"]:
+		st["waiting"] = false
+		lead.go_to(wp, leader_speed)
+	if Vector2(lead.gx, lead.gy).distance_to(wp) < 0.1:
+		if not leader_lines.is_empty():
+			ctx.say_float(leader_lines[leg % leader_lines.size()], Vector2(lead.gx, lead.gy - 1.2), SCRAP_COLOR)
+		st["leg"] = leg + 1
+		if leg + 1 < path.size():
+			lead.go_to(ctx.marker(path[leg + 1]), leader_speed)
+		else:
+			lead.set_idle()
+	return false
+
+
+## Removes a pickup's ring and sprite once (a picked spot is already cleared).
+func _clear_spot(ctx: StoryContext, spot: Dictionary) -> void:
+	ctx.scene.remove_marker(spot["marker"])
+	spot["marker"] = null
+	if String(spot["prop"]) != "":
+		ctx.scene.remove_prop(spot["prop"])
+		spot["prop"] = ""
+
+
+func end(ctx: StoryContext, st: Dictionary) -> void:
+	if ctx.scene.world == null:
+		return
+	for spot: Dictionary in (st.get("spots", {}) as Dictionary).values():
+		_clear_spot(ctx, spot)
+	if st.has("goal_node"):
+		ctx.scene.remove_marker(st["goal_node"])
+		st["goal_node"] = null
+	if st.has("rule"):
+		(st["rule"] as ObjectiveRule).end(ctx, self, st)
+	ctx.hud.objective = ""
+	ctx.action_label = ""
+	ctx.no_run = false
+	ctx.set_controls(false)

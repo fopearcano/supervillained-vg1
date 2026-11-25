@@ -10,6 +10,8 @@ var heading_color := T.YELLOW
 var paragraphs: Array = []
 ## With no buttons, a tap, confirm or Back after 0.5 s calls this.
 var dismiss: Callable = Callable()
+## Story cards: the names in yellow (StoryMarkup; null = plain paragraphs).
+var markup: StoryMarkup = null
 
 
 func setup(p_heading: String, p_paragraphs: Array, buttons: Array = [], p_dismiss: Callable = Callable(), p_dim: float = 0.88) -> MessageOverlay:
@@ -63,7 +65,10 @@ func draw_content() -> void:
 	T.draw_centered(self, w / 2.0, y, heading, heading_color, 1, T.SHADOW)
 	y += 18
 	for l: Array in lines:
-		if String(l[0]) != "":
+		if String(l[0]) != "" and markup:
+			var spans := markup.name_spans(String(l[0]), l[1])
+			T.draw_spans(self, Vector2(roundf(w / 2.0 - T.width(String(l[0])) / 2.0), y), spans, 1, Color.BLACK)
+		elif String(l[0]) != "":
 			T.draw_centered(self, w / 2.0, y, l[0], l[1], 1, Color.BLACK)
 		y += 11
 	menu_top = y + 6

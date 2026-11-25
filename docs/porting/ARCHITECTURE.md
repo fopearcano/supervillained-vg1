@@ -455,9 +455,12 @@ The 96×96 redesigned Green Zone and its generated topology/treat placement must
 `IsoWorld` like `GreenZoneScene`, owns a `StoryRunner` and the story HUD (dialogue box with
 typewriter, portraits and speaker names, choice list with locked/costly options, cards, notices,
 objective line, carry line, touch joystick and action button, MENU) and ticks at the fixed 60 Hz
-logic rate. `StoryRunner` runs the scene Resource's ordered `StoryStep`s: each step has `begin(ctx)`,
-`tick(ctx, dt) -> bool` (true when done) and `end(ctx)` and may insert follow-up steps (a choice's
-branch); the runner emits local signals (`step_started`, `completed`), never a global bus.
+logic rate. `StoryRunner` runs the scene Resource's ordered `StoryStep`s: each step has
+`begin(ctx, st)`, `tick(ctx, st, dt) -> bool` (true when done) and `end(ctx, st)`, where `st` is the
+per-run state the runner owns (step Resources are never mutated), and may insert follow-up steps (a
+choice's branch); the runner emits local signals (`step_started`, `finished`) and the scene emits
+`completed`, `failed` and `quit_requested` to Main, never a global bus. The full API is in
+[`STORY_ENGINE_API.md`](STORY_ENGINE_API.md).
 `StoryContext` is the only API steps use: the stage (map, markers, actors, props), the player, the
 HUD, the campaign working copy and effects, audio, and the input service. Step families: stage,
 actor, scripted move, narration, dialogue, choice, objective (reach/collect/follow with pickups,

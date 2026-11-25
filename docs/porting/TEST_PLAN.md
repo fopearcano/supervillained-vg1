@@ -262,7 +262,7 @@ Android coverage is a source gap, not a passing baseline: the Java unit and inst
 | UI-012–014 | Couch next scene/progress, meters/book/records, play/save time and finished-ending state. |
 | UI-015–021 | mute/volume/text speed/lives, gesture bindings, run hold/toggle, switcher and handedness persistence. |
 | UI-022 | Glossary content, red ring animation and all close/back paths. |
-| UI-023–030 | Story menu/chapter list, Meraviglia pagination, pause/restart/skip/quit, dialogue/choices/cards, controller focus/back. |
+| UI-023–030 | Story menu/chapter list, Meraviglia pagination, pause/restart/skip/quit, dialogue/choices/cards, controller focus/back. M5R: partial (the story pause without skip, RD-23; dialogue, choices and cards; Android Back opens the story pause). |
 
 Additional input assertions:
 
@@ -288,13 +288,13 @@ Additional input assertions:
 
 | ID range | Acceptance cases |
 |---|---|
-| WALK-001–006 | reach/collect/action/survive objectives, progress, success, failure/restart. |
-| WALK-007–009 | visible spot rings/sprites, pickups/effects, carry attachment/clear. |
+| WALK-001–006 | reach/collect/action/survive objectives, progress, success, failure/restart. M5R evidence covers the Level 1 scope (reach, collect, action, follow; failure/recovery at Jack's gate); survive objectives arrive with the levels that use them. |
+| WALK-007–009 | visible spot rings/sprites, pickups/effects, carry attachment/clear (M5R evidence: Level 1). |
 | WALK-010–013 | sight cone/range/LOS, bush hiding, hostile contact and checkpoint restart. |
 | WALK-014–017 | leader waits/catches up, lull opens/closes, hidden sound goal, no-run/speed modifiers. |
 | WALK-018 | scrambled input rotation and settling match 8.1 fixture. |
 | WALK-019–021 | fire spread/push, safe checkpoints, restart state. |
-| NPC-001–006 | idle/patrol/chase/flee/follow/wander/flail/goto/fly state transitions and collision. |
+| NPC-001–006 | idle/patrol/chase/flee/follow/wander/flail/goto/fly state transitions and collision. M5R evidence covers the Level 1 scope (idle, goto, follow on the grid solver); the other states arrive with the levels that use them. |
 | NPC-007 | on-stage idle human performs one speaking gesture then resumes behavior. |
 | NPC-008–011 | 7.3 and 8.3 exact companion fall-in/wait/rejoin/pace effects. |
 
@@ -374,7 +374,7 @@ Full-campaign policies:
 | FLOW-009 | Supervillained boundaries are exact: after 1.0 before its score card; again after 1.5 before the Level 1 Professor aside; after the final sublevel of Levels 2–8 before the aside/ending flow; never after a completed-scene replay. |
 | FLOW-010 | Finished-scene replay starts from a deep copy. |
 | FLOW-011 | Replay completion/restart/choice changes no persistent save field. |
-| FLOW-012 | `SKIP SCENE` completes/saves exactly as current source and is unavailable where inappropriate. |
+| FLOW-012 | `SKIP SCENE` completes/saves exactly as current source and is unavailable where inappropriate. M5R: the story pause offers no SKIP SCENE (RD-23); partial until the owner answers OQ-11. |
 
 ## 13. Save and migration tests
 

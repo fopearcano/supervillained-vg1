@@ -1,0 +1,410 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=40 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="5_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="6_actorstep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="7_storypickup"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="8_cardstep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="9_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/wait_step.gd" id="10_waitstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="11_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "prof"
+role = "legs"
+at = ""
+point = Vector2(9.7, 9.9)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "study"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "professor"
+text = "NOW. WHERE WERE WE. THE FOURTH CRUSADE. AGAIN, FROM THE TOP."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_objectivestep")
+id = "s03"
+objective = "FOLLOW YOUR FATHER ROUND THE STUDY"
+objective_kind = "follow"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = "prof"
+path = PackedStringArray("3", "7", "1", "6")
+leader_speed = 1.4
+leader_lines = PackedStringArray("VILLEHARDOUIN, YOU UNDERSTAND, WAS IN THE ROOM WHEN THEY DECIDED.", "CLARI WAS OUTSIDE THE ROOM. HE SAW A GREAT DEAL AND WAS TOLD VERY LITTLE.", "THE FLEET WAS READY FIRST. THE ARMY THAT CAME TO VENICE WAS SMALLER THAN THE FLEET.", "AND NIKETAS WAS INSIDE THE WALLS, WATCHING THEM COME.")
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_actorstep")
+id = "s04"
+actor = "prof"
+action = "idle"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("7_storypickup")
+id = "chair"
+at = "0"
+point = Vector2(0.0, 0.0)
+kind = "shard"
+label = "THE CHAIR LEG"
+text = "\"A FLEET BOUGHT ON CREDIT. EIGHTY-FIVE THOUSAND MARKS, AND THEY HAD NOT GOT IT.\""
+sprite = ""
+effects = {
+"shard": "A FLEET BOUGHT ON CREDIT"
+}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_storypickup")
+id = "suitcase"
+at = "5"
+point = Vector2(0.0, 0.0)
+kind = "shard"
+label = "THE SUITCASE"
+text = "\"THE OTHERS TURNED BACK. ONE KNIGHT KEPT WALKING.\""
+sprite = ""
+effects = {
+"shard": "A KNIGHT WHO KEPT WALKING"
+}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("7_storypickup")
+id = "coat"
+at = "6"
+point = Vector2(0.0, 0.0)
+kind = "shard"
+label = "THE HEM OF HIS COAT"
+text = "\"A CITY SEEN FROM ITS WALLS, AND THE WALLS FULL OF PEOPLE.\""
+sprite = ""
+effects = {
+"shard": "A CITY SEEN FROM ITS WALLS"
+}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("5_objectivestep")
+id = "s05"
+objective = "SNIFF THE CHAIR LEG, THE SUITCASE AND THE HEM OF HIS COAT"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8")]
+no_run = false
+action_label = "SNIFF"
+action_text = "SNIFF..."
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("4_dialoguestep")
+id = "s06"
+speaker = "professor"
+text = "DREAMS ARE FURNISHED WITH DAILY LIFE, YOU KNOW. A SAILOR DREAMS ROPES; A COMMUTER DREAMS TRAINS AND SUITCASES."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("4_dialoguestep")
+id = "s07"
+speaker = "zampano"
+text = "AND A DOG DREAMS LECTURES."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("4_dialoguestep")
+id = "s08"
+speaker = "professor"
+text = "GO AND DRINK SOMETHING. YOU ARE PANTING ON MY NOTES."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("3_storyactorspec")
+name = "jack"
+role = "jack"
+at = "2"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("3_storyactorspec")
+name = "d1"
+role = "crowdC"
+at = ""
+point = Vector2(4.5, 3.5)
+face = "E"
+behavior = "goto"
+target = ""
+target_point = Vector2(11.5, 3.5)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("2_stagestep")
+id = "s09"
+map = "neighborhood"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NE"
+actors = [SubResource("Resource_13"), SubResource("Resource_14")]
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("8_cardstep")
+id = "s10"
+big = "OUTSIDE"
+small = "TWO GARDEN GATES, AND JACK IN BETWEEN."
+color = Color(0.301960784, 1.0, 0.352941176, 1)
+seconds = 1.8
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("6_actorstep")
+id = "s11"
+actor = "jack"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(8.5, 4.5)
+near_player = false
+face = ""
+face_player = false
+speed = 3.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("4_dialoguestep")
+id = "s12"
+speaker = "jack"
+text = "GO ON, GO ON. EVERYBODY PASSES."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("9_narrationstep")
+id = "s13"
+text = "THE OTHER DOG TROTS THROUGH THE GAP."
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("6_actorstep")
+id = "s14"
+actor = "jack"
+action = "goto"
+role = ""
+at = "2"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 3.0
+run = false
+wait_arrival = true
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("10_waitstep")
+id = "s15"
+seconds = 0.6
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("4_dialoguestep")
+id = "s16"
+speaker = "jack"
+text = "EVERYBODY EXCEPT YOU."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("5_objectivestep")
+id = "s17"
+objective = "GET THROUGH THE GARDEN GATES TO THE BOWL"
+objective_kind = "reach"
+goal_marker = "1"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE BOWL"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = "BARK"
+action_text = "WOOF!"
+action_sound = "bark"
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "jack_gate"
+rule_params = {
+"blocker": "jack",
+"gap": Rect2(6.55, 2.0, 1.9, 3.0),
+"echo_open": 3,
+"heads_at": 2,
+"hint_bumps": [3, 8],
+"recover_bumps": 14,
+"range": 3.0,
+"creak_point": Vector2(1.5, 1.5),
+"heads": [{
+"name": "h1",
+"role": "crowdA",
+"at": "3"
+}, {
+"name": "h2",
+"role": "crowdB",
+"at": "4"
+}]
+}
+rule_lines = {
+"echo": ["WOOF!", "WOOF! WOOF!", "\"WOOF,\" HE SAYS. \"WOOF!\""],
+"nope": "NOPE!",
+"hint": "JACK WILL NOT MOVE. BARK?",
+"creak": "CREAK..."
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("6_actorstep")
+id = "s18"
+actor = "jack"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(8.5, 4.5)
+near_player = false
+face = ""
+face_player = false
+speed = 2.5
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("9_narrationstep")
+id = "s19"
+text = "A CREAK FROM THE PROFESSOR'S WINDOW. JACK STEPS ASIDE AS IF HE HAD ALWAYS MEANT TO."
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("5_objectivestep")
+id = "s20"
+objective = "GO THROUGH TO THE BOWL"
+objective_kind = "reach"
+goal_marker = "1"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE BOWL"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("4_dialoguestep")
+id = "s21"
+speaker = "zampano"
+text = "THERE WAS A GATE, AND IT WAS A CHIHUAHUA."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("11_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "1.2"
+content_version = 1
+title = "Under the Professor's desk"
+old_title = "Under the Professor's desk"
+level = 1
+summary = "THE PROFESSOR IS REHEARSING HIS LECTURE ON THE FOURTH CRUSADE AGAIN. FOLLOW HIM ROUND THE STUDY AND SNIFF OUT THREE SCRAPS OF IT. OUTSIDE, JACK LETS EVERY DOG THROUGH HIS GAP BUT ONE."
+map = "study"
+music = "greenzone"
+cast = PackedStringArray("zampano", "professor", "jack")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28")]
+entry_conditions = {
+"requires_completed": ["1.1"]
+}
+persistent_effects = PackedStringArray("book.shards", "book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = true
+historical_tags = PackedStringArray("reality", "the Professor's study", "lecture: Villehardouin among the envoys", "lecture: Clari outside the leaders' room", "lecture: the fleet bought on credit (85,000 marks)", "the garden gates")
+source_refs = PackedStringArray("Villehardouin pp. 1-4, 6-7 (attested per docs/STORY-SOURCES.md)", "Clari XI, XIII (Munro; attested claim)", "docs/STORY.md 1.2", "src/campaign/chapters/ch1.ts 1.2 (draft)", "STORY_REWRITE_DECISIONS.md RD-06, RD-10, RD-11, RD-19, RD-21, RD-22")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("REVIEW REQUIRED: \"AND NIKETAS WAS INSIDE THE WALLS, WATCHING THEM COME.\" (lecture framing, no scene-level citation).", "REVIEW REQUIRED: \"THE FLEET WAS READY FIRST. THE ARMY THAT CAME TO VENICE WAS SMALLER THAN THE FLEET.\" (paraphrase of Clari XI's claim).", "OQ-03 (lecture fragments, the title), OQ-04 (Jack's breed).")
+technical_status = "technically_complete"

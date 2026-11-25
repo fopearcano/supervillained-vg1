@@ -17,7 +17,10 @@ edition: "attested" means "listed as attested in `docs/STORY-SOURCES.md`".
 ## Level 1 — The Greenzone (reality)
 
 Chapter: rewritten draft in `godot/data/story/chapters/ch1.tres` (intro and the Professor's Level 1
-aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09).
+aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09). Implemented in M5R-B:
+1.0's CONTINUE launches 1.1; 1.1–1.5 play on the native engine; after 1.5 come the Supervillained
+snap, the Professor's aside and the explicit "next chapter not in this build" card for 2.1 (RD-16).
+Text fingerprints (content version 1 of each scene): `godot/tests/fixtures/story_level1_text.json`.
 
 ### 1.1 A bucket on his head
 - **Titles**: A bucket on his head → A bucket on his head.
@@ -31,7 +34,7 @@ aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09).
 - **Status**: keep (prose tightened; the first card names the walk it follows, RD-20).
 - **Refs**: `docs/STORY.md` 1.1; PixiJS ch1 1.1 (adaptation: all).
 - **Open**: —
-- **Impl**: specified · rewrite drafted (Resources: M5R-B), narrative review pending.
+- **Impl**: technically_complete (M5R-B: Resources, engine, tests) · draft_implemented_review_pending.
 
 ### 1.2 Under the Professor's desk
 - **Titles**: Under the Professor's desk → Under the Professor's desk (kept for the catalog, RD-21).
@@ -59,7 +62,7 @@ aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09).
   RD-22 the Professor sends him out).
 - **Refs**: Villehardouin pp. 1–4, 6–7; Clari XI, XIII (Munro); `docs/STORY.md` 1.2.
 - **Open**: OQ-03 (every lecture fragment), OQ-04 (Jack's breed in the remembered line).
-- **Impl**: specified · rewrite drafted (Resources: M5R-B), narrative review pending.
+- **Impl**: technically_complete (M5R-B: Resources, engine, tests) · draft_implemented_review_pending.
 
 ### 1.3 The toll at the bowl
 - **Titles**: The toll at the bowl → The toll at the bowl.
@@ -74,10 +77,10 @@ aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09).
   the bowl always one step away → the fleet bought on credit.
 - **Effects**: `pawOffered` = true (Supervillain −3) or false (RD-07); `longWay` = true at
   completion (RD-08); remembered line "THERE WAS A BOWL, AND IT WAS ALWAYS ONE STEP AWAY."
-- **Status**: revise (RD-07, RD-08, RD-11).
+- **Status**: revise (RD-07, RD-08, RD-11, RD-24 the lane's jokes true on both branches).
 - **Refs**: `docs/STORY.md` 1.3 (adaptation: all).
 - **Open**: OQ-01 (should the paw, or its refusal, pay off later?).
-- **Impl**: specified · rewrite drafted (Resources: M5R-B), narrative review pending.
+- **Impl**: technically_complete (M5R-B: Resources, engine, tests) · draft_implemented_review_pending.
 
 ### 1.4 Santina wants her ball back
 - **Titles**: Santina wants her ball back → Santina wants her ball back.
@@ -95,14 +98,15 @@ aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09).
 - **Status**: revise (RD-06, RD-09, RD-11).
 - **Refs**: `docs/STORY.md` 1.4, 8.4; Clari 47 (7.3, attested).
 - **Open**: OQ-05 (Santina's friend: name and role).
-- **Impl**: specified · rewrite drafted (Resources: M5R-B), narrative review pending.
+- **Impl**: technically_complete (M5R-B: Resources, engine, tests) · draft_implemented_review_pending.
 
 ### 1.5 A cross of rag
 - **Titles**: A cross of rag → A cross of rag.
 - **Purpose**: the cloth cross; Zampanò's wish to belong; **the sleep boundary**.
 - **History/place**: the Professor rehearses the taking of the cross, a cloth cross sewn on as the
-  sign of those who took it (attested as the basis: Villehardouin pp. 1–4); "on the shoulder" and
-  "in the spring they set off for Venice" — **REVIEW REQUIRED** (OQ-10).
+  sign of those who took it (attested as the basis: Villehardouin pp. 1–4), now "sewn on their
+  clothes" (RD-25: the draft's "on the shoulder" is not itemised); "in the spring they set off for
+  Venice" — **REVIEW REQUIRED** (OQ-10).
 - **Play**: take the red rag caught in the hedge and carry it home; in the study the Professor
   rehearses; the rag slides off his back and he lays it on again; **choice** with Confusione
   ("I AM ONE OF THEM" or say nothing); the Professor steps over him without looking down; curl up
@@ -112,10 +116,10 @@ aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09).
   ship; "nobody looked" → 8.2–8.4 (telling his story at his real size).
 - **Effects**: `unlock: cross` with Supervillain +3 ("I AM ONE OF THEM") or Commozione +3 (silence);
   remembered line "THERE WAS A RAG, AND IT WAS A CROSS, AND NOBODY LOOKED."
-- **Status**: keep (prose tightened; RD-12 no armour in reality).
+- **Status**: keep (prose tightened; RD-12 no armour in reality; RD-25 the cloth cross line).
 - **Refs**: Villehardouin pp. 1–4; `docs/STORY.md` 1.5.
 - **Open**: OQ-06 (the two choice rewards), OQ-10 (the Professor's date line).
-- **Impl**: specified · rewrite drafted (Resources: M5R-B), narrative review pending.
+- **Impl**: technically_complete (M5R-B: Resources, engine, tests) · draft_implemented_review_pending.
 
 ### Level 1 side by side (draft → rewritten draft)
 
@@ -123,9 +127,9 @@ aside: kept from the draft, aside `REVIEW REQUIRED` for "Picardy", OQ-09).
 |---|---|---|
 | 1.1 | Dozes, CLONK, Watson's line, the visor walk, the slap, the remembered line. | Same beats and lines; the first card says it follows the walk (RD-20); the bark echo and the hint kept. |
 | 1.2 | Lecture lines include "HE SAW EVERYTHING AND WAS TOLD NOTHING" and "NOBODY SAILS IN WINTER"; two remembered lines; stage directions spoken inside Jack's lines; the move outside is unexplained. | "HE SAW A GREAT DEAL AND WAS TOLD VERY LITTLE"; the winter line replaced by the smaller army (Clari's claim); one remembered line; stage directions as narration; the Professor sends him out to drink (RD-10, RD-06, RD-11, RD-22). The gate's success and failure paths kept. |
-| 1.3 | The paw sets `pawOffered`; looking past sets nothing; `longWay` always set after the walk; stage directions inside lines. | The paw sets `pawOffered: true` (−3), the water `pawOffered: false`; `longWay` documented as the completion marker; stage directions as narration (RD-07, RD-08, RD-11). |
+| 1.3 | The paw sets `pawOffered`; looking past sets nothing; `longWay` always set after the walk; stage directions inside lines. | The paw sets `pawOffered: true` (−3), the water `pawOffered: false`; `longWay` documented as the completion marker; stage directions as narration; the lane's jokes ("AND THEN HE WANTED A DRINK!") true whichever answer he gave, where the draft's "THE OTHER PAW!" was false after the water (RD-07, RD-08, RD-11, RD-24). |
 | 1.4 | Three performances, the ball settles on his side; the remembered line "I WAS MAGNIFICENT AT IT" breaks the dream's grammar. | Same performances; "THE BALL STAYS WHERE IT IS" makes the 8.4 setup explicit; remembered line "THERE WAS A GATE, AND IT WAS A STAGE." (RD-09, RD-06). |
-| 1.5 | The rag, the rehearsal, the choice (both unlock `cross`), the Professor's step over him, the desk, the sail card. | Same; the final card is the explicit sleep boundary; no armour in reality (RD-12). |
+| 1.5 | The rag, the rehearsal ("A PIECE OF CLOTH, SEWN ON THE SHOULDER"), the choice (both unlock `cross`), the Professor's step over him, the desk, the sail card. | Same; "A CROSS OF CLOTH, SEWN ON THEIR CLOTHES" (RD-25); the final card is the explicit sleep boundary; no armour in reality (RD-12). |
 
 ## Level 2 — On the edge of dreams (dream)
 

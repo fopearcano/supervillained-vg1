@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="StoryChapterData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_chapter_data.gd" id="1_storychapterdata"]
+[ext_resource type="Resource" path="res://data/story/scenes/1_1.tres" id="s1_1"]
+[ext_resource type="Resource" path="res://data/story/scenes/1_2.tres" id="s1_2"]
+[ext_resource type="Resource" path="res://data/story/scenes/1_3.tres" id="s1_3"]
+[ext_resource type="Resource" path="res://data/story/scenes/1_4.tres" id="s1_4"]
+[ext_resource type="Resource" path="res://data/story/scenes/1_5.tres" id="s1_5"]
+
+[resource]
+script = ExtResource("1_storychapterdata")
+number = 1
+title = "The Greenzone"
+menu_title = "The Greenzone"
+intro = "ZAMPANO WAKES ON THE COMMON LAWN. THE WAY HOME RUNS THROUGH A NEIGHBORHOOD WHERE EVERY OTHER DOG CAN WALK STRAIGHT TO THE WATER BOWL."
+cast_note = "EVERYONE AS THEMSELVES"
+music = "greenzone"
+professor_aside = "CLARI, YOU UNDERSTAND, WAS A SMALL KNIGHT FROM PICARDY. HE HEARD MOST THINGS AFTER OTHER PEOPLE HAD DECIDED THEM, AND WROTE THEM DOWN AS IF HE HAD BEEN IN THE ROOM."
+scenes = [ExtResource("s1_1"), ExtResource("s1_2"), ExtResource("s1_3"), ExtResource("s1_4"), ExtResource("s1_5")]
+content_version = 1
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("REVIEW REQUIRED: the aside's \"FROM PICARDY\" (OQ-09).", "Draft implemented; narrative review pending for the whole level (pacing, setup for both endings).")
