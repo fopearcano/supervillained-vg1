@@ -92,30 +92,43 @@ Achieved rates are checked against the requested ones, so on a 60 Hz display use
 that a new effect requested in the background is dropped like the source's (with
 `--headless` the Dummy driver reports the started playbacks as leaked at exit, F-07).
 `title_capture.gd` renders the title portrait's first/middle/last frames at three logical widths.
-Run as a `--script`, it sets frame 0 before `TitlePortrait._ready()` starts playback, so its first
-image can show a later frame (frame 1 on the Windows host, frame 3 in `docs/porting/captures/title_m1/`);
-the middle and last images are unaffected. `m1_review.tscn --export` writes correct first/middle/last
-stills in the same layout (`docs/porting/manual_evidence/m1-godot-tree-2ffca5f/README.md`).
+Run as a `--script`, its portraits get `_ready()` (which starts playback) only at the first process
+frame, so it sets the frames only once every portrait is ready and exits 1 if a portrait is not on the
+requested frame or an image cannot be saved. Before correction report 22 it set frame 0 too early
+and its first image showed a later frame. Its three images are byte-identical to the stills of
+`m1_review.tscn --export` (`docs/porting/manual_evidence/m1-godot-tree-2ffca5f/README.md`).
 
 ## M1 manual review (development only; needs a renderer and audio output)
 
 ```bash
 godot --path godot res://tools/m1_review.tscn -- --decisions <absolute dir>   # review station
 godot --path godot --rendering-driver opengl3 res://tools/m1_review.tscn -- --export <absolute dir>
+godot --path godot --rendering-driver opengl3 res://tools/m1_review.tscn -- --selftest <absolute dir>
 ```
 
 `m1_review.tscn` presents the material of the manual M1 checks and records only the reviewer's own
-PASS / FAIL / NOT EXECUTED decisions (`<dir>/m1_owner_decisions.json` and `.md`, saved on every
-change and resumed on the next start). Tab 1 plays every Zampanò animation of the profile (normal and
-armoured costumes, which the cross costume aliases; every action including tired) in all eight
-directions at once, at the authored frame timing with nearest filtering, with pause, replay and frame
-step. Tab 2 plays the five recorded tracks, twelve recorded effects, the generated medieval loop and
-the fourteen generated cues through `AudioService` (or the raw file from 0 s) from a 25 % master
-volume, with stop, previous/next, mute and volume. Tab 3 plays the title portrait at the three review
-widths with pause, step and first/middle/last. Tab 4 records the owner, date, environment and final
-decision. `--export` writes the machine-readable inventories, the blank checklist, labelled contact
-sheets, title stills and screen captures, and exits 1 if an automated self-check fails (facts only,
-never a manual decision). `tools/` is excluded from every export preset.
+PASS / FAIL / NOT EXECUTED decisions for 363 fields (`<dir>/m1_owner_decisions.json` and `.md`, saved
+on every change; a failed save is shown in red as NOT SAVED). Saved decisions carry a schema version
+and a content fingerprint (SHA-256 over the reviewed profile, costume resources, sheets and atlas
+pages, the 32 audio files and the title resources); they are resumed only when both match, otherwise
+they are set aside as `.stale-<time>` files and every field starts NOT EXECUTED. Tab 1 plays every
+Zampanò animation of the profile (normal and armoured costumes, which the cross costume aliases; every
+action including tired) in all eight directions at once, at the authored frame timing with nearest
+filtering, with pause, replay and frame step. Tab 2 plays the five recorded tracks, twelve recorded
+effects, the generated medieval loop and the fourteen generated cues through `AudioService` (or the
+raw file from 0 s) from a 25 % master volume, with stop, previous/next, mute and volume; the siren also
+has the source's attack event ([E]: the alarm, then the siren after `SIREN_DELAY` at `SIREN_VOLUME`,
+looping until Stop) on a review-only player, because the shipping `AudioService` has no looping
+effect. The station's own players pause while the window is in the background. Tab 3 plays the title
+portrait at the three review widths with pause, step, first/middle/last and the memory report. Tab 4
+records the owner, date, equipment, environment and final decision; APPROVED needs every field PASS
+and a nonblank owner name, date and equipment. `--export` writes the machine-readable inventories,
+the content fingerprint, the blank checklist, labelled contact sheets, title stills and screen
+captures, verifies that each expected file exists, is nonempty and parses, and exits 1 on any failed
+check, write or file (facts only, never a manual decision). `--selftest` drives the station's own
+code in a scratch folder (save/resume, stale content and old schema, save failures, approval and
+attribution refusal, the siren event, pausing in the background) and exits 1 on any failure.
+`tools/` is excluded from every export preset.
 
 ## Regenerating assets
 

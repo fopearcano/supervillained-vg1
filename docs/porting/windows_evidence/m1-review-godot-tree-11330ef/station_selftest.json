@@ -1,0 +1,256 @@
+{
+  "checks": [
+    {
+      "check": "363 fields: 193 animation (192 cells + A-FILTER), 162 audio (32 x 5 + B-MUTE + B-VOLUME), 8 title (C-MEMORY included)",
+      "ok": true,
+      "value": {
+        "A": 193,
+        "B": 162,
+        "C": 8,
+        "fields": 363
+      }
+    },
+    {
+      "check": "every field starts NOT EXECUTED, final NOT DECIDED, no owner data",
+      "ok": true,
+      "value": 363
+    },
+    {
+      "check": "content fingerprint: deterministic (computed twice), 64 hex digits, every covered file present (profile, costumes, sheets, atlas pages, 32 audio files, title resources)",
+      "ok": true,
+      "value": {
+        "files": 85,
+        "sha256": "406f37285e283d40a123cbd5135f6430ea85b4f569565d900cf58eef54f24994"
+      }
+    },
+    {
+      "check": "siren attack event: SFX bus, gain 0.9 x 0.6 x 0.45, delay 3.9 s, start and loop at the trimmed offset (src/config.ts AUDIO, leading-silence resource)",
+      "ok": true,
+      "value": {
+        "alarm": "alarm through AudioService.play at the event",
+        "bus": "SFX",
+        "delay_s": 3.9,
+        "file_gain": 0.6,
+        "gain": 0.243,
+        "loop": true,
+        "loop_offset_s": 0.0,
+        "path": "res://assets/audio/recorded/siren.mp3",
+        "player": "review-only AudioStreamPlayer of tools/m1_review.gd; the shipping AudioService is unchanged",
+        "sfx_volume": 0.9,
+        "start_s": 0.0,
+        "stop": "gain to 0 with time constant 0.08 s, stopped after 0.4 s (source stopLoop)",
+        "volume": 0.45
+      }
+    },
+    {
+      "check": "save: m1_owner_decisions.json (schema 2, content fingerprint) and .md (fingerprint shown) written",
+      "ok": true,
+      "value": true
+    },
+    {
+      "check": "resume: decisions, notes and owner restored from the saved file",
+      "ok": true,
+      "value": 360
+    },
+    {
+      "check": "stale_fingerprint: nothing resumed (every field NOT EXECUTED, no owner data), both files set aside as .stale-<time>, the reason shown",
+      "ok": true,
+      "value": {
+        "message_has_reason": true,
+        "set_aside": 2
+      }
+    },
+    {
+      "check": "stale_fingerprint: the next save writes a fresh file for this content and keeps the set-aside files",
+      "ok": true,
+      "value": true
+    },
+    {
+      "check": "old_schema: nothing resumed (every field NOT EXECUTED, no owner data), both files set aside as .stale-<time>, the reason shown",
+      "ok": true,
+      "value": {
+        "message_has_reason": true,
+        "set_aside": 2
+      }
+    },
+    {
+      "check": "old_schema: the next save writes a fresh file for this content and keeps the set-aside files",
+      "ok": true,
+      "value": true
+    },
+    {
+      "check": "approval refused while fields are not all PASS",
+      "ok": true,
+      "value": "APPROVED refused; it needs every field PASS (0 of 363 are PASS)."
+    },
+    {
+      "check": "approval refused with every field PASS but missing attribution [\"\", \"\", \"\"]; the missing items are named",
+      "ok": true,
+      "value": [
+        "the owner name",
+        "the date",
+        "the listening equipment and display"
+      ]
+    },
+    {
+      "check": "approval refused with every field PASS but missing attribution [\"   \", \"2026-11-25\", \"speakers\"]; the missing items are named",
+      "ok": true,
+      "value": [
+        "the owner name"
+      ]
+    },
+    {
+      "check": "approval refused with every field PASS but missing attribution [\"Self-test\", \" \", \"speakers\"]; the missing items are named",
+      "ok": true,
+      "value": [
+        "the date"
+      ]
+    },
+    {
+      "check": "approval refused with every field PASS but missing attribution [\"Self-test\", \"2026-11-25\", \"\"]; the missing items are named",
+      "ok": true,
+      "value": [
+        "the listening equipment and display"
+      ]
+    },
+    {
+      "check": "approval accepted only with every field PASS and all attribution (scratch folder only)",
+      "ok": true,
+      "value": "APPROVED"
+    },
+    {
+      "check": "clearing the equipment after approval returns the final decision to NOT DECIDED",
+      "ok": true,
+      "value": "NOT DECIDED"
+    },
+    {
+      "check": "a FAIL after approval returns the final decision to NOT DECIDED",
+      "ok": true,
+      "value": "NOT DECIDED"
+    },
+    {
+      "check": "save failure when the decisions folder cannot be created: _save() is false, status and summary say NOT SAVED in red, nothing says saved",
+      "ok": true,
+      "value": {
+        "returned": false,
+        "state": "failed"
+      }
+    },
+    {
+      "check": "save failure when the decisions file cannot be written: _save() is false, status and summary say NOT SAVED in red, nothing says saved",
+      "ok": true,
+      "value": {
+        "returned": false,
+        "state": "failed"
+      }
+    },
+    {
+      "check": "a later successful save clears the failure",
+      "ok": true,
+      "value": "ok"
+    },
+    {
+      "check": "siren selected: the attack-event control is enabled (and only for the siren)",
+      "ok": true,
+      "value": true
+    },
+    {
+      "check": "attack event: the alarm is requested through AudioService at once",
+      "ok": true,
+      "value": 1
+    },
+    {
+      "check": "attack event: waiting 3.9 s, the siren not yet playing",
+      "ok": true,
+      "value": 3.9
+    },
+    {
+      "check": "attack event: the delay does not advance while the window is in the background",
+      "ok": true,
+      "value": 2.9
+    },
+    {
+      "check": "attack event: after the delay the siren plays on the SFX bus at gain 0.243 from 0.0 s",
+      "ok": true,
+      "value": {
+        "state": "looping",
+        "volume_db": -12.288
+      }
+    },
+    {
+      "check": "attack event: a private copy loops from the trimmed start; the shared siren resource (AudioService one-shot) does not loop",
+      "ok": true,
+      "value": {
+        "copy_loop": true,
+        "shared_loop": false
+      }
+    },
+    {
+      "check": "attack event: still looping 30 s later (no end until Stop)",
+      "ok": true,
+      "value": "looping"
+    },
+    {
+      "check": "attack event: the looping siren pauses and resumes on focus out/in",
+      "ok": true,
+      "value": true
+    },
+    {
+      "check": "attack event: the looping siren pauses and resumes on application paused/resumed",
+      "ok": true,
+      "value": true
+    },
+    {
+      "check": "Stop: the siren fades out like the source's stopLoop() (time constant 0.08 s) and stops after 0.4 s",
+      "ok": true,
+      "value": {
+        "fading_ok": true,
+        "state": "idle"
+      }
+    },
+    {
+      "check": "Stop during the delay: the siren never starts",
+      "ok": true,
+      "value": "idle"
+    },
+    {
+      "check": "game path for the siren: a generic AudioService one-shot (not looping) from its trimmed start",
+      "ok": true,
+      "value": "[&\"siren\", 0.0, false]"
+    },
+    {
+      "check": "another item selected: the attack-event control is disabled",
+      "ok": true,
+      "value": true
+    },
+    {
+      "check": "raw playback (bark, private stream copy) pauses on focus out and application pause, resumes on return, and starts paused while in the background",
+      "ok": true,
+      "value": [
+        true,
+        true
+      ]
+    },
+    {
+      "check": "seam playback (intro, private stream copy) pauses on focus out and application pause, resumes on return, and starts paused while in the background",
+      "ok": true,
+      "value": [
+        true,
+        true
+      ]
+    },
+    {
+      "check": "audio: every Godot stream length is within 0.001 s of the source fixture duration",
+      "ok": true,
+      "value": 0.000486572265629093
+    }
+  ],
+  "result": {
+    "checks": 37,
+    "content_fingerprint": "406f37285e283d40a123cbd5135f6430ea85b4f569565d900cf58eef54f24994",
+    "failed": [],
+    "note": "drives the station's own code in a scratch folder; no human decision is made or implied",
+    "ok": true,
+    "schema_version": 2
+  }
+}

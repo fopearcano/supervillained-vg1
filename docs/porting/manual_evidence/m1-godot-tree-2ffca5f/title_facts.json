@@ -129,6 +129,8 @@
   "frames": 99,
   "memory_bytes": 8316000,
   "memory_bytes_title_frames_json": 8316000,
+  "memory_limit_bytes": 12000000,
+  "memory_report": "Memory report: 99 frames of 125 x 168 px, uncompressed RGBA8 = 8,316,000 bytes (8.32 MB; title_frames.json records 8,316,000 bytes); limit < 12 MB (12,000,000 bytes): within, 69.3 % of the limit. Atlas: 1 page(s) (limit 2048 x 2048 each): title_page_0.png 2000 x 1176 px (9,408,000 bytes as RGBA8; import: compress/mode 0, mipmaps false).",
   "memory_under_12_mb": true,
   "pages": [
     {
