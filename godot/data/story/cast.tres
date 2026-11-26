@@ -118,5 +118,17 @@ speakers = {
 "gesture": true,
 "name": "A VENETIAN",
 "portrait": "venetian"
+},
+"cook": {
+"color": Color(0.784313725, 0.62745098, 0.439215686, 1),
+"gesture": true,
+"name": "THE COOK",
+"portrait": "cook"
+},
+"prince": {
+"color": Color(0.941176471, 0.878431373, 0.690196078, 1),
+"gesture": true,
+"name": "THE PRINCE",
+"portrait": "prince"
 }
 }

@@ -1,0 +1,221 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="5_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="6_storypickup"]
+[ext_resource type="Script" path="res://story/steps/minigame_step.gd" id="7_minigamestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="8_cardstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="9_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "cook"
+role = "cook"
+at = ""
+point = Vector2(4.5, 11.5)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "winter"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "cook"
+text = "THE GOOD WINE IS FOR THE MARQUIS BONIFACE, THE LOMBARD. HE HAS GUESTS FROM GERMANY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("6_storypickup")
+id = "t0"
+at = "6"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "BONIFACE"
+text = "THE COOK: ...THE GOOD WINE IS FOR THE MARQUIS BONIFACE..."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_storypickup")
+id = "t1"
+at = "9"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "BONIFACE"
+text = "A TENT: ...GERMANS, FROM KING PHILIP. ENVOYS..."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_storypickup")
+id = "t2"
+at = "4"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "BONIFACE"
+text = "ANOTHER TENT: ...A PRINCE. A GREEK PRINCE. HIS FATHER WAS DEPOSED..."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("6_storypickup")
+id = "t3"
+at = "5"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "BONIFACE"
+text = "THE COUNCIL TENT: ...BONIFACE SPEAKS FOR HIM..."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("5_objectivestep")
+id = "s03"
+objective = "FOLLOW THE TALK TO THE COUNCIL TENT"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+in_order = true
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_minigamestep")
+id = "s04"
+game = "rumour"
+lines = {
+"title": "ALEXIOS'S OFFER, AS IT REACHED HIM",
+"objective": "PUT THE GARBLED NEWS IN ORDER",
+"start": "TAP THE PIECES IN THE ORDER THEY HAPPENED...",
+"wrong": "GARBLED: THAT CAME LATER",
+"won": "THE WHOLE OFFER"
+}
+won_effects = {
+"supervillain": 3
+}
+lost_effects = {}
+params = {
+"pieces": [{
+"text": "YOUNG ALEXIOS, SON OF THE DEPOSED EMPEROR ISAAC II",
+"garble": "ALEXIOS... ISAAC... DEPOSED?"
+}, {
+"text": "HE ASKS THEM TO PUT HIS FATHER BACK ON THE THRONE",
+"garble": "...FATHER... THRONE... HELP?"
+}, {
+"text": "TWO HUNDRED THOUSAND MARKS",
+"garble": "...TWO HUNDRED... THOUSAND?"
+}, {
+"text": "FOOD FOR THE WHOLE HOST FOR A YEAR",
+"garble": "...FOOD... A WHOLE YEAR?"
+}, {
+"text": "TEN THOUSAND MEN FOR EGYPT, FIVE HUNDRED KNIGHTS FOR LIFE",
+"garble": "...MEN... EGYPT... KNIGHTS?"
+}, {
+"text": "AND THE GREEK CHURCH UNDER ROME",
+"garble": "...GREEKS... CHURCH... ROME?"
+}]
+}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("8_cardstep")
+id = "s05"
+big = "THE LEADERS SAY YES"
+small = "ONLY TWELVE OF THEM SWEAR TO IT"
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("4_dialoguestep")
+id = "s06"
+speaker = "zampano"
+text = "SO THAT IS WHY THE FLEET IS TURNING EAST. AND THE MONEY?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("4_dialoguestep")
+id = "s07"
+speaker = "marshal"
+text = "THE PRINCE WILL PAY. ONCE HE IS EMPEROR."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("4_dialoguestep")
+id = "s08"
+speaker = "zampano"
+text = "THERE WAS A PRINCE, AND HE WAS PAYING WITH A THRONE HE DID NOT HAVE."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("9_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "6.2"
+content_version = 1
+title = "A prince on credit"
+old_title = "A prince on credit"
+level = 6
+summary = "FOLLOW THE TALK OF THE MARQUIS'S GUESTS FROM THE COOK TO THE COUNCIL TENT. PIECE TOGETHER THE OFFER BROUGHT BY KING PHILIP'S ENVOYS: YOUNG ALEXIOS, SON OF THE DEPOSED ISAAC II, WILL PAY TWO HUNDRED THOUSAND MARKS, FEED THE HOST, SEND MEN TO EGYPT AND PUT THE GREEK CHURCH UNDER ROME, IF THEY HELP HIM TAKE BACK CONSTANTINOPLE. THE LEADERS SAY YES."
+map = "winter"
+music = "medieval"
+cast = PackedStringArray("zampano", "cook", "marshal")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14")]
+entry_conditions = {
+"requires_completed": ["6.1"]
+}
+persistent_effects = PackedStringArray("meter.supervillain", "book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Zara, winter 1203", "King Philip's envoys", "young Alexios's offer", "only twelve swear for the Franks")
+source_refs = PackedStringArray("Villehardouin pp. 23-25: the envoys of King Philip; the offer (obedience to Rome, 200,000 marks, food for a year, 10,000 men for a year, 500 knights for life); the debate; only twelve swear for the Franks", "Clari XVII (Munro): Boniface had met the young man at Philip's court", "docs/STORY-SOURCES.md \"Period words\": THE LOMBARD", "docs/STORY.md 6.2", "src/campaign/chapters/ch6.ts 6.2 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The trail and the garbled pieces are adaptation; the pieces paraphrase the offer (no quotation); the order is the offer's as Villehardouin gives it.", "REVIEW REQUIRED: Boniface's framing (the cook's line, the tents) is the camp's talk, source-tagged to Clari XVII.")
+technical_status = "technically_complete"

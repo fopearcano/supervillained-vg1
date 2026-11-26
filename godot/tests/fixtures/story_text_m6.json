@@ -58,5 +58,17 @@
  "5.5": {
   "content_version": 1,
   "sha256": "9bf7f188063afa51540a178f343f7f1ee45dfd9fa6e2167ab66edc2f3728d44a"
+ },
+ "6.1": {
+  "content_version": 1,
+  "sha256": "c2b944cdd08d0c28fb60ba1f049d6ec5a0e81b02ec5096c8f9c671248ffa3667"
+ },
+ "6.2": {
+  "content_version": 1,
+  "sha256": "14f9d11a7654eaa514b536b1ec3dccf22256ebbde88f4d4457f0bd58a6f8b6b1"
+ },
+ "6.3": {
+  "content_version": 1,
+  "sha256": "d90dc06cd3d50c6ce3a5b4c7bc8faa66921aa3d4b030eeb24430c8b2299f70c8"
  }
 }

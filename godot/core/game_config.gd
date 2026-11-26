@@ -461,6 +461,12 @@ class Story:
 	const LADDER_RUNG_PX := 22.0
 	## The hero's walk cycle spans this many rungs (source: frame = rung × frames / 4).
 	const LADDER_RUNGS_PER_CYCLE := 4.0
+	## 6.2: a garbled piece of the offer reaches him every RUMOUR_ARRIVE_EVERY seconds.
+	const RUMOUR_ARRIVE_EVERY := 1.2
+	## 7.1/7.7's tug: the force grows (BASE + time × GROW per second); a pull takes back PULL.
+	const TUG_BASE := 0.08
+	const TUG_GROW := 0.05
+	const TUG_PULL := 0.035
 
 
 static func groups() -> Dictionary:

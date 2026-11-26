@@ -57,6 +57,9 @@ const CARD_RED := Color("#ff2a3a")
 @export var goal_radius := 0.0
 ## StoryPickup Resources.
 @export var pickups: Array = []
+## The pickups are a trail: only the next one shows (its ring), the one after appears when it is
+## picked (6.2's talk followed from tent to tent).
+@export var in_order := false
 @export var no_run := false
 ## Walking speed when not running (1 = normal; 2.3's heavy armour 0.8: only a charge feels grand).
 @export var walk_speed_mul := 1.0
@@ -294,15 +297,9 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 	st["picked"] = []
 	st["spots"] = {}
 	for p: StoryPickup in pickups:
-		var at := ctx.place(p.at, p.point)
-		if ctx.error != "":
-			return
-		var handle := ""
-		if p.sprite != "":
-			handle = "pickup_%s_%s" % [id, p.id]
-			ctx.scene.place_prop(handle, p.sprite, at, Color.WHITE)
-		var color := MARVEL_COLOR if p.kind == "marvel" else PICKUP_COLOR
-		st["spots"][p.id] = {"marker": ctx.scene.add_marker(at, S.PICKUP_RADIUS, color), "prop": handle, "at": at}
+		_show_spot(ctx, st, p)
+		if ctx.error != "" or in_order:
+			break
 	if st["goal"] != null:
 		st["goal_node"] = ctx.scene.add_marker(st["goal"], st["radius"], GOAL_COLOR)
 	ctx.hud.objective = objective
@@ -368,6 +365,8 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 	for p: StoryPickup in pickups:
 		if (st["picked"] as Array).has(p.id):
 			continue
+		if not (st["spots"] as Dictionary).has(p.id):
+			continue
 		var spot: Dictionary = st["spots"][p.id]
 		if pp.distance_to(spot["at"]) <= S.PICKUP_RADIUS:
 			(st["picked"] as Array).append(p.id)
@@ -379,6 +378,11 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 				ctx.apply(p.effects)
 			if p.carry_label != "":
 				ctx.carry(p.carry_label, p.sprite)
+			if in_order:
+				for q: StoryPickup in pickups:
+					if not (st["picked"] as Array).has(q.id) and not (st["spots"] as Dictionary).has(q.id):
+						_show_spot(ctx, st, q)
+						break
 	for c in checkpoints:
 		if (st["passed"] as Array).has(c):
 			continue
@@ -523,6 +527,19 @@ func _tick_follow(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 		else:
 			lead.set_idle()
 	return false
+
+
+## Places a pickup's ring (and its sprite).
+func _show_spot(ctx: StoryContext, st: Dictionary, p: StoryPickup) -> void:
+	var at := ctx.place(p.at, p.point)
+	if ctx.error != "":
+		return
+	var handle := ""
+	if p.sprite != "":
+		handle = "pickup_%s_%s" % [id, p.id]
+		ctx.scene.place_prop(handle, p.sprite, at, Color.WHITE)
+	var color := MARVEL_COLOR if p.kind == "marvel" else PICKUP_COLOR
+	st["spots"][p.id] = {"marker": ctx.scene.add_marker(at, S.PICKUP_RADIUS, color), "prop": handle, "at": at}
 
 
 ## Removes a pickup's ring and sprite once (a picked spot is already cleared).

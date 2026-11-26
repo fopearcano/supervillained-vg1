@@ -10,14 +10,15 @@ extends StoryStep
 ## miss, won, lost) or ShellText; `params` may set beats, bpm, need, and the actor that rocks with
 ## the boat ("bob").
 
-const GAMES := ["parade", "rowing", "boat", "ladders", "letter"]
+const GAMES := ["parade", "rowing", "boat", "ladders", "letter", "rumour"]
 const RHYTHM_TEXTS := ["title", "objective", "cue", "hit", "miss", "won", "lost"]
 const BOAT_TEXTS := ["title", "objective", "won"]
 const LADDER_TEXTS := ["title", "objective", "help", "stone", "won"]
 const LETTER_TEXTS := ["title", "objective", "send", "again", "accept", "answer", "won"]
-const TEXTS_OF := {"parade": RHYTHM_TEXTS, "rowing": RHYTHM_TEXTS, "boat": BOAT_TEXTS, "ladders": LADDER_TEXTS, "letter": LETTER_TEXTS}
-## Games with no lost result (the source has none): the skiff, the ladder, the letter.
-const NEVER_LOST := ["boat", "ladders", "letter"]
+const RUMOUR_TEXTS := ["title", "objective", "start", "wrong", "won"]
+const TEXTS_OF := {"parade": RHYTHM_TEXTS, "rowing": RHYTHM_TEXTS, "boat": BOAT_TEXTS, "ladders": LADDER_TEXTS, "letter": LETTER_TEXTS, "rumour": RUMOUR_TEXTS}
+## Games with no lost result (the source has none): the skiff, the ladder, the letter, the rumour.
+const NEVER_LOST := ["boat", "ladders", "letter", "rumour"]
 const S := GameConfig.Story
 ## A tap counts as a press in the band this far above the screen's bottom (source: h − 120).
 const TAP_BAND := 120.0
@@ -37,6 +38,9 @@ func texts() -> PackedStringArray:
 	var out := PackedStringArray()
 	for k: String in lines:
 		out.append(String(lines[k]))
+	for pc: Dictionary in params.get("pieces", []):
+		out.append(String(pc["text"]))
+		out.append(String(pc["garble"]))
 	for s: Dictionary in params.get("slots", []):
 		out.append(String(s["before"]).strip_edges(true, false).trim_prefix(", ").trim_prefix(". "))
 		for o: String in s["options"]:
@@ -67,6 +71,8 @@ func check(errors: PackedStringArray) -> void:
 	for k: String in TEXTS_OF.get(game, []):
 		_need(errors, String(lines.get(k, "")).strip_edges() != "", "minigame %s: needs lines.%s" % [id, k])
 	_need(errors, not won_effects.is_empty(), "minigame %s: needs its won effects" % id)
+	if game == "rumour":
+		_need(errors, (params.get("pieces", []) as Array).size() >= 2, "minigame %s: the rumour needs its pieces" % id)
 	if game == "letter":
 		_need(errors, (params.get("slots", []) as Array).size() >= 2, "minigame %s: the letter needs its slots" % id)
 		_need(errors, (params.get("outcomes", {}) as Dictionary).has("named") and (params.get("outcomes", {}) as Dictionary).has("necessity"), "minigame %s: the letter needs both outcomes" % id)
@@ -89,6 +95,8 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 			st["game"] = LaddersGame.new().setup(int(params.get("rungs", S.LADDER_RUNGS)), float(ctx.scene.view_size().y), hash("ladders:" + ctx.data.id))
 		"letter":
 			st["game"] = LetterGame.new().setup(params["slots"], int(params.get("debt_slot", 1)), int(params.get("debt_option", 1)))
+		"rumour":
+			st["game"] = RumourGame.new().setup(params["pieces"], hash("rumour:" + ctx.data.id))
 		_:
 			st["game"] = rhythm()
 	st["mx"] = 0.0
@@ -129,7 +137,9 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 		r = _tick_ladders(ctx, st, dt)
 	elif game == "letter":
 		r = _tick_letter(ctx, st)
-	if game == "ladders" or game == "letter":
+	elif game == "rumour":
+		r = _tick_rumour(ctx, st, dt)
+	if game == "ladders" or game == "letter" or game == "rumour":
 		if r == "running":
 			return false
 		_finish(ctx, st, r)
@@ -230,6 +240,29 @@ func _tick_letter(ctx: StoryContext, st: Dictionary) -> String:
 		(ctx.metrics.get_or_add("letter", []) as Array).append(g.outcome)
 		if lines.has(g.outcome):
 			ctx.notice(String(lines[g.outcome]), Color("#ffe23a"))
+	return r
+
+
+## The garbled news: a tap on a piece places it if it comes next in the offer, else the "came later"
+## feedback. Pieces arrive over time.
+func _tick_rumour(ctx: StoryContext, st: Dictionary, dt: float) -> String:
+	var g: RumourGame = st["game"]
+	var tapped := -1
+	var w := float(ctx.scene.view_size().x)
+	for t: Vector2 in InputService.consume_taps():
+		for b: Dictionary in g.layout(w):
+			if (b["rect"] as Rect2).has_point(t):
+				tapped = int(b["id"])
+	var r := g.update(dt, tapped)
+	for ev: String in g.events:
+		match ev:
+			"arrive":
+				AudioService.play(&"click")
+			"placed":
+				AudioService.play(&"treat")
+			"wrong":
+				AudioService.play(&"empty")
+				ctx.notice(String(lines["wrong"]), Color("#ff2a3a"))
 	return r
 
 

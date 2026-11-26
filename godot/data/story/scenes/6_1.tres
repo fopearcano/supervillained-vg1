@@ -1,0 +1,355 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=43 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="4_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="5_carrystep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="7_storypickup"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="8_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="9_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="10_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/move_step.gd" id="11_movestep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="12_actorstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="13_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "k1"
+role = "knight"
+at = "4"
+point = Vector2(0.0, 0.0)
+face = "SE"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "k2"
+role = "knight"
+at = "5"
+point = Vector2(0.0, 0.0)
+face = "SW"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "k3"
+role = "pilgrim"
+at = "9"
+point = Vector2(0.0, 0.0)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_storyactorspec")
+name = "jack"
+role = "jack"
+at = "7"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("3_storyactorspec")
+name = "conf"
+role = "confusione"
+at = "3"
+point = Vector2(0.0, 0.0)
+face = "NE"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "winter"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5")]
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("4_narrationstep")
+id = "s02"
+text = "WINTER QUARTERS. NOBODY SAILS IN WINTER, AND NOBODY EATS VERY MUCH EITHER."
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("5_carrystep")
+id = "s03"
+label = "THE DAY'S HALF LOAVES"
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_storypickup")
+id = "knight"
+at = ""
+point = Vector2(5.5, 6.5)
+kind = "spot"
+label = "A KNIGHT"
+text = "HALF A LOAF, FOR A KNIGHT. IN VENICE MY HORSE ATE BETTER."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("7_storypickup")
+id = "sergeant"
+at = ""
+point = Vector2(14.5, 6.5)
+kind = "spot"
+label = "A SERGEANT"
+text = "A SHIP LEFT FOR SYRIA THIS MORNING. THEY SWORE TO STAY WITH US."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_storypickup")
+id = "pilgrim"
+at = ""
+point = Vector2(6.5, 9.5)
+kind = "spot"
+label = "A PILGRIM"
+text = "BABYLON? ALEXANDRIA? WITH WHAT MONEY? WITH WHAT FOOD?"
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "treat"
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("6_objectivestep")
+id = "s04"
+objective = "TAKE THE DAY'S RATIONS ROUND THE TENTS"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("5_carrystep")
+id = "s05"
+label = "HIS OWN HALF LOAF"
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_objectivestep")
+id = "s06"
+objective = "THE LAST TENT"
+objective_kind = "reach"
+goal_marker = "3"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "ALEAUME"
+goal_radius = 1.4
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("8_dialoguestep")
+id = "s07"
+speaker = "confusione"
+text = "(SHIVERING) I GAVE MINE TO A BOY FROM ARRAS. CLERKS ARE NOT MEANT TO BE HUNGRY. WE ARE MEANT TO BE WISE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("8_dialoguestep")
+id = "s08"
+speaker = "confusione"
+text = "LI RIKE HOMME, THE RICH MEN, HAVE WINE IN THEIR TENTS. WE ARE LI POVRE CHEVALIER, THE POOR KNIGHTS. WE HAVE THIS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("8_dialoguestep")
+id = "s09"
+speaker = "jack"
+text = "(FROM THE FIRE) DICE! DICE! THE WINNER EATS TWICE!"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("11_movestep")
+id = "s10.share.1"
+to_marker = ""
+to_point = Vector2(7.5, 13.5)
+speed = 1.6
+face = ""
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("4_narrationstep")
+id = "s10.share.2"
+text = "THEY EAT SITTING BACK TO BACK, FOR THE WARMTH. NOBODY SAYS ANYTHING."
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("8_dialoguestep")
+id = "s10.share.3"
+speaker = "confusione"
+text = "YOU WILL REGRET THIS AT ABOUT MIDNIGHT, BROTHER."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("10_storychoiceoption")
+id = "share"
+label = "(BREAK IT IN TWO. GIVE HIM THE BIGGER HALF.)"
+said = ""
+silent = false
+cost = 8
+locked_text = ""
+effects = {
+"supervillain": 8,
+"flags": {
+"comradeship": true
+},
+"value": "Comradeship"
+}
+then_steps = [SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20")]
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("12_actorstep")
+id = "s10.dice.1"
+actor = "conf"
+action = "goto"
+role = ""
+at = "6"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 1.2
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("8_dialoguestep")
+id = "s10.dice.2"
+speaker = "jack"
+text = "THE LITTLE KNIGHT PLAYS! HE IS ONE OF US!"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("4_narrationstep")
+id = "s10.dice.3"
+text = "ALEAUME WALKS OFF INTO THE COLD. HE DOES NOT LOOK BACK."
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("10_storychoiceoption")
+id = "dice"
+label = "(GO AND PLAY DICE WITH JACK.)"
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"standing": 4,
+"flags": {
+"comradeship": false
+}
+}
+then_steps = [SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24")]
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("9_choicestep")
+id = "s10"
+speaker = "confusione"
+prompt = "(ALEAUME LOOKS AT YOUR HALF LOAF, THEN AWAY.)"
+prompt_again = ""
+options = [SubResource("Resource_21"), SubResource("Resource_25")]
+once_each = false
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("5_carrystep")
+id = "s11"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("8_dialoguestep")
+id = "s12"
+speaker = "zampano"
+text = "THERE WAS HALF A LOAF, AND IT WAS NEVER ENOUGH."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("13_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "6.1"
+content_version = 1
+title = "Short rations"
+old_title = "Short rations"
+level = 6
+summary = "WINTER QUARTERS. TAKE THE DAY'S RATIONS ROUND THE TENTS: HALF A LOAF EACH, AND A SHIP LEAVING FOR SYRIA WITH MEN WHO SWORE TO STAY. AT THE LAST TENT ALEAUME IS SHIVERING WITH NOTHING IN HIS HANDS, AND JACK IS CALLING EVERYONE TO THE DICE. SHARE YOUR OWN HALF LOAF, OR GO AND PLAY."
+map = "winter"
+music = "medieval"
+cast = PackedStringArray("zampano", "confusione", "jack")
+steps = [SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28"), SubResource("Resource_29")]
+entry_conditions = {
+"requires_completed": ["5.5"]
+}
+persistent_effects = PackedStringArray("meter.supervillain", "meter.standing", "meter.commozione", "flags.comradeship", "book.values", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["comradeship"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Zara, winter 1202-1203", "desertions; a ship to Syria", "the poor knights and the rich men")
+source_refs = PackedStringArray("Villehardouin pp. 25-26 (desertions over the winter; a ship sent to Syria, an oath broken)", "Clari 16 / XVI (the winter at Zara; no money or food to reach Babylon or Alexandria)", "docs/STORY-SOURCES.md \"Period words\": LI RIKE HOMME, LI POVRE CHEVALIER", "docs/STORY.md 6.1", "src/campaign/chapters/ch6.ts 6.1 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The rations, the dice and the shared bread are adaptation: they set up `comradeship`, read back at the breach (7.7).", "Sharing costs 8 Commozione and gives the value COMRADESHIP; the dice set `comradeship` false.")
+technical_status = "technically_complete"

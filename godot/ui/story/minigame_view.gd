@@ -41,6 +41,10 @@ func _draw() -> void:
 		_draw_letter(w, h, st["game"] as LetterGame)
 		_draw_result(w, h, result)
 		return
+	if step.game == "rumour":
+		_draw_rumour(w, h, st["game"] as RumourGame)
+		_draw_result(w, h, result)
+		return
 	draw_rect(Rect2(0, 0, w, h), Color(0, 0, 0, 0.35))
 	T.retro_box(self, Rect2(6, h - 120, w - 12, 100), T.RED, T.YELLOW, 0.6)
 	T.draw_centered(self, w / 2.0, 74, String(step.lines.get("title", "")), T.YELLOW, 1, T.SHADOW)
@@ -188,3 +192,25 @@ func _draw_letter(w: float, h: float, g: LetterGame) -> void:
 		else:
 			label = String(step.lines.get(id, ""))
 		T.draw_centered(self, r.get_center().x, r.position.y + 4, label, T.CYAN if id.begins_with("slot") else T.YELLOW, 1, T.SHADOW)
+
+
+## The garbled news: the account so far (the placed pieces, numbered, in full) on the parchment, and
+## the arrived pieces still to place as garbled buttons.
+func _draw_rumour(w: float, h: float, g: RumourGame) -> void:
+	draw_rect(Rect2(0, 0, w, h), Color("#0e1420"))
+	T.draw_centered(self, w / 2.0, 64, String(step.lines.get("title", "")), T.YELLOW, 1, T.SHADOW)
+	draw_rect(Rect2(8, 76, w - 16, 136), Color("#f0dcb0"))
+	var y := 84.0
+	if g.placed.is_empty():
+		for line in T.wrap(String(step.lines.get("start", "")), int(w - 32)):
+			T.draw(self, Vector2(16, y), line, Color("#3a2410"))
+			y += T.CELL_H + 4
+	for n in g.placed.size():
+		for line in T.wrap("%d. %s" % [n + 1, String((g.pieces[g.placed[n]] as Dictionary)["text"])], int(w - 32)):
+			T.draw(self, Vector2(16, y), line, Color("#3a2410"))
+			y += T.CELL_H + 3
+	for b: Dictionary in g.layout(w):
+		var r: Rect2 = b["rect"]
+		draw_rect(r, Color(0, 0, 0, 0.6))
+		draw_rect(r, T.RED, false, 1.0)
+		T.draw_centered(self, r.get_center().x, r.position.y + 4, String((g.pieces[int(b["id"])] as Dictionary)["garble"]), T.CYAN, 1, T.SHADOW)

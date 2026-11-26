@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StoryChapterData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_chapter_data.gd" id="1_storychapterdata"]
+[ext_resource type="Resource" path="res://data/story/scenes/6_1.tres" id="s6_1"]
+[ext_resource type="Resource" path="res://data/story/scenes/6_2.tres" id="s6_2"]
+[ext_resource type="Resource" path="res://data/story/scenes/6_3.tres" id="s6_3"]
+
+[resource]
+script = ExtResource("1_storychapterdata")
+number = 6
+scenes = [ExtResource("s6_1"), ExtResource("s6_2"), ExtResource("s6_3")]
+content_version = 1
+review_status = "draft_implemented_review_pending"
+title = "The long winter"
+menu_title = "The long winter"
+intro = "ZARA, WINTER 1202-03. HALF A LOAF A DAY, SHIPS LEAVING FOR SYRIA WITHOUT THEM, AND A PRINCE NOBODY HAS MET WHO WILL PAY FOR EVERYTHING. ZAMPANO HEARS ABOUT HIM LAST."
+cast_note = "CONFUSIONE AS ALEAUME; JACK AT THE DICE; SBRIMBRULON AS PIERRE; THE YOUNG ALEXIOS; BAGNASKIZ AS THE MARSHAL"
+music = "medieval"
+professor_aside = "A PRINCE PROMISED TWO HUNDRED THOUSAND MARKS HE DID NOT HAVE, YOU UNDERSTAND, AND A HOST THAT COULD NOT PAY FOR ITS SHIPS WANTED VERY MUCH TO BELIEVE HIM. YOU WOULD HAVE TOO."
+review_notes = PackedStringArray("Draft implemented; narrative review pending for the whole level (OD-01).")

@@ -163,6 +163,8 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 		for p: StoryPickup in step.pickups:
 			if (st.get("picked", []) as Array).has(p.id):
 				continue
+			if not (st["spots"] as Dictionary).has(p.id):
+				continue
 			var at: Vector2 = (st["spots"][p.id] as Dictionary)["at"]
 			if pos.distance_to(at) < best:
 				best = pos.distance_to(at)
@@ -241,6 +243,17 @@ func _mini(step: MiniGameStep, st: Dictionary) -> void:
 		return
 	if step.game == "letter":
 		_letter(step, st["game"] as LetterGame)
+		return
+	if step.game == "rumour":
+		var rg: RumourGame = st["game"]
+		if t >= _next_action:
+			for b: Dictionary in rg.layout(float(scene.view_size().x)):
+				if int(b["id"]) == rg.placed.size():
+					_next_action = t + 0.5
+					var c: Vector2 = (b["rect"] as Rect2).get_center()
+					InputService.pointer_down(8, c)
+					InputService.pointer_up(8, c)
+					taps += 1
 		return
 	if step.game == "boat":
 		var b: BoatGame = st["game"]

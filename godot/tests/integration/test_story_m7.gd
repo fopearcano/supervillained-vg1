@@ -12,9 +12,9 @@ const NOW := 1795608000000
 const CB := GameConfig.Combat
 const RS := GameConfig.Story
 ## Every M7 scene in catalog order (this build's).
-const IDS := ["5.1", "5.2", "5.3", "5.4", "5.5"]
+const IDS := ["5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3"]
 ## Choices a run takes (choice id -> option id; "letter": the letter's outcome) and the branches.
-const BRANCHES := {"5.1": [{"s16": "jerusalem"}, {"s16": "host"}], "5.3": [{"s07": "pope"}, {"s07": "host"}, {"s07": "debt"}], "5.4": [{"letter": "named"}, {"letter": "necessity"}]}
+const BRANCHES := {"5.1": [{"s16": "jerusalem"}, {"s16": "host"}], "5.3": [{"s07": "pope"}, {"s07": "host"}, {"s07": "debt"}], "5.4": [{"letter": "named"}, {"letter": "necessity"}], "6.1": [{"s10": "share"}, {"s10": "dice"}], "6.3": [{"s14": "stay"}, {"s14": "syria"}]}
 ## What each scene commits on top of its entry state: meter deltas, flags, abilities, coins, how many
 ## book entries of each kind (by branch, keyed "<id>" or "<id>/<option>").
 const SNAP := {
@@ -121,6 +121,67 @@ const SNAP := {
 	"5.5": {
 		"meters": {},
 		"flags": {},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
+	},
+	"6.1/share": {
+		"meters": {
+			"supervillain": 8,
+			"commozione": -8
+		},
+		"flags": {
+			"comradeship": true
+		},
+		"abilities": [],
+		"book": {
+			"values": 1,
+			"remembered": 1
+		}
+	},
+	"6.1/dice": {
+		"meters": {
+			"standing": 4
+		},
+		"flags": {
+			"comradeship": false
+		},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
+	},
+	"6.2": {
+		"meters": {
+			"supervillain": 3
+		},
+		"flags": {},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
+	},
+	"6.3/stay": {
+		"meters": {
+			"standing": 6
+		},
+		"flags": {
+			"corfu": "stay"
+		},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
+	},
+	"6.3/syria": {
+		"meters": {
+			"supervillain": 3,
+			"standing": -3
+		},
+		"flags": {
+			"corfu": "syria"
+		},
 		"abilities": [],
 		"book": {
 			"remembered": 1
@@ -578,6 +639,113 @@ func test_STY_505_sail_chalk_and_the_board_readback() -> void:
 		assert_true(t.hud.card_visible and not t.hud.card_small.contains("36,000"), "without the flag, no number")
 		assert_eq(t.ctx.metrics["branches"], ["s08:otherwise"], "the other case")
 	assert_eq(String(StoryLibrary.scene("5.5").completion["boundary"]), "chapter_end", "the chapter's end")
+
+
+# --- Level 6 -------------------------------------------------------------------------------------------
+
+## STY-601: 6.1 — the half loaves carried round three tents (three lines of the winter heard), then
+## his own half loaf to the last tent; sharing it costs 8 Commozione (locked below 8) and sets
+## `comradeship`, Supervillain +8 and the value COMRADESHIP; the dice set `comradeship` false and
+## Standing +4, and Aleaume walks off.
+func test_STY_601_rations_share_or_dice_and_comradeship() -> void:
+	var s := _scene("6.1", _entry("6.1"))
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s04"), "the rounds")
+	assert_eq(s.ctx.carrying, "THE DAY'S HALF LOAVES", "carrying the loaves")
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s06"), "the last tent")
+	assert_eq(s.ctx.carrying, "HIS OWN HALF LOAF", "his own half loaf left")
+	for t in ["HALF A LOAF, FOR A KNIGHT. IN VENICE MY HORSE ATE BETTER.", "A SHIP LEFT FOR SYRIA THIS MORNING. THEY SWORE TO STAY WITH US.", "BABYLON? ALEXANDRIA? WITH WHAT MONEY? WITH WHAT FOOD?"]:
+		assert_true((s.ctx.metrics["notices"] as Array).has(t), "heard: " + t)
+	for pair: Array in [["share", true, "Comradeship"], ["dice", false, ""]]:
+		var out := _play("6.1", _entry("6.1"), {"s10": pair[0]})
+		if not assert_true(out.has("result"), "6.1 %s completes" % pair[0]):
+			continue
+		var st: Dictionary = out["result"]["state"]
+		assert_eq(st["flags"]["comradeship"], pair[1], "%s: comradeship %s" % [pair[0], pair[1]])
+		assert_eq((st["book"]["values"] as Array).has("Comradeship"), pair[2] != "", "%s: the value COMRADESHIP" % pair[0])
+		if pair[0] == "dice":
+			var conf: StoryActor = (out["scene"] as StoryScene).actors["conf"]
+			assert_eq(conf.behavior, "goto", "Aleaume walks off")
+	var poor := _entry("6.1")
+	poor["meters"]["commozione"] = 6.0
+	var p := _scene("6.1", poor)
+	if _to_step(p, "s10"):
+		_ticks_until(p, func() -> bool: return String(p.runner.st.get("phase", "")) == "choosing", 300)
+		var views: Array = p.runner.st.get("views", [])
+		assert_true(views.size() == 2 and String((views[0] as Dictionary)["locked"]) != "", "with 6 Commozione sharing is locked")
+
+
+## STY-602, MINI-012: 6.2 — the talk followed in order (only the next place shows its ring); then the
+## garbled offer: pieces arrive one every RUMOUR_ARRIVE_EVERY in a shuffled order; a tap on the piece
+## that comes next places it, a tap on a later one says it came later and places nothing; complete
+## when all six are in the offer's order: Supervillain +3 once; only twelve swear.
+func test_STY_602_MINI_012_talk_in_order_and_the_rumour_ordering() -> void:
+	var s := _scene("6.2", _entry("6.2"))
+	if not _to_step(s, "s03"):
+		return
+	assert_eq((s.runner.st["spots"] as Dictionary).size(), 1, "only the first place of the trail shows")
+	assert_true(_drive_until(s, func() -> bool: return s.runner.current is MiniGameStep), "the trail followed to the council tent")
+	var g: RumourGame = s.runner.st["game"]
+	var w := float(s.view_size().x)
+	assert_eq(g.pieces.size(), 6, "six pieces")
+	var sorted_order := g.order.duplicate()
+	sorted_order.sort()
+	assert_eq(sorted_order, [0, 1, 2, 3, 4, 5], "each piece once")
+	assert_true(_ticks_until(s, func() -> bool: return g.arrived >= 2, 300), "pieces arrive over time")
+	var tap := func(k: int) -> void:
+		for b: Dictionary in g.layout(w):
+			if int(b["id"]) == k:
+				InputService.pointer_down(2, (b["rect"] as Rect2).get_center())
+				InputService.pointer_up(2, (b["rect"] as Rect2).get_center())
+		_ticks(s, 1)
+	assert_true(_ticks_until(s, func() -> bool: return g.order.slice(0, g.arrived).has(0) and g.order.slice(0, g.arrived).any(func(k: int) -> bool: return k > 0), 600), "the first piece and a later one have arrived")
+	var later: int = g.order.slice(0, g.arrived).filter(func(k: int) -> bool: return k > 0)[0]
+	tap.call(later)
+	assert_eq([g.placed, g.wrong], [[], 1], "a later piece is refused")
+	assert_true((s.ctx.metrics["notices"] as Array).has("GARBLED: THAT CAME LATER"), "with its feedback")
+	tap.call(0)
+	assert_eq(g.placed, [0], "the next piece is placed")
+	var out := {}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	assert_true(_drive_until(s, func() -> bool: return out.has("r"), 60 * 60), "the rest by real input")
+	if out.has("r"):
+		assert_eq([g.placed, s.ctx.metrics["minis"]], [[0, 1, 2, 3, 4, 5], ["rumour:won"]], "the offer in order; won")
+		assert_eq(float(out["r"]["state"]["meters"]["supervillain"]) - float(_entry("6.2")["meters"]["supervillain"]), 3.0, "Supervillain +3 once")
+	assert_true(_texts_in(StoryLibrary.scene("6.2")).has("ONLY TWELVE OF THEM SWEAR TO IT"), "only twelve swear")
+
+
+## STY-603: 6.3 — Pierre followed to the camp of those who would stay; the leaders kneel (their
+## gesture); the choice is Pierre's to hear: `corfu` stay (Standing +6) or syria (Supervillain +3,
+## Standing -3); the chapter's end boundary, then Level 7.
+func test_STY_603_corfu_follow_kneeling_and_both_branches() -> void:
+	for pair: Array in [["stay", "stay"], ["syria", "syria"]]:
+		var s := _scene("6.3", _entry("6.3"))
+		var knelt := [false]
+		var out := {}
+		s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+		var d := StoryDriver.new(s, {"s14": pair[0]})
+		for k in 60 * 120:
+			if out.has("r"):
+				break
+			if s.actors.has("l1") and (s.actors["l1"] as StoryActor).action_anim == "hurt":
+				knelt[0] = true
+			d.drive(DT)
+			InputService.update(DT)
+			s.tick(DT)
+		assert_true(out.has("r") and knelt[0], "6.3 %s: completes; the leaders knelt" % pair[0])
+		if out.has("r"):
+			assert_eq(out["r"]["state"]["flags"]["corfu"], pair[1], "corfu %s" % pair[1])
+	assert_eq(String(StoryLibrary.scene("6.3").completion["boundary"]), "chapter_end", "the chapter ends here")
+
+
+static func _texts_in(sc: StorySceneData) -> PackedStringArray:
+	var out := PackedStringArray()
+	var stack: Array = sc.steps.duplicate()
+	while not stack.is_empty():
+		var st: StoryStep = stack.pop_front()
+		out.append_array(st.texts())
+		for b: Array in st.branches():
+			stack.append_array(b)
+	return out
 
 # --- Restart, replay, force-close -----------------------------------------------------------------
 

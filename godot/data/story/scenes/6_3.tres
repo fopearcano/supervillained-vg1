@@ -1,0 +1,331 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=37 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="5_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="6_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="7_actorstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="8_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="9_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="10_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="11_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "prince"
+role = "prince"
+at = "3"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "marquis"
+role = "marquis"
+at = ""
+point = Vector2(11.5, 8.5)
+face = "SW"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "island"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1"), SubResource("Resource_2")]
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("4_cardstep")
+id = "s02"
+big = "CORFU"
+small = "SPRING 1203. THE PRINCE IS HERE IN PERSON."
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("5_dialoguestep")
+id = "s03"
+speaker = "prince"
+text = "(THE YOUNG ALEXIOS) MY FATHER WAS EMPEROR. I WILL BE EMPEROR. EVERYTHING I PROMISED, I WILL PAY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_narrationstep")
+id = "s04"
+text = "HE IS SHORTER THAN HIS PROMISE."
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_actorstep")
+id = "s05"
+actor = "pierre"
+action = "spawn"
+role = "sbrimbrulonKnight"
+at = ""
+point = Vector2(-1.0, -0.6)
+near_player = true
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("5_dialoguestep")
+id = "s06"
+speaker = "sbrimbrulon"
+text = "BAH! WHAT HAVE WE TO DO IN CONSTANTINOPLE? WE STAY ON THIS ISLAND AND SEND FOR SHIPS TO SYRIA. COME, LITTLE ONE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("8_objectivestep")
+id = "s07"
+objective = "FOLLOW PIERRE TO THE CAMP OF THOSE WHO WANT TO STAY"
+objective_kind = "follow"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = "pierre"
+path = PackedStringArray("5", "4", "6")
+leader_speed = 1.6
+leader_lines = PackedStringArray("THEY CAN SAIL WITHOUT US.", "HALF THE HOST THINKS AS I DO.", "HERE. WE WAIT HERE.")
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+leader_leg_timeout = 14.0
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("7_actorstep")
+id = "s08"
+actor = "l1"
+action = "spawn"
+role = "marquis"
+at = ""
+point = Vector2(6.5, 12.5)
+near_player = false
+face = "W"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_actorstep")
+id = "s09"
+actor = "l2"
+action = "spawn"
+role = "bagnaskizMarshal"
+at = ""
+point = Vector2(6.5, 11.5)
+near_player = false
+face = "W"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("7_actorstep")
+id = "s10"
+actor = "l1"
+action = "emote"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+clip = "hurt"
+seconds = 1.2
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("7_actorstep")
+id = "s11"
+actor = "l2"
+action = "emote"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+clip = "hurt"
+seconds = 1.2
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("4_cardstep")
+id = "s12"
+big = "THE LEADERS KNEEL"
+small = "IN FRONT OF THEIR OWN MEN, WEEPING. THEY WILL NOT GET UP UNTIL THE HOST STAYS TOGETHER."
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 2.8
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("5_dialoguestep")
+id = "s13"
+speaker = "marshal"
+text = "IF YOU GO, THE HOST IS LOST, AND JERUSALEM WITH IT. STAY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("5_dialoguestep")
+id = "s14.stay.1"
+speaker = "sbrimbrulon"
+text = "YOU ARE SOFTER THAN YOU LOOK."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("10_storychoiceoption")
+id = "stay"
+label = "LET THEM GET UP. WE STAY TOGETHER."
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"standing": 6,
+"flags": {
+"corfu": "stay"
+}
+}
+then_steps = [SubResource("Resource_16")]
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("5_dialoguestep")
+id = "s14.syria.1"
+speaker = "sbrimbrulon"
+text = "YOU ARE HARDER THAN YOU LOOK."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("10_storychoiceoption")
+id = "syria"
+label = "WE SAID SYRIA. A WORD IS A WORD."
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"supervillain": 3,
+"standing": -3,
+"flags": {
+"corfu": "syria"
+}
+}
+then_steps = [SubResource("Resource_18")]
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("9_choicestep")
+id = "s14"
+speaker = "sbrimbrulon"
+prompt = "THEY ARE ON THEIR KNEES, LITTLE ONE. WHAT DO WE DO?"
+prompt_again = ""
+options = [SubResource("Resource_17"), SubResource("Resource_19")]
+once_each = false
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("5_dialoguestep")
+id = "s15"
+speaker = "sbrimbrulon"
+text = "WE STAY UNTIL MICHAELMAS. AFTER THAT, WE WILL SEE. THAT IS WHAT THEY HAVE SWORN."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("4_cardstep")
+id = "s16"
+big = "A GOOD WORK, OF GREAT MERIT"
+small = "THE BISHOPS HAVE SAID SO. THE PRINCE HAS SWORN ON RELICS."
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("4_cardstep")
+id = "s17"
+big = "THE EVE OF PENTECOST"
+small = "THE FLEET SAILS FOR CONSTANTINOPLE"
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("5_dialoguestep")
+id = "s18"
+speaker = "zampano"
+text = "THERE WERE LORDS ON THEIR KNEES, AND FOR A MINUTE I WAS TALLER THAN THEM."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("11_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "6.3"
+content_version = 1
+title = "On their knees at Corfu"
+old_title = "On their knees at Corfu"
+level = 6
+summary = "AT CORFU THE YOUNG ALEXIOS JOINS THE FLEET IN PERSON. HALF THE HOST WANTS TO STAY ON THE ISLAND AND SEND FOR SHIPS TO SYRIA, AND PIERRE IS ONE OF THEM. FOLLOW HIS LORD TO THE OTHER CAMP. THE LEADERS COME AND KNEEL IN FRONT OF THEM, WEEPING. TELL PIERRE WHAT YOU THINK; HE DECIDES. THE FLEET SAILS FOR CONSTANTINOPLE."
+map = "island"
+music = "medieval"
+cast = PackedStringArray("zampano", "prince", "sbrimbrulon", "marshal")
+steps = [SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25")]
+entry_conditions = {
+"requires_completed": ["6.2"]
+}
+persistent_effects = PackedStringArray("meter.standing", "meter.supervillain", "flags.corfu", "book.remembered")
+completion = {
+"boundary": "chapter_end",
+"requires_flags": ["corfu"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Corfu, spring 1203", "the host nearly breaks up", "the chiefs on their knees", "sailing on the eve of Pentecost")
+source_refs = PackedStringArray("Villehardouin pp. 27-30: young Alexius joins at Corfu; more than half the host, Peter of Amiens among them, means to stay; the chiefs go on their knees; a covenant until Michaelmas; sailing on the eve of Pentecost 1203", "Clari 31-33: \"Bah! What have we to do in Constantinople?\" (quoted per docs/STORY-SOURCES.md)", "Clari 39: the bishops call it \"a good work of great merit\"", "docs/STORY.md 6.3", "src/campaign/chapters/ch6.ts 6.3 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "Zampano's advice is adaptation: Pierre decides; `corfu` records it (stay or syria).")
+technical_status = "technically_complete"
