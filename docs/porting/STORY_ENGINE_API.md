@@ -282,6 +282,7 @@ with its parameters validated in `ObjectiveStep.check`.
 - **Choices**: `StoryChoiceOption.requires` (a condition; locked with `locked_text` while it does not
   hold).
 - **The fade** (RD-51): `CampaignRules.fade_commozione(state, level)` at a dream scene's start.
+- **Full Supervillain** (RD-53): `CampaignRules.unshakeable(state)`; the book shows "(FULL)".
 - **The ending** (RD-52): `CampaignFlow.ending`, `grace_tier`, `standing_tier`, `ending_notes`; Main
   `show_ending()` after the last level's aside.
 

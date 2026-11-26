@@ -316,9 +316,16 @@ alone, its account, the Grace and Standing lines, the book's counts, Supervillai
 END), then the title with the level list. The texts are in `data/shell/shell_text.tres`. A replay
 never reaches the level end or the ending. Saves: none.
 
-**RD-53 — Full Supervillain has no effect in the current content.** The draft's `unshakeable` only
-softens the generic pace walk, which no current scene uses (FEATURE_MATRIX: excluded unless reused);
-the book's "(FULL)" label is not shown yet (M8). CAMP-014 stays partial. Saves: none.
+**RD-53 — Full Supervillain is shown, not played.** The draft's `unshakeable` (Supervillain at
+100) softens only the generic pace walk, which no current scene uses (FEATURE_MATRIX: excluded unless
+reused); 7.3's and 8.3's walks are their own rules, as in the draft. The port has
+`CampaignRules.unshakeable` and the book's "SUPERVILLAIN 100 (FULL)" (correction report 34).
+Saves: none.
+
+**RD-54 — 8.3 follows the source: Bagnaskiz steps aside.** The M7 instruction lists Bagnaskiz
+among those who fall in on the lawn; the draft and `docs/STORY.md` have Sbrimbrulòn and Confusione
+fall in while Bagnaskiz steps aside. The Resource keeps the source; the owner may decide otherwise.
+Saves: none.
 
 ## Owner decisions
 

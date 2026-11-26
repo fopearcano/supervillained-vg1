@@ -1808,6 +1808,22 @@ func test_CAMP_order_37_entries_and_explicit_failure_on_missing_content() -> voi
 	assert_eq(SaveService.get_campaign(), before, "the save is unchanged")
 
 
+## CAMP-014: full Supervillain (source `unshakeable`, the meter at its top, 100): the book shows
+## SUPERVILLAIN 100 (FULL); below the top it shows the number alone. The draft's other use, softening
+## the generic pace walk's nerve loss, has no scene in the campaign (FEATURE_MATRIX: excluded unless
+## reused); 7.3's and 8.3's walks are their own rules, as in the draft.
+func test_CAMP_014_full_supervillain_unshakeable_and_the_books_label() -> void:
+	var st := CampaignSchema.new_campaign()
+	for row: Array in [[100.0, true, "SUPERVILLAIN 100 (FULL)"], [99.99, false, "SUPERVILLAIN 99.99"], [10.0, false, "SUPERVILLAIN 10"]]:
+		st["meters"]["supervillain"] = row[0]
+		assert_eq(CampaignRules.unshakeable(st), row[1], "Supervillain %s: unshakeable %s" % [row[0], row[1]])
+		var book := MeravigliaOverlay.new().setup(st, StoryScene.TEXT, func() -> void: pass)
+		var lines: Array = book.rows.map(func(r: Dictionary) -> String: return String(r["text"]))
+		assert_true(lines.has(row[2]), "the book: %s (%s)" % [row[2], lines.slice(0, 6)])
+		book.free()
+	assert_eq(CampaignSchema.METER_MAX, 100, "the top of the meter")
+
+
 # --- The whole campaign through the real Main ----------------------------------------------------
 
 const LEVEL_LAST := ["1.5", "2.3", "3.4", "4.3", "5.5", "6.3", "7.9", "8.4"]
@@ -1823,27 +1839,69 @@ func _key_tap(code: Key) -> void:
 		await tree.process_frame
 
 
-## One whole campaign through the real Main by real input only, from the title's NEW GAME: the Green
-## Zone walk (GreenZoneDriver: movement, RUN, PEE, BARK), its snap, result card and CONTINUE; every
-## scene card and every scene of 1.1–8.4 (StoryDriver at `skill`; choices by `choice_mode`; 5.4's
-## letter and 7.8's oath by policy; a lost fight is played again, a lost minigame goes on, nothing is
-## skipped); each level's end (the snap, the Professor's aside); then the ending card and THE END,
-## which opens the level list. Returns the run's report.
-func _campaign(label: String, choice_mode: String, oath: String, letter: String, skill: float) -> Dictionary:
-	var rep := {"label": label, "scenes": {}, "knockdowns": 0, "restarts": 0, "minis": [], "asides": [], "ending": "", "ok": false}
-	SaveService.save_campaign(CampaignSchema.new_campaign(), NOW - 1000)
+## Waits until the overlay `o` has been up for `guard` seconds of its own time (real frames).
+func _aged(o: Object, guard: float) -> bool:
+	return await _until(func() -> bool: return not is_instance_valid(o) or float(o.get("time")) > guard, 20000)
+
+
+## Moves a menu's selection to `index` with the arrow keys, then presses Enter (the keyboard path a
+## player uses; InputService updates itself on frames).
+func _choose_row(panel: OverlayPanel, index: int, guard: float = 0.3) -> void:
+	await _aged(panel, guard)
+	for k in 12:
+		if panel.selected == index:
+			break
+		await _key_tap(KEY_DOWN if panel.selected < index else KEY_UP)
+	await _key_tap(KEY_ENTER)
+
+
+static func _row(panel: OverlayPanel, label: String) -> int:
+	return panel.items.map(func(i: Dictionary) -> String: return String(i["label"])).find(label)
+
+
+## Waits for the card of `id` and presses Enter once it accepts it (0.5 s); returns its StoryScene,
+## ticked by hand from then on.
+func _key_card(id: String) -> StoryScene:
+	if not await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().get_meta(&"story_card", "") == id, 20000):
+		fail("no story card for %s" % id)
+		return null
+	await _aged(main.top_overlay(), 0.55)
+	await _key_tap(KEY_ENTER)
+	if not await _until(func() -> bool: return main.current_scene is StoryScene and (main.current_scene as StoryScene).data.id == id, 20000):
+		fail("%s did not start" % id)
+		return null
+	var s := main.current_scene as StoryScene
+	s.manual_ticks = true
+	return s
+
+
+## One whole campaign through the real Main by real input only, from the title's NEW GAME (and its
+## YES when a story is saved): the Green Zone walk (GreenZoneDriver: movement, RUN, PEE, BARK); its
+## snap, result card and CONTINUE; every scene card; every scene of 1.1–8.4 (StoryDriver at `skill`;
+## choices by `choice_mode`; 5.4's letter and 7.8's oath by policy; a lost fight is played again
+## through its own reset, a lost minigame goes on, nothing is skipped); each level's end (the snap,
+## the Professor's aside); the ending card and THE END, which opens the level list. Every menu, card
+## and screen is answered with real key presses (arrows, Enter) once it accepts them; nothing is
+## called on a screen and no save is written by the test. At the card of `reload_at` the game is
+## closed without warning and started again from the save file: the title's CONTINUE resumes there.
+func _campaign(label: String, choice_mode: String, oath: String, letter: String, skill: float, reload_at: String) -> Dictionary:
+	var rep := {"label": label, "scenes": {}, "knockdowns": 0, "lapses": 0, "restarts": 0, "minis": [], "asides": [], "ending": "", "reload": "", "ok": false}
+	InputService.auto_update = true
 	await _main_start()
 	await _settle()
 	var title := main.current_scene as TitleScreen
-	title.time = 1.0
-	title.activate(title.items.map(func(i: Dictionary) -> String: return String(i["label"])).find("NEW GAME"))
-	if not await _until(func() -> bool: return main.current_scene is GreenZoneScene):
+	await _choose_row(title, _row(title, "NEW GAME"), 0.7)
+	if await _until(func() -> bool: return main.top_overlay() is ConfirmOverlay, 300):
+		var c := main.top_overlay() as ConfirmOverlay
+		await _choose_row(c, _row(c, "YES"))
+	if not await _until(func() -> bool: return main.current_scene is GreenZoneScene, 20000):
 		fail(label + ": no Green Zone after NEW GAME")
 		return rep
+	assert_eq(SaveService.get_campaign()["completed"], [], label + ": NEW GAME saved a new campaign")
 	var gz := main.current_scene as GreenZoneScene
 	var briefing: OverlayPanel = gz._overlay
-	InputService.auto_update = true
-	await _until(func() -> bool: return briefing == null or briefing.time > 0.6, 3000)
+	if briefing:
+		await _aged(briefing, 0.6)
 	await _key_tap(KEY_ENTER)
 	if not await _until(func() -> bool: return gz.active, 600):
 		fail(label + ": the briefing did not start the walk")
@@ -1868,21 +1926,42 @@ func _campaign(label: String, choice_mode: String, oath: String, letter: String,
 		InputService.update(DT)
 		AudioService.advance_pending(DT)
 		gz.tick(DT)
-	var sv := gz._overlay as SupervillainedOverlay
-	if sv:
-		sv.step(GameConfig.Supervillained.HOLD + 0.05)
-	var end := gz._overlay as LevelEndOverlay
-	if not assert_true(end != null, label + ": the walk's result card"):
+	InputService.auto_update = true
+	if not assert_true(await _until(func() -> bool: return gz._overlay is SupervillainedOverlay, 3000), label + ": the walk's snap"):
 		return rep
-	end.skip = true
-	end._process(DT)
-	end.activate(end.items.map(func(i: Dictionary) -> String: return String(i["label"])).find("CONTINUE"))
+	await _aged(gz._overlay, GameConfig.Supervillained.SKIP_AFTER + 0.05)
+	await _key_tap(KEY_ENTER)
+	if not assert_true(await _until(func() -> bool: return gz._overlay is LevelEndOverlay, 3000), label + ": the walk's result card"):
+		return rep
+	var end := gz._overlay as LevelEndOverlay
+	await _key_tap(KEY_ENTER)
+	await _until(func() -> bool: return end.menu_visible(), 3000)
+	await _choose_row(end, _row(end, "CONTINUE"))
 	for id: String in Array(SaveService.CATALOG.ids()):
 		if id == "1.0":
 			continue
-		var s := await _enter_card(id)
+		if id == reload_at:
+			# Closed without warning at the card, then started again from the save file.
+			if not await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().get_meta(&"story_card", "") == id, 20000):
+				fail("%s: no card for %s before the close" % [label, id])
+				return rep
+			var bytes := FileAccess.get_file_as_bytes(SaveService.base_dir + "save_v3.json")
+			var before := SaveService.get_campaign().duplicate(true)
+			main.get_parent().remove_child(main)
+			main.free()
+			main = null
+			SaveService.load_from_disk()
+			assert_eq([FileAccess.get_file_as_bytes(SaveService.base_dir + "save_v3.json"), SaveService.get_campaign()], [bytes, before], "%s: the save file holds the campaign after the close" % label)
+			await _main_start()
+			await _settle()
+			var t2 := main.current_scene as TitleScreen
+			assert_eq(t2.selected, _row(t2, "CONTINUE"), label + ": with a saved story the title preselects CONTINUE")
+			await _choose_row(t2, _row(t2, "CONTINUE"), 0.7)
+			rep["reload"] = id
+		var s := await _key_card(id)
 		if s == null:
 			return rep
+		InputService.auto_update = false
 		var d := StoryDriver.new(s, {"oath": oath, "letter": letter})
 		d.skill = skill
 		d.choice_mode = choice_mode
@@ -1894,34 +1973,38 @@ func _campaign(label: String, choice_mode: String, oath: String, letter: String,
 			s.tick(DT)
 			ticks += 1
 		InputService.guard_hold_injected = false
+		InputService.clear_injection()
+		InputService.auto_update = true
 		if not assert_true(s.finished, "%s %s: played to the end by real input (%d ticks)" % [label, id, ticks]):
 			return rep
 		var m: Dictionary = s.ctx.metrics
 		rep["scenes"][id] = snappedf(ticks * DT, 0.1)
 		rep["knockdowns"] = int(rep["knockdowns"]) + (m["knockdowns"] as Array).size()
+		rep["lapses"] = int(rep["lapses"]) + d.lapses
 		rep["restarts"] = int(rep["restarts"]) + s.restarts
 		for r: String in m.get("minis", []):
 			(rep["minis"] as Array).append("%s %s" % [id, r])
 		var saved := await _until(func() -> bool: return (SaveService.get_campaign()["completed"] as Array).has(id), 600)
 		assert_true(saved, "%s %s: saved" % [label, id])
 		if LEVEL_LAST.has(id):
-			if not assert_true(await _until(func() -> bool: return main.top_overlay() is SupervillainedOverlay), "%s %s: the snap at the level's end" % [label, id]):
+			if not assert_true(await _until(func() -> bool: return main.top_overlay() is SupervillainedOverlay, 3000), "%s %s: the snap at the level's end" % [label, id]):
 				return rep
-			(main.top_overlay() as SupervillainedOverlay).step(GameConfig.Supervillained.HOLD + 0.05)
-			if not assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().has_meta(&"professor_aside")), "%s %s: the aside" % [label, id]):
+			await _aged(main.top_overlay(), GameConfig.Supervillained.SKIP_AFTER + 0.05)
+			await _key_tap(KEY_ENTER)
+			if not assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().has_meta(&"professor_aside"), 3000), "%s %s: the aside" % [label, id]):
 				return rep
 			var aside := main.top_overlay() as MessageOverlay
 			(rep["asides"] as Array).append(int(aside.get_meta(&"professor_aside")))
-			aside.time = 1.0
-			aside.on_tap(Vector2(5, 5))
-	if not assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().has_meta(&"ending")), label + ": the ending card"):
+			await _aged(aside, 0.55)
+			await _key_tap(KEY_ENTER)
+	if not assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().has_meta(&"ending"), 20000), label + ": the ending card"):
 		return rep
 	var ending := main.top_overlay() as MessageOverlay
 	rep["ending"] = String(ending.get_meta(&"ending"))
 	rep["ending_heading"] = ending.heading
 	rep["ending_paragraphs"] = ending.paragraphs.map(func(p: Array) -> String: return String(p[0]))
-	ending.time = 1.0
-	ending.on_tap(Vector2(5, 5))
+	await _aged(ending, 0.55)
+	await _key_tap(KEY_ENTER)
 	assert_true(await _until(func() -> bool: return main.top_overlay() is LevelListOverlay), label + ": THE END opens the level list")
 	var camp := SaveService.get_campaign()
 	rep["final"] = {"meters": camp["meters"], "flags": camp["flags"], "abilities": camp["abilities"], "coins": camp["coins"],
@@ -1932,12 +2015,30 @@ func _campaign(label: String, choice_mode: String, oath: String, letter: String,
 	return rep
 
 
+## Back out of every open menu with Esc, then open the COUCH from the title by keys.
+func _couch_by_keys() -> CouchOverlay:
+	for k in 6:
+		if main.top_overlay() == null:
+			break
+		await _aged(main.top_overlay(), 0.15)
+		await _key_tap(KEY_ESCAPE)
+		await _until(func() -> bool: return not main.transition.running, 600)
+	var title := main.current_scene as TitleScreen
+	if title == null or main.top_overlay() != null:
+		fail("not back at the title")
+		return null
+	await _choose_row(title, _row(title, "COUCH"), 0.7)
+	await _until(func() -> bool: return main.top_overlay() is CouchOverlay, 600)
+	return main.top_overlay() as CouchOverlay
+
+
 func _check_campaign(rep: Dictionary, ending: String) -> void:
 	if not assert_true(rep["ok"], rep["label"] + ": completed"):
 		return
 	var f: Dictionary = rep["final"]
 	assert_eq(f["completed"], 37, "37 entries completed")
 	assert_eq(rep["asides"], [1, 2, 3, 4, 5, 6, 7, 8], "eight level ends, each with its aside")
+	assert_true(rep["reload"] != "", "closed and resumed from the save file once (at %s)" % rep["reload"])
 	assert_eq(f["abilities"], ["cross", "sermon", "knight"], "CAMP-012: the cross, the sermon, the knight, once each")
 	assert_eq([rep["ending"], CampaignFlow.ending(SaveService.get_campaign())], [ending, ending], "the ending decided by 7.8")
 	var text: ShellText = StoryScene.TEXT
@@ -1956,13 +2057,14 @@ func _check_campaign(rep: Dictionary, ending: String) -> void:
 ## The Knight campaign: first open choices, the letter that names the debt, the oath called in a
 ## lull; skill 0.7. Through the real Main from the title, by real input only.
 func test_CAMP_full_campaign_knight_first_choices_skill_07() -> void:
-	var rep := await _campaign("knight-first-0.7", "first", "call", "named", 0.7)
+	var rep := await _campaign("knight-first-0.7", "first", "call", "named", 0.7, "5.1")
 	_check_campaign(rep, "knight")
 	if rep["ok"]:
 		assert_eq((rep["final"]["flags"] as Dictionary).get("oath"), "enforced", "oath enforced")
 		# The menus after the end: the level list, Level 8's scenes from the Resources, the Couch.
 		var ll := main.top_overlay() as LevelListOverlay
-		ll.activate(8)
+		await _choose_row(ll, 8)
+		await _until(func() -> bool: return main.top_overlay() is ChapterListOverlay, 600)
 		var ch := main.top_overlay() as ChapterListOverlay
 		var listed := []
 		for it: Dictionary in ch.items:
@@ -1977,10 +2079,11 @@ func test_CAMP_full_campaign_knight_first_choices_skill_07() -> void:
 		for k in ch.items.size():
 			if String((ch.items[k] as Dictionary).get("id", "")) == "8.4":
 				at = k
-		ch.activate(at)
-		var s := await _enter_card("8.4")
+		await _choose_row(ch, at)
+		var s := await _key_card("8.4")
 		if s != null:
 			assert_true(AppState.replaying, "8.4 replayed")
+			InputService.auto_update = false
 			var d := StoryDriver.new(s)
 			for k in 60 * 300:
 				if s.finished:
@@ -1988,38 +2091,42 @@ func test_CAMP_full_campaign_knight_first_choices_skill_07() -> void:
 				d.drive(DT)
 				InputService.update(DT)
 				s.tick(DT)
+			InputService.clear_injection()
+			InputService.auto_update = true
 			assert_true(await _until(func() -> bool: return main.top_overlay() is ChapterListOverlay), "the replay returns to the level's list")
 			for k in 30:
 				await tree.process_frame
 			var top: Control = main.top_overlay()
 			assert_false(top is SupervillainedOverlay or (top != null and top.has_meta(&"ending")), "no level end, no ending after a replay")
 			assert_eq([SaveService.get_campaign(), FileAccess.get_file_as_bytes(SaveService.base_dir + "save_v3.json")], [before, bytes], "the replay changed no saved byte")
-		main.clear_overlays()
-		main.open_couch()
-		var couch := main.top_overlay() as CouchOverlay
-		assert_true(couch.lines().has("ENDING: THE KNIGHT") and couch.lines().has("THE STORY IS FINISHED"), "the Couch: finished, THE KNIGHT")
+		var couch := await _couch_by_keys()
+		assert_true(couch != null and couch.lines().has("ENDING: THE KNIGHT") and couch.lines().has("THE STORY IS FINISHED"), "the Couch (by keys): finished, THE KNIGHT")
 
 
 ## The Witness campaign: last open choices, the letter of necessity, silence at 7.8; skill 0.7.
 func test_CAMP_full_campaign_witness_last_choices_skill_07() -> void:
-	var rep := await _campaign("witness-last-0.7", "last", "silent", "necessity", 0.7)
+	var rep := await _campaign("witness-last-0.7", "last", "silent", "necessity", 0.7, "7.9")
 	_check_campaign(rep, "alpha")
 	if rep["ok"]:
 		assert_eq((rep["final"]["flags"] as Dictionary).get("oath"), "silent", "oath silent")
-		main.clear_overlays()
-		main.open_couch()
-		assert_true((main.top_overlay() as CouchOverlay).lines().has("ENDING: THE WITNESS"), "the Couch: THE WITNESS")
+		var couch := await _couch_by_keys()
+		assert_true(couch != null and couch.lines().has("ENDING: THE WITNESS"), "the Couch (by keys): THE WITNESS")
 
 
-## The mixed campaign: random open choices, a random letter and oath (seeded), skill 0.4: fights may
-## be lost and played again, minigames lost; nothing is skipped.
+## The mixed campaign: random open choices, a random letter and oath (seeded), skill 0.4 (late shield,
+## missed openings, attention lapses, off-beat presses): fights are lost and played again through the
+## walk's reset, minigames lost and gone on from; nothing is skipped.
 func test_CAMP_full_campaign_mixed_random_choices_skill_04() -> void:
 	var r := RandomNumberGenerator.new()
 	r.seed = hash("mixed-campaign")
 	var oath := "call" if r.randf() < 0.5 else "silent"
 	var letter := "named" if r.randf() < 0.5 else "necessity"
-	var rep := await _campaign("mixed-random-0.4", "random", oath, letter, 0.4)
+	var rep := await _campaign("mixed-random-0.4", "random", oath, letter, 0.4, "8.1")
 	_check_campaign(rep, "knight" if oath == "call" else "alpha")
+	# Failures happened and were recovered through the game's own paths (a knockdown's reset; a lost
+	# minigame going on), never skipped.
+	var lost := (rep["minis"] as Array).filter(func(x: String) -> bool: return x.ends_with(":lost") and not x.contains("tug"))
+	assert_true(int(rep["knockdowns"]) + lost.size() >= 1, "failures recovered: %d knockdowns, %s" % [rep["knockdowns"], lost])
 
 
 ## The scripted smoke of every branch of every M7 scene (the debug placement that still runs every

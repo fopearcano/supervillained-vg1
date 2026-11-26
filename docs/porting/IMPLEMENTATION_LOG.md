@@ -6,14 +6,125 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. M7 report 33 is current. Erratum for the historical reports: their
+in progress report 5. M7 correction report 34 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## M7 report 33: Levels 5–8, both endings and the complete campaign (M1–M4 Partial; M5 implemented, pending review; M6 implemented, pending review; M7 implemented, pending review) — current
+## M7 correction report 34: the campaign by real keys, a reload mid-campaign, failures recovered, CAMP-014 (M1–M4 Partial; M5 implemented, pending review; M6 implemented, pending review; M7 implemented, pending review) — current
+
+Scope: one commit on top of M7-E (`85e1fc2`) closing the four gaps found when the full M7
+instruction was checked against report 33. The final `godot/` tree is `3601e71ce73dc407a3f083d2ce1c84da2d69ba2e`. The PixiJS,
+Capacitor and iOS sources are unchanged. Narrative status unchanged (OD-01: every scene
+`draft_implemented_review_pending`). M8 and M9 are not begun.
+
+### The four gaps and how they are closed
+
+1. **Every screen by real keys.** Report 33's campaign runs answered the title, the walk's snap and
+   result card, the story cards, the snaps, the Professor's asides and the ending by calling those
+   screens (`activate`, `on_tap`, `step`). Now each is answered by real key presses through the
+   input path a player uses (arrows to move a menu's selection, Enter to confirm), sent only once the
+   screen accepts input (the title after 0.5 s, cards and asides after 0.5 s, the snap after its skip
+   delay). NEW GAME is chosen on the title (and YES on its confirmation when a story is saved); the
+   test writes no save itself. The menus after the end (the level list, Level 8's list, the 8.4
+   replay, the Couch by Esc and the title's COUCH row) are reached the same way.
+2. **A reload mid-campaign.** Each run is closed without warning once at a story card (Knight at
+   5.1, Witness at 7.9, mixed at 8.1): Main is freed, the save is read back from the file (its bytes
+   and the campaign unchanged), a new Main starts at the title with CONTINUE preselected, Enter
+   resumes at that card, and the campaign goes on to THE END.
+3. **Failures recovered through the game's paths.** The drivers' skill model gains attention lapses
+   in a fight (shield down, openings missed, for about a second, at a rate that grows as skill
+   falls). The mixed run (skill 0.4) was knocked down twice in 7.2 and retried through the walk's own
+   reset, and lost 4.3's rowing and went on; the test requires at least one such failure. Nothing is
+   skipped.
+4. **CAMP-014 claimed.** `CampaignRules.unshakeable(state)` (Supervillain at the meter's top, 100)
+   and the book's `SUPERVILLAIN 100 (FULL)` (the draft's BookScene). The draft's other use, softening
+   the generic pace walk's nerve loss, has no scene in the campaign (FEATURE_MATRIX: excluded unless
+   reused); 7.3's and 8.3's walks are their own rules, as in the draft. RD-53 updated.
+
+**8.3 kept as the source has it.** The M7 instruction lists Bagnaskiz among those who fall in on the
+lawn; the draft (`src/campaign/chapters/ch8.ts`) and `docs/STORY.md` have Sbrimbrulòn and Confusione
+fall in while Bagnaskiz steps aside. The Resource follows the source; the owner may decide otherwise.
+
+### Tests
+
+Changed: `test_story_m7.gd` (the campaign runner by keys with a reload; the mixed run requires a
+recovered failure; `test_CAMP_014_…`), `tests/automation/story_driver.gd` (attention lapses below
+full skill). 41 cases in `test_story_m7.gd`.
+
+### The three campaigns (fresh clone)
+
+| Run | Walk 1.0 | Closed and resumed at | Knockdowns (lapses) | Ending | Supervillain / Grace / Standing / Commozione | Coins | Values | Marvels / remembered / items | Key flags | Minigames lost |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Knight · first · 0.7 | complete at 60.2 s, 5 coins | 5.1 | 0 (8) | THE KNIGHT | 100 / 100 / 33 / 39 | 12 | Comradeship, Physical courage, Kept oaths, An honest share, Resistance | 14 / 37 / 3 | oath enforced, lamp declared, drawing ships, telling high, letter named, zaraOwe pope, corfu stay, comradeship true, dissent true | 7.1 tug:lost, 7.7 tug:lost |
+| Witness · last · 0.7 | complete at 60.1 s, 5 coins | 7.9 | 0 (6) | THE WITNESS (alpha) | 80 / 73 / 58 / 68 | 15 | Physical courage, Comradeship, Resistance | 14 / 37 / 3 | oath silent, lamp kept, drawing bowl, telling high, letter necessity, zaraOwe debt, corfu syria, comradeship false, dissent false | 7.1 tug:lost, 7.7 tug:lost |
+| mixed · random · 0.4 | complete at 60.1 s, 5 coins | 8.1 | 2 (14) | THE WITNESS (alpha) | 85 / 77 / 41 / 55 | 15 | Physical courage, Comradeship, Resistance | 14 / 37 / 3 | oath silent, lamp kept, drawing bowl, telling high, letter necessity, zaraOwe debt, corfu syria, comradeship false, dissent true | 4.3 rowing:lost, 7.1 tug:lost, 7.7 tug:lost |
+
+### Commands executed and results
+
+On a fresh Windows clone of the local verification commit `2145432` (`godot/` tree as above),
+each step's output and exit code logged:
+
+| Command | Exit | Result |
+|---|---|---|
+| `git clone --branch claude/gallant-keller-rbvtvy <session clone> <fresh dir>`; `npm ci`; `npx playwright install chromium` | 0 / 0 / 0 | fresh clone of the verification commit; `godot/` tree as above |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (asset and resource generation, deterministic check) | 0 | asset check OK: 208 outputs identical (73 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12); build_resources check (all): OK, 56 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | 0 | 0 ERROR/WARNING lines; `git status --porcelain` afterwards empty: yes |
+| `… --script res://tests/test_runner.gd -- --suite all` (complete suite) | 0 | 351 passed, 0 failed, 351 total (383.1 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_story_schema` (schema and validation) | 0 | 5 passed, 0 failed, 5 total (0.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7` (Levels 5–8, the endings, the campaign) | 0 | 41 passed, 0 failed, 41 total (221.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case STY_50` (STY-501–505) | 0 | 5 passed, 0 failed, 5 total (1.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case STY_60` (STY-601–603) | 0 | 3 passed, 0 failed, 3 total (1.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case STY_70` (STY-701–709, 708A/B) | 0 | 10 passed, 0 failed, 10 total (3.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case STY_80` (STY-801–804) | 0 | 4 passed, 0 failed, 4 total (2.0 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case MINI_` (MINI-006–012) | 0 | 5 passed, 0 failed, 5 total (1.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case WALK_` (WALK-018–021) | 0 | 2 passed, 0 failed, 2 total (1.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case NPC_` (NPC-008–011, 8.3; 7.3 in STY-703) | 0 | 1 passed, 0 failed, 1 total (1.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case CAMP_0` (CAMP: fade, tiers, home mapping, costume, CAMP-014) | 0 | 5 passed, 0 failed, 5 total (1.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case END_` (END-001–004) | 0 | 2 passed, 0 failed, 2 total (1.1 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case COLL_005b_every` (the full COLL-005b aggregate) | 0 | 1 passed, 0 failed, 1 total (3.5 s), Godot 4.7.2-stable (official); COLL-005b aggregate: 112 targets in 36 scenes |
+| `… -- --suite integration --file test_story_m7 --case every_branch` (scripted smoke of every M7 branch) | 0 | 1 passed, 0 failed, 1 total (3.1 s), Godot 4.7.2-stable (official); M7 scripted smoke: 30 scene branches |
+| `… -- --suite integration --file test_story_m7 --case m7_real_input` (every M7 scene and branch by real input, snapshots) | 0 | 1 passed, 0 failed, 1 total (4.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case campaign_knight` (full campaign from the title: Knight, first choices, skill 0.7) | 0 | 1 passed, 0 failed, 1 total (58.1 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case campaign_witness` (full campaign: Witness, last choices, skill 0.7) | 0 | 1 passed, 0 failed, 1 total (55.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case campaign_mixed` (full campaign: mixed, random choices, skill 0.4) | 0 | 1 passed, 0 failed, 1 total (55.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case FLOW_` (FLOW-007/008/011 over the M7 scenes) | 0 | 3 passed, 0 failed, 3 total (37.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case CAMP_order` (37 entries in order; explicit failure on missing content) | 0 | 1 passed, 0 failed, 1 total (1.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6` (Levels 2–4 regressions, with the fade) | 0 | 29 passed, 0 failed, 29 total (34.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine`, `test_story_level1`, `test_story_input`, `test_story_combat` (M5R/M6 regressions) | 0 | 19 passed, 0 failed, 19 total (2.1 s), Godot 4.7.2-stable (official); 25 passed, 0 failed, 25 total (16.9 s), Godot 4.7.2-stable (official); 6 passed, 0 failed, 6 total (7.8 s), Godot 4.7.2-stable (official); 10 passed, 0 failed, 10 total (1.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save` (M4 save: test_save and test_save_m4) | 0 | 47 passed, 0 failed, 47 total (3.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell`, `test_main_and_rates` (M4 shell and flow) | 0 | 23 passed, 0 failed, 23 total (9.7 s), Godot 4.7.2-stable (official); 8 passed, 0 failed, 8 total (21.2 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3 --case AUTO_001`, twice (deterministic AUTO-001) | 0 / 0 | identical lines: yes — `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame launch at the title) | 0 | 0 ERROR/WARNING lines |
+| `<console exe> --headless --path godot --quit-after 120 --verbose`, filtered for the first scene loaded | 0 | Completed load for: 'res://scenes/title/title_screen.tscn' remapped 'res://scenes/title/title_screen.tscn' at thread -1 |
+| `… -- --suite integration --file test_export_pack` (hermetic PCK smoke) | 0 | 1 passed, 0 failed, 1 total (18.1 s), Godot 4.7.2-stable (official) |
+| `npm test` (PixiJS) | 0 | Tests  248 passed (248) |
+| `npm run build` (PixiJS) | 0 | built in 306ms |
+| `git status --porcelain` after the checks | 0 | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check --format=` of M7-A `546410e`, M7-B `bbb0297`, M7-C `225ba4b`, M7-D `5b5ba7c`, M7-E `85e1fc2` and the verification commit | 0 / 0 | no output |
+| `bash godot/tools/source_tree_guard.sh` | 0 | source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265 |
+| `git diff --stat 95b69c0 HEAD -- src public assets android ios package.json package-lock.json` | 0 | empty (PixiJS untouched) |
+| `git status --porcelain` after all steps | 0 | empty |
+
+### Acceptance IDs
+
+- **Accepted (counted, 144):** unchanged.
+- **Claimed, pending review:** report 33's M7 claims, now with CAMP-014 (CAMP-001–014 complete).
+- **Partial:** NPC-001–006 (fly absent; no scene uses it); FLOW-012 (no SKIP SCENE, OQ-11); SAV-009,
+  SAV-010, UI-023–030 (their later clauses).
+
+### Remaining gaps
+
+Fly actors (unused); SKIP SCENE (OQ-11); M8 presentation and art banks; M9 Android, signed upgrade and
+migration; the owner's narrative review; the two clean human campaigns (manual).
+
+---
+
+## Historical — M7 report 33 (`85e1fc2`): Levels 5–8, both endings and the complete campaign (M1–M4 Partial; M5 implemented, pending review; M6 implemented, pending review; M7 implemented, pending review)
+
+> Superseded by M7 correction report 34 (the current tree is its). Its claims stand; report 34 drives the campaigns by real keys with a reload mid-campaign, adds recovered failures to the mixed run, and claims CAMP-014.
 
 Scope: the architect's M7 batch on top of M6-D (`0e989ef`, `godot/` tree `cf0eb9e`), in five
 sequential commits: M7-A `546410e` (Phase 0 and Level 5), M7-B `bbb0297` (Level 6), M7-C `225ba4b`

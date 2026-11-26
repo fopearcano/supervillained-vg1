@@ -66,6 +66,13 @@ static func fade_commozione(state: Dictionary, level: int) -> float:
 	return before - float(m["commozione"])
 
 
+## Supervillain full (source unshakeable): he cannot be pushed off the lawn. The book shows it
+## ("(FULL)"); the draft's other use, softening the generic pace walk's nerve loss, has no scene in
+## the current campaign (FEATURE_MATRIX: excluded unless reused; RD-53).
+static func unshakeable(state: Dictionary) -> bool:
+	return float((state.get("meters", {}) as Dictionary).get("supervillain", 0.0)) >= CampaignSchema.METER_MAX
+
+
 static func mark_complete(state: Dictionary, id: String) -> void:
 	if not (state["completed"] as Array).has(id):
 		(state["completed"] as Array).append(id)

@@ -49,7 +49,8 @@ func _build() -> void:
 	var meters: Dictionary = campaign.get("meters", {})
 	rows.append({"text": text.get_text("book_title"), "head": true})
 	for key: String in CampaignSchema.METER_KEYS:
-		rows.append({"text": "%s %s" % [CampaignRules.METER_LABEL[key], CampaignSchema.clean_number(float(meters.get(key, 0.0)))], "head": false})
+		var full: String = text.get_text("book_full") if key == "supervillain" and CampaignRules.unshakeable(campaign) else ""
+		rows.append({"text": "%s %s%s" % [CampaignRules.METER_LABEL[key], CampaignSchema.clean_number(float(meters.get(key, 0.0))), full], "head": false})
 	rows.append({"text": "", "head": false})
 	var book: Dictionary = campaign.get("book", {})
 	for sec: Array in [["book_section_items", "items"], ["book_section_marvels", "marvels"], ["book_section_values", "values"], ["book_section_shards", "shards"], ["book_section_remembered", "remembered"]]:

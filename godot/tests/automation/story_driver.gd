@@ -48,6 +48,13 @@ var choice_mode := ""
 var rng := RandomNumberGenerator.new()
 var _beat_off := {}
 var _threat_t := 0.0
+## Below full skill, now and then his attention lapses in a fight for LAPSE_TIME: the shield stays
+## down and openings go by (LAPSE_RATE lapses a second at skill 0). A knockdown follows sometimes,
+## and the walk's own reset is the retry.
+const LAPSE_RATE := 0.9
+const LAPSE_TIME := 1.1
+var _lapse_t := 0.0
+var lapses := 0
 ## 8.1: the turn he has learned from watching where his legs take him (radians).
 var _turn := 0.0
 var _last_press := Vector2.ZERO
@@ -259,19 +266,24 @@ func _fight(pos: Vector2) -> void:
 		InputService.guard_hold_injected = false
 		return
 	var at := Vector2(nearest.gx, nearest.gy)
-	# Below full skill the shield comes up a little after the ring starts filling.
+	# Below full skill the shield comes up a little after the ring starts filling, and now and then
+	# his attention lapses.
 	_threat_t = _threat_t + DT if threat else 0.0
-	var seen_threat := threat and _threat_t >= (1.0 - skill) * 0.3
+	_lapse_t = maxf(0.0, _lapse_t - DT)
+	if skill < 1.0 and _lapse_t <= 0.0 and rng.randf() < (1.0 - skill) * LAPSE_RATE * DT:
+		_lapse_t = LAPSE_TIME
+		lapses += 1
+	var seen_threat := threat and _threat_t >= (1.0 - skill) * 0.3 and _lapse_t <= 0.0
 	if scene.ctx.armed():
 		var open := nearest.foe.stun > 0.0 or nearest.foe.windup > 0.0
 		InputService.guard_hold_injected = seen_threat and not (open and nd <= CB.SWORD_RANGE)
 		if open and nd <= CB.SWORD_RANGE and t >= _next_action:
 			_next_action = t + CB.SWORD_COOLDOWN + 0.03
 			# Below full skill some openings are missed.
-			if rng.randf() < 0.5 + 0.5 * skill:
+			if _lapse_t <= 0.0 and rng.randf() < 0.5 + 0.5 * skill:
 				InputService.trigger(&"strike")
 				actions += 1
-	elif nd <= CB.BARK_RADIUS - 0.4 and t >= _next_action:
+	elif nd <= CB.BARK_RADIUS - 0.4 and t >= _next_action and _lapse_t <= 0.0:
 		_next_action = t + CB.BARK_COOLDOWN + 0.05
 		InputService.trigger(&"bark")
 		actions += 1

@@ -70,6 +70,7 @@ strings = {
 "story_boat_splash": "TOO HARD: WATER IN THE BOAT",
 "story_boat_swamped_notice": "SWAMPED! BAIL OUT AND TRY AGAIN",
 "story_boat_almost": "ALMOST ALONGSIDE...",
+"book_full": " (FULL)",
 "book_title": "MERAVIGLIA",
 "book_empty": "NOTHING IN THE BOOK YET.",
 "book_page": "PAGE %d/%d",
