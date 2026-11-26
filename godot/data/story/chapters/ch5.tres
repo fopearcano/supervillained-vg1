@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="StoryChapterData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_chapter_data.gd" id="1_storychapterdata"]
+[ext_resource type="Resource" path="res://data/story/scenes/5_1.tres" id="s5_1"]
+[ext_resource type="Resource" path="res://data/story/scenes/5_2.tres" id="s5_2"]
+[ext_resource type="Resource" path="res://data/story/scenes/5_3.tres" id="s5_3"]
+[ext_resource type="Resource" path="res://data/story/scenes/5_4.tres" id="s5_4"]
+[ext_resource type="Resource" path="res://data/story/scenes/5_5.tres" id="s5_5"]
+
+[resource]
+script = ExtResource("1_storychapterdata")
+number = 5
+scenes = [ExtResource("s5_1"), ExtResource("s5_2"), ExtResource("s5_3"), ExtResource("s5_4"), ExtResource("s5_5")]
+content_version = 1
+review_status = "draft_implemented_review_pending"
+title = "Zara"
+menu_title = "Zara"
+intro = "ZARA HAS CHURCH TOWERS WITH CROSSES ON TOP, LIKE THE ONE SEWN ON HIS BACK. THE HOST IS GOING TO TAKE IT FOR THE VENETIANS, BECAUSE OF THE DEBT. ZAMPANO WILL CLIMB A LADDER AND HEAR THE REASONS AFTERWARDS."
+cast_note = "BAGNASKIZ AS THE MARSHAL; THE DOGE; SBRIMBRULON AS PIERRE; CONFUSIONE AS ALEAUME; THE ABBOT OF VAUX WITH A LETTER"
+music = "medieval"
+professor_aside = "THE ABBOT FORBADE IT IN THE POPE'S NAME, YOU UNDERSTAND. THE CITY FELL ANYWAY. THEN THE ABSOLUTION CAME BACK FROM ROME, AND CLARI AND VILLEHARDOUIN DO NOT EVEN AGREE ON WHOM IT WAS FOR."
+review_notes = PackedStringArray("Draft implemented; narrative review pending for the whole level (OD-01).", "Level 5 plays the medieval synth music, as the source does.")

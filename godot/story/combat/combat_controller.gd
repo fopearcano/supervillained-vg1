@@ -20,7 +20,8 @@ var ctx: StoryContext:
 		return _ctx_ref.get_ref() if _ctx_ref else null
 var _ctx_ref: WeakRef = null
 ## The fight ({} = none): "foes" (handles), "hp", "speed", "radius", "leash", "health", "parry",
-## "rout" (how many to rout, 0 = all), "rout_lines", "knocked_text".
+## "rout" (how many to rout; absent = all; 0 = none: only get through), "rout_lines",
+## "sword_cost" (effects of each swing that lands, 5.3's Grace) and "sword_cost_text" (shown once).
 var def: Dictionary = {}
 var foes: Array[StoryActor] = []
 var health := 0
@@ -53,8 +54,9 @@ func active() -> bool:
 func need() -> int:
 	if not active():
 		return 0
-	var n := int(def.get("rout", 0))
-	return foes.size() if n <= 0 else mini(n, foes.size())
+	if not def.has("rout"):
+		return foes.size()
+	return clampi(int(def["rout"]), 0, foes.size())
 
 
 func won() -> bool:
@@ -191,6 +193,7 @@ func strike() -> void:
 	events.append("strike")
 	if not active():
 		return
+	var landed := false
 	for a: StoryActor in foes:
 		if a.foe == null or a.foe.routed:
 			continue
@@ -213,7 +216,17 @@ func strike() -> void:
 			continue
 		a.knock(dx / d * C.SWORD_KNOCK, dy / d * C.SWORD_KNOCK)
 		events.append("hit")
+		landed = true
 		_land(a, CombatRules.damage_foe(a.foe, C.SWORD_DAMAGE, C.SWORD_STUN))
+	# A swing that lands (on one foe or several) costs its price once (5.3: Grace, the forbidden
+	# thing); a miss, a parried blow, a bark or a block costs nothing.
+	var cost: Dictionary = def.get("sword_cost", {})
+	if landed and not cost.is_empty():
+		events.append("sword_cost")
+		ctx.apply(cost)
+		if not _told.has("cost") and String(def.get("sword_cost_text", "")) != "":
+			_told["cost"] = true
+			ctx.notice(String(def["sword_cost_text"]), Color("#ff9a1f"))
 
 
 ## SHIELD: up for a moment (held: as long as it is held); raising it shoves whoever is in front.

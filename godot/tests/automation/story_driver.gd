@@ -114,6 +114,21 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 	if step.rule == "lull":
 		_lull(step, pos)
 		return
+	if step.objective_kind == "survive" and step.rule == "steady":
+		InputService.inject_move(0.0, 0.0)
+		return
+	if step.rule == "act_at":
+		var gp: Vector2 = st["goal"]
+		if pos.distance_to(gp) > float(step.rule_params["radius"]) - 0.4:
+			if scripted:
+				dog.set_grid_position(gp.x, gp.y)
+			else:
+				_steer(pos, gp, [])
+		elif t >= _next_action:
+			_next_action = t + 0.4
+			InputService.trigger(&"action")
+			actions += 1
+		return
 	if step.rule == "listen":
 		var lp: Variant = step.rule_params["point"]
 		var at: Vector2 = scene.ctx.marker(lp) if lp is String else lp
@@ -221,6 +236,12 @@ func _mini(step: MiniGameStep, st: Dictionary) -> void:
 		_game = st["game"]
 		_pressed_beats.clear()
 		_next_stroke = 0.0
+	if step.game == "ladders":
+		_ladders(st["game"] as LaddersGame)
+		return
+	if step.game == "letter":
+		_letter(step, st["game"] as LetterGame)
+		return
 	if step.game == "boat":
 		var b: BoatGame = st["game"]
 		if b.swamped_t <= 0.0 and t >= _next_stroke:
@@ -237,6 +258,49 @@ func _mini(step: MiniGameStep, st: Dictionary) -> void:
 			InputService.trigger(&"action")
 			actions += 1
 		break
+
+
+## The ladder, from what a player sees: a stone's warning or a stone above him on his ladder sends
+## him to a clear one (a tap on that side); otherwise he climbs at a human tapping rate (J), under the
+## game's own input cap.
+func _ladders(g: LaddersGame) -> void:
+	var w := float(scene.view_size().x)
+	if g.threatened(g.lane) and t >= _next_action:
+		var options: Array = []
+		for l: int in [g.lane - 1, g.lane + 1, g.lane - 2, g.lane + 2]:
+			if l >= 0 and l <= 2 and not g.threatened(l):
+				options.append(l)
+		if not options.is_empty():
+			_next_action = t + 0.15
+			var x := w * 0.1 if int(options[0]) < g.lane else w * 0.9
+			InputService.pointer_down(8, Vector2(x, 300))
+			InputService.pointer_up(8, Vector2(x, 300))
+			taps += 1
+			return
+	if t >= _next_stroke:
+		_next_stroke = t + 1.0 / 6.0
+		InputService.trigger(&"action")
+		actions += 1
+
+
+## The letter, by touch: the policy's "letter" ("named" by default: the debt named outright, one tap
+## on the second slot; "necessity": no change), then READ IT ALOUD and HEAR THE ANSWER OUT.
+func _letter(step: MiniGameStep, g: LetterGame) -> void:
+	if t < _next_action:
+		return
+	_next_action = t + 0.3
+	var want_named := String(policy.get("letter", "named")) == "named"
+	var target := ""
+	if g.phase == "write":
+		target = "slot%d" % g.debt_slot if (g.picks[g.debt_slot] == g.debt_option) != want_named else "send"
+	else:
+		target = "accept"
+	for b: Dictionary in g.layout(float(scene.view_size().x)):
+		if String(b["id"]) == target:
+			var c: Vector2 = (b["rect"] as Rect2).get_center()
+			InputService.pointer_down(8, c)
+			InputService.pointer_up(8, c)
+			taps += 1
 
 
 ## Where `sound` was last seen floating (the place a hidden goal is heard from), else `fallback`.

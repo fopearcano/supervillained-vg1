@@ -10,9 +10,14 @@ extends StoryStep
 ## miss, won, lost) or ShellText; `params` may set beats, bpm, need, and the actor that rocks with
 ## the boat ("bob").
 
-const GAMES := ["parade", "rowing", "boat"]
+const GAMES := ["parade", "rowing", "boat", "ladders", "letter"]
 const RHYTHM_TEXTS := ["title", "objective", "cue", "hit", "miss", "won", "lost"]
 const BOAT_TEXTS := ["title", "objective", "won"]
+const LADDER_TEXTS := ["title", "objective", "help", "stone", "won"]
+const LETTER_TEXTS := ["title", "objective", "send", "again", "accept", "answer", "won"]
+const TEXTS_OF := {"parade": RHYTHM_TEXTS, "rowing": RHYTHM_TEXTS, "boat": BOAT_TEXTS, "ladders": LADDER_TEXTS, "letter": LETTER_TEXTS}
+## Games with no lost result (the source has none): the skiff, the ladder, the letter.
+const NEVER_LOST := ["boat", "ladders", "letter"]
 const S := GameConfig.Story
 ## A tap counts as a press in the band this far above the screen's bottom (source: h − 120).
 const TAP_BAND := 120.0
@@ -32,6 +37,10 @@ func texts() -> PackedStringArray:
 	var out := PackedStringArray()
 	for k: String in lines:
 		out.append(String(lines[k]))
+	for s: Dictionary in params.get("slots", []):
+		out.append(String(s["before"]).strip_edges(true, false).trim_prefix(", ").trim_prefix(". "))
+		for o: String in s["options"]:
+			out.append(o)
 	return out
 
 
@@ -40,6 +49,8 @@ func effect_sets() -> Array:
 	for fx: Dictionary in [won_effects, lost_effects]:
 		if not fx.is_empty():
 			out.append(fx)
+	for fx: Dictionary in (params.get("outcomes", {}) as Dictionary).values():
+		out.append(fx)
 	return out
 
 
@@ -53,10 +64,13 @@ func sounds() -> PackedStringArray:
 
 func check(errors: PackedStringArray) -> void:
 	_need(errors, GAMES.has(game), "minigame %s: unknown game '%s'" % [id, game])
-	for k: String in (BOAT_TEXTS if game == "boat" else RHYTHM_TEXTS):
+	for k: String in TEXTS_OF.get(game, []):
 		_need(errors, String(lines.get(k, "")).strip_edges() != "", "minigame %s: needs lines.%s" % [id, k])
 	_need(errors, not won_effects.is_empty(), "minigame %s: needs its won effects" % id)
-	if game != "boat":
+	if game == "letter":
+		_need(errors, (params.get("slots", []) as Array).size() >= 2, "minigame %s: the letter needs its slots" % id)
+		_need(errors, (params.get("outcomes", {}) as Dictionary).has("named") and (params.get("outcomes", {}) as Dictionary).has("necessity"), "minigame %s: the letter needs both outcomes" % id)
+	if not NEVER_LOST.has(game):
 		_need(errors, not lost_effects.is_empty(), "minigame %s: a beat game needs its lost effects (a loss applies them and goes on)" % id)
 		_need(errors, int(params.get("need", S.PARADE_NEED)) <= int(params.get("beats", S.PARADE_BEATS)), "minigame %s: need more hits than beats" % id)
 
@@ -68,7 +82,17 @@ func rhythm() -> RhythmGame:
 
 
 func begin(ctx: StoryContext, st: Dictionary) -> void:
-	st["game"] = BoatGame.new() if game == "boat" else rhythm()
+	match game:
+		"boat":
+			st["game"] = BoatGame.new()
+		"ladders":
+			st["game"] = LaddersGame.new().setup(int(params.get("rungs", S.LADDER_RUNGS)), float(ctx.scene.view_size().y), hash("ladders:" + ctx.data.id))
+		"letter":
+			st["game"] = LetterGame.new().setup(params["slots"], int(params.get("debt_slot", 1)), int(params.get("debt_option", 1)))
+		_:
+			st["game"] = rhythm()
+	st["mx"] = 0.0
+	st["my"] = 0.0
 	st["result"] = ""
 	st["hold"] = 0.0
 	st["applied"] = false
@@ -96,11 +120,22 @@ func _presses(ctx: StoryContext) -> int:
 
 func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 	if String(st["result"]) != "":
+		# The result frame and its hold take every press: none reaches the next step.
 		st["hold"] = float(st["hold"]) - dt
-		InputService.consume_taps()
+		InputService.drain_story_edges()
 		return float(st["hold"]) <= 0.0
-	var presses := _presses(ctx)
 	var r := ""
+	if game == "ladders":
+		r = _tick_ladders(ctx, st, dt)
+	elif game == "letter":
+		r = _tick_letter(ctx, st)
+	if game == "ladders" or game == "letter":
+		if r == "running":
+			return false
+		_finish(ctx, st, r)
+		InputService.drain_story_edges()
+		return false
+	var presses := _presses(ctx)
 	if game == "boat":
 		var b: BoatGame = st["game"]
 		r = b.update(dt, presses)
@@ -134,7 +169,68 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 	if r == "running":
 		return false
 	_finish(ctx, st, r)
+	InputService.drain_story_edges()
 	return false
+
+
+## The ladder: a middle tap, J/X, Space, Enter or up climbs; a side tap or left/right changes ladder.
+func _tick_ladders(ctx: StoryContext, st: Dictionary, dt: float) -> String:
+	var w := float(ctx.scene.view_size().x)
+	var climbs := 0
+	var moves: Array = []
+	for t: Vector2 in InputService.consume_taps():
+		if t.x < w * 0.3:
+			moves.append(-1)
+		elif t.x > w * 0.7:
+			moves.append(1)
+		else:
+			climbs += 1
+	if InputService.consume_any([&"action", &"pee", &"confirm"] as Array[StringName]):
+		climbs += 1
+	var mx := InputService.move_x
+	var my := InputService.move_y
+	if mx < -0.5 and float(st["mx"]) >= -0.5:
+		moves.append(-1)
+	elif mx > 0.5 and float(st["mx"]) <= 0.5:
+		moves.append(1)
+	if my < -0.5 and float(st["my"]) >= -0.5:
+		climbs += 1
+	st["mx"] = mx
+	st["my"] = my
+	var g: LaddersGame = st["game"]
+	var r := g.update(dt, climbs, moves)
+	for ev: String in g.events:
+		match ev:
+			"climb":
+				AudioService.play(&"click", 0.4, 1.0 + (int(g.rung) % 4) * 0.1)
+			"hit":
+				AudioService.play(&"hurt")
+				ctx.notice(String(lines["stone"]), Color("#ff2a3a"))
+	return r
+
+
+## The letter: a tap on a slot cycles its word; READ IT ALOUD (or confirm) sends; in the answer
+## phase WRITE IT AGAIN, or HEAR THE ANSWER OUT (or confirm) finishes with its outcome's effects.
+func _tick_letter(ctx: StoryContext, st: Dictionary) -> String:
+	var g: LetterGame = st["game"]
+	var picked := ""
+	var w := float(ctx.scene.view_size().x)
+	for t: Vector2 in InputService.consume_taps():
+		for b: Dictionary in g.layout(w):
+			if (b["rect"] as Rect2).has_point(t):
+				picked = String(b["id"])
+	if InputService.consume_any([&"confirm", &"action", &"pee"] as Array[StringName]):
+		picked = "send" if g.phase == "write" else "accept"
+	var r := g.pick(picked)
+	for ev: String in g.events:
+		AudioService.play(&"star" if ev == "sent" else &"click")
+	if r == "won":
+		var fx: Dictionary = (params["outcomes"] as Dictionary)[g.outcome]
+		ctx.apply(fx)
+		(ctx.metrics.get_or_add("letter", []) as Array).append(g.outcome)
+		if lines.has(g.outcome):
+			ctx.notice(String(lines[g.outcome]), Color("#ffe23a"))
+	return r
 
 
 ## The result: its effects applied once, then held on screen before the scene goes on.
@@ -152,6 +248,7 @@ func _finish(ctx: StoryContext, st: Dictionary, r: String) -> void:
 
 
 func end(ctx: StoryContext, st: Dictionary) -> void:
+	InputService.drain_story_edges()
 	var v: Variant = st.get("view")
 	if v != null and is_instance_valid(v):
 		ctx.scene.hide_minigame(v)

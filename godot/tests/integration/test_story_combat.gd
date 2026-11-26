@@ -564,3 +564,71 @@ func test_NPC_001_006_patrol_chase_flee_wander_on_the_grid() -> void:
 	_until(s3, func() -> bool: return s3.runner.current is WaitStep, 60)
 	_ticks(s3, 120)
 	assert_vec_near(Vector2(_foe(s3, "drifter").gx, _foe(s3, "drifter").gy), Vector2(d2.gx, d2.gy), 1e-9, "wander is reproducible")
+
+
+## COM-011 (held SHIELD, M7 Phase 0): with SHIELD selected, the shield stays up while J/X is held or
+## the round ACTION button is pressed, beyond SHIELD_PULSE, and drops on release; held so, it blocks a
+## blow from the front and leaves the rear open. (I and the swipe keep their own behaviour.)
+func test_COM_011_selected_shield_held_by_keys_and_touch() -> void:
+	var s := _run(_scene_data([_spawn("front", Vector2(0.8, 0)), _spawn("rear", Vector2(-0.9, 0.0)),
+		_fight(["front", "rear"], {"hp": 2.0, "speed": 0.01, "health": 5})]), ["knight"])
+	if not assert_true(_at_objective(s), "at the fight"):
+		return
+	var front := _foe(s, "front")
+	var rear := _foe(s, "rear")
+	var dog := s.world.player
+	for a: StoryActor in [front, rear]:
+		a.set_idle()
+		a.foe.cooldown = 5.0
+	front.set_grid_position(dog.gx + 0.8, dog.gy)
+	rear.set_grid_position(dog.gx - 0.9, dog.gy)
+	InputService.trigger(&"switch")
+	_ticks(s, 1)
+	InputService.trigger(&"switch")
+	_ticks(s, 1)
+	assert_eq(s.ctx.actions.mode, "shield", "SHIELD selected")
+	# J held through the real key path.
+	await tree.process_frame
+	_key(KEY_J, true)
+	await tree.process_frame
+	_ticks(s, int(C.SHIELD_PULSE / DT) + 20)
+	assert_true(s.ctx.combat.guarding, "J held: still up after the pulse")
+	front.set_grid_position(dog.gx + 0.8, dog.gy)
+	front.knock(0.0, 0.0)
+	front.foe.cooldown = 0.0
+	assert_true(_until(s, func() -> bool: return _count(s, "blocked") > 0 or _count(s, "hurt") > 0, 240), "the front foe strikes")
+	assert_eq([_count(s, "blocked"), _count(s, "hurt")], [1, 0], "held: the front blow is blocked")
+	_ticks(s, 30)
+	front.set_grid_position(dog.gx + 0.8, dog.gy)
+	front.knock(0.0, 0.0)
+	front.foe.stun = 0.0
+	front.foe.cooldown = 5.0
+	rear.set_grid_position(dog.gx - 0.9, dog.gy)
+	rear.foe.cooldown = 0.0
+	var b0 := _count(s, "blocked")
+	assert_true(_until(s, func() -> bool: return _count(s, "hurt") > 0 or _count(s, "blocked") > b0, 240), "the rear foe strikes")
+	assert_eq(_count(s, "hurt"), 1, "held: the rear stays open")
+	_key(KEY_J, false)
+	await tree.process_frame
+	_ticks(s, int(C.SHIELD_PULSE / DT) + 2)
+	assert_false(s.ctx.combat.guarding, "J released: down")
+	# The touch ACTION button held.
+	var lay: Dictionary = s.controls._layout
+	front.foe.cooldown = 0.5
+	rear.foe.cooldown = 0.5
+	InputService.pointer_down(6, lay["action"])
+	_ticks(s, int(C.SHIELD_PULSE / DT) + 20)
+	assert_true(s.ctx.combat.guarding, "ACTION held on touch: still up after the pulse")
+	InputService.pointer_up(6, lay["action"])
+	_ticks(s, int(C.SHIELD_PULSE / DT) + 2)
+	assert_false(s.ctx.combat.guarding, "released: down")
+	# In SWORD mode a held J does not raise the shield.
+	InputService.trigger(&"switch")
+	_ticks(s, 1)
+	InputService.trigger(&"switch")
+	_ticks(s, 1)
+	assert_eq(s.ctx.actions.mode, "sword", "SWORD selected")
+	InputService.action_hold_injected = true
+	_ticks(s, int(C.SHIELD_PULSE / DT) + 2)
+	assert_false(s.ctx.combat.guarding, "a held action in SWORD mode is no shield")
+	InputService.action_hold_injected = false

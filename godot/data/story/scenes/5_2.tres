@@ -1,0 +1,233 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=25 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="3_cardstep"]
+[ext_resource type="Script" path="res://story/steps/minigame_step.gd" id="4_minigamestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="5_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="6_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="7_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="8_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="9_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "zara"
+player_at = "4"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = []
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_cardstep")
+id = "s02"
+big = "HIS CROSS CATCHES ON THE LADDER"
+small = "GET A MOVE ON UP THERE!"
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 1.8
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_minigamestep")
+id = "s03"
+game = "ladders"
+lines = {
+"title": "THE LADDER",
+"objective": "CLIMB THE LADDER. MIND THE STONES",
+"help": "MIDDLE: CLIMB. SIDES: ANOTHER LADDER",
+"stone": "STONE!",
+"won": "OVER THE TOP"
+}
+won_effects = {
+"supervillain": 4
+}
+lost_effects = {}
+params = {
+"rungs": 16
+}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_storyactorspec")
+name = "pierre"
+role = "sbrimbrulonKnight"
+at = ""
+point = Vector2(10.5, 5.5)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("2_stagestep")
+id = "s04"
+map = "zara"
+player_at = ""
+player_point = Vector2(9.5, 5.5)
+player_face = "E"
+actors = [SubResource("Resource_4")]
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_dialoguestep")
+id = "s05"
+speaker = "sbrimbrulon"
+text = "HOLD IT STEADY, LITTLE ONE. THE NEXT ONE UP IS EVEN SMALLER THAN YOU."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_objectivestep")
+id = "s06"
+objective = "STEADY THE LADDER: STAND STILL"
+objective_kind = "survive"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "steady"
+rule_params = {}
+rule_lines = {
+"label": "STEADY...",
+"wobble": "IT WOBBLES! STAND STILL"
+}
+hint = ""
+hint_after = 0.6
+survive = 3.0
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("3_cardstep")
+id = "s07"
+big = "THE CITY SURRENDERS"
+small = "THE GOODS ARE CARRIED OUT"
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("5_storyactorspec")
+name = "porter"
+role = "burgher"
+at = "2"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("2_stagestep")
+id = "s08"
+map = "zara"
+player_at = ""
+player_point = Vector2(5.5, 11.5)
+player_face = "N"
+actors = [SubResource("Resource_9")]
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_objectivestep")
+id = "s09"
+objective = "KEEP THE BOLT OF RED CLOTH IN SIGHT, FROM THE HOUSE TO THE PILE"
+objective_kind = "follow"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = "porter"
+path = PackedStringArray("4", "6")
+leader_speed = 1.6
+leader_lines = PackedStringArray("THIS ONE CAME OUT OF THE HOUSE WITH THE BLUE DOOR.", "ONTO THE PILE WITH THE REST.")
+rule = "sounder"
+rule_params = {
+"actor": "porter",
+"every": 1.4
+}
+rule_lines = {
+"sound": "A BOLT OF RED CLOTH"
+}
+hint = ""
+hint_after = 0.6
+leader_leg_timeout = 16.0
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("3_cardstep")
+id = "s10"
+big = "THE COMMON PILE"
+small = "ONE BOLT OF CLOTH, FROM A HOUSE TO THE PILE"
+color = Color(0.847058824, 0.847058824, 0.909803922, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("8_effectstep")
+id = "s11"
+effects = {
+"coins": 5,
+"flags": {
+"clothRoute": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_dialoguestep")
+id = "s12"
+speaker = "zampano"
+text = "THERE WAS A BOLT OF CLOTH, AND I WATCHED IT ALL THE WAY TO THE PILE."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("9_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "5.2"
+content_version = 1
+title = "A cross above the wall"
+old_title = "A cross above the wall"
+level = 5
+summary = "HIS CROSS CATCHES ON THE LADDER AND THE MEN BEHIND HIM WANT HIM TO HURRY. CLIMB, THEN STEADY THE LADDER FOR THE NEXT SMALL BODY. THE CITY SURRENDERS AND THE GOODS ARE CARRIED OUT: FOLLOW ONE BOLT OF RED CLOTH FROM A HOUSE TO THE COMMON PILE, AND REMEMBER THE HOUSE."
+map = "zara"
+music = "medieval"
+cast = PackedStringArray("zampano", "sbrimbrulon")
+steps = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15")]
+entry_conditions = {
+"requires_completed": ["5.1"]
+}
+persistent_effects = PackedStringArray("meter.supervillain", "coins", "flags.clothRoute", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["clothRoute"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the siege of Zara", "the surrender", "the goods carried to a common pile")
+source_refs = PackedStringArray("Villehardouin pp. 21-22: the siege, the surrender, the city divided between Venetians and Franks", "docs/STORY.md 5.2", "src/campaign/chapters/ch5.ts 5.2 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The ladder, the stones and the bolt of cloth are adaptation; the cloth prepares the common pile of 1204 (7.9).", "The ladder has exactly 16 rungs and no lost result (the current source branch); the dormant pitch, axe-men and hard assault are not ported.")
+technical_status = "technically_complete"

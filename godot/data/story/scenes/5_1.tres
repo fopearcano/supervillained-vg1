@@ -1,0 +1,356 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=42 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="4_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="5_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="7_carrystep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="8_actorstep"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="9_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="10_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="11_cardstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="12_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "k1"
+role = "knight"
+at = "8"
+point = Vector2(0.0, 0.0)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "k2"
+role = "pilgrim"
+at = ""
+point = Vector2(4.5, 9.5)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "abbot"
+role = "abbot"
+at = ""
+point = Vector2(6.5, 7.5)
+face = "SE"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_storyactorspec")
+name = "marshal"
+role = "bagnaskizMarshal"
+at = "9"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("3_storyactorspec")
+name = "doge"
+role = "doge"
+at = ""
+point = Vector2(15.5, 8.2)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "zara"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5")]
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("4_narrationstep")
+id = "s02"
+text = "ABOVE THE WALLS STAND CHURCH TOWERS, WITH CROSSES ON THEM."
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("5_dialoguestep")
+id = "s03"
+speaker = "abbot"
+text = "(AN ABBOT, WITH A LETTER) LORDS, IN THE POPE'S NAME I FORBID YOU TO ATTACK THIS CITY. THE PEOPLE INSIDE ARE CHRISTIANS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("5_dialoguestep")
+id = "s04"
+speaker = "doge"
+text = "NOT FOR EVERY LETTER IN ROME. THIS CITY WAS MINE, AND IT WAS TAKEN FROM ME."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("4_narrationstep")
+id = "s05"
+text = "TWO GROUPS ON THE QUAY, AND NEITHER WILL CROSS TO THE OTHER. HE WILL."
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("6_objectivestep")
+id = "s06"
+objective = "HEAR THE FIRST GROUP"
+objective_kind = "reach"
+goal_marker = "8"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE FIRST GROUP"
+goal_radius = 1.4
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("5_dialoguestep")
+id = "s07"
+speaker = "knight"
+text = "WE TOOK THE CROSS FOR JERUSALEM, NOT TO TAKE A CHRISTIAN CITY FOR VENICE. TELL THEM SO."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("7_carrystep")
+id = "s08"
+label = "THE MESSAGE"
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_objectivestep")
+id = "s09"
+objective = "CARRY THE MESSAGE TO THE OTHER GROUP"
+objective_kind = "reach"
+goal_marker = "9"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE MARSHAL"
+goal_radius = 1.4
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("5_dialoguestep")
+id = "s10"
+speaker = "marshal"
+text = "TELL THEM THE HOST BREAKS APART UNLESS WE HELP THE DOGE. NO ZARA, NO SHIPS. NO SHIPS, NO JERUSALEM."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("7_carrystep")
+id = "s11"
+label = "THE ANSWER"
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("6_objectivestep")
+id = "s12"
+objective = "CARRY THE ANSWER BACK"
+objective_kind = "reach"
+goal_marker = "8"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE FIRST GROUP"
+goal_radius = 1.4
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("7_carrystep")
+id = "s13"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("8_actorstep")
+id = "s14"
+actor = "marshal"
+action = "place"
+role = ""
+at = "7"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = "W"
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("4_narrationstep")
+id = "s15"
+text = "NOW BOTH GROUPS ARE LISTENING TO THE DOG."
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("5_dialoguestep")
+id = "s16.jerusalem.1"
+speaker = "marshal"
+text = "I WILL REMEMBER WHO SAID THAT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("10_storychoiceoption")
+id = "jerusalem"
+label = "WE TOOK THE CROSS TO GO TO JERUSALEM."
+said = ""
+silent = false
+cost = 10
+locked_text = ""
+effects = {
+"standing": -12,
+"supervillain": 5,
+"grace": 4,
+"flags": {
+"dissent": true
+}
+}
+then_steps = [SubResource("Resource_21")]
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("5_dialoguestep")
+id = "s16.host.1"
+speaker = "marshal"
+text = "GOOD DOG."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("10_storychoiceoption")
+id = "host"
+label = "THE HOST BREAKS APART UNLESS WE HELP THE DOGE."
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"standing": 5
+}
+then_steps = [SubResource("Resource_23")]
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("9_choicestep")
+id = "s16"
+speaker = "marshal"
+prompt = "WELL, LITTLE KNIGHT? SAY IT ALOUD."
+prompt_again = ""
+options = [SubResource("Resource_22"), SubResource("Resource_24")]
+once_each = false
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("5_dialoguestep")
+id = "s17"
+speaker = "doge"
+text = "A SMALL FAVOUR FOR VENICE. THEN JERUSALEM."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("11_cardstep")
+id = "s18"
+big = "THE SIEGE BEGINS"
+small = "SOME LORDS PITCH THEIR TENTS APART FROM THE OTHERS"
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("5_dialoguestep")
+id = "s19"
+speaker = "zampano"
+text = "THERE WAS A MESSAGE, AND IT GREW HEAVIER EACH WAY."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("12_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "5.1"
+content_version = 1
+title = "A small favor for Venice"
+old_title = "A small favor for Venice"
+level = 5
+summary = "AN ABBOT READS OUT THE POPE'S PROHIBITION: THE PEOPLE OF ZARA ARE CHRISTIANS. THE DOGE WILL NOT HEAR OF STOPPING. CARRY MESSAGES BETWEEN TWO GROUPS ON THE QUAY: ONE TOOK THE CROSS FOR JERUSALEM, NOT FOR THIS; THE OTHER SAYS THE HOST FALLS APART UNLESS IT HELPS THE DOGE. THEN SAY ONE OF THEM ALOUD. THE MARSHAL REMEMBERS WHO SPOKE AGAINST HIM."
+map = "zara"
+music = "medieval"
+cast = PackedStringArray("zampano", "abbot", "doge", "knight", "marshal")
+steps = [SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28"), SubResource("Resource_29")]
+entry_conditions = {
+"requires_completed": ["4.3"]
+}
+persistent_effects = PackedStringArray("meter.standing", "meter.supervillain", "meter.grace", "meter.commozione", "flags.dissent", "book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Zara, November 1202", "the abbot of Vaux's prohibition", "the host divided")
+source_refs = PackedStringArray("Villehardouin pp. 20-21: the abbot of Vaux forbids the attack \"on the part of the Pope of Rome\" (quoted per docs/STORY-SOURCES.md); the party that wanted the host broken up; the barons persist", "Clari 14: Zara has a letter from Rome threatening excommunication; the Doge will not refrain", "docs/STORY.md 5.1", "src/campaign/chapters/ch5.ts 5.1 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The messenger role is adaptation; the abbot's line paraphrases the prohibition (no papal words are quoted).", "The dissent route costs 10 Commozione (an unmoved Zampano cannot speak up) and sets `dissent`; the host route does not.")
+technical_status = "technically_complete"

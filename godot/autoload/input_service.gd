@@ -182,6 +182,22 @@ var guard_held: bool:
 		return guard_hold_injected or Input.is_action_pressed(&"guard")
 
 
+## The action held: J/X down, or the story's round ACTION button pressed (a selected SHIELD stays up
+## while it is held), or the injected hold of a test driver.
+var action_hold_injected := false
+var action_held: bool:
+	get:
+		return action_hold_injected or Input.is_action_pressed(&"action") 			or (buttons.has(&"story_action") and bool(buttons[&"story_action"]["pressed"]))
+
+
+## Drops every queued story edge and tap (a minigame's result frame, a step boundary): nothing
+## pressed there reaches the next line, card or walk.
+func drain_story_edges() -> void:
+	for a: StringName in [&"action", &"pee", &"confirm", &"bark", &"switch", &"strike", &"guard"]:
+		consume(a)
+	_taps.clear()
+
+
 var run_on: bool:
 	get:
 		return _run_latched
@@ -205,6 +221,7 @@ func clear_injection() -> void:
 func reset_for_tests() -> void:
 	_override = null
 	guard_hold_injected = false
+	action_hold_injected = false
 	_pending.clear()
 	_taps.clear()
 	_pointers.clear()
@@ -369,6 +386,7 @@ func pointer_up(index: int, p: Vector2, cancelled: bool = false) -> void:
 func release_all() -> void:
 	_pointers.clear()
 	guard_hold_injected = false
+	action_hold_injected = false
 	_last_tap = null
 	_joystick_pointer = -1
 	joystick["active"] = false

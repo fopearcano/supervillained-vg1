@@ -15,7 +15,7 @@ extends RefCounted
 ##   branch; source and review metadata present;
 ## - execution scripts hold no player text (scan_scripts).
 
-const STEP_TYPES := ["stage", "actor", "move", "narration", "dialogue", "choice", "objective", "effect", "card", "wait", "cue", "prop", "carry", "complete", "minigame"]
+const STEP_TYPES := ["stage", "actor", "move", "narration", "dialogue", "choice", "objective", "effect", "card", "wait", "cue", "prop", "carry", "complete", "minigame", "branch"]
 const REVIEW_STATUSES := ["draft_reference", "draft_implemented_review_pending", "narrative_approved"]
 const TECH_STATUSES := ["reference_only", "specified", "implemented", "technically_complete"]
 const BOUNDARIES := ["scene", "sleep", "chapter_end"]
@@ -256,6 +256,12 @@ func _paths(steps: Array, states: Array) -> Array:
 						if o.locked_text == "":
 							next.append_array(_paths(o.then_steps, _with([st.duplicate()], o.effects)))
 			cur = next
+			continue
+		if step is BranchStep:
+			var alt: Array = []
+			for b: Array in step.branches():
+				alt.append_array(_paths(b, cur.map(func(x: Dictionary) -> Dictionary: return x.duplicate())))
+			cur = alt
 			continue
 		for fx: Dictionary in step.effect_sets():
 			cur = _with(cur, fx)

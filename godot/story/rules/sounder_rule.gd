@@ -15,7 +15,11 @@ func begin(ctx: StoryContext, step: ObjectiveStep, st: Dictionary) -> void:
 		st.erase("goal_node")
 
 
+## The place: rule_params.actor (an actor, followed), rule_params.at (a marker or a point), the goal.
 func _at(ctx: StoryContext, step: ObjectiveStep, st: Dictionary) -> Vector2:
+	if step.rule_params.has("actor") and ctx.has_actor(String(step.rule_params["actor"])):
+		var a := ctx.actor(String(step.rule_params["actor"]))
+		return Vector2(a.gx, a.gy)
 	var p: Variant = step.rule_params.get("at")
 	if p is String:
 		return ctx.marker(p)

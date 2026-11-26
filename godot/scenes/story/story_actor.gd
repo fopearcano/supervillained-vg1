@@ -17,7 +17,7 @@ const ARRIVE_DISTANCE := 0.05
 ## Human roles whose "bark" slot is a speaking gesture (src/story/dialogueGestures.ts).
 const GESTURE_ROLES := ["professor", "niketas", "fulk", "clerk", "abbot", "envoy", "bishop", "cook",
 	"sailmaker", "prince", "householdWoman", "knight", "pilgrim", "venetian", "greek"]
-const BEHAVIORS := ["idle", "goto", "follow", "patrol", "chase", "flee", "wander"]
+const BEHAVIORS := ["idle", "goto", "follow", "patrol", "chase", "flee", "wander", "flail"]
 const C := GameConfig.Combat
 
 var role := ""
@@ -168,6 +168,15 @@ func flee(p_speed: float, radius: float) -> void:
 	_think = 0.0
 
 
+## flail: a brawl within its radius — a new target often (seeded), always moving, running.
+func flail(center: Vector2, radius: float, p_speed: float) -> void:
+	behavior = "flail"
+	home = center
+	area_radius = radius
+	speed = p_speed
+	_wander_target = null
+
+
 func wander(center: Vector2, radius: float, p_speed: float) -> void:
 	behavior = "wander"
 	home = center
@@ -298,12 +307,14 @@ func tick(dt: float, map: WorldMapModel, player: Vector2) -> void:
 					facing_vec = _flee_dir
 					facing = IsoGrid.dir_from_grid_vector(_flee_dir.x, _flee_dir.y, facing)
 				run = true
-		"wander":
-			if _wander_target == null or (_wander_target as Vector2).distance_to(Vector2(gx, gy)) < 0.3:
+		"wander", "flail":
+			var fast := behavior == "flail"
+			if _wander_target == null or (_wander_target as Vector2).distance_to(Vector2(gx, gy)) < 0.3 or (fast and _rng.randf() < dt * 1.5):
 				var a := _rng.randf() * TAU
 				var rr := sqrt(_rng.randf()) * area_radius
 				_wander_target = home + Vector2(cos(a), sin(a)) * rr
 			moving = not _toward(_wander_target, speed, 0.15, dt, map)
+			run = fast
 	_finish_tick(dt, moving, run)
 
 

@@ -696,6 +696,16 @@ func test_MINI_001_rhythm_windows_errors_and_result() -> void:
 	while lr != "won" and lr != "lost":
 		lr = lost.update(step, false)
 	assert_eq([lr, lost.hits, lost.judged.values().count(false)], ["lost", 0, 4], "no presses: four misses, lost")
+	# Through real input (4.1's parade): the driver presses on the cues it sees and wins; with no press
+	# it is lost: each result's exact effect once, the game run once, the scene advanced once.
+	var entry := _entry("4.1")
+	for pair: Array in [[true, "parade:won", 8.0], [false, "parade:lost", 2.0]]:
+		var out := _mini_run("4.1", pair[0])
+		if not assert_true(out.has("r"), "4.1 %s completes" % pair[1]):
+			continue
+		var sc: StoryScene = out["scene"]
+		assert_eq([sc.ctx.metrics["minis"], sc.runner.trace.count("s07"), sc.runner.trace.count("s08")], [[pair[1]], 1, 1], "%s: one result, one game, one advance" % pair[1])
+		assert_eq(float(out["r"]["state"]["meters"]["commozione"]) - float(entry["meters"]["commozione"]), pair[2], "%s: its exact effect once" % pair[1])
 
 
 func _mini_run(id: String, plays: bool, policy: Dictionary = {}) -> Dictionary:
@@ -778,9 +788,9 @@ func test_MINI_004_cleanup_loss_continuation_and_restart() -> void:
 	assert_true(out.has("r"), "4.1 completes after the restart")
 	if out.has("r"):
 		assert_eq([out["r"]["state"]["meters"]["commozione"] - _entry("4.1")["meters"]["commozione"], s.ctx.metrics["minis"]], [8.0, ["parade:won"]], "one result, applied once")
-	for path in ["res://story/minigames/weeping_game.gd", "res://story/minigames/tug_game.gd", "res://story/minigames/ladders_game.gd", "res://story/minigames/letter_game.gd", "res://story/minigames/rumour_game.gd"]:
-		assert_false(ResourceLoader.exists(path), path + " is not implemented in M6")
-	assert_eq(MiniGameStep.GAMES, ["parade", "rowing", "boat"], "only the parade, the rowing and the boat")
+	assert_false(ResourceLoader.exists("res://story/minigames/weeping_game.gd"), "the dormant weeping() game is not ported")
+	for game_id: String in MiniGameStep.GAMES:
+		assert_true(["parade", "rowing", "boat", "ladders", "letter", "rumour", "tug"].has(game_id), game_id + " is one of the campaign's own games (no framework)")
 
 
 ## MINI-005: 4.2's skiff: strokes closer than BOAT_MIN_GAP slosh water in; a full boat swamps it (half
@@ -858,6 +868,17 @@ func test_STY_401_403_deck_horses_bucket_and_rumours() -> void:
 	var heard := rumours.filter(func(t: String) -> bool: return (r.ctx.metrics["notices"] as Array).has(t))
 	assert_eq([rumours.size(), heard.size()], [4, 4], "four rumours, each heard: %s" % [heard])
 	assert_true(out.has("r") and out["r"]["state"]["flags"].get("heardZara") == true, "Zara named: heardZara")
+	# The named results of each scene by real input.
+	for row: Array in [["4.1", "parade:won", 8.0, "THE FLEET LEAVING VENICE"], ["4.2", "boat:won", 4.0, ""], ["4.3", "rowing:won", 4.0, ""]]:
+		var res := _mini_run(row[0], true)
+		if not assert_true(res.has("r"), "%s completes" % row[0]):
+			continue
+		var stt: Dictionary = res["r"]["state"]
+		assert_eq([(res["scene"] as StoryScene).ctx.metrics["minis"], float(stt["meters"]["commozione"]) - float(_entry(row[0])["meters"]["commozione"])], [[row[1]], row[2]], "%s: %s and its effect" % [row[0], row[1]])
+		if row[3] != "":
+			assert_eq((stt["book"]["marvels"] as Array).count(row[3]), 1, "%s: the fleet's marvel once" % row[0])
+		if row[0] == "4.2":
+			assert_eq(((res["scene"] as StoryScene).runner.trace.count("s08")), 1, "4.2: the horses fed once")
 
 
 # --- The campaign: 1.1 to 4.3 ----------------------------------------------------------------------------
@@ -917,8 +938,10 @@ func test_SLICE_real_input_autoplay_2_1_through_4_3_through_main() -> void:
 			aside.on_tap(Vector2(5, 5))
 		assert_true((SaveService.get_campaign()["completed"] as Array).has(id), id + ": saved")
 	assert_eq(asides, [2, 3, 4], "three level ends")
-	assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).heading == "NOT IN THIS BUILD"), "after 4.3: the 5.1 boundary")
-	assert_eq((main.top_overlay() as MessageOverlay).paragraphs[0][0], "LEVEL 5: 5.1 A SMALL FAVOR FOR VENICE", "names 5.1")
+	if StoryLibrary.has_scene("5.1"):
+		assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().get_meta(&"story_card", "") == "5.1"), "after 4.3: Level 5's first card (M7)")
+	else:
+		assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and (main.top_overlay() as MessageOverlay).heading == "NOT IN THIS BUILD"), "after 4.3: the 5.1 boundary")
 	# Titles in the menus come from the Resources.
 	await _settle()
 	main.clear_overlays()
@@ -934,6 +957,138 @@ func test_SLICE_real_input_autoplay_2_1_through_4_3_through_main() -> void:
 		assert_eq(listed, want, "Level %d's list" % n)
 		main.pop_overlay(ch)
 	assert_true((SaveService.get_campaign()["completed"] as Array).has("4.3"), "the campaign has 4.3")
+
+
+# --- M7 Phase 0: evidence for M6 ------------------------------------------------------------------
+
+## WALK-014: the leader waits while he lags (LEAD_WAIT_DISTANCE) and walks on when he catches up
+## (3.1's quay). WALK-015: a lull opens and closes (2.2): the voice alternates talk and quiet, a vow is
+## counted only in the quiet, once per quiet.
+func test_WALK_014_015_leader_wait_catch_up_and_lull_windows() -> void:
+	var s := _scene("3.1", _entry("3.1"))
+	if not _to_step(s, "s03"):
+		return
+	var lead: StoryActor = s.actors["pierre"]
+	assert_true(_ticks_until(s, func() -> bool: return bool(s.runner.st.get("waiting", false)), 600), "he stands still: Pierre waits")
+	var held := Vector2(lead.gx, lead.gy)
+	_ticks(s, 60)
+	assert_vec_near(Vector2(lead.gx, lead.gy), held, 0.01, "and stays while he lags")
+	assert_true(Vector2(lead.gx, lead.gy).distance_to(s.ctx.player_pos()) > GameConfig.Story.LEAD_WAIT_DISTANCE, "lagging beyond the wait distance")
+	s.world.player.set_grid_position(lead.gx + 1.0, lead.gy)
+	_ticks(s, 2)
+	assert_eq([bool(s.runner.st["waiting"]), lead.behavior], [false, "goto"], "caught up: he walks on")
+	var l := _scene("2.2", _entry("2.2"))
+	if not _to_step(l, "s04"):
+		return
+	l.world.player.set_grid_position(9.5, 10.5)
+	var phases := []
+	var counted := []
+	for k in 60 * 12:
+		var talking := bool(l.runner.st.get("talking", true))
+		if phases.is_empty() or phases.back() != talking:
+			phases.append(talking)
+		if l.runner.current == null or l.runner.current.id != "s04":
+			break
+		var before := int(l.runner.st.get("good", 0))
+		InputService.trigger(&"action")
+		_ticks(l, 1)
+		if l.runner.current != null and l.runner.current.id == "s04" and int(l.runner.st["good"]) > before:
+			counted.append(talking)
+		_ticks(l, 9)
+	assert_true(phases.size() >= 4, "the voice talked and paused, again and again: %s" % [phases])
+	assert_false(counted.has(true), "never counted while he talks")
+	assert_true(counted.size() >= 1 and counted.size() <= phases.count(false), "at most one vow per quiet (%d vows, %d quiets)" % [counted.size(), phases.count(false)])
+
+
+## The minigame boundary (M7 Phase 0): presses on the result's last frame (J, Space, Enter, B, Q, U, I
+## through the real key path, and a touch) are drained with the game: nothing is pending after it,
+## the next step (4.1's card) is not shortened, and the walk after it performs nothing.
+func test_SLICE_minigame_result_frame_drains_every_edge() -> void:
+	var s := _scene("4.1", _entry("4.1"))
+	if not _to_step(s, "s07"):
+		return
+	assert_true(_ticks_until(s, func() -> bool: return String(s.runner.st.get("result", "")) != "" and float(s.runner.st["hold"]) <= 2.0 * DT, 60 * 30), "the result's last frames")
+	await tree.process_frame
+	for code: Key in [KEY_J, KEY_SPACE, KEY_ENTER, KEY_B, KEY_Q, KEY_U, KEY_I]:
+		var e := InputEventKey.new()
+		e.keycode = code
+		e.physical_keycode = code
+		e.pressed = true
+		Input.parse_input_event(e)
+	await tree.process_frame
+	for code: Key in [KEY_J, KEY_SPACE, KEY_ENTER, KEY_B, KEY_Q, KEY_U, KEY_I]:
+		var e := InputEventKey.new()
+		e.keycode = code
+		e.physical_keycode = code
+		e.pressed = false
+		Input.parse_input_event(e)
+	await tree.process_frame
+	InputService.pointer_down(7, Vector2(100, 400))
+	InputService.pointer_up(7, Vector2(100, 400))
+	_ticks(s, 3)
+	assert_eq(s.runner.current.id, "s08", "the game ended; the card is up")
+	for a: StringName in [&"action", &"pee", &"confirm", &"bark", &"switch", &"strike", &"guard"]:
+		assert_false(InputService.consume(a), "%s drained" % a)
+	assert_eq(InputService.consume_taps().size(), 0, "taps drained")
+	_ticks(s, 60)
+	assert_eq(s.runner.current.id, "s08", "the card is not shortened by a press on the result frame")
+
+
+## CONTENT-003/004/005 over the M6+ Resources (chapters 2–8 as they exist): every metadata field;
+## every text nonempty pixel-font capitals with no placeholder, matching its content_version's
+## snapshot; no metadata on a player card or line.
+func test_CONTENT_003_004_005_rewritten_resources_after_level_1() -> void:
+	var snap: Dictionary = fixture("story_text_m6")
+	var meta := PackedStringArray()
+	for ch: StoryChapterData in StoryLibrary.chapters():
+		if ch.number < 2:
+			continue
+		assert_true(ch.title != "" and ch.menu_title != "" and ch.intro != "" and ch.cast_note != "" and ch.professor_aside != "" and ch.music != "" and ch.content_version >= 1 and not ch.review_notes.is_empty(), "chapter %d: every field" % ch.number)
+		meta.append(ch.cast_note)
+		meta.append_array(ch.review_notes)
+		for sc: StorySceneData in ch.scenes:
+			var w := sc.id
+			assert_true(sc.title != "" and sc.old_title != "" and sc.summary != "" and sc.map != "" and sc.music == ch.music and not sc.cast.is_empty(), "%s: title, old title, summary, map, music, cast" % w)
+			assert_true(not sc.persistent_effects.is_empty() and ["scene", "chapter_end", "sleep", "ending"].has(String(sc.completion.get("boundary", ""))), "%s: effects, boundary" % w)
+			assert_true(not sc.historical_tags.is_empty() and not sc.source_refs.is_empty() and not sc.review_notes.is_empty(), "%s: tags, sources, review notes" % w)
+			assert_eq([sc.review_status, sc.technical_status], ["draft_implemented_review_pending", "technically_complete"], "%s: draft, technically complete" % w)
+			meta.append_array(sc.source_refs)
+			meta.append_array(sc.historical_tags)
+			meta.append_array(sc.review_notes)
+			var texts := _texts_of(sc.steps)
+			texts.insert(0, sc.summary)
+			var hc := HashingContext.new()
+			hc.start(HashingContext.HASH_SHA256)
+			hc.update("\n".join(texts).to_utf8_buffer())
+			var sha := hc.finish().hex_encode()
+			print("       text snapshot %s v%d %s" % [w, sc.content_version, sha])
+			if not snap.has(w):
+				fail("no text snapshot for %s" % w)
+			else:
+				assert_eq([sc.content_version, sha], [int(snap[w]["content_version"]), snap[w]["sha256"]], "%s: text snapshot of its content_version" % w)
+			for t in texts:
+				assert_true(t.strip_edges() != "" and t == t.to_upper(), "%s: '%s' is nonempty capitals" % [w, t])
+				for marker in ["TODO", "TBD", "FIXME", "PLACEHOLDER", "LOREM", "XXX", "???", "[", "]", "{", "}", "%S", "%D", "REVIEW REQUIRED", "docs/", "RD-", "OQ-", "src/"]:
+					assert_false(t.contains(marker), "%s: '%s' holds '%s'" % [w, t, marker])
+	for ch: StoryChapterData in StoryLibrary.chapters():
+		if ch.number < 2:
+			continue
+		var shown := PackedStringArray([ch.intro, ch.professor_aside])
+		for sc: StorySceneData in ch.scenes:
+			shown.append_array(_texts_of(sc.steps))
+			shown.append(sc.summary)
+		for t in shown:
+			for m in meta:
+				assert_false(m != "" and t.contains(m), "'%s' shows metadata '%s'" % [t, m])
+
+
+static func _texts_of(steps: Array) -> PackedStringArray:
+	var out := PackedStringArray()
+	for s: StoryStep in steps:
+		out.append_array(s.texts())
+		for b: Array in s.branches():
+			out.append_array(_texts_of(b))
+	return out
 
 
 # --- Restart, replay, force-close -----------------------------------------------------------------

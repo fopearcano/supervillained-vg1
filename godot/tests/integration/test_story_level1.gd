@@ -188,7 +188,7 @@ const CATALOG_IDS := ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "2.1", "2.2", "2
 	"5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7", "7.8", "7.9", "8.1", "8.2", "8.3", "8.4"]
 const CHAPTER_COUNTS := [6, 3, 4, 3, 5, 3, 9, 4]
 ## The last scene with Resources in this build (M6: Levels 2–4 as they land); after it, the boundary.
-const BUILD_LAST := "4.3"
+const BUILD_LAST := "5.5"
 
 
 ## A Resource as plain data (its stored properties, nested Resources included), to prove a run

@@ -1,0 +1,145 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/minigame_step.gd" id="5_minigamestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="6_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="7_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "envoy"
+role = "envoy"
+at = "7"
+point = Vector2(0.0, 0.0)
+face = "SE"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "zara"
+player_at = "1"
+player_point = Vector2(0.0, 0.0)
+player_face = "S"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "envoy"
+text = "THE BARONS' WRITING TABLE. THE WORDS ARE ALL HERE. YOU READ IT ALOUD, LITTLE ONE: YOUR VOICE IS THE BIGGEST THING ABOUT YOU."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_minigamestep")
+id = "s03"
+game = "letter"
+lines = {
+"title": "THE BARONS' ACCOUNT",
+"objective": "ASSEMBLE THE BARONS' ACCOUNT (TAP A WORD TO CHANGE IT)",
+"send": "READ IT ALOUD AND SEND IT",
+"again": "WRITE IT AGAIN",
+"accept": "HEAR THE ANSWER OUT",
+"answer": "THE ENVOYS COME BACK FROM ROME. THE MARSHAL SAYS THE POPE HAS ABSOLVED THE PILGRIMS. THE CAMP SAYS THE LETTERS ABSOLVE EVERYONE, THE VENETIANS TOO. ZAMPANO HEARS BOTH ON THE SAME DAY.",
+"won": "READ ALOUD",
+"named": "HE NAMED THE CITY AND THE DEBT",
+"necessity": "HE SAID NECESSITY"
+}
+won_effects = {
+"grace": 4
+}
+lost_effects = {}
+params = {
+"slots": [{
+"before": "HOLY FATHER, AT ZARA WE ",
+"options": ["WERE COMPELLED", "TOOK THE CITY", "CORRECTED THE CITY", "STAYED A WHILE"]
+}, {
+"before": ", BY ",
+"options": ["NECESSITY", "OUR DEBT TO VENICE", "THE WINTER", "A MISUNDERSTANDING"]
+}, {
+"before": ". WE ARE ",
+"options": ["PENITENT", "DEEPLY SORRY", "AVAILABLE FOR PENANCE", "STILL PILGRIMS"]
+}],
+"debt_slot": 1,
+"debt_option": 1,
+"outcomes": {
+"named": {
+"flags": {
+"letter": "named"
+}
+},
+"necessity": {
+"flags": {
+"letter": "necessity"
+}
+}
+}
+}
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("4_dialoguestep")
+id = "s04"
+speaker = "marshal"
+text = "THE POPE HAS ABSOLVED THE PILGRIMS. THAT IS WHAT MATTERS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_narrationstep")
+id = "s05"
+text = "(THE CAMP) EVERYONE IS ABSOLVED, THEY SAY. THE VENETIANS TOO."
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("4_dialoguestep")
+id = "s06"
+speaker = "doge"
+text = "(FROM THE QUAY) WE CAN WAIT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("4_dialoguestep")
+id = "s07"
+speaker = "zampano"
+text = "THERE WAS A LETTER, AND IT SAID WHAT I READ. THE ANSWER SAID TWO THINGS."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "5.4"
+content_version = 1
+title = "A letter for Rome"
+old_title = "A letter for Rome"
+level = 5
+summary = "THE BARONS SEND ENVOYS TO ROME TO ASK FORGIVENESS. ASSEMBLE THEIR ACCOUNT FROM THE WORDS ON THE WRITING TABLE: THE VERSION ZAMPANO READS ALOUD CAN PLEAD NECESSITY OR NAME THE DEBT OUTRIGHT. WHEN THE ENVOYS COME BACK, THE MARSHAL'S VERSION OF THE ANSWER AND THE CAMP'S VERSION ARE NOT THE SAME."
+map = "zara"
+music = "medieval"
+cast = PackedStringArray("zampano", "envoy", "marshal", "doge")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9")]
+entry_conditions = {
+"requires_completed": ["5.3"]
+}
+persistent_effects = PackedStringArray("meter.grace", "flags.letter", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["letter"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Zara, winter 1202-1203", "envoys to Rome", "two accounts of the absolution kept apart")
+source_refs = PackedStringArray("Villehardouin pp. 26-27: envoys to Rome; the pope absolves the pilgrims", "Clari 15: letters \"whereby all the pilgrims and all the Venetians were absolved\" (quoted per docs/STORY-SOURCES.md)", "docs/STORY-SOURCES.md \"Kept disagreements\"", "docs/STORY.md 5.4", "src/campaign/chapters/ch5.ts 5.4 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The writing table is adaptation; no papal words are quoted; the two accounts of the answer are kept distinct (the marshal: the pilgrims; the camp: everyone).")
+technical_status = "technically_complete"

@@ -1,0 +1,192 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=25 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="5_carrystep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="7_cardstep"]
+[ext_resource type="Script" path="res://story/steps/branch_step.gd" id="8_branchstep"]
+[ext_resource type="Script" path="res://story/data/story_branch_case.gd" id="9_storybranchcase"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="10_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "sailmaker"
+role = "sailmaker"
+at = "9"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "zara"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "sailmaker"
+text = "THE LAST SAIL. NOBODY SAILS IN WINTER. INTO THE STOREHOUSE WITH IT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_carrystep")
+id = "s03"
+label = "THE LAST ROLLED SAIL"
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_objectivestep")
+id = "s04"
+objective = "CARRY THE LAST SAIL INTO THE STOREHOUSE"
+objective_kind = "reach"
+goal_marker = "3"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE STOREHOUSE"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("5_carrystep")
+id = "s05"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_cardstep")
+id = "s06"
+big = "THE WINTER CAMP"
+small = "THE STREET WHERE THE GOODS WERE COUNTED"
+color = Color(0.603921569, 0.643137255, 0.752941176, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("6_objectivestep")
+id = "s07"
+objective = "CHALK THE UNPAID BALANCE ON THE ACCOUNT BOARD"
+objective_kind = "rule"
+goal_marker = "1"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE ACCOUNT BOARD"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = "CHALK"
+action_text = "SCRITCH."
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "act_at"
+rule_params = {
+"radius": 1.5
+}
+rule_lines = {}
+hint = "STAND AT THE BOARD AND PRESS CHALK"
+hint_after = 1.5
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_cardstep")
+id = "s08.owed36.1"
+big = "JERUSALEM"
+small = "SOMEONE HAS ALREADY WRITTEN IT AT THE TOP. UNDER IT, IN HIS CHALK: STILL OWED TO VENICE, 36,000 MARKS. NO MONEY FOR EGYPT. NO FOOD FOR SYRIA."
+color = Color(0.941176471, 0.941176471, 0.941176471, 1)
+seconds = 0.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("9_storybranchcase")
+id = "owed36"
+when = {
+"flag": "shortfall",
+"eq": 36000
+}
+steps = [SubResource("Resource_9")]
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_cardstep")
+id = "s08.else.1"
+big = "JERUSALEM"
+small = "SOMEONE HAS ALREADY WRITTEN IT AT THE TOP. UNDER IT, IN HIS CHALK: STILL OWED TO VENICE. NO MONEY FOR EGYPT. NO FOOD FOR SYRIA."
+color = Color(0.941176471, 0.941176471, 0.941176471, 1)
+seconds = 0.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("8_branchstep")
+id = "s08"
+cases = [SubResource("Resource_10")]
+otherwise = [SubResource("Resource_11")]
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("4_dialoguestep")
+id = "s09"
+speaker = "zampano"
+text = "THERE WAS A BOARD, AND JERUSALEM WAS AT THE TOP OF IT."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("10_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "5.5"
+content_version = 1
+title = "Winter at Zara"
+old_title = "Winter at Zara"
+level = 5
+summary = "NOBODY SAILS IN WINTER. AT THE QUAY THE SAILMAKERS ARE TAKING DOWN THE CANVAS: CARRY THE LAST ROLLED SAIL INTO A STOREHOUSE. THE STREET WHERE THE GOODS WERE COUNTED BECOMES THE WINTER CAMP. CHALK THE UNPAID BALANCE ON THE ACCOUNT BOARD. SOMEONE HAS ALREADY WRITTEN JERUSALEM AT THE TOP."
+map = "zara"
+music = "medieval"
+cast = PackedStringArray("zampano", "sailmaker")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14")]
+entry_conditions = {
+"requires_completed": ["5.4"]
+}
+persistent_effects = PackedStringArray("book.remembered")
+completion = {
+"boundary": "chapter_end"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Zara, winter", "the host loses heart", "the balance still owed")
+source_refs = PackedStringArray("Clari 13 and 16 (XVI, Munro): it is winter; the pilgrims winter at Zara and lose heart; they cannot reach Babylon or Alexandria without money and food", "docs/STORY.md 5.5", "src/campaign/chapters/ch5.ts 5.5 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The sail, the storehouse and the board are adaptation; the board reads back 3.2's `shortfall` (36,000, Clari's count).")
+technical_status = "technically_complete"

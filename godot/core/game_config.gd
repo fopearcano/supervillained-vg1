@@ -447,6 +447,20 @@ class Story:
 	const BOAT_SPLASH := 0.3
 	const BOAT_DRAIN := 0.12
 	const BOAT_SWAMP_TIME := 1.2
+	## 5.2's ladder (src/config.ts STORY.LADDERS, the non-hard branch): rungs, the climb's input cap
+	## (one rung per CLIMB_GAP however fast he taps), stones (spawn interval × 0.7–1.3, warning,
+	## speed in px/s), a hit's stun and slide (rungs per second), the rung spacing on screen.
+	const LADDER_RUNGS := 16
+	const LADDER_CLIMB_GAP := 0.12
+	const LADDER_SPAWN := 1.2
+	const LADDER_WARN := 0.6
+	const LADDER_STONE_SPEED := 190.0
+	const LADDER_HIT_TIME := 0.8
+	const LADDER_SLIDE_TIME := 0.35
+	const LADDER_SLIDE_RATE := 10.0
+	const LADDER_RUNG_PX := 22.0
+	## The hero's walk cycle spans this many rungs (source: frame = rung × frames / 4).
+	const LADDER_RUNGS_PER_CYCLE := 4.0
 
 
 static func groups() -> Dictionary:

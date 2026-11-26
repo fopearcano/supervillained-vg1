@@ -94,5 +94,29 @@ speakers = {
 "gesture": true,
 "name": "A PILGRIM",
 "portrait": "pilgrim"
+},
+"abbot": {
+"color": Color(0.956862745, 0.941176471, 0.894117647, 1),
+"gesture": true,
+"name": "THE ABBOT OF VAUX",
+"portrait": "abbot"
+},
+"envoy": {
+"color": Color(0.956862745, 0.941176471, 0.894117647, 1),
+"gesture": true,
+"name": "AN ENVOY",
+"portrait": "envoy"
+},
+"sailmaker": {
+"color": Color(0.658823529, 0.815686275, 0.658823529, 1),
+"gesture": true,
+"name": "A SAILMAKER",
+"portrait": "sailmaker"
+},
+"venetian": {
+"color": Color(0.847058824, 0.690196078, 0.501960784, 1),
+"gesture": true,
+"name": "A VENETIAN",
+"portrait": "venetian"
 }
 }

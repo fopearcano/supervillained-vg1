@@ -6,7 +6,7 @@ extends StoryStep
 ## player while within `radius`), wander (within `radius` of where it stands), emote (a one-shot
 ## clip: hurt, bark). Any action may also set a sight cone (`sight_range` > 0) and `hostile`.
 
-const ACTIONS := ["spawn", "despawn", "goto", "follow", "idle", "face", "gesture", "place", "patrol", "chase", "flee", "wander", "emote"]
+const ACTIONS := ["spawn", "despawn", "goto", "follow", "idle", "face", "gesture", "place", "patrol", "chase", "flee", "wander", "flail", "emote"]
 
 @export var actor := ""
 @export var action := "idle"
@@ -74,7 +74,7 @@ func check(errors: PackedStringArray) -> void:
 	_need(errors, face == "" or StoryDirs.ALL.has(face), "actor %s: bad facing '%s'" % [actor, face])
 	_need(errors, speed > 0.0, "actor %s: speed must be positive" % actor)
 	_need(errors, action != "patrol" or points.size() >= 2, "actor %s: patrol needs at least two points" % actor)
-	_need(errors, not ["chase", "flee", "wander"].has(action) or radius > 0.0, "actor %s: %s needs a positive radius" % [actor, action])
+	_need(errors, not ["chase", "flee", "wander", "flail"].has(action) or radius > 0.0, "actor %s: %s needs a positive radius" % [actor, action])
 	_need(errors, action != "emote" or (clip != "" and seconds > 0.0), "actor %s: emote needs a clip and seconds" % actor)
 	_need(errors, sight_range >= 0.0 and (sight_range == 0.0 or sight_half_angle > 0.0), "actor %s: a sight cone needs a half-angle" % actor)
 
@@ -119,6 +119,8 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 			a.flee(speed, radius)
 		"wander":
 			a.wander(Vector2(a.gx, a.gy), radius, speed)
+		"flail":
+			a.flail(Vector2(a.gx, a.gy), radius, speed)
 		"emote":
 			a.play_action(clip, seconds)
 		"gesture":

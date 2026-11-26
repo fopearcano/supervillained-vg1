@@ -6,7 +6,9 @@ extends StoryStep
 ##   collect — pick up every pickup (StoryPickup), then (if a goal is set) reach it;
 ##   follow  — follow `leader` along `path` (it waits when he lags; `leader_lines` at each stop);
 ##   fight   — rout the `fight` foes (CombatController; also any pickups and goal);
-##   rule    — the scene rule decides (a lull's count, listening long enough).
+##   rule    — the scene rule decides (a lull's count, listening long enough, an act at a spot);
+##   survive — last `survive` seconds (a rule may start the clock again: 5.2's steady ladder; a fight
+##             may run meanwhile: 7.2's hold-ground).
 ## Options: no running, a walking-speed modifier (heavy armour), the walk's own action
 ## (`action_label`, a bark/sniff/look that shows `action_text`; StoryActionRouter decides which input
 ## performs it and when a plain bark, the sword or the shield is performed instead), checkpoints, a
@@ -19,8 +21,10 @@ extends StoryStep
 ## "sounder" (3.1's harbour bell; 3.4's goal found by ear: `hidden` takes its ring away).
 ## Rule numbers are in `rule_params`; every line a rule shows is in `rule_lines`.
 
-const KINDS := ["reach", "collect", "follow", "fight", "rule"]
-const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder"]
+const KINDS := ["reach", "collect", "follow", "fight", "rule", "survive"]
+const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder", "steady", "act_at"]
+## Rules that complete a "rule" objective.
+const COMPLETING_RULES := ["lull", "listen", "act_at"]
 const RULE_SCRIPTS := {
 	"visor": preload("res://story/rules/visor_rule.gd"),
 	"jack_gate": preload("res://story/rules/jack_gate_rule.gd"),
@@ -29,8 +33,10 @@ const RULE_SCRIPTS := {
 	"lull": preload("res://story/rules/lull_rule.gd"),
 	"listen": preload("res://story/rules/listen_rule.gd"),
 	"sounder": preload("res://story/rules/sounder_rule.gd"),
+	"steady": preload("res://story/rules/steady_rule.gd"),
+	"act_at": preload("res://story/rules/act_at_rule.gd"),
 }
-const FIGHT_KEYS := ["foes", "hp", "speed", "radius", "leash", "health", "parry", "rout"]
+const FIGHT_KEYS := ["foes", "hp", "speed", "radius", "leash", "health", "parry", "rout", "sword_cost"]
 const PICKUP_KINDS := ["shard", "spot", "coin", "marvel"]
 const S := GameConfig.Story
 const CB := GameConfig.Combat
@@ -72,6 +78,8 @@ const CARD_RED := Color("#ff2a3a")
 ## A fight (CombatController): {"foes": [handles], "hp", "speed", "radius", "leash", "health",
 ## "parry", "rout"}; the routed foes' lines are rule_lines["rout"].
 @export var fight: Dictionary = {}
+## survive: seconds to last (the walk's clock; a rule may restart it).
+@export var survive := 0.0
 ## The KNOCKED DOWN card's second line ("" = the interface's default).
 @export var knocked_text := ""
 ## Stealth: "" (none) or "restart"; the caught card's title.
@@ -134,6 +142,8 @@ func effect_sets() -> Array:
 	for p: StoryPickup in pickups:
 		if not p.effects.is_empty():
 			out.append(p.effects)
+	if fight.get("sword_cost") is Dictionary and not (fight["sword_cost"] as Dictionary).is_empty():
+		out.append(fight["sword_cost"])
 	if rule_params.get("good_effects") is Dictionary and not (rule_params["good_effects"] as Dictionary).is_empty():
 		out.append(rule_params["good_effects"])
 	return out
@@ -175,7 +185,7 @@ func actor_refs() -> PackedStringArray:
 	var out := PackedStringArray()
 	if leader != "":
 		out.append(leader)
-	for k in ["blocker", "source"]:
+	for k in ["blocker", "source", "actor"]:
 		if rule_params.has(k):
 			out.append(String(rule_params[k]))
 	for h: String in fight.get("foes", []):
@@ -206,7 +216,9 @@ func check(errors: PackedStringArray) -> void:
 		"fight":
 			_need(errors, not fight.is_empty(), "objective %s: fight without its foes" % id)
 		"rule":
-			_need(errors, ["lull", "listen"].has(rule), "objective %s: a rule objective needs a rule that completes it (lull, listen)" % id)
+			_need(errors, COMPLETING_RULES.has(rule), "objective %s: a rule objective needs a rule that completes it (%s)" % [id, ", ".join(COMPLETING_RULES)])
+		"survive":
+			_need(errors, survive > 0.0, "objective %s: survive needs positive seconds" % id)
 	if not fight.is_empty():
 		for k: String in fight:
 			_need(errors, FIGHT_KEYS.has(k), "objective %s: unknown fight key '%s'" % [id, k])
@@ -253,10 +265,17 @@ func check(errors: PackedStringArray) -> void:
 			for k in ["close", "far", "fragments"]:
 				_need(errors, rule_lines.has(k), "objective %s: listen needs rule_lines.%s" % [id, k])
 			_need(errors, float(rule_params.get("seconds", 0.0)) > 0.0, "objective %s: listen needs positive seconds" % id)
+		"steady":
+			_need(errors, objective_kind == "survive", "objective %s: steady needs a survive objective" % id)
+			for k in ["label", "wobble"]:
+				_need(errors, rule_lines.has(k), "objective %s: steady needs rule_lines.%s" % [id, k])
+		"act_at":
+			_need(errors, rule_params.has("radius") and action_label != "", "objective %s: act_at needs rule_params.radius and the walk's action" % id)
+			_need(errors, goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: act_at needs a goal" % id)
 		"sounder":
 			_need(errors, float(rule_params.get("every", 0.0)) > 0.0, "objective %s: sounder needs a positive interval" % id)
 			_need(errors, rule_lines.has("sound"), "objective %s: sounder needs rule_lines.sound" % id)
-			_need(errors, rule_params.has("at") or goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: sounder needs a place (at, or the goal)" % id)
+			_need(errors, rule_params.has("at") or rule_params.has("actor") or goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: sounder needs a place (actor, at, or the goal)" % id)
 
 
 # --- Execution ----------------------------------------------------------------------------------
@@ -297,6 +316,8 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 	if not fight.is_empty():
 		def = fight.duplicate(true)
 		def["rout_lines"] = rule_lines.get("rout", [])
+		if rule_lines.has("sword_cost"):
+			def["sword_cost_text"] = String(rule_lines["sword_cost"])
 	ctx.combat.start(ctx, def)
 	if ctx.error != "":
 		return
@@ -336,7 +357,9 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 			ctx.notice(ctx.ui_text("story_switch_notice") % ctx.actions.label(), PixelText.CYAN)
 	for mode: String in routed["perform"]:
 		_perform(ctx, st, mode)
-	ctx.combat.update(dt, InputService.guard_held)
+	# The shield stays up while I is held, or while the selected SHIELD mode's action (J/X, the round
+	# button) is held; a tap is the pulse.
+	ctx.combat.update(dt, InputService.guard_held or (ctx.actions.mode == "shield" and InputService.action_held))
 	if ctx.combat.knocked:
 		(ctx.metrics["knockdowns"] as Array).append(id)
 		_interrupt(ctx, st, "knocked", ctx.ui_text("story_knocked"), knocked_text if knocked_text != "" else ctx.ui_text("story_knocked_small"), CB.KNOCKED_CARD)
@@ -379,6 +402,8 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 		return _tick_follow(ctx, st, dt)
 	if objective_kind == "rule":
 		return false
+	if objective_kind == "survive":
+		return float(st["t"]) >= survive
 	if not ctx.combat.won():
 		return false
 	if (st["picked"] as Array).size() < pickups.size():
