@@ -28,6 +28,8 @@ var carrying := ""
 var combat: CombatController = null
 ## Walking-speed multiplier of the current walk when he is not running (2.3: heavy armour); 1 = none.
 var walk_speed_mul := 1.0
+## 8.1's scrambled legs: the joystick turns by this angle (radians; 0 = as pressed).
+var scramble_angle := 0.0
 ## Story hiding spots on the current stage (grid points of the bushes a scene placed).
 var hides: Array = []
 ## Scene-seeded randomness (lulls): a run (and a restart) draws the same sequence.

@@ -1,0 +1,137 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="3_cuestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="5_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="6_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="7_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="8_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "shattered"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = []
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_cuestep")
+id = "s02"
+sound = "glitch"
+shake = 0.0
+flash = true
+visor = -1.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_cardstep")
+id = "s03"
+big = "FALLING TO PIECES"
+small = "THE HELMET, THE WALLS AND THE PURPLE CUSHION BREAK INTO SCRAPS"
+color = Color(0.690196078, 0.439215686, 1.0, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = true
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_objectivestep")
+id = "s04"
+objective = "FOLLOW THE KNOCKING AND THE SMELL OF THE CUSHION"
+objective_kind = "reach"
+goal_marker = ""
+goal_point = Vector2(8.5, 3.5)
+goal_label = "THE CHAIR LEG"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "waking"
+rule_params = {
+"every": 2.6,
+"angles": [90.0, 180.0, -90.0, 135.0],
+"settle_at": 0.3,
+"knock_near": "2",
+"knock_far": "4",
+"knock_y": 18.0,
+"knock_every": 1.3,
+"smell": "5",
+"jerusalem": Vector2(7.5, 24.5)
+}
+rule_lines = {
+"scramble": "THE CONTROLS SCRAMBLE",
+"settle": "THE CONTROLS SETTLE",
+"knock": "KNOCK.",
+"smell": "(HIS OWN CUSHION)",
+"jerusalem": "JERUSALEM",
+"jerusalem_moves": "JERUSALEM MOVES ONE STEP AWAY"
+}
+hint = "WHEN THE CONTROLS SCRAMBLE, WATCH WHICH WAY HE GOES"
+hint_after = 3.0
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("4_cardstep")
+id = "s05"
+big = "THE STUDY FLOOR"
+small = "HIS LEGS STEADY. THE CHAIR LEG."
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_narrationstep")
+id = "s06"
+text = "THERE WAS A DOG, AND HE WAS WAKING UP."
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_effectstep")
+id = "s07"
+effects = {
+"remembered": "THERE WAS A DOG, AND HE WAS WAKING UP."
+}
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("8_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "8.1"
+content_version = 1
+title = "Falling to pieces"
+old_title = "Falling to pieces"
+level = 8
+summary = "THE HELMET, THE WALLS AND THE PURPLE CUSHION OF THE COURTYARD BREAK INTO SCRAPS. HIS LEGS DO NOT DO WHAT HE TELLS THEM. FOLLOW THE KNOCKING AND THE SMELL OF HIS OWN CUSHION TO THE CHAIR LEG; HIS LEGS STEADY AS THE STUDY FLOOR COMES BACK. JERUSALEM, ALWAYS ONE STEP AWAY, NEVER COMES WITHIN REACH."
+map = "shattered"
+music = "greenzone"
+cast = PackedStringArray("zampano")
+steps = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8")]
+entry_conditions = {
+"requires_completed": ["7.9"]
+}
+persistent_effects = PackedStringArray("book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = true
+historical_tags = PackedStringArray("reality", "waking", "the dream exit")
+source_refs = PackedStringArray("Dream exit (adaptation): the board, the final shattering (11:55:10)", "docs/STORY.md 8.1", "src/campaign/chapters/ch8.ts 8.1 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The knock is the study radiator, the purple his cushion; nothing historical is claimed.", "Scrambled legs (WALK-018): every 2.6 s the joystick turns by 90, 180, -90 or 135 degrees until the goal is within 30 % of the way; then the controls settle.")
+technical_status = "technically_complete"

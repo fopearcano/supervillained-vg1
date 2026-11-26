@@ -6,14 +6,308 @@ architect accepts the evidence; the matrix carries a pending-review status secti
 The first section is the current report. Every later section is a **historical** record of the
 commit it names: where one says Windows evidence was not obtained, that was true then and is
 superseded by the real Windows evidence in correction report 4 and the Windows and Linux evidence
-in progress report 5. M6 report 32 is current. Erratum for the historical reports: their
+in progress report 5. M7 report 33 is current. Erratum for the historical reports: their
 "nothing accepted" in the milestone-status rows means that neither milestone completion was
 accepted; individual architect decisions recorded in them (for example AST-007 / finding F-15 in
 correction report 11) were accepted.
 
 ---
 
-## M6 report 32: dream foundation, costume/capability routing, combat, stealth, the Meraviglia book, the three minigames and the rewritten Levels 2–4 (M1–M4 Partial; M5 implemented, pending review; M6 implemented, pending review) — current
+## M7 report 33: Levels 5–8, both endings and the complete campaign (M1–M4 Partial; M5 implemented, pending review; M6 implemented, pending review; M7 implemented, pending review) — current
+
+Scope: the architect's M7 batch on top of M6-D (`0e989ef`, `godot/` tree `cf0eb9e`), in five
+sequential commits: M7-A `546410e` (Phase 0 and Level 5), M7-B `bbb0297` (Level 6), M7-C `225ba4b`
+(Level 7.1–7.4), M7-D `5b5ba7c` (Level 7.5–7.9 and the ending decision) and M7-E (this commit:
+Level 8, the endings, the complete campaign, and the batched documentation and evidence). The final
+`godot/` tree is `f4bfd6f649530fc7f14734af3a5796d7cc44ffc6`. The PixiJS, Capacitor and iOS sources are unchanged. M8 and M9 are not
+begun.
+
+Owner direction unchanged: **OD-01, DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT.** Every
+Level 5–8 line is rewritten in the Godot Resources (the narrative authority) and stays
+`draft_implemented_review_pending`; the PixiJS draft served for mechanics, consequences and sources
+only; unresolved history and wording are marked `REVIEW REQUIRED`; no quotation or citation was
+invented (the attested quotations used are those `docs/STORY-SOURCES.md` lists).
+
+### Phase 0 (in M7-A)
+
+1. **Held SHIELD on the action button.** With the SHIELD mode selected, holding J/X or the round
+   button keeps the shield up (`InputService.action_held`), as holding I does.
+2. **Minigame input drain.** Every story edge (action, pee, confirm, bark, switch, strike, guard) and
+   pending taps are drained when a minigame begins and ends (`InputService.drain_story_edges()`).
+3. **M6 evidence corrected.** COM-001–004 now reads "bark radial area/radius/push (no cone, as in the
+   source)" in TEST_PLAN.md; WALK-014 and WALK-015 have named cases
+   (`test_WALK_014_015_leader_wait_catch_up_and_lull_windows`); MINI-001 asserts the window's edges,
+   an error and the result; CONTENT-003/004/005 fingerprint every M6 Resource
+   (`tests/fixtures/story_text_m6.json`, now 31 scenes); STY-401–403 assert each named result; the
+   FEATURE_MATRIX tree and evidence are refreshed; unsupported claims stay Partial.
+
+### M7-A — Level 5 (5.1–5.5)
+
+5.1 A small favor for Venice (the message carried both ways; the dissent spoken aloud, costing
+Commozione: Standing −12, Supervillain +5, Grace +4, `dissent`; or the host's answer, Standing +5);
+5.2 A cross above the wall (the ladder: 16 rungs, the input cap, the hero's authored walk frames, a
+stone's warning, hit and slide, never a lost result; the ladder steadied (`steady`); the bolt of red
+cloth followed to the pile: `clothRoute`); 5.3 Whose orders? (three duties: `zaraOwe` pope, host or
+debt; the non-lethal brawl through flailing crowds where each landed sword blow costs Grace once with
+its line, misses, barks, blocks and parries free, nothing charged twice on a restart, replay or
+knockdown); 5.4 A letter for Rome (the letter game; the two absolution accounts kept apart;
+`letter`); 5.5 Winter at Zara (the last sail; the 36,000 chalked on the board (`act_at`); the
+Jerusalem heading; the chapter boundary).
+
+### M7-B — Level 6 (6.1–6.3)
+
+6.1 Short rations (the rations round the tents; share the half loaf, Supervillain +8, Commozione −8,
+COMRADESHIP, `comradeship`; or Jack's dice, Standing +4); 6.2 A prince on credit (the talk followed
+in order; the rumour minigame orders Alexios's four promises; only twelve swear); 6.3 On their knees
+at Corfu (following Pierre; the kneeling leaders; stay, Standing +6, or Syria, Supervillain +3 and
+Standing −3: `corfu`).
+
+### M7-C — Level 7.1–7.4
+
+7.1 Looking both ways (three marvels from the camp, each once; Niketas; the row along the walls is a
+tug lost by design, Commozione +3 once; NOBODY KNOWS HIM); 7.2 The Doge's banner (the banner
+followed; an 18 s hold by the banner against three parrying axe-men by real keyboard, touch and
+gesture combat; a knockdown restarts the hold with nothing applied; no debug skip; word carried to
+the camp); 7.3 Stay beside Pierre (level with Pierre's shoulder: the nerve, ahead/behind/aside
+notices, OUT OF STEP back to the start; Saint-Pol beside Pierre; Flanders turns back, then falls in;
+the cooks with pots and pestles; the window's words; `vanguard`, Supervillain +15 and PHYSICAL
+COURAGE once); 7.4 A city to visit (four marvels once, +13; `visitedCity`; the mosque contradiction
+REVIEW REQUIRED, OQ-07).
+
+### M7-D — Level 7.5–7.9 and the ending decision
+
+7.5 Unpaid promises (the chests, each lighter; the Doge's rebuke; the mosque card; the woman led home
+through a spreading fire: it starts at marker 1, spreads from the scene's seeded generator, never
+onto the goal, the start or the checkpoint; a burning tile pushes him back with HOT!; three burns and
+THE SMOKE puts him back at the last checkpoint with the woman beside him; nothing persists before
+completion); 7.6 A third Alexios (the envoys walk beside him; running stops the walk with YOU RAN;
+the two accounts of the deaths kept apart, REVIEW REQUIRED); 7.7 The hole in the wall (the oath said:
+Grace +5, `sworn`; the cloth readback; Friday, Sunday, Monday; the tug at the hole lost by design,
+Commozione +6 once; with `comradeship` Aleaume's voice guides him in, without it only the rattle of
+his mail; Supervillain +10, `followed`); 7.8 Whose street was it? (two marvels; the page turned to
+Niketas's account; in a lull he calls the pilgrims to their oath by real input: Commozione 5 or all he
+has left, Supervillain +15, Grace +5, Standing −6, KEPT OATHS, `oath` enforced, THE KNIGHT; or 16 s of
+silence and Niketas calls it: `oath` silent, THE WITNESS, key `alpha`; the girl is let go either way);
+7.9 The common pile (the lamp declared, Grace +6, AN HONEST SHARE, or kept, Grace −8, coins +3 and the
+hanging card; the empty pedestal; the column read after the fact; the pile; the cloth readback;
+JERUSALEM: LOADING… never loads; the chapter end).
+
+### M7-E — Level 8, the endings, the complete campaign
+
+8.1 Falling to pieces (reality, the plain costume; scrambled legs: every 2.6 s the joystick turns by
+90, 180, −90 or 135 degrees until within 30 % of the way, then the controls settle; the knock and the
+smell; JERUSALEM always one step away); 8.2 What he can tell (the rag cross; the four study objects
+are what the dream made of them only for the marvels he saw; the oath told in his own words or
+Niketas's; the lamp and the letter told back; one drawing, locked unless he saw it, the bowl always
+open; the telling tier by Grace: `tellingTier`, `drawing`, `told`); 8.3 The vanguard of the lawn
+(Sbrimbrulòn and Confusione fall in at his sides and wait when he flinches; Bagnaskiz steps aside;
+DRINK and the bowl pushed back onto the lane; Supervillain +25, RESISTANCE, `lawnHeld`); 8.4 At
+Santina's gate, again (his day told, the walk only with `vanguard`; PUSH and the ball through the
+bars; another dog drinks; `ballReturned`, `courtesy84` = unanswered; her question remembered; CUT.).
+After 8.4: the snap, the Level 8 aside, then the ending card (THE KNIGHT or THE WITNESS, its account,
+the Grace and Standing lines, the book's counts, Supervillain and Grace, THE END) and the level list.
+The Commozione fade of RD-05 is implemented (RD-51). Decisions RD-39–RD-53.
+
+### Engine added in M7
+
+`BranchStep` and `StoryConditions` (flag, meter, ability, book, all, any); survive objectives;
+`in_order` pickups; the rules `steady`, `act_at`, `shoulder`, `fire`, `no_running`, `waking`,
+`companions`, the lull's cost and silence outcome, a rule's own restart card
+(`st.rule_restart` → `ObjectiveRule.restart`); the `flail` actor and `follow_actor`/`target_actor`;
+`LaddersGame`, `LetterGame`, `RumourGame`, `TugGame` with their views; `StoryPickup.seen_*`;
+`StoryChoiceOption.requires`; `StoryContext.scramble_angle`; `CampaignRules.fade_commozione`;
+`CampaignFlow.grace_tier`, `standing_tier`, `ending_notes`; Main `show_ending()`. The test driver
+plays every new mechanic by real input (it learns 8.1's turn from where his legs take him; it goes
+round burning tiles; it keeps at Pierre's shoulder) and has campaign policies (`skill`,
+`choice_mode`).
+
+### Defects found and fixed during M7 (each covered by a test)
+
+- A held shield on the action button was ignored (only I held); fixed in Phase 0 (`COM_011`).
+- An edge pressed in a minigame's last frame was performed in the next walk; drained.
+- A Branch step is never "current" at a tick boundary, so a test could not stop at one; the 5.5 case
+  drives to the step before it.
+- 6.1's move target was a prop's tile; moved.
+- 7.3's "ahead" check was outrun by Pierre in the test (the notice's cooldown); the test teleports
+  further ahead.
+- 7.5's fire parameter `spread` clashed with the lull's actor list of the same name
+  (`ObjectiveStep.actor_refs`); renamed `spread_every`.
+- The map exit `E` is not a marker; 8.1's goal names its point. The validator caught it, and the run
+  stopped with an explicit error, never a silent skip.
+- The Commozione fade planned in RD-05 had never been implemented; implemented (RD-51), its notice
+  shown, the M6/M7 snapshots compared against the faded entry.
+
+### Tests
+
+New: `tests/integration/test_story_m7.gd` (generated from the scratchpad builder: the template plus
+the per-level cases; 40 cases). Changed: `test_story_m6.gd` (Phase 0 cases; snapshots and
+Commozione deltas from the faded entry, RD-51), `test_story_combat.gd` (the held shield, `COM_011`;
+the working copy compared with the faded entry), `test_story_level1.gd` (the build now ends at 8.4),
+`test_save_m4.gd` (every scene without Resources is unplayable), `tests/fixtures/story_text_m6.json`
+(31 scene fingerprints), `tests/automation/story_driver.gd` (every M7 mechanic by real input;
+campaign policies `skill` and `choice_mode`), `tools/capture_suite.gd` (`--mode m7`). No mutation
+batch was run in M7 (not on the M7 list; speed policy).
+
+### Completion reports, state diffs and captures
+
+Real-input completion of every M7 scene (first branch; InputService path only: joystick, action,
+bark, U, I held, confirms, choice taps; never caught, never knocked down), ticks at 60 Hz, from the
+fresh-clone run:
+
+| Scene | Ticks | Game time | What real input did |
+|---|---|---|---|
+| 5.1 | 810 | 13.5 s | the message there and back; the dissent spoken (a tap) |
+| 5.2 | 848 | 14.1 s | sixteen rungs past the stones; the ladder steadied; the cloth followed |
+| 5.3 | 596 | 9.9 s | three duties heard; the pope; home through the brawl |
+| 5.4 | 228 | 3.8 s | the letter assembled by taps and sent |
+| 5.5 | 264 | 4.4 s | the sail carried; the balance chalked |
+| 6.1 | 695 | 11.6 s | the rations; shared the half loaf |
+| 6.2 | 991 | 16.5 s | the talk followed in order; the rumour ordered |
+| 6.3 | 690 | 11.5 s | followed Pierre; stay |
+| 7.1 | 1295 | 21.6 s | three marvels; the tug rowed at 8 taps a second and lost |
+| 7.2 | 2217 | 37.0 s | the banner followed; the 18 s hold fought; word carried |
+| 7.3 | 1088 | 18.1 s | level with Pierre to the end |
+| 7.4 | 746 | 12.4 s | four marvels with Watson |
+| 7.5 | 545 | 9.1 s | the chests; round the burning tiles with the woman |
+| 7.6 | 503 | 8.4 s | in and out at a walk |
+| 7.7 | 1205 | 20.1 s | the oath; the tug lost; his voice followed in |
+| 7.8 | 653 | 10.9 s | two marvels; the oath called in a lull |
+| 7.9 | 885 | 14.8 s | the lamp declared; the pedestal, the column, the pile |
+| 8.1 | 524 | 8.7 s | the turn learned from his legs; the chair leg |
+| 8.2 | 656 | 10.9 s | the study looked at; the ships drawn |
+| 8.3 | 462 | 7.7 s | to the bowl with his friends; DRINK |
+| 8.4 | 766 | 12.8 s | his day told; PUSH; the ball returned |
+
+Every other branch (5.1 host; 5.3 host and debt; 5.4 necessity; 6.1 dice; 6.3 Syria; 7.8 silent;
+7.9 kept; 8.2 bowl) also completes by real input with its snapshot checked, and the scripted smoke of
+every branch (30 scene branches) reaches its boundary.
+
+**Three full campaigns through the real Main, by real input only, from the title's NEW GAME** (the
+Green Zone walk by the GreenZoneDriver; its result card's CONTINUE; every scene card; 1.1–8.4 by the
+StoryDriver; the eight level ends with their snaps and asides; the ending card; THE END opens the
+level list):
+
+| Run | Walk 1.0 | Ending | Supervillain / Grace / Standing / Commozione | Coins | Values | Marvels / remembered / items | Key flags | Minigames (lost) |
+|---|---|---|---|---|---|---|---|---|
+| Knight · first · 0.7 | complete at 60.2 s, 5 coins | THE KNIGHT | 100 / 100 / 33 / 39 | 12 | Comradeship, Physical courage, Kept oaths, An honest share, Resistance | 14 / 37 / 3 | oath enforced, lamp declared, drawing ships, telling high, letter named, zaraOwe pope, corfu stay, comradeship true, dissent true | 7.1 tug:lost, 7.7 tug:lost |
+| Witness · last · 0.7 | complete at 60.1 s, 5 coins | THE WITNESS (alpha) | 80 / 73 / 58 / 68 | 15 | Physical courage, Comradeship, Resistance | 14 / 37 / 3 | oath silent, lamp kept, drawing bowl, telling high, letter necessity, zaraOwe debt, corfu syria, comradeship false, dissent false | 7.1 tug:lost, 7.7 tug:lost |
+| mixed · random · 0.4 | complete at 60.1 s, 5 coins | THE WITNESS (alpha) | 85 / 77 / 41 / 55 | 15 | Physical courage, Comradeship, Resistance | 14 / 37 / 3 | oath silent, lamp kept, drawing bowl, telling high, letter necessity, zaraOwe debt, corfu syria, comradeship false, dissent true | 4.3 rowing:lost, 7.1 tug:lost, 7.7 tug:lost |
+
+None of the three lost a fight (no knockdown, no restart) even at skill 0.4; the mixed run lost
+4.3's rowing and went on. 7.1's and 7.7's tugs are lost by design in every run. After the Knight
+run: Level 8's list from the Resources, a replay of 8.4 that reaches no snap and no ending and
+changes no saved byte, and the Couch showing THE STORY IS FINISHED and ENDING: THE KNIGHT; after the
+Witness run the Couch shows ENDING: THE WITNESS.
+
+State diffs of the campaigns (the final campaign of each run against a new campaign: meters 20/10/70/50,
+nothing else) are the rows above; the per-scene snapshots (each scene's own effects from its faded
+entry) are asserted for every scene and branch in `test_SLICE_m7_real_input_…`.
+
+The full COLL-005b aggregate: 112 targets in 36 scenes.
+
+Representative captures (`docs/porting/captures/m7_levels_5_8/`, `capture_suite.gd --mode m7`,
+432 × 864, real-input driver): 71 the ladder (5.2), 72 through the brawl (5.3), 73 the letter (5.4),
+74 the rumour (6.2), 75 the tug along the walls (7.1), 76 the hold by the banner (7.2), 77 level with
+Pierre, Flanders rejoining (7.3), 78 the fire walk with the woman (7.5; he stands at the safe start
+while it spreads), 79 the oath in a lull (7.8), 80 the scrambled legs and JERUSALEM (8.1), 81 the
+drawing choice with the pedestal locked (8.2), 82 the friends falling in (8.3), 83 THE KNIGHT.
+
+### Commands executed and results
+
+On a fresh Windows clone of the local verification commit `80aeea1` (`godot/` tree as above),
+each step's output and exit code logged:
+
+| Command | Exit | Result |
+|---|---|---|
+| `git clone --branch claude/gallant-keller-rbvtvy <session clone> <fresh dir>`; `npm ci`; `npx playwright install chromium` | 0 / 0 / 0 | fresh clone of the verification commit; `godot/` tree as above |
+| `pwsh godot/tools/build_assets.ps1 -Godot <console exe> -Check` (asset and resource generation, deterministic check) | 0 | asset check OK: 208 outputs identical (73 copies), Node v24.15.0, Playwright 1.63.0, Chromium 153.0.8010.12 (revision 1243, pinned; host browser reported 153.0.8010.12); build_resources check (all): OK, 56 outputs identical |
+| `<console exe> --headless --path godot --import` (clean import) | 0 | 0 ERROR/WARNING lines; `git status --porcelain` afterwards empty: yes |
+| `… --script res://tests/test_runner.gd -- --suite all` (complete suite) | 0 | 350 passed, 0 failed, 350 total (284.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_story_schema` (schema and validation) | 0 | 5 passed, 0 failed, 5 total (0.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7` (Levels 5–8, the endings, the campaign) | 0 | 40 passed, 0 failed, 40 total (121.0 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case STY_50` (STY-501–505) | 0 | 5 passed, 0 failed, 5 total (1.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case STY_60` (STY-601–603) | 0 | 3 passed, 0 failed, 3 total (2.0 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case STY_70` (STY-701–709, 708A/B) | 0 | 10 passed, 0 failed, 10 total (4.0 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case STY_80` (STY-801–804) | 0 | 4 passed, 0 failed, 4 total (2.0 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case MINI_` (MINI-006–012) | 0 | 5 passed, 0 failed, 5 total (1.9 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case WALK_` (WALK-018–021) | 0 | 2 passed, 0 failed, 2 total (1.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case NPC_` (NPC-008–011, 8.3; 7.3 in STY-703) | 0 | 1 passed, 0 failed, 1 total (1.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case CAMP_0` (CAMP: fade, tiers, home mapping, costume) | 0 | 4 passed, 0 failed, 4 total (1.7 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case END_` (END-001–004) | 0 | 2 passed, 0 failed, 2 total (1.1 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case COLL_005b_every` (the full COLL-005b aggregate) | 0 | 1 passed, 0 failed, 1 total (3.5 s), Godot 4.7.2-stable (official); COLL-005b aggregate: 112 targets in 36 scenes |
+| `… -- --suite integration --file test_story_m7 --case every_branch` (scripted smoke of every M7 branch) | 0 | 1 passed, 0 failed, 1 total (3.1 s), Godot 4.7.2-stable (official); M7 scripted smoke: 30 scene branches |
+| `… -- --suite integration --file test_story_m7 --case m7_real_input` (every M7 scene and branch by real input, snapshots) | 0 | 1 passed, 0 failed, 1 total (4.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case campaign_knight` (full campaign from the title: Knight, first choices, skill 0.7) | 0 | 1 passed, 0 failed, 1 total (23.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case campaign_witness` (full campaign: Witness, last choices, skill 0.7) | 0 | 1 passed, 0 failed, 1 total (22.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case campaign_mixed` (full campaign: mixed, random choices, skill 0.4) | 0 | 1 passed, 0 failed, 1 total (22.4 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case FLOW_` (FLOW-007/008/011 over the M7 scenes) | 0 | 3 passed, 0 failed, 3 total (39.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m7 --case CAMP_order` (37 entries in order; explicit failure on missing content) | 0 | 1 passed, 0 failed, 1 total (1.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_m6` (Levels 2–4 regressions, with the fade) | 0 | 29 passed, 0 failed, 29 total (35.1 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_story_engine`, `test_story_level1`, `test_story_input`, `test_story_combat` (M5R/M6 regressions) | 0 | 19 passed, 0 failed, 19 total (2.1 s), Godot 4.7.2-stable (official); 25 passed, 0 failed, 25 total (17.0 s), Godot 4.7.2-stable (official); 6 passed, 0 failed, 6 total (7.9 s), Godot 4.7.2-stable (official); 10 passed, 0 failed, 10 total (1.5 s), Godot 4.7.2-stable (official) |
+| `… -- --suite unit --file test_save` (M4 save: test_save and test_save_m4) | 0 | 47 passed, 0 failed, 47 total (3.6 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_shell`, `test_main_and_rates` (M4 shell and flow) | 0 | 23 passed, 0 failed, 23 total (9.8 s), Godot 4.7.2-stable (official); 8 passed, 0 failed, 8 total (21.3 s), Godot 4.7.2-stable (official) |
+| `… -- --suite integration --file test_green_zone_m3 --case AUTO_001`, twice (deterministic AUTO-001) | 0 / 0 | identical lines: yes — `complete after 60.1 s: treats 26, poops 6, pees 7, marks 1, coins 5, bark hits 3, lives 2, score 2820, health 0.9560, stars 3.5, total 6360` |
+| `<console exe> --headless --path godot --quit-after 600` (600-frame launch at the title) | 0 | 0 ERROR/WARNING lines |
+| `<console exe> --headless --path godot --quit-after 120 --verbose`, filtered for the first scene loaded | 0 | Completed load for: 'res://scenes/title/title_screen.tscn' remapped 'res://scenes/title/title_screen.tscn' at thread -1 |
+| `… -- --suite integration --file test_export_pack` (hermetic PCK smoke) | 0 | 1 passed, 0 failed, 1 total (18.2 s), Godot 4.7.2-stable (official) |
+| `npm test` (PixiJS) | 0 | Tests  248 passed (248) |
+| `npm run build` (PixiJS) | 0 | built in 353ms |
+| `git status --porcelain` after the checks | 0 | empty |
+| `git diff --check 95b69c0 HEAD`; `git show --check --format=` of M7-A `546410e`, M7-B `bbb0297`, M7-C `225ba4b`, M7-D `5b5ba7c` and the verification commit | 0 / 0 | no output |
+| `bash godot/tools/source_tree_guard.sh` | 0 | source-tree guard OK: only /godot and docs/porting differ from 95b69c04c5c3b9626e49719f8f916a44659cd265 |
+| `git diff --stat 95b69c0 HEAD -- src public assets android ios package.json package-lock.json` | 0 | empty (PixiJS untouched) |
+| `git status --porcelain` after all steps | 0 | empty |
+
+### Acceptance IDs
+
+- **Accepted (counted, 144):** unchanged from correction report 31.
+- **Claimed by full suite cases, pending review (M7):** STY-501–505, STY-601–603, STY-701–707,
+  STY-708A, STY-708B, STY-709, STY-801–804; WALK-018 (against the source's constants: there is no
+  executed-source fixture, the draft draws its angles with `Math.random`), WALK-019–021; MINI-006–012;
+  NPC-008–011; END-001–004; COLL-005b (the full aggregate); CAMP-001–013; CONTENT-001–005,
+  FLOW-007, FLOW-008 and FLOW-011 extended to the M7 scenes; FLOW-006 and FLOW-009 now over all
+  eight levels (the full campaigns: every snap and aside, the ending, no snap after a replay);
+  WALK-001–006 (survive objectives now present). The M5R and M6 claims stay pending as they were.
+- **Partial:** NPC-001–006 (fly absent; no scene uses it); CAMP-014 (full Supervillain has no
+  effect in the current content, RD-53); FLOW-012 (no SKIP SCENE, OQ-11); SAV-009, SAV-010,
+  UI-023–030 (their later clauses).
+- **SLICE (port behaviour without a plan ID):** the scripted smoke of every M7 branch; three full
+  real-input campaigns from the title; the 37-entry order; an explicit failure on missing content
+  with an unchanged save; the fade (RD-51); the 8.4 replay through Main.
+
+### Unresolved narrative and history questions
+
+- OQ-01–OQ-11 (unchanged; still unanswered under OD-01).
+- `REVIEW REQUIRED` (Levels 5–8, `STORY_REWRITE_DECISIONS.md`): the mosque and the fire (OQ-07; 7.4,
+  7.5); Boniface's framing in 6.2; the deaths of Alexios IV and Isaac II and their dating (7.6); LI
+  RIKE HOMME / LI POVRE CHEVALIER (7.9); the Professor's "HOME TO PICARDY" (8.2, as OQ-09); the
+  letter readback (8.2, new to the rewrite).
+- The ending texts and their Grace and Standing lines (`data/shell/shell_text.tres`) are draft.
+- Narrative status of every scene 1.1–8.4: `draft_implemented_review_pending`.
+
+### Known prototype debts
+
+- Levels 5–8 are drawn with the Green Zone art bank (RD-39, M8); the city, field, palace, breach and
+  shattered maps have no chapter art yet.
+- Minigame presentation is functional: the ladder's help line and the rumour's title are clipped at
+  the target width, and the fade notice can overlap a minigame title when a scene opens on one (M8).
+- 7.5 has no smoke fog (the draft dims the stage); 8.1 has no particles for the smell (a floating
+  line instead); the tug's rope and boat are drawn as simple shapes (M8).
+- The skill model of the campaign policies is simple (late shield, missed openings, off-beat
+  presses); the Green Zone walk in the campaigns is driven at full skill.
+- Manual gameplay (the two clean human campaigns), physical-device, Android and audio checks are not
+  executed; no narrative approval.
+
+### Remaining gaps
+
+Fly actors (no scene uses them); the book's "(FULL)" label; SKIP SCENE (OQ-11); M8 presentation
+and art banks; M9 Android, signed upgrade and migration; the owner's narrative review.
+
+---
+
+## Historical — M6 report 32 (`0e989ef`): dream foundation, costume/capability routing, combat, stealth, the Meraviglia book, the three minigames and the rewritten Levels 2–4 (M1–M4 Partial; M5 implemented, pending review; M6 implemented, pending review)
+
+> Superseded by M7 report 33 (the current tree is its). Its claims stand; M7 implemented the Commozione fade it had planned (RD-51), so the Levels 2–4 snapshots now compare against the faded entry.
 
 Scope: the architect's M6 batch on top of correction 31 (`d2a6b10`), in four sequential commits:
 M6-A `bd2896d` (dream foundation, costume/capability routing, combat; with the Phase 0 cleanup),

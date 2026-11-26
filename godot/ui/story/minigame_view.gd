@@ -244,6 +244,13 @@ func _draw_tug(w: float, h: float, g: TugGame) -> void:
 	T.draw_centered(self, w / 2.0, 64, String(step.lines.get("title", "")), T.YELLOW, 1, T.SHADOW)
 
 
+## A cast role's frames, kept for the view's life: a texture loaded inside _draw() alone would be
+## freed before the frame is rendered (it drew as a white box).
+var _frames_cache := {}
+
+
 func _frames(role: String) -> SpriteFrames:
-	var path := StoryCast.frames_path(role)
-	return load(path) if path != "" else null
+	if not _frames_cache.has(role):
+		var path := StoryCast.frames_path(role)
+		_frames_cache[role] = load(path) if path != "" else null
+	return _frames_cache[role]

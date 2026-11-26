@@ -257,7 +257,35 @@ with its parameters validated in `ObjectiveStep.check`.
   `lost_effects`; `params`) over `RhythmGame` / `BoatGame` (pure), drawn by `MiniGameView`.
 - **The book**: `MeravigliaOverlay` (Main `open_book()`).
 
-## 9. Adding a scene (Levels 5–8; Levels 2–4 done in M6)
+## 8b. M7: Levels 5–8, branches, the endings
+
+- **Branches** (RD-40): `BranchStep` (`cases`: `StoryBranchCase` {id, when, steps}; `otherwise`) runs
+  the first case whose `StoryConditions.holds(state, when)`; forms: `{flag, eq}` (`eq` null = absent),
+  `{meter, gte|lt}`, `{ability}`, `{book, has|gte}`, `{all: […]}`, `{any: […]}`; `check(when)` names a
+  malformed one (the validator runs it). Metrics `branches` ("id:case").
+- **Objectives**: `objective_kind = survive` (`survive` seconds; a knockdown restarts the clock);
+  `in_order` pickups (only the next spot shows). `StoryPickup.seen_marvel`/`seen_label`/`seen_text`
+  (8.2: the dream's version only for a marvel in the book; `shown_text(state)`).
+- **Rules**: `steady` (5.2's ladder steadied), `act_at` (the walk's action at the goal: 5.5's board,
+  8.3's bowl, 8.4's ball), `shoulder` (7.3), `fire` (7.5: `from`, `start_after`, `spread_every`,
+  `per_tick`, `breaths`, `escort`; `FireRule.burning(st, p)`), `no_running` (7.6), `waking` (8.1:
+  `every`, `angles`, `settle_at`, the knock, the smell, the receding JERUSALEM;
+  `StoryContext.scramble_angle` turns the joystick), `companions` (8.3: `companions` [actor, side],
+  `fall_in_x`). `lull` gains `cost` ({meter, amount}: all he has left when short) and
+  `silence_after`/`silence_actor`/`silence_effects` (7.8). A rule may set `st.rule_restart` {big,
+  small}: the walk's interrupt card, then `ObjectiveRule.restart()`.
+- **Actors**: `flail` (5.3's brawlers); `ActorStep.target_actor` / `StoryActor.follow_actor` (follow
+  another actor).
+- **Minigames**: `MiniGameStep.game` adds ladders, letter, rumour and tug (`NEVER_LOST`: ladders;
+  `NEVER_WON`: tug, which needs its `lost_effects`); pure `LaddersGame`, `LetterGame`, `RumourGame`,
+  `TugGame`.
+- **Choices**: `StoryChoiceOption.requires` (a condition; locked with `locked_text` while it does not
+  hold).
+- **The fade** (RD-51): `CampaignRules.fade_commozione(state, level)` at a dream scene's start.
+- **The ending** (RD-52): `CampaignFlow.ending`, `grace_tier`, `standing_tier`, `ending_notes`; Main
+  `show_ending()` after the last level's aside.
+
+## 9. Adding a scene (all 36 story scenes are Resources since M7)
 
 1. Record the rewrite in the matrix and the decisions log (spec §3) first.
 2. Author `data/story/scenes/<id>.tres` (a `StageStep` first, a `CompleteStep` last) and add it to

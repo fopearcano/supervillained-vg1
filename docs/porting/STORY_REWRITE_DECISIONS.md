@@ -245,6 +245,81 @@ use one seeded by their handle; the rhythm games are deterministic. Saves: none.
 viewer of the committed campaign (meters, things, marvels, values, scraps, remembered lines), as the
 source's BookScene; replays never add to it. Saves: none.
 
+### Recorded in M7 (implementer decisions, review pending)
+
+**RD-39 — Levels 5–8 use the Green Zone art bank (prototype).** As RD-34: the maps are copied from
+the executed-source fixture; their own banks are M8. Saves: none.
+
+**RD-40 — Branches read the campaign when reached.** `BranchStep` (`cases` with a `when` condition,
+`otherwise`) decides from the working copy at the moment it runs; `StoryConditions` holds flag,
+meter (`gte`/`lt`), ability, book (`has`/`gte`), `all` and `any`. Every readback of Levels 5–8 is a
+case (the cloth at 7.7 and 7.9, comradeship at 7.7, the oath, the lamp and the letter at 8.2,
+`vanguard` at 8.4, the telling tier). Saves: none.
+
+**RD-41 — Four more minigames, still no framework and no retry.** Ladders (5.2: 16 rungs, the input
+cap, a stone's warning, hit and slide, never a lost result), the letter (5.4: the two accounts kept
+apart), the rumour (6.2: the pieces in order, only twelve swear) and the tug (7.1, 7.7). The tug has
+no won result (`NEVER_WON`): its lost effect is its only result, applied once, and the scene goes on.
+Saves: none.
+
+**RD-42 — The sword's cost at Zara (5.3).** Each landed sword blow costs Grace once per swing with its
+line; misses, barks, blocks and parries are free; a restart, a replay or a knockdown never charges
+twice or refunds. Saves: none.
+
+**RD-43 — A hold is a timed survive (7.2).** `objective_kind = survive` with `survive` seconds; the
+fight needs no rout (`rout` 0); a knockdown shows its card and starts the clock again with nothing
+applied. Saves: none.
+
+**RD-44 — Companions are real followers.** 7.3 (`ShoulderRule`): nerve while level with Pierre,
+ahead/behind/aside notices, OUT OF STEP sends both back to the start; Saint-Pol follows Pierre
+(`ActorStep.target_actor`), Flanders falls in beside him at 45 %. 8.3 (`CompanionsRule`): his friends
+follow at his sides, wait (turned to him) when he flinches for 0.6 s, and fall in again. Saves: none.
+
+**RD-45 — 7.5's fire is seeded and has a failure path.** The draft's fire spreads with
+`Math.random` and only pushes back. The port draws from the scene's seeded generator, never burns
+the goal, the start or a checkpoint, and adds THE SMOKE: three burns send him back to the last
+checkpoint with the woman beside him and the fire out (WALK-021). Nothing persists before the scene
+completes. Saves: none.
+
+**RD-46 — 7.6: running restarts the walk at its own start.** The draft puts him back on marker S,
+which is the goal of the walk out (a draft defect not ported). Running stays possible (the walk does
+not take it away) and stops the walk with YOU RAN. Saves: none.
+
+**RD-47 — 7.7: the oath is said, not chosen.** The draft's one-answer ask becomes Zampanò's line
+"SO HELP ME GOD." with Grace +5 and `sworn` (a one-option choice fails validation). Saves: none.
+
+**RD-48 — 7.8's call costs Commozione 5, or all he has left.** The draft spends nothing when he has
+less than 5 and says "IT TAKES ALL HE HAS LEFT"; the port takes what is left (the line's meaning).
+Sixteen seconds of silence from the walk's start: Niketas calls the oath (`oath` silent, THE
+WITNESS). Saves: none.
+
+**RD-49 — 8.1's scrambled legs.** Every 2.6 s the joystick turns by 90, 180, −90 or 135 degrees
+(drawn from the scene's seeded generator; the draft uses `Math.random`) until he is within 30 % of
+the way; then the controls settle. The test driver is not given the angle: it learns the turn from
+where his legs take him. The draft's goal is the map's exit tile (not a marker): the Resource names
+its point. Saves: none.
+
+**RD-50 — 8.2's study, drawings and readbacks.** The four study objects are what the dream made of
+them only for the marvels he saw (the draft's home mapping, written into the Resource); the
+drawings are locked by a condition (`StoryChoiceOption.requires`), the bowl always open; the oath,
+the lamp and (new, REVIEW REQUIRED) 5.4's letter are read back; Grace 70/40 sets `tellingTier`.
+Saves: none.
+
+**RD-51 — The Commozione fade (RD-05's plan) is implemented.** Every dream scene of Levels 2–7
+starts with 2 less Commozione (never below 0) on the working copy, with its notice; a restart starts
+again from the entry state, so it fades once per committed scene; a replay fades only its copy.
+M6 and M7 snapshots compare against the faded entry. Saves: the committed Commozione of every dream
+scene is 2 lower than before M7 (no field or format change).
+
+**RD-52 — The ending.** After Level 8's aside: the ending card (THE KNIGHT or THE WITNESS by 7.8
+alone, its account, the Grace and Standing lines, the book's counts, Supervillain and Grace, THE
+END), then the title with the level list. The texts are in `data/shell/shell_text.tres`. A replay
+never reaches the level end or the ending. Saves: none.
+
+**RD-53 — Full Supervillain has no effect in the current content.** The draft's `unshakeable` only
+softens the generic pace walk, which no current scene uses (FEATURE_MATRIX: excluded unless reused);
+the book's "(FULL)" label is not shown yet (M8). CAMP-014 stays partial. Saves: none.
+
 ## Owner decisions
 
 - **OD-01 (2026-11-25) — Level 1 draft: DEFER NARRATIVE APPROVAL FOR PROTOTYPE DEVELOPMENT.** The
@@ -297,3 +372,20 @@ source's BookScene; replays never add to it. Saves: none.
 Attested (as listed in `docs/STORY-SOURCES.md`, not re-verified in M5R): the fleet contract of
 85,000 marks (Villehardouin pp. 6–7); Villehardouin among the six envoys (pp. 1–4); "No one in the
 army knew this plan, except the leaders" (Clari XIII).
+
+### REVIEW REQUIRED items (Levels 5–8, M7)
+
+| Item | Scene | Basis in the repository |
+|---|---|---|
+| The mosque and the fire (OQ-07): 7.5 follows Barbero's lecture; `docs/STORY.md` 7.4 omits it | 7.4, 7.5 | Barbero's lecture on the Fourth Crusade |
+| Boniface's framing (the cook's line, the tents) is the camp's talk | 6.2 | Clari XVII |
+| The deaths of Alexios IV and Isaac II, kept as two accounts; page references and the dating (the draft says January 1204; Mourtzouphlos was crowned in early February) | 7.6 | Villehardouin pp. 53–56; Clari 61–62 |
+| LI RIKE HOMME / LI POVRE CHEVALIER (Clari's Old French terms as the draft gives them): spelling | 7.9 | Clari 81, 105 |
+| The Professor's "HOME TO PICARDY" | 8.2 | as OQ-09 |
+| The letter readback (5.4's `letter`), new to the rewrite | 8.2 | none in the draft |
+
+The attested quotations used in Levels 5–8 are those `docs/STORY-SOURCES.md` lists ("more than
+forty people told him", "copper pots and with pestles", "turn back one step", "it seemed as if our
+warriors were angels", "portrayed and written", "Thus was there division between the Greeks and the
+Franks", "no mischief was done to poor or to rich", "No one was without a share in the grief", "the
+strict truth"); no quotation or citation was invented.

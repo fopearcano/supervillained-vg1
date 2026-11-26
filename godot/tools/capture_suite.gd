@@ -52,6 +52,9 @@ func _run() -> void:
 	if _mode == "m6":
 		await _m6()
 		return
+	if _mode == "m7":
+		await _m7()
+		return
 	if _mode == "run":
 		await _full_run()
 		return
@@ -455,6 +458,96 @@ func _m6() -> void:
 	_main.call("show_boundary", "5.1")
 	await _frames(40)
 	await _shot("70_level_5_not_in_this_build")
+	root.get_node("InputService").set("auto_update", true)
+	root.get_node("AudioService").call("stop_all")
+	quit(0)
+
+
+## M7 (Levels 5–8 and the ending), representative captures at the target width, one per new
+## mechanic: 5.2's ladder, 5.3's brawl, 5.4's letter, 6.2's rumour, 7.1's tug,
+## 7.2's hold by the banner, 7.3's pace beside Pierre, 7.5's fire, 7.8's oath in a lull, 8.1's
+## scrambled legs, 8.2's drawing choice, 8.3's friends falling in, and THE KNIGHT. Played by the
+## real-input driver from a campaign with every scene before it completed. The save is in memory.
+func _m7() -> void:
+	root.size = Vector2i(432, 864)
+	await _frames(5)
+	_main = load("res://main/main.tscn").instantiate()
+	root.add_child(_main)
+	await _frames(30)
+	var catalog: Resource = load("res://data/campaign/story_catalog.tres")
+	var order: Array = Array(catalog.call("ids"))
+	var campaign := func(id: String) -> Dictionary:
+		var st: Dictionary = load("res://campaign/campaign_schema.gd").call("new_campaign")
+		st["coins"] = 12
+		st["abilities"] = ["cross", "sermon", "knight"]
+		st["book"]["marvels"] = ["THE HORSE TRANSPORTS", "THE GALLEYS", "THE GREAT SHIPS", "THE FLEET LEAVING VENICE", "THE CARVED COLUMN", "THE HIPPODROME"]
+		st["book"]["items"] = ["MERAVIGLIA, THE BOOK OF MARVELS"]
+		st["flags"] = {"comradeship": true, "clothRoute": true, "oath": "enforced", "lamp": "declared", "letter": "named", "vanguard": true}
+		for k: String in order:
+			if k == id:
+				break
+			st["completed"].append(k)
+		return st
+	var st_of := func() -> Dictionary: return _story_scene.get("runner").get("st")
+	var game_of := func() -> Object: return (st_of.call() as Dictionary).get("game")
+	await _start_story("5.2", campaign.call("5.2"))
+	await _story_until(func() -> bool: return _current_id() == "s03" and game_of.call() != null and float(game_of.call().get("rung")) >= 6.0)
+	await _shot("71_5_2_ladders")
+	await _start_story("5.3", campaign.call("5.3"))
+	await _story_until(func() -> bool: return _current_id() == "s11" and float((st_of.call() as Dictionary).get("t", 0.0)) > 2.5, 60 * 120)
+	await _shot("72_5_3_through_the_brawl")
+	await _start_story("5.4", campaign.call("5.4"))
+	await _story_until(func() -> bool: return _current_id() == "s03" and game_of.call() != null and (game_of.call().get("picks") as Array).size() >= 2)
+	await _shot("73_5_4_the_letter")
+	await _start_story("6.2", campaign.call("6.2"))
+	await _story_until(func() -> bool: return _current_id() == "s04" and game_of.call() != null and (game_of.call().get("placed") as Array).size() >= 2, 60 * 120)
+	await _shot("74_6_2_the_rumour")
+	await _start_story("7.1", campaign.call("7.1"))
+	await _story_until(func() -> bool: return _current_id() == "s08" and game_of.call() != null and float(game_of.call().get("pos")) > 0.45, 60 * 120)
+	await _shot("75_7_1_the_tug_along_the_walls")
+	await _start_story("7.2", campaign.call("7.2"))
+	await _story_until(func() -> bool: return _current_id() == "s11" and float((st_of.call() as Dictionary).get("t", 0.0)) > 6.0, 60 * 120)
+	await _shot("76_7_2_hold_by_the_banner")
+	await _start_story("7.3", campaign.call("7.3"))
+	await _story_until(func() -> bool: return _current_id() == "s11" and bool((st_of.call() as Dictionary).get("rejoined", false)), 60 * 120)
+	await _shot("77_7_3_level_with_pierre")
+	await _start_story("7.5", campaign.call("7.5"))
+	await _story_until(func() -> bool: return _current_id() == "s13" and bool((st_of.call() as Dictionary).get("fire_on", false)), 60 * 120)
+	# He stands at the start (safe) while it spreads, so the flames are in the frame.
+	var input := root.get_node("InputService")
+	for k in 150:
+		input.call("inject_move", 0.0, 0.0)
+		input.call("update", 1.0 / 60.0)
+		_story_scene.call("tick", 1.0 / 60.0)
+		await process_frame
+	await _shot("78_7_5_the_fire_walk")
+	await _start_story("7.8", campaign.call("7.8"))
+	await _story_until(func() -> bool: return _current_id() == "s13" and not bool((st_of.call() as Dictionary).get("talking", true)), 60 * 120)
+	await _frames(10)
+	await _shot("79_7_8_the_oath_in_a_lull")
+	await _start_story("8.1", campaign.call("8.1"))
+	await _story_until(func() -> bool: return _current_id() == "s04" and (_story_scene.get("ctx").get("metrics").get("scramble", []) as Array).size() >= 2, 60 * 120)
+	await _shot("80_8_1_scrambled_legs")
+	await _start_story("8.2", campaign.call("8.2"))
+	await _story_until(func() -> bool: return _current_id() == "s11" and String((st_of.call() as Dictionary).get("phase", "")) == "choosing", 60 * 120)
+	await _frames(20)
+	await _shot("81_8_2_the_drawing_choice")
+	await _start_story("8.3", campaign.call("8.3"))
+	await _story_until(func() -> bool: return _current_id() == "s08" and float(_story_scene.get("world").get("player").get("gx")) > 8.0, 60 * 120)
+	await _shot("82_8_3_friends_fall_in")
+	var done: Dictionary = campaign.call("8.4")
+	done["completed"].append("8.4")
+	# The Knight campaign's end (report 33): its meters, values and marvels.
+	done["meters"] = {"commozione": 39.0, "supervillain": 100.0, "grace": 100.0, "standing": 33.0}
+	done["book"]["values"] = ["Comradeship", "Physical courage", "Kept oaths", "An honest share", "Resistance"]
+	done["book"]["marvels"] = ["THE HORSE TRANSPORTS", "THE GALLEYS", "THE GREAT SHIPS", "THE FLEET LEAVING VENICE", "THE GREAT WALLS", "THE CITY OF ROOFS",
+		"THE GOLDEN DOMES", "THE PALACE OF THE LION'S MOUTH", "THE BRONZE HERCULES", "THE CARVED COLUMN", "A LAMP IN A COURTYARD", "THE GREAT CHURCH",
+		"THE HIPPODROME", "AN EMPTY PEDESTAL"]
+	root.get_node("SaveService").call("save_campaign", done, 1795608000000)
+	_main.call("clear_overlays")
+	_main.call("show_ending")
+	await _frames(40)
+	await _shot("83_the_ending_the_knight")
 	root.get_node("InputService").set("auto_update", true)
 	root.get_node("AudioService").call("stop_all")
 	quit(0)

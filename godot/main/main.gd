@@ -331,11 +331,34 @@ func _professor_aside(number: int) -> void:
 	m.setup(TEXT.get_text("story_aside_title"), [[chapter.professor_aside if chapter else "", PixelText.WHITE]], [], func() -> void:
 		pop_overlay(m)
 		if next_id == "":
-			_glitch(func() -> void: show_title.call_deferred())
+			_glitch(func() -> void: show_ending.call_deferred())
 		else:
 			_glitch(func() -> void: _play_scene.call_deferred(next_id)), 0.97)
 	m.markup = MARKUP
 	m.set_meta(&"professor_aside", number)
+	push_overlay(m)
+
+
+## The ending (source StoryFlow.showEnding), after the last level's aside: THE KNIGHT or THE WITNESS,
+## decided by 7.8 alone; its account; the Grace and the Standing line; the book's counts and two
+## meters; THE END. A tap returns to the title with the level list open (source openMenu).
+func show_ending() -> void:
+	var camp := SaveService.get_campaign()
+	var key := CampaignFlow.ending(camp)
+	show_title()
+	var book: Dictionary = camp["book"]
+	var meters: Dictionary = camp["meters"]
+	var m := MessageOverlay.new()
+	m.setup(TEXT.get_text("ending_" + key), [
+		[TEXT.get_text("ending_story_" + key), PixelText.WHITE],
+		[" ".join(CampaignFlow.ending_notes(camp, TEXT)), Color("#c8c0e0")],
+		[TEXT.get_text("ending_counts") % [(book["values"] as Array).size(), (book["marvels"] as Array).size()], PixelText.YELLOW],
+		[TEXT.get_text("ending_meters") % [int(meters["supervillain"]), int(meters["grace"])], PixelText.PINK],
+		[TEXT.get_text("ending_the_end"), PixelText.GREEN]], [], func() -> void:
+			pop_overlay(m)
+			open_levels(), 0.97)
+	m.markup = MARKUP
+	m.set_meta(&"ending", key)
 	push_overlay(m)
 
 

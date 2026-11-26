@@ -254,7 +254,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Cast**: the abbot, the Doge, Aleaume. **Setup → payoff**: `dissent` → Standing/ending notes.
 - **Effects**: "We took the cross for Jerusalem": Standing −12, Supervillain +5, Grace +4,
   `dissent`; or "the host falls apart…": Standing +5. **Status**: keep.
-- **Refs**: Villehardouin pp. 20–21; Clari 14. **Open**: — **Impl**: reference_only · draft_reference.
+- **Refs**: Villehardouin pp. 20–21; Clari 14. **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-A, report 33; `data/story/scenes/<id>.tres`).
 
 ### 5.2 A cross above the wall
 - **Titles**: unchanged. **Purpose**: the siege; the cloth that leads to the pile.
@@ -262,7 +262,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Play**: climb the ladder (minigame), steady it for the next; follow a bolt of red cloth.
 - **Cast**: pilgrims. **Setup → payoff**: `clothRoute` → 7.9's pile. **Effects**: `clothRoute`.
 - **Status**: keep. **Refs**: Villehardouin pp. 21–22. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-A, report 33; `data/story/scenes/<id>.tres`).
 
 ### 5.3 Whose orders?
 - **Titles**: unchanged. **Purpose**: whom he believes; the brawl.
@@ -271,7 +271,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Cast**: the abbot, the marshal, a Venetian, Aleaume. **Effects**: `zaraOwe` pope (Grace +5) /
   host (Standing +4) / debt (Grace −3); Grace −1 per landed sword blow.
 - **Status**: keep. **Refs**: Villehardouin p. 22; Clari 15. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-A, report 33; `data/story/scenes/<id>.tres`).
 
 ### 5.4 A letter for Rome
 - **Titles**: unchanged. **Purpose**: the absolution, in two versions.
@@ -279,14 +279,14 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
   Venetians"): kept disagreement.
 - **Play**: assemble the barons' account (letter minigame). **Cast**: clerks.
 - **Effects**: — **Status**: keep. **Refs**: Villehardouin pp. 26–27; Clari 15. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-A, report 33; `data/story/scenes/<id>.tres`).
 
 ### 5.5 Winter at Zara
 - **Titles**: unchanged. **Purpose**: the balance still owed. **History/place**: wintering at
   Zara; no money for Egypt (Clari 13, 16 / XVI).
 - **Play**: carry the last sail into store; chalk the balance. **Cast**: Watson, sailmaker.
 - **Setup → payoff**: JERUSALEM written at the top → 7.9. **Effects**: —
-- **Status**: keep. **Refs**: Clari 13, 16. **Open**: — **Impl**: reference_only · draft_reference.
+- **Status**: keep. **Refs**: Clari 13, 16. **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-A, report 33; `data/story/scenes/<id>.tres`).
 
 ## Level 6 — The long winter (dream)
 
@@ -297,7 +297,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Cast**: Aleaume, Jack. **Setup → payoff**: `comradeship` → 7.7 (his voice guides you in).
 - **Effects**: share: Supervillain +8, value *Comradeship*, `comradeship`; dice: Standing +4.
 - **Status**: keep. **Refs**: Villehardouin pp. 25–26; Clari XVI. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-B, report 33; `data/story/scenes/<id>.tres`).
 
 ### 6.2 A prince on credit
 - **Titles**: unchanged. **Purpose**: the young Alexios's offer, pieced together.
@@ -305,7 +305,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
   (Clari XVII).
 - **Play**: rumour minigame. **Cast**: the cook, the council. **Effects**: —
 - **Status**: keep. **Refs**: Villehardouin pp. 23–25; Clari XVII. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-B, report 33; `data/story/scenes/<id>.tres`).
 
 ### 6.3 On their knees at Corfu
 - **Titles**: unchanged. **Purpose**: advice to Pierre; the fleet sails.
@@ -314,7 +314,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Play**: tell Pierre stay or Syria. **Cast**: the young Alexios, Pierre, the leaders.
 - **Effects**: `corfu` stay (Standing +6) / syria (Supervillain +3, Standing −3).
 - **Status**: keep. **Refs**: Villehardouin pp. 27–30; Clari 31–33, 39. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-B, report 33; `data/story/scenes/<id>.tres`).
 
 ## Level 7 — Constantinople (dream)
 
@@ -324,14 +324,14 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Play**: LOOK at walls, roofs, domes; row the prince along the walls (tug/row minigame).
 - **Cast**: Niketas, the young Alexios. **Effects**: three marvels.
 - **Status**: keep. **Refs**: Clari 40–41; Villehardouin pp. 35–36. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-C, report 33; `data/story/scenes/<id>.tres`).
 
 ### 7.2 The Doge's banner
 - **Titles**: unchanged. **Purpose**: 17 July 1203, the banner; a stand.
 - **History/place**: the Doge with the standard; "more than forty people told him" (Villehardouin
   pp. 41–45). **Play**: follow the banner; hold your ground (fight, 18 s, shield up).
 - **Cast**: the Doge, the marshal, axe-men. **Effects**: — **Status**: keep.
-- **Refs**: Villehardouin pp. 41–45; Clari 46. **Open**: — **Impl**: reference_only · draft_reference.
+- **Refs**: Villehardouin pp. 41–45; Clari 46. **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-C, report 33; `data/story/scenes/<id>.tres`).
 
 ### 7.3 Stay beside Pierre
 - **Titles**: unchanged. **Purpose**: the dream's emotional centre; the walk at a walk.
@@ -340,7 +340,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Play**: hold level with Pierre's shoulder at a walk (bespoke pace). **Cast**: Pierre, Flanders,
   Alexios III (Bagnaskiz), a woman with Santina's face. **Effects**: value *Physical courage*,
   `vanguard`. **Status**: keep. **Refs**: Clari 45–48. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-C, report 33; `data/story/scenes/<id>.tres`).
 
 ### 7.4 A city to visit
 - **Titles**: unchanged. **Purpose**: marvels; the carved column. **History/place**: Alexios III
@@ -349,7 +349,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Play**: visit with Watson (four marvels). **Cast**: Watson, Niketas.
 - **Effects**: four marvels, `visitedCity`. **Status**: keep.
 - **Refs**: Villehardouin pp. 45–48; Clari 80, 92; Choniates. **Open**: OQ-07 (the mosque).
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-C, report 33; `data/story/scenes/<id>.tres`).
 
 ### 7.5 Unpaid promises
 - **Titles**: unchanged. **Purpose**: the unpaid sums; the fire; the woman led home.
@@ -360,7 +360,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Status**: revise — **contradiction to resolve**: `docs/STORY.md` "Old → new" says "the mosque
   omitted" for 7.4 while 7.5 and `docs/STORY-SOURCES.md` keep the mosque as the fire's start (OQ-07).
 - **Refs**: Clari LVI, LIX; Villehardouin pp. 48–53; Barbero. **Open**: OQ-07.
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-D, report 33; `data/story/scenes/<id>.tres`).
 
 ### 7.6 A third Alexios
 - **Titles**: unchanged. **Purpose**: the defiance; the coup; "the dream runs out of faces".
@@ -368,7 +368,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
   pp. 53–56; Clari 61–62, kept disagreement on the deaths).
 - **Play**: walk in with the envoys at the same pace. **Cast**: envoys, Alexios V (Bagnaskiz).
 - **Effects**: — **Status**: keep. **Refs**: Villehardouin pp. 53–56; Clari 61–62. **Open**: —
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-D, report 33; `data/story/scenes/<id>.tres`).
 
 ### 7.7 The hole in the wall
 - **Titles**: unchanged. **Purpose**: the oath; Aleaume's breach.
@@ -376,7 +376,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
   Robert holding Aleaume's foot (Clari 70–79); 12 April 1204 (Villehardouin pp. 59–63).
 - **Play**: swear; tug minigame (lost by design); with `comradeship` his voice guides you in.
 - **Cast**: a bishop, Aleaume. **Effects**: Grace +5, `sworn`. **Status**: keep.
-- **Refs**: Clari 68–79; Villehardouin pp. 59–63. **Open**: — **Impl**: reference_only · draft_reference.
+- **Refs**: Clari 68–79; Villehardouin pp. 59–63. **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-D, report 33; `data/story/scenes/<id>.tres`).
 
 ### 7.8 Whose street was it?
 - **Titles**: unchanged. **Purpose**: **decides the ending**.
@@ -387,7 +387,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Cast**: Niketas, Jack, a girl, pilgrims. **Effects**: call: Supervillain +15, Grace +5,
   Standing −6, value *Kept oaths*, `oath: enforced` (THE KNIGHT); silent: `oath: silent`
   (THE WITNESS, key `alpha`). **Status**: keep. **Refs**: Clari 80; Choniates (Munro pp. 15–16);
-  Barbero. **Open**: — **Impl**: reference_only · draft_reference.
+  Barbero. **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-D, report 33; `data/story/scenes/<id>.tres`).
 
 ### 7.9 The common pile
 - **Titles**: unchanged. **Purpose**: the lamp; the empty pedestal; Jerusalem never loads.
@@ -397,7 +397,7 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Play**: declare or hide the lamp. **Cast**: Saint-Pol, guards.
 - **Effects**: declare: Grace +6, value *An honest share*; hide: Grace −8, coins +3.
 - **Status**: keep. **Refs**: Clari 81, 92, 98, 105; Villehardouin pp. 65–66; Choniates.
-- **Open**: — **Impl**: reference_only · draft_reference.
+- **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-D, report 33; `data/story/scenes/<id>.tres`).
 
 ## Level 8 — Back to the Greenzone (reality)
 
@@ -405,14 +405,14 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Titles**: unchanged. **Purpose**: waking continues the dream in the body. **History/place**:
   none (reality). **Play**: scrambled legs; follow the knock and the smell of his cushion.
 - **Cast**: Zampanò. **Effects**: — **Status**: keep. **Refs**: `docs/STORY.md` 8.1.
-- **Open**: — **Impl**: reference_only · draft_reference.
+- **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-E, report 33; `data/story/scenes/<id>.tres`).
 
 ### 8.2 What he can tell
 - **Titles**: unchanged. **Purpose**: nothing came back; telling at his real size.
 - **History/place**: Clari's "strict truth" (Clari 120). **Play**: LOOK at the study (marvels →
   furniture); tell the oath; leave one drawing. **Cast**: the Professor, Confusione.
 - **Effects**: `tellingTier`, `drawing`, `letter`, `lamp` per the reference.
-- **Status**: keep. **Refs**: Clari 120. **Open**: — **Impl**: reference_only · draft_reference.
+- **Status**: keep. **Refs**: Clari 120. **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-E, report 33; `data/story/scenes/<id>.tres`).
 
 ### 8.3 The vanguard of the lawn
 - **Titles**: unchanged. **Purpose**: the direct path to the bowl, at a walk; payoff of 1.3.
@@ -420,11 +420,11 @@ review outcomes): `docs/porting/manual_evidence/m5r_level1_narrative_review/` (c
 - **Play**: walk the direct path; companions fall in. **Cast**: Sbrimbrulòn, Confusione, Bagnaskiz.
 - **Effects**: Supervillain +25, value *Resistance*, `lawnHeld`. **Status**: keep.
 - **Refs**: `docs/STORY.md` 8.3. **Open**: OQ-01 (does 8.3 acknowledge the 1.3 paw?).
-- **Impl**: reference_only · draft_reference.
+- **Impl**: technically_complete · draft_implemented_review_pending (M7-E, report 33; `data/story/scenes/<id>.tres`).
 
 ### 8.4 At Santina's gate, again
 - **Titles**: unchanged. **Purpose**: the ball returned; her question unanswered.
 - **History/place**: his version of Clari 47 (the ladies).
 - **Play**: tell her his day; push the ball through the bars. **Cast**: Santina.
 - **Setup → payoff**: 1.4's ball (RD-09). **Effects**: `ballReturned`, `courtesy84: unanswered`.
-- **Status**: keep. **Refs**: Clari 47. **Open**: — **Impl**: reference_only · draft_reference.
+- **Status**: keep. **Refs**: Clari 47. **Open**: — **Impl**: technically_complete · draft_implemented_review_pending (M7-E, report 33; `data/story/scenes/<id>.tres`).

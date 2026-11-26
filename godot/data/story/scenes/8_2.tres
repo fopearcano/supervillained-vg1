@@ -1,0 +1,617 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=68 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="4_cuestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="5_cardstep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="6_effectstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="7_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="8_storypickup"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="9_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/branch_step.gd" id="10_branchstep"]
+[ext_resource type="Script" path="res://story/data/story_branch_case.gd" id="11_storybranchcase"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="12_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="13_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="14_actorstep"]
+[ext_resource type="Script" path="res://story/steps/wait_step.gd" id="15_waitstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="16_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "prof"
+role = "professor"
+at = "2"
+point = Vector2(0.0, 0.0)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "conf"
+role = "confusione"
+at = "5"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "study"
+player_at = "0"
+player_point = Vector2(0.0, 0.0)
+player_face = "SE"
+actors = [SubResource("Resource_1"), SubResource("Resource_2")]
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("4_cuestep")
+id = "s02"
+sound = ""
+shake = 2.0
+flash = false
+visor = -1.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("5_cardstep")
+id = "s03"
+big = "UNDER THE DESK"
+small = "THE ARMOUR IS A RAG AGAIN. NOTHING CAME BACK WITH HIM, EXCEPT THE STORY."
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_effectstep")
+id = "s04"
+effects = {
+"item": "THE RAG CROSS"
+}
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("8_storypickup")
+id = "chairleg"
+at = ""
+point = Vector2(4.5, 3.5)
+kind = "spot"
+label = "THE CHAIR LEG"
+text = "THE CHAIR LEG. HE HAS CHEWED IT."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+seen_marvel = "THE CARVED COLUMN"
+seen_label = "THE CARVED COLUMN"
+seen_text = "THE CHAIR LEG, WITH HIS TOOTH MARKS ON IT. HE KNOWS EXACTLY WHAT IT WAS."
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("8_storypickup")
+id = "lampshade"
+at = ""
+point = Vector2(10.5, 4.5)
+kind = "spot"
+label = "THE LAMPSHADE"
+text = "THE LAMPSHADE. IT IS DUSTY."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+seen_marvel = "THE GOLDEN DOMES"
+seen_label = "THE GOLDEN DOMES"
+seen_text = "THE LAMPSHADE (IT IS A DOME). HE KNOWS EXACTLY WHAT IT WAS."
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("8_storypickup")
+id = "rug"
+at = ""
+point = Vector2(6.5, 9.5)
+kind = "spot"
+label = "THE RUG"
+text = "THE RUG. IT HAS A STAIN."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+seen_marvel = "THE HIPPODROME"
+seen_label = "THE HIPPODROME"
+seen_text = "THE RUG (IT IS A RACETRACK). HE KNOWS EXACTLY WHAT IT WAS."
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("8_storypickup")
+id = "desklamp"
+at = ""
+point = Vector2(3.5, 9.5)
+kind = "spot"
+label = "THE DESK LAMP"
+text = "THE DESK LAMP. IT IS OFF."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "jingle"
+seen_marvel = "A LAMP IN A COURTYARD"
+seen_label = "A LAMP IN A COURTYARD"
+seen_text = "THE DESK LAMP. HE KNOWS EXACTLY WHAT IT WAS."
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_objectivestep")
+id = "s05"
+objective = "LOOK AROUND THE STUDY"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10")]
+no_run = false
+action_label = "LOOK"
+action_text = "..."
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("9_dialoguestep")
+id = "s06"
+speaker = "professor"
+text = "...AND CLARI WENT HOME TO PICARDY AND WROTE IT ALL DOWN. HIS WAY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("9_dialoguestep")
+id = "s07"
+speaker = "confusione"
+text = "SO. TELL IT. FROM THE BEGINNING. AND THE OATH: WHO SAID WHAT?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("9_dialoguestep")
+id = "s08a"
+speaker = "zampano"
+text = "(IN HIS OWN WORDS) NO HAND ON A WOMAN! YOU SWORE!"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("9_dialoguestep")
+id = "s08b"
+speaker = "zampano"
+text = "I SAID THAT. IN THE LULL. IN MY OWN WORDS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("9_dialoguestep")
+id = "s08c"
+speaker = "confusione"
+text = "I HEARD YOU AT THE TIME."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("11_storybranchcase")
+id = "own"
+when = {
+"flag": "oath",
+"eq": "enforced"
+}
+steps = [SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16")]
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("9_dialoguestep")
+id = "s08d"
+speaker = "zampano"
+text = "(NIKETAS'S WORDS) YOU SWORE AN OATH! LET HER GO!"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("9_dialoguestep")
+id = "s08e"
+speaker = "zampano"
+text = "...THAT WAS NIKETAS. IT WAS HIS DOORWAY. I SAID NOTHING."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("9_dialoguestep")
+id = "s08f"
+speaker = "confusione"
+text = "THEN THAT IS THE STORY. TELL IT THAT WAY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("10_branchstep")
+id = "s08"
+cases = [SubResource("Resource_17")]
+otherwise = [SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20")]
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("9_dialoguestep")
+id = "s09a"
+speaker = "zampano"
+text = "I KEPT A LAMP UNDER MY CLOAK. IT IS NOT HERE. IT WAS NEVER MINE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("11_storybranchcase")
+id = "kept"
+when = {
+"flag": "lamp",
+"eq": "kept"
+}
+steps = [SubResource("Resource_22")]
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("9_dialoguestep")
+id = "s09b"
+speaker = "zampano"
+text = "I CARRIED A LAMP TO A PILE. I DO NOT KNOW WHOSE HOUSE IT IS IN NOW."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("11_storybranchcase")
+id = "declared"
+when = {
+"flag": "lamp",
+"eq": "declared"
+}
+steps = [SubResource("Resource_24")]
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("10_branchstep")
+id = "s09"
+cases = [SubResource("Resource_23"), SubResource("Resource_25")]
+otherwise = []
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("9_dialoguestep")
+id = "s10a"
+speaker = "zampano"
+text = "AND THE LETTER TO ROME SAID WHAT WE OWED, PLAINLY. I CHOSE THOSE WORDS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("11_storybranchcase")
+id = "named"
+when = {
+"flag": "letter",
+"eq": "named"
+}
+steps = [SubResource("Resource_27")]
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("9_dialoguestep")
+id = "s10b"
+speaker = "zampano"
+text = "AND THE LETTER TO ROME SAID WE HAD NO CHOICE. I CHOSE THOSE WORDS TOO."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_30"]
+script = ExtResource("11_storybranchcase")
+id = "necessity"
+when = {
+"flag": "letter",
+"eq": "necessity"
+}
+steps = [SubResource("Resource_29")]
+
+[sub_resource type="Resource" id="Resource_31"]
+script = ExtResource("10_branchstep")
+id = "s10"
+cases = [SubResource("Resource_28"), SubResource("Resource_30")]
+otherwise = []
+
+[sub_resource type="Resource" id="Resource_32"]
+script = ExtResource("13_storychoiceoption")
+id = "ships"
+label = "A DRAWING OF THE SHIPS."
+said = ""
+silent = false
+cost = 0
+locked_text = "HE NEVER LOOKED AT THE SHIPS"
+effects = {
+"item": "A DRAWING OF THE SHIPS",
+"flags": {
+"drawing": "ships"
+}
+}
+then_steps = []
+requires = {
+"any": [{
+"book": "marvels",
+"has": "THE GREAT SHIPS"
+}, {
+"book": "marvels",
+"has": "THE HORSE TRANSPORTS"
+}, {
+"book": "marvels",
+"has": "THE GALLEYS"
+}, {
+"book": "marvels",
+"has": "THE FLEET LEAVING VENICE"
+}]
+}
+
+[sub_resource type="Resource" id="Resource_33"]
+script = ExtResource("13_storychoiceoption")
+id = "city"
+label = "A DRAWING OF THE CITY."
+said = ""
+silent = false
+cost = 0
+locked_text = "HE NEVER LOOKED AT THE CITY"
+effects = {
+"item": "A DRAWING OF THE CITY",
+"flags": {
+"drawing": "city"
+}
+}
+then_steps = []
+requires = {
+"any": [{
+"book": "marvels",
+"has": "THE GREAT WALLS"
+}, {
+"book": "marvels",
+"has": "THE CITY OF ROOFS"
+}, {
+"book": "marvels",
+"has": "THE GOLDEN DOMES"
+}, {
+"book": "marvels",
+"has": "THE PALACE OF THE LION'S MOUTH"
+}, {
+"book": "marvels",
+"has": "THE CARVED COLUMN"
+}, {
+"book": "marvels",
+"has": "THE BRONZE HERCULES"
+}, {
+"book": "marvels",
+"has": "A LAMP IN A COURTYARD"
+}, {
+"book": "marvels",
+"has": "THE GREAT CHURCH"
+}, {
+"book": "marvels",
+"has": "THE HIPPODROME"
+}]
+}
+
+[sub_resource type="Resource" id="Resource_34"]
+script = ExtResource("13_storychoiceoption")
+id = "pedestal"
+label = "A DRAWING OF AN EMPTY PEDESTAL."
+said = ""
+silent = false
+cost = 0
+locked_text = "HE NEVER SAW IT EMPTY"
+effects = {
+"item": "A DRAWING OF AN EMPTY PEDESTAL",
+"flags": {
+"drawing": "pedestal"
+}
+}
+then_steps = []
+requires = {
+"book": "marvels",
+"has": "AN EMPTY PEDESTAL"
+}
+
+[sub_resource type="Resource" id="Resource_35"]
+script = ExtResource("13_storychoiceoption")
+id = "bowl"
+label = "A DRAWING OF THE BOWL."
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"item": "A DRAWING OF THE BOWL",
+"flags": {
+"drawing": "bowl"
+}
+}
+then_steps = []
+
+[sub_resource type="Resource" id="Resource_36"]
+script = ExtResource("12_choicestep")
+id = "s11"
+speaker = "confusione"
+prompt = "AND WHAT GOES UNDER THE DESK, FOR TOMORROW?"
+prompt_again = ""
+options = [SubResource("Resource_32"), SubResource("Resource_33"), SubResource("Resource_34"), SubResource("Resource_35")]
+once_each = false
+
+[sub_resource type="Resource" id="Resource_37"]
+script = ExtResource("6_effectstep")
+id = "s12"
+effects = {
+"commozione": 10,
+"flags": {
+"told": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_38"]
+script = ExtResource("6_effectstep")
+id = "s13a"
+effects = {
+"flags": {
+"tellingTier": "high"
+}
+}
+
+[sub_resource type="Resource" id="Resource_39"]
+script = ExtResource("5_cardstep")
+id = "s13b"
+big = "HE TELLS IT STRAIGHT"
+small = "EVEN THE PARTS WHERE HE IS VERY SMALL"
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_40"]
+script = ExtResource("11_storybranchcase")
+id = "high"
+when = {
+"meter": "grace",
+"gte": 70
+}
+steps = [SubResource("Resource_38"), SubResource("Resource_39")]
+
+[sub_resource type="Resource" id="Resource_41"]
+script = ExtResource("6_effectstep")
+id = "s13c"
+effects = {
+"flags": {
+"tellingTier": "mid"
+}
+}
+
+[sub_resource type="Resource" id="Resource_42"]
+script = ExtResource("5_cardstep")
+id = "s13d"
+big = "HE TELLS IT MOSTLY STRAIGHT"
+small = "AND A LITTLE TALLER THAN HE WAS"
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_43"]
+script = ExtResource("11_storybranchcase")
+id = "mid"
+when = {
+"meter": "grace",
+"gte": 40
+}
+steps = [SubResource("Resource_41"), SubResource("Resource_42")]
+
+[sub_resource type="Resource" id="Resource_44"]
+script = ExtResource("6_effectstep")
+id = "s13e"
+effects = {
+"flags": {
+"tellingTier": "low"
+}
+}
+
+[sub_resource type="Resource" id="Resource_45"]
+script = ExtResource("5_cardstep")
+id = "s13f"
+big = "HE TELLS IT BEAUTIFULLY"
+small = "IT IS NOT QUITE WHAT HAPPENED, AND HE KNOWS IT"
+color = Color(0.784313725, 0.62745098, 0.439215686, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_46"]
+script = ExtResource("10_branchstep")
+id = "s13"
+cases = [SubResource("Resource_40"), SubResource("Resource_43")]
+otherwise = [SubResource("Resource_44"), SubResource("Resource_45")]
+
+[sub_resource type="Resource" id="Resource_47"]
+script = ExtResource("14_actorstep")
+id = "s14"
+actor = "conf"
+action = "goto"
+role = ""
+at = "S"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 1.6
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_48"]
+script = ExtResource("15_waitstep")
+id = "s15"
+seconds = 1.2
+
+[sub_resource type="Resource" id="Resource_49"]
+script = ExtResource("5_cardstep")
+id = "s16"
+big = "THE DOOR"
+small = "THE CAT HOLDS IT OPEN"
+color = Color(0.301960784, 1.0, 0.352941176, 1)
+seconds = 1.8
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_50"]
+script = ExtResource("9_dialoguestep")
+id = "s17"
+speaker = "zampano"
+text = "THERE WAS A STORY, AND I WAS IN IT, SMALLER THAN I THOUGHT."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_51"]
+script = ExtResource("16_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "8.2"
+content_version = 1
+title = "What he can tell"
+old_title = "What he can tell"
+level = 8
+summary = "UNDER THE DESK THE ARMOUR IS A RAG AGAIN, AND NOTHING CAME BACK WITH HIM. LOOK AROUND THE STUDY: THE CHAIR LEG, THE LAMPSHADE, THE RUG AND THE DESK LAMP ARE ONLY THEMSELVES, UNLESS HE SAW WHAT THE DREAM MADE OF THEM. CONFUSIONE WANTS THE STORY FROM THE BEGINNING. TELL THE OATH THE WAY IT HAPPENED, THEN LEAVE ONE DRAWING UNDER THE DESK."
+map = "study"
+music = "greenzone"
+cast = PackedStringArray("zampano", "professor", "confusione")
+steps = [SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_21"), SubResource("Resource_26"), SubResource("Resource_31"), SubResource("Resource_36"), SubResource("Resource_37"), SubResource("Resource_46"), SubResource("Resource_47"), SubResource("Resource_48"), SubResource("Resource_49"), SubResource("Resource_50"), SubResource("Resource_51")]
+entry_conditions = {
+"requires_completed": ["8.1"]
+}
+persistent_effects = PackedStringArray("book.items", "meter.commozione", "flags.told", "flags.drawing", "flags.tellingTier", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["told", "drawing", "tellingTier"]
+}
+reality = true
+historical_tags = PackedStringArray("reality", "what he can tell", "the study", "the strict truth")
+source_refs = PackedStringArray("Adaptation, replacing the old relic altar and chapel: ordinary objects, memories and a drawing; nothing medieval comes into reality", "Meraviglia's marvels map to the study's objects (src/campaign/home.ts, the marvel -> home mapping)", "Clari 120: his claim to have told \"the strict truth\" (quoted per docs/STORY-SOURCES.md)", "docs/STORY.md 8.2", "src/campaign/chapters/ch8.ts 8.2 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "REVIEW REQUIRED: the Professor's \"HOME TO PICARDY\" (as OQ-09).", "REVIEW REQUIRED: the letter readback (5.4's `letter`) is new to the Godot rewrite; the draft has none.", "A study object is what the dream made of it only if he saw that marvel; the drawings are locked unless he saw them; the bowl is always open.")
+technical_status = "technically_complete"

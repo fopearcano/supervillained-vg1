@@ -423,6 +423,14 @@ class Story:
 	const CAUGHT_CARD := 1.6
 	## A checkpoint is passed within this distance.
 	const CHECKPOINT_RADIUS := 1.2
+	## Grace tiers (8.2's telling, the ending) and Standing tiers (the ending), source STORY.GRACE and
+	## STORY.STANDING.
+	## Commozione lost at the start of every dream scene of Levels 2-7 (source COMMOZIONE_FADE).
+	const COMMOZIONE_FADE := 2.0
+	const GRACE_HIGH := 70.0
+	const GRACE_LOW := 40.0
+	const STANDING_FOND := 60.0
+	const STANDING_FAIR := 35.0
 	## 7.5's fire (source STORY.FIRE): the push away from a burning tile, and the hurt time.
 	const FIRE_KNOCKBACK := 6.0
 	const FIRE_HURT_TIME := 0.4

@@ -416,6 +416,8 @@ The runner must return a nonzero process code on any failure. Do not add a third
 
 **Objective:** rewrite and implement all remaining content under the M5R authority (`STORY_REWRITE_SPEC.md`), advanced walks, companions, minigames, and both endings.
 
+**Status (M7, report 33; commits M7-A `546410e`, M7-B `bbb0297`, M7-C `225ba4b`, M7-D `5b5ba7c`, M7-E):** implemented and technically complete for Levels 5–8 and both endings, pending independent review; all prose `draft_implemented_review_pending` (OD-01). The automated evidence is in report 33 (STY-501–505, STY-601–603, STY-701–707, STY-708A/B, STY-709, STY-801–804, WALK-018–021, MINI-006–012, NPC-008–011, END-001–004, the full COLL-005b aggregate, three full real-input campaigns through Main from the title: Knight/first/0.7, Witness/last/0.7, mixed/random/0.4). CAMP-014, FLOW-012 and NPC-001–006 (fly) stay Partial. Manual gameplay (the two clean human campaigns), device, audio and narrative checks are not executed. M8 and M9 are not begun.
+
 **Source systems involved**
 
 - `src/campaign/chapters/ch5.ts`–`ch8.ts`, remaining maps/themes/helpers.

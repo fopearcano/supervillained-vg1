@@ -65,7 +65,11 @@ func check(errors: PackedStringArray) -> void:
 		ids.append(opt.id)
 		_need(errors, opt.label.strip_edges() != "", "choice %s: option %s without a label" % [id, opt.id])
 		_need(errors, opt.cost >= 0, "choice %s: option %s has a negative cost" % [id, opt.id])
-		_need(errors, opt.locked_text == "" or (opt.effects.is_empty() and opt.then_steps.is_empty()), "choice %s: option %s is permanently locked but has effects or steps (unreachable branch)" % [id, opt.id])
+		_need(errors, opt.locked_text == "" or not opt.requires.is_empty() or (opt.effects.is_empty() and opt.then_steps.is_empty()), "choice %s: option %s is permanently locked but has effects or steps (unreachable branch)" % [id, opt.id])
+		if not opt.requires.is_empty():
+			var why := StoryConditions.check(opt.requires)
+			_need(errors, why == "", "choice %s: option %s: %s" % [id, opt.id, why])
+			_need(errors, opt.locked_text != "", "choice %s: option %s with a condition needs its locked_text" % [id, opt.id])
 		if opt.locked_text != "" or opt.cost > 0:
 			lockable += 1
 	_need(errors, options.is_empty() or lockable < options.size(), "choice %s: every option can be locked at once (all-locked dead end)" % id)
@@ -83,7 +87,9 @@ func views(ctx: StoryContext, open: Array) -> Array:
 	var out: Array = []
 	var commozione := float((ctx.state["meters"] as Dictionary)["commozione"])
 	for o: StoryChoiceOption in open:
-		if o.locked_text != "":
+		if not o.requires.is_empty():
+			out.append({"label": o.label, "locked": "" if StoryConditions.holds(ctx.state, o.requires) else o.locked_text})
+		elif o.locked_text != "":
 			out.append({"label": o.label, "locked": o.locked_text})
 		elif o.cost > 0 and commozione < o.cost:
 			out.append({"label": o.label, "locked": ctx.ui_text("story_too_unmoved") % o.cost})

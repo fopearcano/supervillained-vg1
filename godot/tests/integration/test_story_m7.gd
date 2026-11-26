@@ -12,9 +12,9 @@ const NOW := 1795608000000
 const CB := GameConfig.Combat
 const RS := GameConfig.Story
 ## Every M7 scene in catalog order (this build's).
-const IDS := ["5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7", "7.8", "7.9"]
+const IDS := ["5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7", "7.8", "7.9", "8.1", "8.2", "8.3", "8.4"]
 ## Choices a run takes (choice id -> option id; "letter": the letter's outcome) and the branches.
-const BRANCHES := {"5.1": [{"s16": "jerusalem"}, {"s16": "host"}], "5.3": [{"s07": "pope"}, {"s07": "host"}, {"s07": "debt"}], "5.4": [{"letter": "named"}, {"letter": "necessity"}], "6.1": [{"s10": "share"}, {"s10": "dice"}], "6.3": [{"s14": "stay"}, {"s14": "syria"}], "7.8": [{"oath": "call"}, {"oath": "silent"}], "7.9": [{"s03": "declared"}, {"s03": "kept"}]}
+const BRANCHES := {"5.1": [{"s16": "jerusalem"}, {"s16": "host"}], "5.3": [{"s07": "pope"}, {"s07": "host"}, {"s07": "debt"}], "5.4": [{"letter": "named"}, {"letter": "necessity"}], "6.1": [{"s10": "share"}, {"s10": "dice"}], "6.3": [{"s14": "stay"}, {"s14": "syria"}], "7.8": [{"oath": "call"}, {"oath": "silent"}], "7.9": [{"s03": "declared"}, {"s03": "kept"}], "8.2": [{"s11": "ships"}, {"s11": "bowl"}]}
 ## What each scene commits on top of its entry state: meter deltas, flags, abilities, coins, how many
 ## book entries of each kind (by branch, keyed "<id>" or "<id>/<option>").
 const SNAP := {
@@ -326,6 +326,68 @@ const SNAP := {
 			"marvels": 1,
 			"remembered": 1
 		}
+	},
+	"8.1": {
+		"meters": {},
+		"flags": {},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
+	},
+	"8.2/ships": {
+		"meters": {
+			"commozione": 10
+		},
+		"flags": {
+			"told": true,
+			"drawing": "ships",
+			"tellingTier": "high"
+		},
+		"abilities": [],
+		"book": {
+			"items": 2,
+			"remembered": 1
+		}
+	},
+	"8.2/bowl": {
+		"meters": {
+			"commozione": 10
+		},
+		"flags": {
+			"told": true,
+			"drawing": "bowl",
+			"tellingTier": "high"
+		},
+		"abilities": [],
+		"book": {
+			"items": 2,
+			"remembered": 1
+		}
+	},
+	"8.3": {
+		"meters": {
+			"supervillain": 25
+		},
+		"flags": {
+			"lawnHeld": true
+		},
+		"abilities": [],
+		"book": {
+			"values": 1,
+			"remembered": 1
+		}
+	},
+	"8.4": {
+		"meters": {},
+		"flags": {
+			"ballReturned": true,
+			"courtesy84": "unanswered"
+		},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
 	}
 }
 
@@ -432,8 +494,16 @@ func _play(id: String, state: Dictionary, policy: Dictionary = {}, scripted: boo
 	return out
 
 
+## The scene's own starting state: the entry less the fade at a dream scene's start (RD-05).
+static func _faded(id: String, entry: Dictionary) -> Dictionary:
+	var st := entry.duplicate(true)
+	var data := StoryLibrary.scene(id)
+	CampaignRules.fade_commozione(st, 0 if data.reality else data.level)
+	return st
+
+
 func _check_snapshot(id: String, branch: String, entry: Dictionary, got: Dictionary) -> void:
-	var want := _after(id, branch, entry)
+	var want := _after(id, branch, _faded(id, entry))
 	assert_eq(got["meters"], want["meters"], "%s/%s: meters" % [id, branch])
 	assert_eq(got["flags"], want["flags"], "%s/%s: flags" % [id, branch])
 	assert_eq(got["abilities"], want["abilities"], "%s/%s: abilities" % [id, branch])
@@ -698,7 +768,7 @@ func test_STY_503_sword_grace_cost_boundaries_and_the_three_debts() -> void:
 	_ticks_until(s, func() -> bool: return not s.runner.st.has("interrupt"), 300)
 	assert_eq([grace.call(), c.events.count("sword_cost")], [g0 - 2.0, 2], "the knockdown neither refunds nor charges again")
 	s.restart()
-	assert_eq(s.ctx.state, s.entry_state, "a restart returns to the entry state (the costs gone with it)")
+	assert_eq(s.ctx.state, _faded("5.3", s.entry_state), "a restart returns to the entry state, faded once (the costs gone with it)")
 	# The three debts and the answer (real input, the debt answer).
 	var out := _play("5.3", entry, {"s07": "debt"})
 	if assert_true(out.has("result"), "5.3 completes"):
@@ -921,7 +991,7 @@ func test_STY_701_MINI_009_three_marvels_and_the_tug_lost_by_design() -> void:
 	var st: Dictionary = out["r"]["state"]
 	assert_eq([sc.ctx.metrics["minis"], sc.runner.trace.count("s08"), sc.runner.trace.count("s10")], [["tug:lost"], 1, 1], "lost once; the scene goes on once")
 	var base := _entry("7.1")
-	assert_eq(float(st["meters"]["commozione"]) - float(base["meters"]["commozione"]), 12.0, "three marvels (+9) and the tug's loss (+3), once each")
+	assert_eq(float(st["meters"]["commozione"]) - (float(base["meters"]["commozione"]) - RS.COMMOZIONE_FADE), 12.0, "three marvels (+9) and the tug's loss (+3), once each")
 	for m in ["THE GREAT WALLS", "THE CITY OF ROOFS", "THE GOLDEN DOMES"]:
 		assert_eq((st["book"]["marvels"] as Array).count(m), 1, m + " once")
 
@@ -1069,7 +1139,7 @@ func test_STY_704_four_marvels_once_and_the_visited_city() -> void:
 	if not assert_true(out.has("result"), "7.4 completes"):
 		return
 	var st: Dictionary = out["result"]["state"]
-	assert_eq([st["flags"].get("visitedCity"), float(st["meters"]["commozione"]) - float(_entry("7.4")["meters"]["commozione"])], [true, 13.0], "visitedCity; +13")
+	assert_eq([st["flags"].get("visitedCity"), float(st["meters"]["commozione"]) - (float(_entry("7.4")["meters"]["commozione"]) - RS.COMMOZIONE_FADE)], [true, 13.0], "visitedCity; +13")
 	for m in ["THE PALACE OF THE LION'S MOUTH", "THE BRONZE HERCULES", "THE CARVED COLUMN", "A LAMP IN A COURTYARD"]:
 		assert_eq((st["book"]["marvels"] as Array).count(m), 1, m + " once")
 	assert_eq(((out["scene"] as StoryScene).actors["watson"] as StoryActor).behavior, "follow", "Watson walks beside him")
@@ -1111,7 +1181,8 @@ func test_STY_705_chests_the_mosque_and_the_walk_home() -> void:
 	for t in ["FULL. HALF OF IT ALREADY BELONGS TO THE VENETIANS.", "HALF FULL. THE REST AFTER THE HARVEST, THEY SAY.", "EMPTY, EXCEPT FOR AN APOLOGY."]:
 		assert_true(shown.has(t), "a chest: " + t)
 	var st: Dictionary = out["r"]["state"]
-	assert_eq([st["meters"], st["flags"], st["coins"]], [_entry("7.5")["meters"], _entry("7.5")["flags"], _entry("7.5")["coins"]], "nothing but the remembered line")
+	assert_eq([st["meters"], st["flags"], st["coins"]], [_faded("7.5", _entry("7.5"))["meters"], _entry("7.5")["flags"], _entry("7.5")["coins"]], "nothing but the fade and the remembered line")
+	assert_eq(float(out["r"]["metrics"]["faded"]), RS.COMMOZIONE_FADE, "the feeling faded once at the start")
 
 
 ## WALK-019–021 (7.5's fire): no fire before 0.6 s; then it starts at marker 1 (FIRE!) and spreads
@@ -1240,7 +1311,7 @@ func test_STY_707_MINI_010_oath_tug_lost_and_the_comradeship_readback() -> void:
 	var sa: Dictionary = a["result"]["state"]
 	var want := {"grace": 5.0, "commozione": 6.0, "supervillain": 10.0}
 	for m: String in want:
-		assert_eq(float(sa["meters"][m]) - float(e1["meters"][m]), float(want[m]), m)
+		assert_eq(float(sa["meters"][m]) - float(_faded("7.7", e1)["meters"][m]), float(want[m]), m + " (from the faded start)")
 	assert_eq([sa["flags"].get("sworn"), sa["flags"].get("followed"), (sa["book"]["values"] as Array).count("Comradeship")], [true, true, 1], "sworn; followed; COMRADESHIP once")
 	var e2 := _entry("7.7")
 	e2["flags"]["comradeship"] = false
@@ -1265,7 +1336,7 @@ func test_STY_708A_the_call_in_a_lull_and_the_knight_route() -> void:
 	var st: Dictionary = out["result"]["state"]
 	var dm := {}
 	for m: String in ["commozione", "supervillain", "grace", "standing"]:
-		dm[m] = float(st["meters"][m]) - float(e["meters"][m])
+		dm[m] = float(st["meters"][m]) - float(_faded("7.8", e)["meters"][m])
 	assert_eq(dm, {"commozione": 5.0, "supervillain": 15.0, "grace": 5.0, "standing": -6.0}, "marvels +10, the call −5; +15, +5, −6")
 	assert_eq(st["flags"].get("oath"), "enforced", "oath enforced")
 	assert_true((st["book"]["values"] as Array).has("Kept oaths") and (st["book"]["remembered"] as Array).has("NO HAND ON A WOMAN! YOU SWORE! (IN HIS OWN WORDS)"), "KEPT OATHS; his words")
@@ -1299,7 +1370,7 @@ func test_STY_708B_silence_niketas_calls_and_the_witness_route() -> void:
 	var st: Dictionary = out["result"]["state"]
 	var dm := {}
 	for m: String in ["commozione", "supervillain", "grace", "standing"]:
-		dm[m] = float(st["meters"][m]) - float(e["meters"][m])
+		dm[m] = float(st["meters"][m]) - float(_faded("7.8", e)["meters"][m])
 	assert_eq(dm, {"commozione": 10.0, "supervillain": 0.0, "grace": 0.0, "standing": 0.0}, "only the marvels")
 	assert_eq(st["flags"].get("oath"), "silent", "oath silent")
 	assert_true((st["book"]["remembered"] as Array).has("YOU SWORE AN OATH! LET HER GO! (NIKETAS, OVERHEARD)"), "Niketas, overheard")
@@ -1357,6 +1428,612 @@ func test_STY_709_lamp_declared_or_kept_the_pile_and_jerusalem_never_loads() -> 
 		for sc: StorySceneData in ch.scenes:
 			for step: StoryStep in sc.steps:
 				assert_false(step is StageStep and (step as StageStep).map == "jerusalem", "%s: Jerusalem never loads" % sc.id)
+
+
+# --- Level 8 ---------------------------------------------------------------------------------------
+
+const SHIP_MARVELS := ["THE GREAT SHIPS", "THE HORSE TRANSPORTS", "THE GALLEYS", "THE FLEET LEAVING VENICE"]
+## src/campaign/home.ts HOME_OBJECTS (the marvel -> home object mapping), the four of the study.
+const HOME := {"THE CARVED COLUMN": "THE CHAIR LEG, WITH HIS TOOTH MARKS ON IT", "THE GOLDEN DOMES": "THE LAMPSHADE (IT IS A DOME)",
+	"THE HIPPODROME": "THE RUG (IT IS A RACETRACK)", "A LAMP IN A COURTYARD": "THE DESK LAMP"}
+## Every marvel the campaign can award (src/campaign/home.ts KNOWN_MARVELS).
+const KNOWN_MARVELS := ["THE GREAT SHIPS", "THE HORSE TRANSPORTS", "THE GALLEYS", "THE FLEET LEAVING VENICE", "THE GREAT WALLS", "THE CITY OF ROOFS",
+	"THE GOLDEN DOMES", "THE PALACE OF THE LION'S MOUTH", "THE CARVED COLUMN", "THE BRONZE HERCULES", "A LAMP IN A COURTYARD", "THE GREAT CHURCH",
+	"THE HIPPODROME", "AN EMPTY PEDESTAL"]
+
+
+## STY-801, WALK-018 (8.1): reality (the plain costume); the controls scramble at once and every
+## 2.6 s by one of 90, 180, −90, 135 degrees (the scene's seeded generator: the same turns in another
+## run), and the joystick really turns by that angle; JERUSALEM moves one step away whenever he comes
+## near; within 30 % of the way the controls settle for good. Then the real-input driver, which learns
+## the turn from where his legs take him, reaches the chair leg.
+func test_STY_801_WALK_018_scrambled_legs_settling_and_jerusalem_out_of_reach() -> void:
+	var s := _scene("8.1", _entry("8.1"))
+	if not _to_step(s, "s04"):
+		return
+	assert_eq(s.world.player.costume, "normal", "reality: the plain costume")
+	_ticks(s, 1)
+	var turns: Array = s.ctx.metrics["scramble"]
+	assert_true(turns.size() == 1 and [90.0, 180.0, -90.0, 135.0].has(float(turns[0])), "a scramble at once: %s" % [turns])
+	assert_near(s.ctx.scramble_angle, deg_to_rad(float(turns[0])), 1e-6, "the joystick's turn")
+	assert_true((s.ctx.metrics["notices"] as Array).has("THE CONTROLS SCRAMBLE"), "its notice")
+	# The joystick really turns: pressed right, he goes the turned way.
+	s.world.player.set_grid_position(8.5, 20.5)
+	for k in 12:
+		InputService.inject_move(1.0, 0.0)
+		InputService.update(DT)
+		s.tick(DT)
+	InputService.clear_injection()
+	var v := IsoGrid.grid_vec_to_screen(s.world.player.vx, s.world.player.vy).normalized()
+	assert_vec_near(v, Vector2(1, 0).rotated(s.ctx.scramble_angle), 0.05, "pressed right, he goes the turned way")
+	_ticks(s, int(2.7 / DT))
+	assert_eq(turns.size(), 2, "again after 2.6 s")
+	var s2 := _scene("8.1", _entry("8.1"))
+	if _to_step(s2, "s04"):
+		_ticks(s2, 1 + 12 + int(2.7 / DT))
+		assert_eq(s2.ctx.metrics["scramble"], turns, "the same turns in another run")
+	# Jerusalem: one step away.
+	s.world.player.set_grid_position(7.5, 24.0)
+	_ticks(s, 1)
+	var moved: Array = s.ctx.metrics.get("jerusalem_moves", [])
+	assert_eq(moved.size(), 1, "near Jerusalem: it moves away")
+	s.world.player.set_grid_position((moved[0] as Vector2).x, (moved[0] as Vector2).y)
+	_ticks(s, 1)
+	assert_eq(moved.size(), 2, "and again: never within reach")
+	# Settling: within 30 % of the way.
+	s.world.player.set_grid_position(8.5, 10.5)
+	_ticks(s, 1)
+	assert_true(turns.has("settled") and s.ctx.scramble_angle == 0.0, "the controls settle")
+	var n := turns.size()
+	_ticks(s, int(3.0 / DT))
+	assert_eq(turns.size(), n, "for good")
+	var out := _play("8.1", _entry("8.1"))
+	if assert_true(out.has("result"), "8.1 completes by real input (the driver learns the turn)"):
+		var m: Dictionary = out["result"]["metrics"]
+		assert_true((m["scramble"] as Array).size() >= 2 and (m["scramble"] as Array).has("settled"), "scrambled, then settled: %s" % [m["scramble"]])
+		assert_true((out["result"]["state"]["book"]["remembered"] as Array).has("THERE WAS A DOG, AND HE WAS WAKING UP."), "his line")
+		assert_false(m.has("faded"), "Level 8: no fade")
+
+
+## STY-802, CAMP-009–011 (8.2): the study objects are what the dream made of them only for the marvels
+## he saw (the source's home mapping); the oath told as it happened (his own words or Niketas's); the
+## lamp and the letter read back; the drawings locked unless he saw them (the bowl always open); Grace
+## sets the telling tier; the rag cross and the drawing are the only things in his book from here.
+func test_STY_802_CAMP_009_011_study_objects_telling_drawing_and_readbacks() -> void:
+	var e := _entry("8.2")
+	e["book"]["marvels"] = SHIP_MARVELS + ["THE CARVED COLUMN", "THE HIPPODROME", "AN EMPTY PEDESTAL"]
+	e["flags"].merge({"oath": "enforced", "lamp": "kept", "letter": "named"}, true)
+	e["meters"]["grace"] = 75.0
+	var a := _play("8.2", e, {"s11": "pedestal"})
+	if not assert_true(a.has("result"), "8.2 (seen, called, kept, named) completes"):
+		return
+	var shown: Array = a["result"]["metrics"]["notices"]
+	for pair: Array in [["THE CARVED COLUMN", true], ["THE HIPPODROME", true], ["THE GOLDEN DOMES", false], ["A LAMP IN A COURTYARD", false]]:
+		assert_eq(shown.has("%s. HE KNOWS EXACTLY WHAT IT WAS." % HOME[pair[0]]), pair[1], "%s: %s" % [pair[0], "what the dream made of it" if pair[1] else "only itself"])
+	for plain in ["THE LAMPSHADE. IT IS DUSTY.", "THE DESK LAMP. IT IS OFF."]:
+		assert_true(shown.has(plain), plain)
+	var ta: PackedStringArray = a["result"]["trace"]
+	for id in ["s08a", "s08b", "s08c", "s09a", "s10a", "s13b"]:
+		assert_true(ta.has(id), "readback " + id)
+	for id in ["s08d", "s09b", "s10b", "s13d", "s13f"]:
+		assert_false(ta.has(id), "not " + id)
+	var sa: Dictionary = a["result"]["state"]
+	assert_eq([sa["flags"].get("drawing"), sa["flags"].get("tellingTier"), sa["flags"].get("told")], ["pedestal", "high", true], "the pedestal drawing; told straight")
+	assert_eq(sa["book"]["items"], e["book"]["items"] + ["THE RAG CROSS", "A DRAWING OF AN EMPTY PEDESTAL"], "the rag cross and the drawing")
+	assert_eq(float(sa["meters"]["commozione"]) - float(e["meters"]["commozione"]), 10.0, "Commozione +10 (no fade in Level 8)")
+	assert_eq(a["scene"].world.player.costume, "normal", "reality")
+	# Unseen city, no pedestal, silent, declared, necessity, Grace 50: the locks and the other readbacks.
+	var e2 := _entry("8.2")
+	e2["book"]["marvels"] = SHIP_MARVELS.duplicate()
+	e2["flags"].merge({"oath": "silent", "lamp": "declared", "letter": "necessity"}, true)
+	e2["meters"]["grace"] = 50.0
+	var s := _scene("8.2", e2)
+	if not _drive_until(s, func() -> bool: return s.runner.current != null and s.runner.current.id == "s11" and String(s.runner.st.get("phase", "")) == "choosing", 60 * 60):
+		fail("8.2: no drawing choice")
+		return
+	var locks := {}
+	for k in (s.runner.st["open"] as Array).size():
+		locks[(s.runner.st["open"][k] as StoryChoiceOption).id] = String((s.runner.st["views"][k] as Dictionary)["locked"])
+	assert_eq(locks, {"ships": "", "city": "HE NEVER LOOKED AT THE CITY", "pedestal": "HE NEVER SAW IT EMPTY", "bowl": ""}, "locked unless he saw them; the bowl always open")
+	var b := _play("8.2", e2, {"s11": "bowl"})
+	if assert_true(b.has("result"), "8.2 (unseen, silent, declared, necessity) completes"):
+		var tb: PackedStringArray = b["result"]["trace"]
+		for id in ["s08d", "s08e", "s08f", "s09b", "s10b", "s13d"]:
+			assert_true(tb.has(id), "readback " + id)
+		assert_eq([b["result"]["state"]["flags"].get("drawing"), b["result"]["state"]["flags"].get("tellingTier")], ["bowl", "mid"], "the bowl; mostly straight")
+	var e3 := _entry("8.2")
+	e3["meters"]["grace"] = 39.0
+	var c := _play("8.2", e3)
+	if assert_true(c.has("result"), "8.2 (Grace 39) completes"):
+		assert_eq([c["result"]["state"]["flags"].get("tellingTier"), (c["result"]["trace"] as PackedStringArray).has("s13f")], ["low", true], "told beautifully")
+	# CAMP-009/010: the study's four objects follow the source's mapping; every marvel the campaign
+	# awards is a known one.
+	for step: StoryStep in StoryLibrary.scene("8.2").steps:
+		if step is ObjectiveStep:
+			for p: StoryPickup in (step as ObjectiveStep).pickups:
+				assert_eq(p.seen_text, "%s. HE KNOWS EXACTLY WHAT IT WAS." % HOME[p.seen_marvel], p.id + ": the home object of " + p.seen_marvel)
+	var awarded := {}
+	for ch: StoryChapterData in StoryLibrary.chapters():
+		for sc: StorySceneData in ch.scenes:
+			for fx: Dictionary in _all_effects(sc.steps):
+				if fx.has("marvel"):
+					awarded[String(fx["marvel"])] = true
+	for m: String in awarded:
+		assert_true(KNOWN_MARVELS.has(m), m + " is a known marvel")
+	assert_eq(awarded.size(), KNOWN_MARVELS.size(), "every known marvel can be awarded")
+
+
+static func _all_effects(steps: Array) -> Array:
+	var out: Array = []
+	for st: StoryStep in steps:
+		out.append_array(st.effect_sets())
+		for b: Array in st.branches():
+			out.append_array(_all_effects(b))
+	return out
+
+
+## STY-803, NPC-008–011 (8.3): Sbrimbrulon and Confusione follow at his sides; a flinch (standing still
+## 0.6 s) and they stop and wait, turned to him; when he walks on they fall in again; past the middle
+## of the lane the line shows once; Bagnaskiz steps aside; DRINK at the bowl, which is pushed back
+## onto the lane (where any dog can reach it); Supervillain +25, RESISTANCE, `lawnHeld`; the
+## SUPERVILLAINED card.
+func test_STY_803_NPC_008_011_friends_fall_in_wait_and_the_bowl_left_open() -> void:
+	var s := _scene("8.3", _entry("8.3"))
+	if not _to_step(s, "s08"):
+		return
+	var sb: StoryActor = s.actors["sbrim"]
+	var cf: StoryActor = s.actors["conf"]
+	assert_eq([sb.behavior, cf.behavior, sb.follow_side, cf.follow_side], ["follow", "follow", -0.9, 0.9], "they follow at his sides")
+	_ticks(s, int(0.7 / DT))
+	assert_eq([sb.behavior, cf.behavior], ["idle", "idle"], "he flinches: they wait for him")
+	assert_true((s.ctx.metrics["notices"] as Array).has("HE FLINCHES. THEY WAIT FOR HIM"), "its notice")
+	for k in 20:
+		InputService.inject_move(1.0, 0.2)
+		InputService.update(DT)
+		s.tick(DT)
+	InputService.clear_injection()
+	assert_eq([sb.behavior, cf.behavior], ["follow", "follow"], "he walks on: they fall in again")
+	assert_eq([s.ctx.metrics["flinch"], s.ctx.metrics["rejoined"]], [["s08"], ["s08"]], "one wait, one rejoin")
+	var out := {}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	var d := StoryDriver.new(s)
+	for k in 60 * 120:
+		if out.has("r"):
+			break
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	if not assert_true(out.has("r"), "8.3 completes by real input"):
+		return
+	assert_eq((out["r"]["metrics"]["notices"] as Array).count("SBRIMBRULON AND CONFUSIONE FALL IN BESIDE HIM"), 1, "the fall-in line once")
+	assert_eq(s.actors["bag"].behavior, "goto", "Bagnaskiz steps aside")
+	var bowl: StoryProp = s.props["bowl"]
+	assert_vec_near(Vector2(bowl.gx, bowl.gy), Vector2(13.5, 3.5), 0.01, "the bowl pushed back onto the lane")
+	var st: Dictionary = out["r"]["state"]
+	assert_eq([st["flags"].get("lawnHeld"), (st["book"]["values"] as Array).count("Resistance")], [true, 1], "lawnHeld; RESISTANCE once")
+	assert_eq(float(st["meters"]["supervillain"]), minf(100.0, float(_entry("8.3")["meters"]["supervillain"]) + 25.0), "Supervillain +25 (to the meter's top)")
+	assert_true((out["r"]["trace"] as PackedStringArray).has("s18"), "YOU HAVE BEEN SUPERVILLAINED")
+
+
+## STY-804 (8.4): his day told (with `vanguard`, the walk; without it, not); the ball pushed through
+## the bars by PUSH at the ball; it rolls to her; another dog drinks from the bowl; `ballReturned`,
+## `courtesy84` = unanswered, her question remembered; CUT.; the campaign's last scene.
+func test_STY_804_the_ball_returned_and_the_question_unanswered() -> void:
+	for walked: bool in [true, false]:
+		var e := _entry("8.4")
+		e["flags"]["vanguard"] = walked
+		if not walked:
+			e["flags"].erase("vanguard")
+		var out := _play("8.4", e)
+		if not assert_true(out.has("result"), "8.4 completes (vanguard %s)" % walked):
+			continue
+		var tr: PackedStringArray = out["result"]["trace"]
+		assert_eq(tr.has("s07a"), walked, "the walk told only with vanguard")
+		var st: Dictionary = out["result"]["state"]
+		assert_eq([st["flags"].get("ballReturned"), st["flags"].get("courtesy84")], [true, "unanswered"], "the ball returned; her question unanswered")
+		assert_true((st["book"]["remembered"] as Array).has("WHO TOLD YOU THEY SAID THAT?"), "her question remembered")
+		var sc: StoryScene = out["scene"]
+		var ball: StoryProp = sc.props["ball"]
+		assert_vec_near(Vector2(ball.gx, ball.gy), Vector2(23.1, 3.7), 0.01, "through the bars to her")
+		assert_eq(sc.actors["dog"].behavior, "goto", "another dog goes to drink")
+		assert_eq(tr[tr.size() - 3], "s23", "CUT.")
+	assert_eq(StoryLibrary.scene("8.4").completion["boundary"], "chapter_end", "the campaign's last boundary")
+	assert_eq(SaveService.CATALOG.next_unfinished(Array(SaveService.CATALOG.ids())), {}, "nothing after 8.4")
+
+
+## CAMP-004 (the fade, RD-05): every dream scene of Levels 2–7 starts with 2 less Commozione on its
+## working copy (never below 0, with its notice); reality scenes (Levels 1 and 8) do not fade; a
+## restart fades once from the entry state, never twice; nothing is saved by the fade itself.
+func test_CAMP_004_commozione_fades_once_per_dream_scene() -> void:
+	for id: String in ["5.1", "6.2", "7.6", "8.1"]:
+		var s := _scene(id, _entry(id))
+		_ticks(s, 1)
+		var faded := 0.0 if id == "8.1" else RS.COMMOZIONE_FADE
+		assert_eq(float(s.ctx.state["meters"]["commozione"]), float(_entry(id)["meters"]["commozione"]) - faded, "%s: -%s" % [id, faded])
+		assert_eq((s.ctx.metrics["notices"] as Array).has("-2 COMMOZIONE: THE FEELING FADES"), id != "8.1", id + ": the notice")
+		s.restart()
+		_ticks(s, 1)
+		assert_eq(float(s.ctx.state["meters"]["commozione"]), float(_entry(id)["meters"]["commozione"]) - faded, id + ": a restart fades once, not twice")
+	var low := _entry("6.2")
+	low["meters"]["commozione"] = 1.0
+	var s2 := _scene("6.2", low)
+	_ticks(s2, 1)
+	assert_eq([float(s2.ctx.state["meters"]["commozione"]), float(s2.ctx.metrics["faded"])], [0.0, 1.0], "never below 0")
+	for lv in [1, 8]:
+		var st := CampaignSchema.new_campaign()
+		assert_eq(CampaignRules.fade_commozione(st, lv), 0.0, "Level %d: no fade" % lv)
+
+
+## CAMP-005/006, END-003/004: the Grace tiers (8.2's telling, the ending's line) and the Standing tiers
+## at both boundaries and next to them; 8.2's branch thresholds are the same numbers; the exact lines.
+func test_CAMP_005_006_END_003_004_grace_and_standing_tiers_and_lines() -> void:
+	var text: ShellText = StoryScene.TEXT
+	var st := CampaignSchema.new_campaign()
+	for row: Array in [[100.0, "high"], [70.0, "high"], [69.99, "mid"], [40.0, "mid"], [39.99, "low"], [0.0, "low"]]:
+		st["meters"]["grace"] = row[0]
+		assert_eq(CampaignFlow.grace_tier(st), row[1], "Grace %s" % row[0])
+		assert_eq(CampaignFlow.ending_notes(st, text)[0], text.get_text("ending_grace_" + String(row[1])), "Grace %s: its line" % row[0])
+	assert_eq(text.get_text("ending_grace_high"), "HE KEPT THE FORMS HE SWORE TO, EVEN THE SMALL ONES NOBODY CHECKS.", "the high line")
+	assert_eq(text.get_text("ending_grace_mid"), "HE KEPT MOST OF THE FORMS HE SWORE TO. ABOUT THE REST HE HAS A LONG EXPLANATION.", "the mid line")
+	assert_eq(text.get_text("ending_grace_low"), "HE BROKE THE FORMS HE SWORE TO, AND EVERY AUTHORITY FORGAVE HIM. HE HAS NOT QUITE FORGIVEN HIMSELF.", "the low line")
+	for row: Array in [[100.0, "fond"], [60.0, "fond"], [59.99, "fair"], [35.0, "fair"], [34.99, "low"], [0.0, "low"]]:
+		st["meters"]["standing"] = row[0]
+		assert_eq(CampaignFlow.standing_tier(st), row[1], "Standing %s" % row[0])
+		assert_eq(CampaignFlow.ending_notes(st, text)[1], text.get_text("ending_standing_" + String(row[1])), "Standing %s: its line" % row[0])
+	assert_eq([text.get_text("ending_standing_fond"), text.get_text("ending_standing_fair"), text.get_text("ending_standing_low")],
+		["THE CAMP REMEMBERS HIM FONDLY. THE DOGS AT THE FENCES WATCH HIM DRINK AND SAY NOTHING.", "THE CAMP REMEMBERS HIM, MORE OR LESS.", "THE MARSHAL REMEMBERS WHO SPOKE AGAINST HIM. HE WALKED ON ANYWAY."], "the Standing lines")
+	var cases := {}
+	for step: StoryStep in StoryLibrary.scene("8.2").steps:
+		if step is BranchStep and step.id == "s13":
+			for c: StoryBranchCase in (step as BranchStep).cases:
+				cases[c.id] = float(c.when["gte"])
+	assert_eq(cases, {"high": RS.GRACE_HIGH, "mid": RS.GRACE_LOW}, "8.2's telling uses the same thresholds")
+
+
+## END-001/002: the ending is decided by 7.8 alone: `oath` enforced is THE KNIGHT with his own-words
+## account; silent, undecided or absent is THE WITNESS, whose key stays `alpha`.
+func test_END_001_002_knight_or_witness_by_the_oath_alone() -> void:
+	var st := CampaignSchema.new_campaign()
+	var text: ShellText = StoryScene.TEXT
+	for row: Array in [["enforced", "knight"], ["silent", "alpha"], ["undecided", "alpha"], [null, "alpha"]]:
+		if row[0] == null:
+			st["flags"].erase("oath")
+		else:
+			st["flags"]["oath"] = row[0]
+		assert_eq(CampaignFlow.ending(st), row[1], "oath %s" % [row[0]])
+	assert_eq([text.get_text("ending_knight"), text.get_text("ending_alpha")], ["THE KNIGHT", "THE WITNESS"], "their names")
+	assert_true(text.get_text("ending_story_knight").begins_with("IN A LULL IN THE LOOTING HE CALLED THE PILGRIMS TO THEIR OATH, IN HIS OWN WORDS"), "the knight's account: his own words")
+	assert_true(text.get_text("ending_story_alpha").begins_with("HE STOOD SILENT WHILE NIKETAS CALLED THE PILGRIMS TO THEIR OATH"), "the witness's account: Niketas's words")
+
+
+## CAMP-013: the dream skin: every dream scene (Levels 2–7) dresses him in the coat of mail, every
+## reality scene (Levels 1 and 8) in his own coat, whatever abilities he holds.
+func test_CAMP_013_costume_follows_dream_or_reality() -> void:
+	for ch: StoryChapterData in StoryLibrary.chapters():
+		for sc: StorySceneData in ch.scenes:
+			var want := "normal" if ch.number == 1 or ch.number == 8 else "armoured"
+			assert_eq([sc.reality, sc.costume()], [want == "normal", want], "%s: %s" % [sc.id, want])
+
+
+## The full COLL-005b aggregate (M7): every scripted spatial objective of every chapter (1–8) is
+## reachable under the grid solver from where its scene places Zampanò when the walk starts; each scene
+## runs from a state with the scenes before it completed and every ability held.
+func test_COLL_005b_every_chapter_scripted_objectives_reachable() -> void:
+	var done: Array = ["1.0"]
+	var checked := 0
+	var n_scenes := 0
+	for ch: StoryChapterData in StoryLibrary.chapters():
+		for sc: StorySceneData in ch.scenes:
+			var st := _base()
+			st["completed"] = done.duplicate()
+			st["flags"]["oath"] = "enforced"
+			st["flags"]["lamp"] = "declared"
+			var s := _scene(sc.id, st)
+			var d := StoryDriver.new(s, {}, "bark", true)
+			var seen := {}
+			var here := 0
+			for k in 60 * 200:
+				if s.finished:
+					break
+				var step := s.runner.current
+				if step is ObjectiveStep and not seen.has(step.id):
+					seen[step.id] = true
+					var o := step as ObjectiveStep
+					var from := Vector2(s.world.player.gx, s.world.player.gy)
+					var targets: Array = []
+					if s.runner.st.get("goal") != null:
+						targets.append(s.runner.st["goal"])
+					for spot: Dictionary in (s.runner.st.get("spots", {}) as Dictionary).values():
+						targets.append(spot["at"])
+					for m: String in o.path:
+						targets.append(s.ctx.marker(m))
+					if o.rule == "lull":
+						var stand: Variant = o.rule_params["stand"]
+						targets.append(s.ctx.marker(stand) if stand is String else stand)
+					for t: Vector2 in targets:
+						var path := d._bfs(from, t, [])
+						var reach := path.size() > 1 or Vector2i(int(floor(from.x)), int(floor(from.y))) == Vector2i(int(floor(t.x)), int(floor(t.y))) or from.distance_to(t) < 1.5
+						assert_true(reach, "%s %s: %s reachable from %s" % [sc.id, o.id, t, from])
+						here += 1
+				d.drive(DT)
+				InputService.update(DT)
+				s.tick(DT)
+			InputService.guard_hold_injected = false
+			assert_true(s.finished, sc.id + ": the scripted run ends")
+			if here == 0:
+				assert_false(_has_spatial(sc.steps), "%s has scripted targets, none checked" % sc.id)
+			checked += here
+			n_scenes += 1
+			done.append(sc.id)
+	print("COLL-005b aggregate: %d targets in %d scenes" % [checked, n_scenes])
+	assert_eq(n_scenes, 36, "every story scene of the campaign (1.1–8.4)")
+
+
+## The campaign's 37 entries in order (1.0 the Green Zone walk, then 1.1–8.4), each story entry with
+## its Resource, each chapter's scenes in the catalog's order, and an explicit, unchanged-save failure
+## for content that cannot run (a missing marker).
+func test_CAMP_order_37_entries_and_explicit_failure_on_missing_content() -> void:
+	var want := ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3", "3.4", "4.1", "4.2", "4.3",
+		"5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7", "7.8", "7.9", "8.1", "8.2", "8.3", "8.4"]
+	assert_eq(Array(SaveService.CATALOG.ids()), want, "37 entries in order")
+	for id: String in want:
+		assert_eq(StoryLibrary.has_scene(id), id != "1.0", id + ": its Resource (1.0 is the walk)")
+	for ch: StoryChapterData in StoryLibrary.chapters():
+		var ids: Array = ch.scenes.map(func(x: StorySceneData) -> String: return x.id)
+		var listed := (SaveService.CATALOG.chapter(ch.number)["sub_levels"] as Array).map(func(x: Dictionary) -> String: return String(x["id"])).filter(func(x: String) -> bool: return x != "1.0")
+		assert_eq(ids, listed, "Level %d's order (1.0 is the walk)" % ch.number)
+	var bad: StorySceneData = StoryLibrary.scene("8.4").duplicate(true)
+	var steps: Array = bad.steps.duplicate()
+	var stage: StageStep = (steps[0] as StageStep).duplicate()
+	stage.player_at = "Q"
+	stage.player_point = Vector2.ZERO
+	steps[0] = stage
+	bad.steps = steps
+	assert_true(StoryValidator.for_project().validate_scene(bad).size() > 0, "the validator names it")
+	var before := SaveService.get_campaign().duplicate(true)
+	var s: StoryScene = STORY.instantiate()
+	var failed := [""]
+	s.failed.connect(func(m: String) -> void: failed[0] = m)
+	s.setup(bad, _entry("8.4"), true)
+	tree.root.add_child(s)
+	scenes.append(s)
+	s.manual_ticks = true
+	await tree.process_frame
+	for k in 5:
+		s.tick(DT)
+	assert_eq(failed[0], "story 8.4: missing marker 'Q' on map 'neighborhood'", "an explicit failure names the scene and the marker")
+	var cap: ErrorCapture = tree.get("_capture")
+	var logged := cap.take() if cap else []
+	assert_eq(logged.filter(func(x: Dictionary) -> bool: return String(x["code"]).contains("missing marker 'Q'") or String(x["rationale"]).contains("missing marker 'Q'")).size(), 1, "reported once as an engine error")
+	assert_eq(SaveService.get_campaign(), before, "the save is unchanged")
+
+
+# --- The whole campaign through the real Main ----------------------------------------------------
+
+const LEVEL_LAST := ["1.5", "2.3", "3.4", "4.3", "5.5", "6.3", "7.9", "8.4"]
+
+
+func _key_tap(code: Key) -> void:
+	for down: bool in [true, false]:
+		var e := InputEventKey.new()
+		e.keycode = code
+		e.physical_keycode = code
+		e.pressed = down
+		Input.parse_input_event(e)
+		await tree.process_frame
+
+
+## One whole campaign through the real Main by real input only, from the title's NEW GAME: the Green
+## Zone walk (GreenZoneDriver: movement, RUN, PEE, BARK), its snap, result card and CONTINUE; every
+## scene card and every scene of 1.1–8.4 (StoryDriver at `skill`; choices by `choice_mode`; 5.4's
+## letter and 7.8's oath by policy; a lost fight is played again, a lost minigame goes on, nothing is
+## skipped); each level's end (the snap, the Professor's aside); then the ending card and THE END,
+## which opens the level list. Returns the run's report.
+func _campaign(label: String, choice_mode: String, oath: String, letter: String, skill: float) -> Dictionary:
+	var rep := {"label": label, "scenes": {}, "knockdowns": 0, "restarts": 0, "minis": [], "asides": [], "ending": "", "ok": false}
+	SaveService.save_campaign(CampaignSchema.new_campaign(), NOW - 1000)
+	await _main_start()
+	await _settle()
+	var title := main.current_scene as TitleScreen
+	title.time = 1.0
+	title.activate(title.items.map(func(i: Dictionary) -> String: return String(i["label"])).find("NEW GAME"))
+	if not await _until(func() -> bool: return main.current_scene is GreenZoneScene):
+		fail(label + ": no Green Zone after NEW GAME")
+		return rep
+	var gz := main.current_scene as GreenZoneScene
+	var briefing: OverlayPanel = gz._overlay
+	InputService.auto_update = true
+	await _until(func() -> bool: return briefing == null or briefing.time > 0.6, 3000)
+	await _key_tap(KEY_ENTER)
+	if not await _until(func() -> bool: return gz.active, 600):
+		fail(label + ": the briefing did not start the walk")
+		return rep
+	gz.manual_ticks = true
+	InputService.auto_update = false
+	var gd := GreenZoneDriver.new()
+	for k in 60 * 400:
+		if gz.rules.state != "playing":
+			break
+		gd.step(gz)
+		InputService.update(DT)
+		AudioService.advance_pending(DT)
+		gz.tick(DT)
+		if gz.ticks % 6 == 0:
+			gz._process(DT)
+	InputService.clear_injection()
+	rep["walk"] = {"state": gz.rules.state, "time": snappedf(float(gz.rules.stats["time"]), 0.1), "coins": int(gz.rules.stats["coins"])}
+	if not assert_true(gz.rules.state == "complete", "%s: the walk reaches the exit by real input (%s)" % [label, gz.rules.state]):
+		return rep
+	for k in 80:
+		InputService.update(DT)
+		AudioService.advance_pending(DT)
+		gz.tick(DT)
+	var sv := gz._overlay as SupervillainedOverlay
+	if sv:
+		sv.step(GameConfig.Supervillained.HOLD + 0.05)
+	var end := gz._overlay as LevelEndOverlay
+	if not assert_true(end != null, label + ": the walk's result card"):
+		return rep
+	end.skip = true
+	end._process(DT)
+	end.activate(end.items.map(func(i: Dictionary) -> String: return String(i["label"])).find("CONTINUE"))
+	for id: String in Array(SaveService.CATALOG.ids()):
+		if id == "1.0":
+			continue
+		var s := await _enter_card(id)
+		if s == null:
+			return rep
+		var d := StoryDriver.new(s, {"oath": oath, "letter": letter})
+		d.skill = skill
+		d.choice_mode = choice_mode
+		d.rng.seed = hash("%s:%s" % [label, id])
+		var ticks := 0
+		while not s.finished and ticks < 60 * 900:
+			d.drive(DT)
+			InputService.update(DT)
+			s.tick(DT)
+			ticks += 1
+		InputService.guard_hold_injected = false
+		if not assert_true(s.finished, "%s %s: played to the end by real input (%d ticks)" % [label, id, ticks]):
+			return rep
+		var m: Dictionary = s.ctx.metrics
+		rep["scenes"][id] = snappedf(ticks * DT, 0.1)
+		rep["knockdowns"] = int(rep["knockdowns"]) + (m["knockdowns"] as Array).size()
+		rep["restarts"] = int(rep["restarts"]) + s.restarts
+		for r: String in m.get("minis", []):
+			(rep["minis"] as Array).append("%s %s" % [id, r])
+		var saved := await _until(func() -> bool: return (SaveService.get_campaign()["completed"] as Array).has(id), 600)
+		assert_true(saved, "%s %s: saved" % [label, id])
+		if LEVEL_LAST.has(id):
+			if not assert_true(await _until(func() -> bool: return main.top_overlay() is SupervillainedOverlay), "%s %s: the snap at the level's end" % [label, id]):
+				return rep
+			(main.top_overlay() as SupervillainedOverlay).step(GameConfig.Supervillained.HOLD + 0.05)
+			if not assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().has_meta(&"professor_aside")), "%s %s: the aside" % [label, id]):
+				return rep
+			var aside := main.top_overlay() as MessageOverlay
+			(rep["asides"] as Array).append(int(aside.get_meta(&"professor_aside")))
+			aside.time = 1.0
+			aside.on_tap(Vector2(5, 5))
+	if not assert_true(await _until(func() -> bool: return main.top_overlay() is MessageOverlay and main.top_overlay().has_meta(&"ending")), label + ": the ending card"):
+		return rep
+	var ending := main.top_overlay() as MessageOverlay
+	rep["ending"] = String(ending.get_meta(&"ending"))
+	rep["ending_heading"] = ending.heading
+	rep["ending_paragraphs"] = ending.paragraphs.map(func(p: Array) -> String: return String(p[0]))
+	ending.time = 1.0
+	ending.on_tap(Vector2(5, 5))
+	assert_true(await _until(func() -> bool: return main.top_overlay() is LevelListOverlay), label + ": THE END opens the level list")
+	var camp := SaveService.get_campaign()
+	rep["final"] = {"meters": camp["meters"], "flags": camp["flags"], "abilities": camp["abilities"], "coins": camp["coins"],
+		"book": {"marvels": (camp["book"]["marvels"] as Array).size(), "values": camp["book"]["values"], "items": (camp["book"]["items"] as Array).size(),
+			"remembered": (camp["book"]["remembered"] as Array).size()}, "completed": (camp["completed"] as Array).size()}
+	rep["ok"] = true
+	print("CAMPAIGN %s: %s" % [label, JSON.stringify(rep)])
+	return rep
+
+
+func _check_campaign(rep: Dictionary, ending: String) -> void:
+	if not assert_true(rep["ok"], rep["label"] + ": completed"):
+		return
+	var f: Dictionary = rep["final"]
+	assert_eq(f["completed"], 37, "37 entries completed")
+	assert_eq(rep["asides"], [1, 2, 3, 4, 5, 6, 7, 8], "eight level ends, each with its aside")
+	assert_eq(f["abilities"], ["cross", "sermon", "knight"], "CAMP-012: the cross, the sermon, the knight, once each")
+	assert_eq([rep["ending"], CampaignFlow.ending(SaveService.get_campaign())], [ending, ending], "the ending decided by 7.8")
+	var text: ShellText = StoryScene.TEXT
+	assert_eq(rep["ending_heading"], text.get_text("ending_" + ending), "its name")
+	assert_eq((rep["ending_paragraphs"] as Array)[0], text.get_text("ending_story_" + ending), "its account")
+	assert_eq((rep["ending_paragraphs"] as Array)[1], " ".join(CampaignFlow.ending_notes(SaveService.get_campaign(), text)), "the Grace and Standing lines")
+	for k: String in ["told", "lawnHeld", "ballReturned", "sworn", "followed", "visitedCity"]:
+		assert_eq((f["flags"] as Dictionary).get(k), true, k)
+	assert_eq((f["flags"] as Dictionary).get("courtesy84"), "unanswered", "her question unanswered")
+	for k: String in ["oath", "lamp", "drawing", "tellingTier", "letter", "zaraOwe", "corfu"]:
+		assert_true((f["flags"] as Dictionary).has(k), k + " set")
+	for m: String in f["meters"]:
+		assert_true(float(f["meters"][m]) >= 0.0 and float(f["meters"][m]) <= 100.0, m + " within 0–100")
+
+
+## The Knight campaign: first open choices, the letter that names the debt, the oath called in a
+## lull; skill 0.7. Through the real Main from the title, by real input only.
+func test_CAMP_full_campaign_knight_first_choices_skill_07() -> void:
+	var rep := await _campaign("knight-first-0.7", "first", "call", "named", 0.7)
+	_check_campaign(rep, "knight")
+	if rep["ok"]:
+		assert_eq((rep["final"]["flags"] as Dictionary).get("oath"), "enforced", "oath enforced")
+		# The menus after the end: the level list, Level 8's scenes from the Resources, the Couch.
+		var ll := main.top_overlay() as LevelListOverlay
+		ll.activate(8)
+		var ch := main.top_overlay() as ChapterListOverlay
+		var listed := []
+		for it: Dictionary in ch.items:
+			if it.has("id"):
+				listed.append(String(it["id"]))
+		assert_eq(listed, ["8.1", "8.2", "8.3", "8.4"], "Level 8's list")
+		# A replay of 8.4 never triggers the level end or the ending, and changes no saved byte.
+		var bytes := FileAccess.get_file_as_bytes(SaveService.base_dir + "save_v3.json")
+		var before := SaveService.get_campaign().duplicate(true)
+		await _settle()
+		var at := -1
+		for k in ch.items.size():
+			if String((ch.items[k] as Dictionary).get("id", "")) == "8.4":
+				at = k
+		ch.activate(at)
+		var s := await _enter_card("8.4")
+		if s != null:
+			assert_true(AppState.replaying, "8.4 replayed")
+			var d := StoryDriver.new(s)
+			for k in 60 * 300:
+				if s.finished:
+					break
+				d.drive(DT)
+				InputService.update(DT)
+				s.tick(DT)
+			assert_true(await _until(func() -> bool: return main.top_overlay() is ChapterListOverlay), "the replay returns to the level's list")
+			for k in 30:
+				await tree.process_frame
+			var top: Control = main.top_overlay()
+			assert_false(top is SupervillainedOverlay or (top != null and top.has_meta(&"ending")), "no level end, no ending after a replay")
+			assert_eq([SaveService.get_campaign(), FileAccess.get_file_as_bytes(SaveService.base_dir + "save_v3.json")], [before, bytes], "the replay changed no saved byte")
+		main.clear_overlays()
+		main.open_couch()
+		var couch := main.top_overlay() as CouchOverlay
+		assert_true(couch.lines().has("ENDING: THE KNIGHT") and couch.lines().has("THE STORY IS FINISHED"), "the Couch: finished, THE KNIGHT")
+
+
+## The Witness campaign: last open choices, the letter of necessity, silence at 7.8; skill 0.7.
+func test_CAMP_full_campaign_witness_last_choices_skill_07() -> void:
+	var rep := await _campaign("witness-last-0.7", "last", "silent", "necessity", 0.7)
+	_check_campaign(rep, "alpha")
+	if rep["ok"]:
+		assert_eq((rep["final"]["flags"] as Dictionary).get("oath"), "silent", "oath silent")
+		main.clear_overlays()
+		main.open_couch()
+		assert_true((main.top_overlay() as CouchOverlay).lines().has("ENDING: THE WITNESS"), "the Couch: THE WITNESS")
+
+
+## The mixed campaign: random open choices, a random letter and oath (seeded), skill 0.4: fights may
+## be lost and played again, minigames lost; nothing is skipped.
+func test_CAMP_full_campaign_mixed_random_choices_skill_04() -> void:
+	var r := RandomNumberGenerator.new()
+	r.seed = hash("mixed-campaign")
+	var oath := "call" if r.randf() < 0.5 else "silent"
+	var letter := "named" if r.randf() < 0.5 else "necessity"
+	var rep := await _campaign("mixed-random-0.4", "random", oath, letter, 0.4)
+	_check_campaign(rep, "knight" if oath == "call" else "alpha")
+
+
+## The scripted smoke of every branch of every M7 scene (the debug placement that still runs every
+## step and rule): each reaches its completion boundary without an error.
+func test_SLICE_m7_scripted_smoke_every_branch() -> void:
+	var n := 0
+	for id: String in IDS:
+		for policy: Dictionary in BRANCHES.get(id, [{}]):
+			var out := _play(id, _entry(id), policy, true, 60 * 200)
+			var branch := String(policy.values()[0]) if not policy.is_empty() else ""
+			assert_false(out.has("error"), "%s/%s: no error (%s)" % [id, branch, out.get("error", "")])
+			assert_true(out.has("result"), "%s/%s: the smoke reaches the completion boundary" % [id, branch])
+			n += 1
+	print("M7 scripted smoke: %d scene branches" % n)
 
 # --- Restart, replay, force-close -----------------------------------------------------------------
 

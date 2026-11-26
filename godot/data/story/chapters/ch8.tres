@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StoryChapterData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_chapter_data.gd" id="1_storychapterdata"]
+[ext_resource type="Resource" path="res://data/story/scenes/8_1.tres" id="s8_1"]
+[ext_resource type="Resource" path="res://data/story/scenes/8_2.tres" id="s8_2"]
+[ext_resource type="Resource" path="res://data/story/scenes/8_3.tres" id="s8_3"]
+[ext_resource type="Resource" path="res://data/story/scenes/8_4.tres" id="s8_4"]
+
+[resource]
+script = ExtResource("1_storychapterdata")
+number = 8
+scenes = [ExtResource("s8_1"), ExtResource("s8_2"), ExtResource("s8_3"), ExtResource("s8_4")]
+content_version = 1
+review_status = "draft_implemented_review_pending"
+title = "Back to the Greenzone"
+menu_title = "Back to Greenzone"
+intro = "THE ARMOUR COMES OFF UNDER THE PROFESSOR'S DESK. THROUGH THE OPEN DOOR ZAMPANO CAN SEE THE BOWL EXACTLY WHERE WATSON LEFT IT."
+cast_note = "EVERYONE AS THEMSELVES AGAIN"
+music = "greenzone"
+professor_aside = "CLARI ENDS BY SWEARING THAT HE HAS TOLD THE STRICT TRUTH. HE PROBABLY BELIEVED IT, YOU UNDERSTAND. THAT IS WHAT MAKES HIM WORTH READING."
+review_notes = PackedStringArray("Draft implemented; narrative review pending for the whole level (OD-01).", "The endings (THE KNIGHT / THE WITNESS) and their Grace and Standing lines are in data/shell/shell_text.tres; review pending.")

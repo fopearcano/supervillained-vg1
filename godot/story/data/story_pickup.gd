@@ -19,3 +19,20 @@ extends Resource
 @export var carry_label := ""
 ## Sound when picked (an AudioService cue).
 @export var sound := "jingle"
+## 8.2: a study object is what the dream made of it only if he saw that marvel: with `seen_marvel`
+## in the book its label and line are `seen_label` and `seen_text`, otherwise `label` and `text`.
+@export var seen_marvel := ""
+@export var seen_label := ""
+@export var seen_text := ""
+
+
+func seen(state: Dictionary) -> bool:
+	return seen_marvel != "" and ((state.get("book", {}) as Dictionary).get("marvels", []) as Array).has(seen_marvel)
+
+
+func shown_label(state: Dictionary) -> String:
+	return seen_label if seen(state) else label
+
+
+func shown_text(state: Dictionary) -> String:
+	return seen_text if seen(state) else text

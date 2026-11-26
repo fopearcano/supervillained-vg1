@@ -12,7 +12,7 @@ This is the living parity checklist for the Godot port. All Godot boxes are inte
 
 Canonical evidence precedence is code/tests, `docs/STORY.md`, `docs/STORY-SOURCES.md`, then current decision-log sections. **From M5R, story prose and scene beats follow the rewrite authority** (`STORY_REWRITE_SPEC.md`: the Godot story Resources, the content matrix, the decision log); the PixiJS story and `docs/STORY.md` are draft/reference material and the story rows below no longer require their exact text. Target acceptance IDs are defined in `TEST_PLAN.md`; milestone IDs are defined in `MILESTONES.md`.
 
-## Godot implementation status — M1, M2, M3, M4 Partial (manual checks owner-deferred or not executed; their automated IDs accepted), M5R implemented (Level 1 draft; pending review), M6 implemented (Levels 2–4 draft; pending review)
+## Godot implementation status — M1, M2, M3, M4 Partial (manual checks owner-deferred or not executed; their automated IDs accepted), M5R implemented (Level 1 draft; pending review), M6 implemented (Levels 2–4 draft; pending review), M7 implemented (Levels 5–8 and the endings, draft; pending review)
 
 Boxes below stay unchecked until the architect accepts the evidence (MILESTONES.md common gate 7).
 **M1 is Partial and M2 is Partial**: neither milestone is complete or accepted. The M1 Android
@@ -114,6 +114,24 @@ and fly actors, survive objectives, scrambled controls, fire, ladders, tug, lett
 ordering (M7); gesture streak and hints, the chapters' own art banks, combat and minigame
 presentation polish (M8); Levels 5–8 (M7). Manual, device and audio checks are not executed.
 Evidence: report 32, `docs/porting/captures/m6_levels_2_4/` (11 PNGs).
+**M7 (Levels 5–8, both endings, the complete campaign): implemented, pending independent review;
+all new prose is draft (OD-01).** M7-A (`546410e`): the Phase 0 corrections (held SHIELD on the
+action button; minigame input drained) and Level 5 (5.1–5.5: the dissent choice; the ladders; the
+three duties and the brawl where each landed sword blow costs Grace; the letter with both accounts;
+the sail, the board, the chapter boundary). M7-B (`bbb0297`): Level 6 (share or dice and
+`comradeship`; the rumour in order, only twelve swear; Corfu). M7-C (`225ba4b`): 7.1–7.4 (the tug
+lost by design; the 18 s hold by the banner; level with Pierre; four marvels). M7-D (`5b5ba7c`):
+7.5–7.9 (the fire walk with safe checkpoints and THE SMOKE; the envoys' walk; the oath, the tug at the
+hole, comradeship's voice or the rattle; the oath called in a lull or Niketas's call: the ending
+key; the lamp, the empty pedestal, JERUSALEM never loads). M7-E (report 33): Level 8 (scrambled legs;
+the study objects, the oath, lamp and letter told back, the drawing, the telling tier; the friends
+on the lawn and the bowl left open; the ball returned), the ending card (THE KNIGHT / THE WITNESS
+with the Grace and Standing lines), the Commozione fade (RD-51), and three full real-input campaigns
+through Main from the title. Levels 5–8 are drawn with the Green Zone art bank (RD-39). Not done:
+fly actors (no scene uses them), the book's "(FULL)" label (CAMP-014), SKIP SCENE (OQ-11),
+presentation polish and the chapters' own art banks (M8), Android and devices (M9). Manual, device
+and audio checks are not executed. Evidence: report 33, `docs/porting/captures/m7_levels_5_8/`
+(13 PNGs).
 Evidence: `docs/porting/IMPLEMENTATION_LOG.md`, `godot/tests/`, `docs/porting/captures/m2_green_zone_slice/` (18 PNGs),
 `docs/porting/captures/title_m1/` (title captures: `…_49` and `…_98` of commit `16b5619`; `…_00`
 regenerated as rendered frame 0 in correction report 22 after the `title_capture.gd` fix; the earlier
@@ -180,13 +198,13 @@ report 26 (GZ-001, GZ-016, GZ-017, GZ-031, GZ-032, GZ-034–036, GZ-037, GZ-038�
 DOG-005b, FLOW-003, FLOW-004, AUTO-001) were accepted by the architect after that report (recorded
 in correction report 28); correction report 28's 24 M4 IDs and ARCH-001b were accepted after
 reports 28 and 30 (recorded in correction report 31); the earlier 98 are unchanged. The M5R IDs
-claimed in reports 30 and 31, and the M6 IDs claimed in report 32, are pending review and not counted here.
+claimed in reports 30 and 31, the M6 IDs claimed in report 32 and the M7 IDs claimed in report 33, are pending review and not counted here.
 
 **Split IDs (TEST_PLAN.md; a parent is satisfied only when both parts are):** ARCH-001 =
 ARCH-001a (M2, satisfied on combined evidence) + ARCH-001b (M5, production story scene, satisfied on
 combined evidence) — **satisfied**; COLL-005 = COLL-005a (M2,
 satisfied) + COLL-005b (M5–M7: scripted-position objectives; `test_P_COLL_005b` evidence in
-M5/M6, the full aggregate in M7). COLL-005 covers static and scripted-position reachability only;
+M5/M6; the full aggregate `test_COLL_005b_every_chapter_…` in M7, report 33: 112 targets in 36 scenes). COLL-005 covers static and scripted-position reachability only;
 dynamic goals (moving or runtime-placed targets) are owned by WALK/NPC/MINI and each scene's STY
 real-input completion. DOG-005 = DOG-005a (M2,
 satisfied) + DOG-005b (M3, forced fetch; accepted) — **satisfied**; DOG-008 = DOG-008a (M2, satisfied on combined evidence) + DOG-008b (M5,
@@ -447,6 +465,10 @@ owner's decisions, now deferred); the M3 Green Zone played by a human or on any 
 | Story combat (BARK, SWORD, SHIELD) | Partial (M6, pending review) | claimed: COM-001–014 (`test_combat_rules.gd`, `test_story_combat.gd`; the bark is an area, never parried); SLICE: all eight directions, keys/touch/gestures, no input leaks, restart mid-fight | fights of Levels 5–7 (M7); presentation polish (M8) |
 | Walk systems: stealth, leaders, lulls, sounds, modifiers | Partial (M6, pending review) | claimed: WALK-010–017; P: WALK-001–006 (survive objectives absent), NPC-001–006 (idle, goto, follow, patrol, chase, flee, wander; flail and fly absent) | WALK-018–021, survive, flail, fly (M7) |
 | Minigames: parade, rowing, the skiff | Partial (M6, pending review) | claimed: MINI-001–005 (a loss applies its exact effect once and goes on; no automatic retry; restart is the retry) | ladders, tug, letter, rumour ordering (M7, MINI-006–012); presentation polish (M8) |
+| Rewritten Levels 5–8 (5.1–8.4) and the endings | Partial (M7, pending review) | claimed: STY-501–505, STY-601–603, STY-701–707, STY-708A, STY-708B, STY-709, STY-801–804, END-001–004; CONTENT-001–005, FLOW-007, FLOW-008 and FLOW-011 extended to the M7 scenes (`test_story_m7.gd`); COLL-005b (the full aggregate: 112 targets in 36 scenes); SLICE: scripted smoke of every branch, three full real-input campaigns from the title through Main (Knight/first/0.7, Witness/last/0.7, mixed/random/0.4), the 37-entry order, an explicit failure on missing content; captures `m7_levels_5_8/` | narrative review (OD-01); the chapters' own art banks (M8, RD-39); the two clean human campaigns (manual) |
+| Walk systems of M7: survive, fire, scramble, companions, pace | Partial (M7, pending review) | claimed: WALK-018 (rotation and settling against the source's constants; no executed-source fixture: the draft draws with `Math.random`), WALK-019–021, NPC-008–011; WALK-001–006 now with survive; P: NPC-001–006 (fly absent) | fly (no scene uses it); presentation polish (M8) |
+| Minigames of M7: ladders, letter, rumour, tug | Partial (M7, pending review) | claimed: MINI-006–012 (`test_story_m7.gd`) | presentation polish (M8) |
+| Campaign rules: fade, tiers, home mapping, costumes | Partial (M7, pending review) | claimed: CAMP-001–013 (the fade RD-51, Grace and Standing tiers at their boundaries, the marvel→home mapping and 8.2's conditional data, the costume by `reality`, the cross/sermon/knight unlocks in the full campaigns); P: CAMP-014 (full Supervillain unused by the content, RD-53) | the book's "(FULL)" label (M8) |
 | Meraviglia book | Partial (M6, pending review) | SLICE: the paged viewer of the committed campaign (level list, OPTIONS), marvels awarded once and kept across replays; P: CAMP-007–011, UI-023–030 | 8.2's payoff (M7); book art and icons (M8) |
 | Campaign v1→v2 migration | Partial | SAV-013–017 (pure `CampaignMigration`, source fixtures) | M1 spike: native bridge viable for the controlled lineage on emulators, API 36, 34 and 24 (progress report 14, correction reports 15, 16 and 17; accepted on review of `8f8dcb6`); M4: the format-3 converter, SaveService integration and the fixture/simulated half of MIG-005 implemented (M4 report 27); production lineage, two WebView/device versions and MIG-001–010 proof M9 |
 | Everything else in this matrix | — | — | later milestones |

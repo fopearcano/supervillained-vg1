@@ -54,6 +54,18 @@ static func apply_effects(state: Dictionary, fx: Dictionary) -> Array:
 	return out
 
 
+## The feeling fades (source fadeCommozione, RD-05): a dream scene of Levels 2-7 starts with
+## COMMOZIONE_FADE less Commozione (never below 0), so wonder and weeping must keep filling it.
+## Returns the amount lost (0 outside Levels 2-7).
+static func fade_commozione(state: Dictionary, level: int) -> float:
+	if level < 2 or level > 7:
+		return 0.0
+	var m: Dictionary = state["meters"]
+	var before := float(m["commozione"])
+	m["commozione"] = maxf(0.0, before - GameConfig.Story.COMMOZIONE_FADE)
+	return before - float(m["commozione"])
+
+
 static func mark_complete(state: Dictionary, id: String) -> void:
 	if not (state["completed"] as Array).has(id):
 		(state["completed"] as Array).append(id)

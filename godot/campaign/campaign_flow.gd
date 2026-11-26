@@ -79,6 +79,23 @@ static func supervillained_after(catalog: StoryCatalog, id: String, replaying: b
 	return int(f["index"]) == (f["chapter"]["sub_levels"] as Array).size() - 1
 
 
+## Grace tier (source graceTier): "high" from GRACE_HIGH, "mid" from GRACE_LOW, else "low".
+static func grace_tier(state: Dictionary) -> String:
+	var g := float((state["meters"] as Dictionary)["grace"])
+	return "high" if g >= GameConfig.Story.GRACE_HIGH else ("mid" if g >= GameConfig.Story.GRACE_LOW else "low")
+
+
+## Standing tier for the ending: "fond" from STANDING_FOND, "fair" from STANDING_FAIR, else "low".
+static func standing_tier(state: Dictionary) -> String:
+	var s := float((state["meters"] as Dictionary)["standing"])
+	return "fond" if s >= GameConfig.Story.STANDING_FOND else ("fair" if s >= GameConfig.Story.STANDING_FAIR else "low")
+
+
+## The ending's two extra lines (source endingNotes): the Grace line, then the Standing line.
+static func ending_notes(state: Dictionary, text: ShellText) -> PackedStringArray:
+	return PackedStringArray([text.get_text("ending_grace_" + grace_tier(state)), text.get_text("ending_standing_" + standing_tier(state))])
+
+
 ## THE KNIGHT ("knight") when he enforced the oath, otherwise THE WITNESS ("alpha", the source key).
 static func ending(state: Dictionary) -> String:
 	return "knight" if (state["flags"] as Dictionary).get("oath") == "enforced" else "alpha"

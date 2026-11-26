@@ -80,6 +80,13 @@ static func _walk(goal: Vector2 = Vector2(13.5, 3.5)) -> ObjectiveStep:
 
 
 ## A scene Resource: level 2 (dream) unless `reality`.
+## The entry state less the dream's fade (RD-51): what a scene's working copy starts from.
+static func _faded(s: StoryScene) -> Dictionary:
+	var st := s.entry_state.duplicate(true)
+	CampaignRules.fade_commozione(st, 0 if s.data.reality else s.data.level)
+	return st
+
+
 static func _scene_data(steps: Array, reality: bool = false) -> StorySceneData:
 	var d := StorySceneData.new()
 	d.id = "1.1" if reality else "2.3"
@@ -358,7 +365,9 @@ func test_COM_013_014_routing_and_knockdown_reset_without_death_or_leakage() -> 
 	var a := _foe(s, "a")
 	var start := s.ctx.player_pos()
 	var foe_start := Vector2(a.gx, a.gy)
+	# The working copy as the scene started it: the entry less the dream's fade (RD-51).
 	var entry := s.entry_state.duplicate(true)
+	CampaignRules.fade_commozione(entry, s.data.level)
 	# He stands still: the foe winds up and hits; one heart: knocked down.
 	assert_true(_until(s, func() -> bool: return s.runner.st.has("interrupt"), 600), "knocked down")
 	assert_eq([s.hud.card_visible, s.hud.card_big, s.ctx.controls], [true, s.ctx.ui_text("story_knocked"), false], "the KNOCKED DOWN card, controls off")
@@ -395,7 +404,7 @@ func test_COM_014_restart_mid_fight_leaks_nothing() -> void:
 	_at_objective(s)
 	var a2 := _foe(s, "a")
 	assert_true(a2 != a, "a fresh foe")
-	assert_eq([a2.foe.hp, s.ctx.combat.health, s.ctx.combat.events.size(), s.ctx.state], [2.0, 3, 0, s.entry_state], "full HP, full hearts, no events, the entry state")
+	assert_eq([a2.foe.hp, s.ctx.combat.health, s.ctx.combat.events.size(), s.ctx.state], [2.0, 3, 0, _faded(s)], "full HP, full hearts, no events, the entry state (faded once)")
 	s.quit()
 	assert_true(s.finished, "quit ends the scene")
 

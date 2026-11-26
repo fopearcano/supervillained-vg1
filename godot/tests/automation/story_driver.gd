@@ -39,6 +39,18 @@ var _next_stroke := 0.0
 var _game: Object = null
 ## Minigames: false = never press (the loss path of the tests).
 var plays_minigames := true
+## M7 campaign policies. skill (1 = exact): below 1 some beats are pressed off the beat, the shield
+## comes up a little late and some openings are missed (a fight may be lost and played again; a
+## minigame may be lost: never skipped). choice_mode for choices the policy does not name: "" or
+## "first" (the first open option), "last", "random" (from rng).
+var skill := 1.0
+var choice_mode := ""
+var rng := RandomNumberGenerator.new()
+var _beat_off := {}
+var _threat_t := 0.0
+## 8.1: the turn he has learned from watching where his legs take him (radians).
+var _turn := 0.0
+var _last_press := Vector2.ZERO
 
 
 func _init(p_scene: StoryScene, p_policy: Dictionary = {}, p_gate: String = "bark", p_scripted: bool = false) -> void:
@@ -60,6 +72,16 @@ func drive(dt: float) -> void:
 		return
 	if not step is ObjectiveStep:
 		InputService.guard_hold_injected = false
+	# 8.1: he watches where his legs take him and learns the turn (only while the controls can
+	# scramble: the walk says so); anywhere else he presses straight.
+	if step is ObjectiveStep and (step as ObjectiveStep).rule == "waking":
+		var dog := scene.world.player
+		var v := IsoGrid.grid_vec_to_screen(dog.vx, dog.vy)
+		if _last_press.length() > 0.5 and v.length() > 0.8:
+			_turn = lerp_angle(_turn, _last_press.angle_to(v), 0.15)
+	else:
+		_turn = 0.0
+	_last_press = Vector2.ZERO
 	if step is MiniGameStep:
 		_mini(step as MiniGameStep, st)
 	elif step is ObjectiveStep:
@@ -86,10 +108,19 @@ func _choose(step: ChoiceStep, st: Dictionary) -> void:
 		if (open[k] as StoryChoiceOption).id == want and String((views[k] as Dictionary)["locked"]) == "":
 			idx = k
 	if idx < 0:
+		var free: Array = []
 		for k in views.size():
 			if String((views[k] as Dictionary)["locked"]) == "":
-				idx = k
-				break
+				free.append(k)
+		if not free.is_empty():
+			if choice_mode == "last":
+				idx = free[free.size() - 1]
+			elif choice_mode == "random":
+				if not st.has("_pick"):
+					st["_pick"] = free[rng.randi() % free.size()]
+				idx = st["_pick"]
+			else:
+				idx = free[0]
 	var rects: Array[Rect2] = scene.hud.choice_rects
 	if idx < 0 or idx >= rects.size() or t < _next_confirm:
 		return
@@ -228,13 +259,18 @@ func _fight(pos: Vector2) -> void:
 		InputService.guard_hold_injected = false
 		return
 	var at := Vector2(nearest.gx, nearest.gy)
+	# Below full skill the shield comes up a little after the ring starts filling.
+	_threat_t = _threat_t + DT if threat else 0.0
+	var seen_threat := threat and _threat_t >= (1.0 - skill) * 0.3
 	if scene.ctx.armed():
 		var open := nearest.foe.stun > 0.0 or nearest.foe.windup > 0.0
-		InputService.guard_hold_injected = threat and not (open and nd <= CB.SWORD_RANGE)
+		InputService.guard_hold_injected = seen_threat and not (open and nd <= CB.SWORD_RANGE)
 		if open and nd <= CB.SWORD_RANGE and t >= _next_action:
 			_next_action = t + CB.SWORD_COOLDOWN + 0.03
-			InputService.trigger(&"strike")
-			actions += 1
+			# Below full skill some openings are missed.
+			if rng.randf() < 0.5 + 0.5 * skill:
+				InputService.trigger(&"strike")
+				actions += 1
 	elif nd <= CB.BARK_RADIUS - 0.4 and t >= _next_action:
 		_next_action = t + CB.BARK_COOLDOWN + 0.05
 		InputService.trigger(&"bark")
@@ -256,6 +292,7 @@ func _mini(step: MiniGameStep, st: Dictionary) -> void:
 	if st["game"] != _game:
 		_game = st["game"]
 		_pressed_beats.clear()
+		_beat_off.clear()
 		_next_stroke = 0.0
 	if step.game == "ladders":
 		_ladders(st["game"] as LaddersGame)
@@ -292,7 +329,9 @@ func _mini(step: MiniGameStep, st: Dictionary) -> void:
 	for k in g.beats:
 		if g.judged.has(k) or _pressed_beats.has(k):
 			continue
-		if absf(g.time + DT - g.beat_at(k)) <= 0.04:
+		if not _beat_off.has(k):
+			_beat_off[k] = 0.0 if rng.randf() < skill else rng.randf_range(0.12, 0.3) * (1.0 if rng.randf() < 0.5 else -1.0)
+		if absf(g.time + DT - (g.beat_at(k) + float(_beat_off[k]))) <= 0.04:
 			_pressed_beats[k] = true
 			InputService.trigger(&"action")
 			actions += 1
@@ -417,7 +456,8 @@ func _steer(pos: Vector2, target: Vector2, blocked: Array) -> void:
 	var d := aim - pos
 	if d.length() < 0.02:
 		return
-	var s := IsoGrid.grid_vec_to_screen(d.x, d.y).normalized()
+	var s := IsoGrid.grid_vec_to_screen(d.x, d.y).normalized().rotated(-_turn)
+	_last_press = s
 	InputService.inject_move(s.x, s.y, false)
 
 

@@ -22,7 +22,7 @@ extends StoryStep
 ## Rule numbers are in `rule_params`; every line a rule shows is in `rule_lines`.
 
 const KINDS := ["reach", "collect", "follow", "fight", "rule", "survive"]
-const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder", "steady", "act_at", "shoulder", "fire", "no_running"]
+const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder", "steady", "act_at", "shoulder", "fire", "no_running", "waking", "companions"]
 ## Rules that complete a "rule" objective.
 const COMPLETING_RULES := ["lull", "listen", "act_at", "shoulder"]
 const RULE_SCRIPTS := {
@@ -38,6 +38,8 @@ const RULE_SCRIPTS := {
 	"shoulder": preload("res://story/rules/shoulder_rule.gd"),
 	"fire": preload("res://story/rules/fire_rule.gd"),
 	"no_running": preload("res://story/rules/no_running_rule.gd"),
+	"waking": preload("res://story/rules/waking_rule.gd"),
+	"companions": preload("res://story/rules/companions_rule.gd"),
 }
 const FIGHT_KEYS := ["foes", "hp", "speed", "radius", "leash", "health", "parry", "rout", "sword_cost"]
 const PICKUP_KINDS := ["shard", "spot", "coin", "marvel"]
@@ -112,6 +114,9 @@ func texts() -> PackedStringArray:
 		out.append(p.label)
 		if p.text != "":
 			out.append(p.text)
+		for t in [p.seen_label, p.seen_text]:
+			if t != "":
+				out.append(t)
 		if p.carry_label != "":
 			out.append(p.carry_label)
 	for l in leader_lines:
@@ -203,8 +208,11 @@ func actor_refs() -> PackedStringArray:
 	for group: Array in rule_params.get("responders", []):
 		for h: String in group:
 			out.append(h)
-	for h: String in rule_params.get("spread", []):
-		out.append(h)
+	if rule_params.get("spread") is Array:
+		for h: String in rule_params["spread"]:
+			out.append(h)
+	for pair: Array in rule_params.get("companions", []):
+		out.append(String(pair[0]))
 	return out
 
 
@@ -296,6 +304,16 @@ func check(errors: PackedStringArray) -> void:
 				_need(errors, rule_lines.has(k), "objective %s: fire needs rule_lines.%s" % [id, k])
 			_need(errors, goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: fire needs a goal" % id)
 			_need(errors, not no_run, "objective %s: a fire walk lets him run" % id)
+		"waking":
+			for k in ["every", "angles", "settle_at", "knock_near", "knock_far", "knock_y", "knock_every", "smell", "jerusalem"]:
+				_need(errors, rule_params.has(k), "objective %s: waking needs rule_params.%s" % [id, k])
+			for k in ["scramble", "settle", "knock", "smell", "jerusalem", "jerusalem_moves"]:
+				_need(errors, rule_lines.has(k), "objective %s: waking needs rule_lines.%s" % [id, k])
+			_need(errors, goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: waking needs a goal" % id)
+		"companions":
+			_need(errors, rule_params.has("companions") and rule_params.has("fall_in_x"), "objective %s: companions needs rule_params.companions and fall_in_x" % id)
+			for k in ["wait", "fall_in"]:
+				_need(errors, rule_lines.has(k), "objective %s: companions needs rule_lines.%s" % [id, k])
 		"no_running":
 			for k in ["out_big", "out_small"]:
 				_need(errors, rule_lines.has(k), "objective %s: no_running needs rule_lines.%s" % [id, k])
@@ -400,8 +418,9 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 			(st["picked"] as Array).append(p.id)
 			_clear_spot(ctx, spot)
 			ctx.play_sound(p.sound)
-			if p.text != "":
-				ctx.notice(p.text, MARVEL_COLOR if p.kind == "marvel" else SCRAP_COLOR)
+			var said := p.shown_text(ctx.state)
+			if said != "":
+				ctx.notice(said, MARVEL_COLOR if p.kind == "marvel" else SCRAP_COLOR)
 			if not p.effects.is_empty():
 				ctx.apply(p.effects)
 			if p.carry_label != "":
@@ -594,6 +613,7 @@ func end(ctx: StoryContext, st: Dictionary) -> void:
 		ctx.combat.stop()
 		ctx.combat = null
 	ctx.walk_speed_mul = 1.0
+	ctx.scramble_angle = 0.0
 	if st.has("interrupt"):
 		ctx.hud.hide_card()
 		st.erase("interrupt")

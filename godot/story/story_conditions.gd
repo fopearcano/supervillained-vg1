@@ -4,6 +4,11 @@ extends RefCounted
 
 
 static func holds(state: Dictionary, when: Dictionary) -> bool:
+	if when.has("any"):
+		for w: Dictionary in when["any"]:
+			if holds(state, w):
+				return true
+		return false
 	if when.has("all"):
 		for w: Dictionary in when["all"]:
 			if not holds(state, w):
@@ -34,12 +39,14 @@ static func holds(state: Dictionary, when: Dictionary) -> bool:
 
 ## "" when `when` is a well-formed condition, else why not.
 static func check(when: Dictionary) -> String:
-	if when.has("all"):
-		if not when["all"] is Array or (when["all"] as Array).is_empty():
-			return "'all' needs a list of conditions"
-		for w: Variant in when["all"]:
+	for k: String in ["all", "any"]:
+		if not when.has(k):
+			continue
+		if not when[k] is Array or (when[k] as Array).is_empty():
+			return "'%s' needs a list of conditions" % k
+		for w: Variant in when[k]:
 			if not w is Dictionary:
-				return "'all' holds a non-condition"
+				return "'%s' holds a non-condition" % k
 			var why := check(w)
 			if why != "":
 				return why

@@ -1,0 +1,332 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=38 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/prop_step.gd" id="4_propstep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="5_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="6_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="7_cardstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="8_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="9_actorstep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="10_effectstep"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="11_cuestep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="12_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "bag"
+role = "bagnaskiz"
+at = ""
+point = Vector2(13.5, 3.4)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "jack"
+role = "jack"
+at = ""
+point = Vector2(12.5, 2.4)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "watson"
+role = "watson"
+at = ""
+point = Vector2(15.3, 2.6)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_storyactorspec")
+name = "sbrim"
+role = "sbrimbrulon"
+at = ""
+point = Vector2(3.4, 4.4)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("3_storyactorspec")
+name = "conf"
+role = "confusione"
+at = ""
+point = Vector2(3.4, 2.4)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "neighborhood"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "E"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5")]
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("4_propstep")
+id = "s02"
+prop = "bowl"
+sprite = "bowl_0"
+action = "place"
+at = ""
+point = Vector2(14.6, 2.4)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("5_narrationstep")
+id = "s03"
+text = "THROUGH THE OPEN DOOR, THE BOWL. EXACTLY WHERE WATSON LEFT IT."
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("6_dialoguestep")
+id = "s04"
+speaker = "bagnaskiz"
+text = "SIGNOR VILLANO. THE PAW. YOU KNOW THE TOLL."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("6_dialoguestep")
+id = "s05"
+speaker = "jack"
+text = "(OFFERING A PAW, VERY SLOWLY) PAAARDON..."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("6_dialoguestep")
+id = "s06"
+speaker = "watson"
+text = "(LEANING IN TO TAKE THE BOWL) OOPS, MAN..."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("7_cardstep")
+id = "s07"
+big = "THE DIRECT PATH"
+small = "NO ARMOUR. AT A WALK."
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 1.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("8_objectivestep")
+id = "s08"
+objective = "WALK TO THE BOWL BY THE DIRECT PATH. KEEP PACE"
+objective_kind = "reach"
+goal_marker = ""
+goal_point = Vector2(12.4, 3.5)
+goal_label = "THE BOWL"
+goal_radius = 0.0
+pickups = []
+no_run = true
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "companions"
+rule_params = {
+"companions": [["sbrim", -0.9], ["conf", 0.9]],
+"fall_in_x": 7.5
+}
+rule_lines = {
+"wait": "HE FLINCHES. THEY WAIT FOR HIM",
+"fall_in": "SBRIMBRULON AND CONFUSIONE FALL IN BESIDE HIM"
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("9_actorstep")
+id = "s09"
+actor = "bag"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(14.5, 4.6)
+near_player = false
+face = ""
+face_player = false
+speed = 1.4
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("6_dialoguestep")
+id = "s10"
+speaker = "bagnaskiz"
+text = "..."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("7_cardstep")
+id = "s11"
+big = "BAGNASKIZ STEPS ASIDE"
+small = "NO TOOTH IS DRAWN"
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("6_dialoguestep")
+id = "s12"
+speaker = "watson"
+text = "MAN. HE STEPPED ASIDE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("8_objectivestep")
+id = "s13"
+objective = "DRINK. THEN LEAVE THE BOWL WHERE THE NEXT DOG CAN REACH IT"
+objective_kind = "rule"
+goal_marker = ""
+goal_point = Vector2(14.6, 2.4)
+goal_label = "THE BOWL"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = "DRINK"
+action_text = ""
+action_sound = "drink"
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "act_at"
+rule_params = {
+"radius": 1.4
+}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("4_propstep")
+id = "s14"
+prop = "bowl"
+sprite = "bowl_0"
+action = "place"
+at = ""
+point = Vector2(13.5, 3.5)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = "(HE DRINKS, AND PUSHES THE BOWL BACK ONTO THE LANE)"
+float_color = Color(0.247058824, 0.941176471, 1.0, 1)
+sound = ""
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("10_effectstep")
+id = "s15"
+effects = {
+"supervillain": 25,
+"value": "Resistance",
+"flags": {
+"lawnHeld": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("5_narrationstep")
+id = "s16"
+text = "THE LANE STAYS OPEN."
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("11_cuestep")
+id = "s17"
+sound = "glitch"
+shake = 0.0
+flash = true
+visor = -1.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("7_cardstep")
+id = "s18"
+big = "SUPERVILLAINED"
+small = "YOU HAVE BEEN"
+color = Color(1.0, 0.168627451, 0.839215686, 1)
+seconds = 3.4
+dim = 0.85
+sound = ""
+flash = true
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("6_dialoguestep")
+id = "s19"
+speaker = "zampano"
+text = "THERE WAS A BOWL, AND ANY DOG COULD REACH IT."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("12_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "8.3"
+content_version = 1
+title = "The vanguard of the lawn"
+old_title = "The vanguard of the lawn"
+level = 8
+summary = "WALK FROM THE STUDY TO THE BOWL BY THE DIRECT PATH. BAGNASKIZ ASKS FOR THE PAW, JACK STARTS THE IMITATION, WATSON LEANS IN TO TAKE THE BOWL. KEEP PACE AS SBRIMBRULON AND CONFUSIONE FALL IN BESIDE ZAMPANO; IF HE FLINCHES, THEY WAIT FOR HIM. BAGNASKIZ STEPS ASIDE. ZAMPANO DRINKS AND LEAVES THE BOWL WHERE THE NEXT DOG CAN REACH IT."
+map = "neighborhood"
+music = "greenzone"
+cast = PackedStringArray("zampano", "bagnaskiz", "jack", "watson")
+steps = [SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25")]
+entry_conditions = {
+"requires_completed": ["8.2"]
+}
+persistent_effects = PackedStringArray("meter.supervillain", "book.values", "flags.lawnHeld", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["lawnHeld"]
+}
+reality = true
+historical_tags = PackedStringArray("reality", "the lawn", "the bowl", "Resistance")
+source_refs = PackedStringArray("Original Greenzone scene: the title card (board, 11:52:06)", "Pierre's walk of 7.3 replayed on the lawn, with his friends as themselves", "docs/STORY.md 8.3", "src/campaign/chapters/ch8.ts 8.3 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The friends fall in beside him and wait if he flinches (NPC-008-011).")
+technical_status = "technically_complete"

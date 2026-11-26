@@ -106,5 +106,21 @@
  "7.9": {
   "content_version": 1,
   "sha256": "66a5c0a049ea0cfccb30966b9969d3ed12fdf9572423a1d6dbf1f1b12503f0c5"
+ },
+ "8.1": {
+  "content_version": 1,
+  "sha256": "4931d015a227c111f31975c9c0aaab4a9a17e8540a57f3047a0352bb355c8ff3"
+ },
+ "8.2": {
+  "content_version": 1,
+  "sha256": "2fc4ade838c5d7d1604eb7ca2fdc46124b21b183f22b3672f2c8eeaf8710e3c9"
+ },
+ "8.3": {
+  "content_version": 1,
+  "sha256": "88f49219b0290e346065c8e962f94e89289230bccce222c457495e59f59bf849"
+ },
+ "8.4": {
+  "content_version": 1,
+  "sha256": "59e79362022405adeb05deba5adf4f006f5cacba6dabd1df0da715edaf991f1e"
  }
 }

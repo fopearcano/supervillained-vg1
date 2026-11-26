@@ -117,6 +117,13 @@ func _start_run() -> void:
 		var message := ctx.error
 		(func() -> void: failed.emit(message)).call_deferred()
 		return
+	# The feeling fades (RD-05): a dream scene of Levels 2-7 starts with a little less Commozione, on
+	# the working copy only; a restart starts again from the entry state, so it fades once per
+	# committed scene.
+	var lost := CampaignRules.fade_commozione(ctx.state, 0 if data.reality else data.level)
+	if lost > 0.0:
+		ctx.metrics["faded"] = lost
+		ctx.notice(ctx.ui_text("story_fade_notice") % int(lost), Color("#9aa4c0"))
 	# The first step is the scene's StageStep (validated): it builds the first stage.
 	runner.start(data.steps)
 
@@ -307,7 +314,16 @@ func tick(dt: float) -> void:
 	dog.speed_mul = 1.0 if dog.running else ctx.walk_speed_mul
 	if ctx.controls:
 		dog.no_run = ctx.no_run
-		dog.set_intent(InputService.move_x, InputService.move_y, InputService.run_held and not ctx.no_run)
+		# 8.1's scrambled legs turn the joystick (in doubles: no float32 Vector2 on the parity path).
+		var mx := InputService.move_x
+		var my := InputService.move_y
+		if ctx.scramble_angle != 0.0:
+			var c := cos(ctx.scramble_angle)
+			var sn := sin(ctx.scramble_angle)
+			var rx := mx * c - my * sn
+			my = mx * sn + my * c
+			mx = rx
+		dog.set_intent(mx, my, InputService.run_held and not ctx.no_run)
 	elif ctx.move_target == null:
 		dog.set_intent(0.0, 0.0)
 	dog.update_movement(dt, world.map)

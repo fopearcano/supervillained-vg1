@@ -126,8 +126,16 @@ func _play(id: String, state: Dictionary, policy: Dictionary = {}, scripted: boo
 	return out
 
 
+## The scene's own starting state: the entry less the fade at a dream scene's start (RD-05).
+static func _faded(id: String, entry: Dictionary) -> Dictionary:
+	var st := entry.duplicate(true)
+	var data := StoryLibrary.scene(id)
+	CampaignRules.fade_commozione(st, 0 if data.reality else data.level)
+	return st
+
+
 func _check_snapshot(id: String, branch: String, entry: Dictionary, got: Dictionary) -> void:
-	var want := _after(id, branch, entry)
+	var want := _after(id, branch, _faded(id, entry))
 	assert_eq(got["meters"], want["meters"], "%s/%s: meters" % [id, branch])
 	assert_eq(got["flags"], want["flags"], "%s/%s: flags" % [id, branch])
 	assert_eq(got["abilities"], want["abilities"], "%s/%s: abilities" % [id, branch])
@@ -258,7 +266,7 @@ func test_STY_202_vow_in_the_lulls_list_and_clerk() -> void:
 	_ticks_until(s, func() -> bool: return bool(s.runner.st.get("talking", false)), 300)
 	InputService.trigger(&"pee")
 	_ticks(s, 1)
-	assert_eq([int(st["good"]), s.ctx.state["meters"]["commozione"]], [0, 20.0], "a vow under the sermon is drowned")
+	assert_eq([int(st["good"]), s.ctx.state["meters"]["commozione"]], [0, 20.0 - RS.COMMOZIONE_FADE], "a vow under the sermon is drowned (the entry less the fade)")
 	assert_true((s.ctx.metrics["notices"] as Array).has("FULK DROWNS HIM OUT. WAIT FOR A PAUSE"), "and he is told so")
 	# From too far: nobody hears, even in a pause.
 	_ticks_until(s, func() -> bool: return not bool(s.runner.st.get("talking", true)), 300)
@@ -281,7 +289,7 @@ func test_STY_202_vow_in_the_lulls_list_and_clerk() -> void:
 		assert_eq(int(s.runner.st["good"]), n, "vow %d heard once" % n)
 		_ticks_until(s, func() -> bool: return bool(s.runner.st.get("talking", false)), 400)
 	_ticks(s, 2)
-	assert_eq([s.ctx.state["abilities"].has("sermon"), s.ctx.state["meters"]["grace"], s.ctx.state["flags"].get("vow"), s.ctx.state["meters"]["commozione"]], [true, 75.0, true, 26.0], "sermon, Grace +5, vow; Commozione +2 per heard vow")
+	assert_eq([s.ctx.state["abilities"].has("sermon"), s.ctx.state["meters"]["grace"], s.ctx.state["flags"].get("vow"), s.ctx.state["meters"]["commozione"]], [true, 75.0, true, 26.0 - RS.COMMOZIONE_FADE], "sermon, Grace +5, vow; Commozione +2 per heard vow (after the fade)")
 	var turned := 0
 	for k in 6:
 		var a: StoryActor = s.actors.get("c%d" % k)
@@ -393,7 +401,7 @@ func test_STY_301_quay_bell_marvels_once_meraviglia_and_berths() -> void:
 	marvels.sort()
 	assert_eq(marvels, ["THE GALLEYS", "THE GREAT SHIPS", "THE HORSE TRANSPORTS"], "three marvels")
 	assert_eq(book["items"], ["MERAVIGLIA, THE BOOK OF MARVELS"], "Meraviglia received")
-	assert_eq(s.ctx.state["meters"]["commozione"], _entry("3.1")["meters"]["commozione"] + 9.0, "Commozione +3 per marvel")
+	assert_eq(s.ctx.state["meters"]["commozione"], (_entry("3.1")["meters"]["commozione"] - RS.COMMOZIONE_FADE) + 9.0, "Commozione +3 per marvel")
 	# A second pass over the same marvels awards nothing (unique book entries).
 	var again := CampaignRules.apply_effects(s.ctx.state, {"marvel": "THE GALLEYS"})
 	assert_eq([again, (s.ctx.state["book"]["marvels"] as Array).count("THE GALLEYS")], [[], 1], "a marvel is awarded once")
@@ -458,7 +466,7 @@ func test_STY_303_weeping_in_the_lulls_moves_the_square() -> void:
 	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
 	assert_true(_drive_until(s, func() -> bool: return out.has("r"), 60 * 90), "the square answers; 3.3 completes")
 	if out.has("r"):
-		assert_eq([out["r"]["state"]["flags"].get("weptWell"), out["r"]["state"]["meters"]["commozione"]], [true, _entry("3.3")["meters"]["commozione"] + 10.0], "weptWell; Commozione +5 per heard sob")
+		assert_eq([out["r"]["state"]["flags"].get("weptWell"), out["r"]["state"]["meters"]["commozione"]], [true, (_entry("3.3")["meters"]["commozione"] - RS.COMMOZIONE_FADE) + 10.0], "weptWell; Commozione +5 per heard sob")
 	assert_false(ResourceLoader.exists("res://story/minigames/weeping_game.gd"), "no weeping() minigame")
 	var mini_files: PackedStringArray = DirAccess.get_files_at("res://story/minigames") if DirAccess.dir_exists_absolute("res://story/minigames") else PackedStringArray()
 	for f: String in mini_files:
@@ -705,7 +713,7 @@ func test_MINI_001_rhythm_windows_errors_and_result() -> void:
 			continue
 		var sc: StoryScene = out["scene"]
 		assert_eq([sc.ctx.metrics["minis"], sc.runner.trace.count("s07"), sc.runner.trace.count("s08")], [[pair[1]], 1, 1], "%s: one result, one game, one advance" % pair[1])
-		assert_eq(float(out["r"]["state"]["meters"]["commozione"]) - float(entry["meters"]["commozione"]), pair[2], "%s: its exact effect once" % pair[1])
+		assert_eq(float(out["r"]["state"]["meters"]["commozione"]) - (float(entry["meters"]["commozione"]) - RS.COMMOZIONE_FADE), pair[2], "%s: its exact effect once" % pair[1])
 
 
 func _mini_run(id: String, plays: bool, policy: Dictionary = {}) -> Dictionary:
@@ -740,7 +748,7 @@ func test_MINI_002_parade_rhythm_won_and_lost_effects() -> void:
 		if not assert_true(out.has("r"), "4.1 %s: completes" % pair[2]):
 			continue
 		var st: Dictionary = out["r"]["state"]
-		assert_eq([st["meters"]["commozione"] - entry["meters"]["commozione"], st["book"]["marvels"].count("THE FLEET LEAVING VENICE")], [pair[1], 1], "4.1 %s: its effects, once" % pair[2])
+		assert_eq([st["meters"]["commozione"] - (entry["meters"]["commozione"] - RS.COMMOZIONE_FADE), st["book"]["marvels"].count("THE FLEET LEAVING VENICE")], [pair[1], 1], "4.1 %s: its effects, once" % pair[2])
 		assert_eq(((out["scene"] as StoryScene).ctx.metrics["minis"] as Array), ["parade:" + String(pair[2])], "4.1 %s: one game, one result" % pair[2])
 
 
@@ -757,7 +765,7 @@ func test_MINI_003_rowing_rhythm_won_and_lost_effects() -> void:
 		if not assert_true(out.has("r"), "4.3 %s: completes" % pair[2]):
 			continue
 		var st: Dictionary = out["r"]["state"]
-		assert_eq([st["meters"]["commozione"] - entry["meters"]["commozione"], st["flags"].get("heardZara")], [pair[1], true], "4.3 %s: its effect once; heardZara" % pair[2])
+		assert_eq([st["meters"]["commozione"] - (entry["meters"]["commozione"] - RS.COMMOZIONE_FADE), st["flags"].get("heardZara")], [pair[1], true], "4.3 %s: its effect once; heardZara" % pair[2])
 		assert_eq((out["scene"] as StoryScene).runner.trace.count("s09"), 1, "4.3 %s: the game ran once (no automatic retry)" % pair[2])
 
 
@@ -787,7 +795,7 @@ func test_MINI_004_cleanup_loss_continuation_and_restart() -> void:
 		s.tick(DT)
 	assert_true(out.has("r"), "4.1 completes after the restart")
 	if out.has("r"):
-		assert_eq([out["r"]["state"]["meters"]["commozione"] - _entry("4.1")["meters"]["commozione"], s.ctx.metrics["minis"]], [8.0, ["parade:won"]], "one result, applied once")
+		assert_eq([out["r"]["state"]["meters"]["commozione"] - (_entry("4.1")["meters"]["commozione"] - RS.COMMOZIONE_FADE), s.ctx.metrics["minis"]], [8.0, ["parade:won"]], "one result, applied once")
 	assert_false(ResourceLoader.exists("res://story/minigames/weeping_game.gd"), "the dormant weeping() game is not ported")
 	for game_id: String in MiniGameStep.GAMES:
 		assert_true(["parade", "rowing", "boat", "ladders", "letter", "rumour", "tug"].has(game_id), game_id + " is one of the campaign's own games (no framework)")
@@ -825,7 +833,7 @@ func test_MINI_005_boat_alignment_objective_and_result() -> void:
 	var out := _mini_run("4.2", true)
 	assert_true(out.has("r"), "4.2 completes")
 	if out.has("r"):
-		assert_eq(out["r"]["state"]["meters"]["commozione"] - _entry("4.2")["meters"]["commozione"], 4.0, "Commozione +4 once")
+		assert_eq(out["r"]["state"]["meters"]["commozione"] - (_entry("4.2")["meters"]["commozione"] - RS.COMMOZIONE_FADE), 4.0, "Commozione +4 once")
 		assert_eq(((out["scene"] as StoryScene).ctx.metrics["minis"] as Array), ["boat:won"], "won")
 	var data := StoryLibrary.scene("4.2")
 	var mg: MiniGameStep = data.steps.filter(func(x: StoryStep) -> bool: return x is MiniGameStep)[0]
@@ -874,7 +882,7 @@ func test_STY_401_403_deck_horses_bucket_and_rumours() -> void:
 		if not assert_true(res.has("r"), "%s completes" % row[0]):
 			continue
 		var stt: Dictionary = res["r"]["state"]
-		assert_eq([(res["scene"] as StoryScene).ctx.metrics["minis"], float(stt["meters"]["commozione"]) - float(_entry(row[0])["meters"]["commozione"])], [[row[1]], row[2]], "%s: %s and its effect" % [row[0], row[1]])
+		assert_eq([(res["scene"] as StoryScene).ctx.metrics["minis"], float(stt["meters"]["commozione"]) - (float(_entry(row[0])["meters"]["commozione"]) - RS.COMMOZIONE_FADE)], [[row[1]], row[2]], "%s: %s and its effect" % [row[0], row[1]])
 		if row[3] != "":
 			assert_eq((stt["book"]["marvels"] as Array).count(row[3]), 1, "%s: the fleet's marvel once" % row[0])
 		if row[0] == "4.2":

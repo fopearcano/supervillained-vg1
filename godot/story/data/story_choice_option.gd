@@ -14,6 +14,9 @@ extends Resource
 @export var cost := 0
 ## A permanent lock reason shown greyed ("" = not locked).
 @export var locked_text := ""
+## 8.2: the option is open only while this condition holds (StoryConditions); otherwise it shows
+## locked with `locked_text`. Empty: a non-empty `locked_text` locks it for good.
+@export var requires: Dictionary = {}
 @export var effects: Dictionary = {}
 ## Follow-up StoryStep Resources.
 @export var then_steps: Array = []
