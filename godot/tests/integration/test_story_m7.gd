@@ -12,7 +12,7 @@ const NOW := 1795608000000
 const CB := GameConfig.Combat
 const RS := GameConfig.Story
 ## Every M7 scene in catalog order (this build's).
-const IDS := ["5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3"]
+const IDS := ["5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4"]
 ## Choices a run takes (choice id -> option id; "letter": the letter's outcome) and the branches.
 const BRANCHES := {"5.1": [{"s16": "jerusalem"}, {"s16": "host"}], "5.3": [{"s07": "pope"}, {"s07": "host"}, {"s07": "debt"}], "5.4": [{"letter": "named"}, {"letter": "necessity"}], "6.1": [{"s10": "share"}, {"s10": "dice"}], "6.3": [{"s14": "stay"}, {"s14": "syria"}]}
 ## What each scene commits on top of its entry state: meter deltas, flags, abilities, coins, how many
@@ -184,6 +184,51 @@ const SNAP := {
 		},
 		"abilities": [],
 		"book": {
+			"remembered": 1
+		}
+	},
+	"7.1": {
+		"meters": {
+			"commozione": 12
+		},
+		"flags": {},
+		"abilities": [],
+		"book": {
+			"marvels": 3,
+			"remembered": 1
+		}
+	},
+	"7.2": {
+		"meters": {},
+		"flags": {},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
+	},
+	"7.3": {
+		"meters": {
+			"supervillain": 15
+		},
+		"flags": {
+			"vanguard": true
+		},
+		"abilities": [],
+		"book": {
+			"values": 1,
+			"remembered": 1
+		}
+	},
+	"7.4": {
+		"meters": {
+			"commozione": 13
+		},
+		"flags": {
+			"visitedCity": true
+		},
+		"abilities": [],
+		"book": {
+			"marvels": 4,
 			"remembered": 1
 		}
 	}
@@ -746,6 +791,196 @@ static func _texts_in(sc: StorySceneData) -> PackedStringArray:
 		for b: Array in st.branches():
 			stack.append_array(b)
 	return out
+
+
+# --- Level 7: 7.1–7.4 ------------------------------------------------------------------------------
+
+## STY-701, MINI-009: 7.1 — three marvels from the camp (each once); then the row along the walls is a
+## tug meant to be lost: each pull takes the rope back, the force keeps growing, and however fast he
+## rows the result is "lost" (there is no won result); its effect (Commozione +3) once; the scene goes
+## on once to "NOBODY KNOWS HIM".
+func test_STY_701_MINI_009_three_marvels_and_the_tug_lost_by_design() -> void:
+	var g := TugGame.new()
+	var r := ""
+	var t := 0.0
+	var next := 0.0
+	while r != "lost" and t < 120.0:
+		var n := 0
+		if t >= next:
+			n = 1
+			next = t + 1.0 / 8.0
+		r = g.update(DT, n)
+		t += DT
+	assert_eq(r, "lost", "rowing as fast as a person can: still lost (%.1f s)" % t)
+	var idle := TugGame.new()
+	var t2 := 0.0
+	while idle.update(DT, 0) != "lost":
+		t2 += DT
+	assert_true(t2 < t, "without rowing it is lost sooner (%.1f s < %.1f s)" % [t2, t])
+	var src := FileAccess.get_file_as_string("res://story/minigames/tug_game.gd")
+	assert_false(src.contains("\"won\""), "the tug has no won result")
+	var out := _mini_run("7.1", true)
+	if not assert_true(out.has("r"), "7.1 completes by real input"):
+		return
+	var sc: StoryScene = out["scene"]
+	var st: Dictionary = out["r"]["state"]
+	assert_eq([sc.ctx.metrics["minis"], sc.runner.trace.count("s08"), sc.runner.trace.count("s10")], [["tug:lost"], 1, 1], "lost once; the scene goes on once")
+	var base := _entry("7.1")
+	assert_eq(float(st["meters"]["commozione"]) - float(base["meters"]["commozione"]), 12.0, "three marvels (+9) and the tug's loss (+3), once each")
+	for m in ["THE GREAT WALLS", "THE CITY OF ROOFS", "THE GOLDEN DOMES"]:
+		assert_eq((st["book"]["marvels"] as Array).count(m), 1, m + " once")
+
+
+## STY-702: 7.2 — the banner followed through the landing; the hold by the banner lasts 18 s against
+## three parrying axe-men (no one need be routed); the real inputs fight it (U, I held, B, the round
+## button, a swipe); a knockdown shows its card and starts the hold again (the clock back to 0, the
+## guards back, hearts full) with nothing applied; then the driver holds the full 18 s (no skip) and
+## carries word to the camp.
+func test_STY_702_hold_ground_real_inputs_knockdown_and_survival() -> void:
+	var s := _scene("7.2", _entry("7.2"))
+	if not _to_step(s, "s11"):
+		return
+	var c := s.ctx.combat
+	assert_eq([c.need(), bool(c.def["parry"]), (s.runner.current as ObjectiveStep).survive], [0, true, 18.0], "hold 18 s; no rout needed; they parry")
+	for a: StoryActor in c.foes:
+		a.foe.cooldown = 5.0
+	await tree.process_frame
+	for code: Key in [KEY_U, KEY_B]:
+		var e := InputEventKey.new()
+		e.keycode = code
+		e.physical_keycode = code
+		e.pressed = true
+		Input.parse_input_event(e)
+		await tree.process_frame
+		e = e.duplicate()
+		e.pressed = false
+		Input.parse_input_event(e)
+		await tree.process_frame
+		_ticks(s, int(CB.BARK_COOLDOWN / DT) + 2)
+	assert_true(c.events.has("strike") and c.events.has("bark"), "U swung, B barked")
+	var ei := InputEventKey.new()
+	ei.keycode = KEY_I
+	ei.physical_keycode = KEY_I
+	ei.pressed = true
+	Input.parse_input_event(ei)
+	await tree.process_frame
+	_ticks(s, int(CB.SHIELD_PULSE / DT) + 10)
+	assert_true(c.guarding, "I held: the shield stays up")
+	ei = ei.duplicate()
+	ei.pressed = false
+	Input.parse_input_event(ei)
+	await tree.process_frame
+	_ticks(s, int(CB.SHIELD_PULSE / DT) + 2)
+	var gp := Vector2(s.view_size().x - 30, s.view_size().y * 0.4)
+	InputService.pointer_down(4, gp)
+	InputService.pointer_move(4, gp + Vector2(0, -16))
+	InputService.pointer_move(4, gp + Vector2(0, -32))
+	InputService.pointer_up(4, gp + Vector2(0, -32))
+	_ticks(s, 1)
+	assert_eq([InputService.last_gesture.get("kind", ""), c.events.count("strike")], ["swipeUp", 2], "a swipe up swings")
+	var lay: Dictionary = s.controls._layout
+	_ticks(s, int(CB.SWORD_COOLDOWN / DT) + 2)
+	InputService.trigger(&"switch")
+	_ticks(s, 1)
+	InputService.pointer_down(5, lay["action"])
+	InputService.pointer_up(5, lay["action"])
+	_ticks(s, 1)
+	assert_eq(c.events.count("strike"), 3, "the round button in SWORD mode swings")
+	# A knockdown: the hold starts again, nothing applied.
+	var before := s.ctx.state.duplicate(true)
+	_ticks(s, 120)
+	assert_true(float(s.runner.st["t"]) > 1.5, "the clock runs")
+	c.health = 1
+	c.invuln = 0.0
+	var v0: StoryActor = c.foes[0]
+	v0.set_grid_position(s.ctx.player_pos().x + 0.8, s.ctx.player_pos().y)
+	v0.knock(0.0, 0.0)
+	v0.foe.stun = 0.0
+	v0.foe.cooldown = 0.0
+	assert_true(_ticks_until(s, func() -> bool: return s.runner.st.has("interrupt"), 300), "knocked down")
+	assert_true(_ticks_until(s, func() -> bool: return not s.runner.st.has("interrupt"), 300), "up again")
+	assert_true(float(s.runner.st["t"]) < 0.1, "the hold starts again")
+	assert_eq([c.health, s.ctx.state], [c.max_health, before], "hearts full; nothing applied")
+	var out := {}
+	s.completed.connect(func(x: Dictionary) -> void: out["r"] = x)
+	var held := [0.0]
+	var d := StoryDriver.new(s)
+	for k in 60 * 120:
+		if out.has("r"):
+			break
+		if s.runner.current != null and s.runner.current.id == "s11":
+			held[0] = maxf(held[0], float(s.runner.st.get("t", 0.0)))
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	InputService.guard_hold_injected = false
+	# The last tick inside the hold reads the clock one frame short of 18 s.
+	assert_true(held[0] >= 18.0 - 2.0 * DT, "held the full 18 s by real input (%.2f)" % held[0])
+	assert_true(out.has("r"), "then carried word to the camp")
+
+
+## STY-703, NPC-008–011 (7.3): the companions' pace — Saint-Pol keeps beside Pierre; Flanders turns
+## back, then (at 45 % of the march) comes round and falls in beside Pierre. Staying level fills the
+## nerve; behind, ahead or aside empties it with its own notice; at no nerve OUT OF STEP sends both back
+## to the start (Pierre marches again); the cooks join; the window's words float. Level to the end:
+## `vanguard`, Supervillain +15 and the value PHYSICAL COURAGE, once.
+func test_STY_703_companion_pace_feedback_out_of_step_and_vanguard() -> void:
+	var s := _scene("7.3", _entry("7.3"))
+	if not _to_step(s, "s11"):
+		return
+	var pierre: StoryActor = s.actors["pierre"]
+	var stpol: StoryActor = s.actors["stpol"]
+	assert_eq([stpol.behavior, stpol.follow_actor == pierre], ["follow", true], "Saint-Pol keeps beside Pierre")
+	assert_eq(s.actors["flanders"].behavior, "goto", "Flanders turned back")
+	# Standing still: Pierre walks on; behind, the nerve drains to OUT OF STEP.
+	assert_true(_ticks_until(s, func() -> bool: return (s.ctx.metrics.get("pace", []) as Array).has("behind"), 600), "behind: its notice")
+	assert_true(_ticks_until(s, func() -> bool: return s.runner.st.has("interrupt"), 60 * 20), "out of step")
+	assert_eq(s.hud.card_big, "OUT OF STEP", "the card")
+	assert_true(_ticks_until(s, func() -> bool: return not s.runner.st.has("interrupt"), 300), "the card passes")
+	assert_vec_near(s.ctx.player_pos(), s.ctx.marker("S"), 0.01, "back at the start")
+	assert_true(pierre.behavior == "goto" and Vector2(pierre.gx, pierre.gy).distance_to(s.ctx.marker("S") - Vector2(1, 0)) < 0.2, "Pierre back at the start, marching")
+	# Ahead: its own notice.
+	# Six tiles ahead (Pierre walks 1.5 tiles a second, so still ahead when the notice comes due).
+	s.world.player.set_grid_position(pierre.gx, pierre.gy - 6.0)
+	assert_true(_ticks_until(s, func() -> bool: return (s.ctx.metrics.get("pace", []) as Array).has("ahead"), 200), "ahead: its notice")
+	s.world.player.set_grid_position(pierre.gx + 1.0, pierre.gy)
+	var out := {}
+	s.completed.connect(func(x: Dictionary) -> void: out["r"] = x)
+	var flanders_fell_in := [false]
+	var d := StoryDriver.new(s)
+	for k in 60 * 120:
+		if out.has("r"):
+			break
+		var fl: StoryActor = s.actors.get("flanders")
+		if fl and fl.behavior == "follow" and fl.follow_actor == pierre:
+			flanders_fell_in[0] = true
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	assert_true(out.has("r"), "7.3 completes level with Pierre")
+	assert_true(flanders_fell_in[0], "Flanders rejoined beside Pierre")
+	var shown: Array = s.ctx.metrics["notices"]
+	assert_true(shown.has("THE GROOMS AND COOKS COME TOO, WITH POTS AND PESTLES") and shown.has("FLANDERS COMES ROUND AND REJOINS THEM"), "the cooks and Flanders")
+	if out.has("r"):
+		var st: Dictionary = out["r"]["state"]
+		assert_eq([st["flags"].get("vanguard"), (st["book"]["values"] as Array).count("Physical courage")], [true, 1], "vanguard; PHYSICAL COURAGE once")
+		assert_eq(float(st["meters"]["supervillain"]) - float(_entry("7.3")["meters"]["supervillain"]), 15.0, "Supervillain +15 once")
+
+
+## STY-704: 7.4 — Watson walks beside him; four marvels (the palace, Hercules, the column, the
+## courtyard), each once (+13 Commozione); `visitedCity`; a second visit awards nothing new.
+func test_STY_704_four_marvels_once_and_the_visited_city() -> void:
+	var out := _play("7.4", _entry("7.4"))
+	if not assert_true(out.has("result"), "7.4 completes"):
+		return
+	var st: Dictionary = out["result"]["state"]
+	assert_eq([st["flags"].get("visitedCity"), float(st["meters"]["commozione"]) - float(_entry("7.4")["meters"]["commozione"])], [true, 13.0], "visitedCity; +13")
+	for m in ["THE PALACE OF THE LION'S MOUTH", "THE BRONZE HERCULES", "THE CARVED COLUMN", "A LAMP IN A COURTYARD"]:
+		assert_eq((st["book"]["marvels"] as Array).count(m), 1, m + " once")
+	assert_eq(((out["scene"] as StoryScene).actors["watson"] as StoryActor).behavior, "follow", "Watson walks beside him")
+	var again := _play("7.4", st)
+	if assert_true(again.has("result"), "a second visit"):
+		assert_eq((again["result"]["state"]["book"]["marvels"] as Array).size(), (st["book"]["marvels"] as Array).size(), "no marvel twice")
 
 # --- Restart, replay, force-close -----------------------------------------------------------------
 

@@ -35,6 +35,8 @@ var arrived := true
 ## follow: keeps this far behind the player and `follow_side` tiles to his side.
 var follow_gap := 1.2
 var follow_side := 0.0
+## follow: another actor to follow instead of the player (7.3's companions), or null.
+var follow_actor: StoryActor = null
 ## idle: keeps turning to the player.
 var face_player_always := false
 ## patrol: the points (grid), the pause at each.
@@ -257,12 +259,15 @@ func tick(dt: float, map: WorldMapModel, player: Vector2) -> void:
 				arrived = Vector2(gx, gy).distance_to(target) < ARRIVE_DISTANCE
 			run = running
 		"follow":
-			var d := player - Vector2(gx, gy)
+			var tgt := player
+			if follow_actor != null and is_instance_valid(follow_actor):
+				tgt = Vector2(follow_actor.gx, follow_actor.gy)
+			var d := tgt - Vector2(gx, gy)
 			var length := d.length()
 			if length > follow_gap:
-				var goal := player - d / length * follow_gap
+				var goal := tgt - d / length * follow_gap
 				if follow_side != 0.0:
-					goal = player + Vector2(-d.y, d.x) / length * follow_side - d / length * follow_gap * 0.5
+					goal = tgt + Vector2(-d.y, d.x) / length * follow_side - d / length * follow_gap * 0.5
 				var to := goal - Vector2(gx, gy)
 				if to.length() > 0.05:
 					var step := minf(to.length(), speed * dt)
@@ -271,7 +276,7 @@ func tick(dt: float, map: WorldMapModel, player: Vector2) -> void:
 					gy = r[1]
 					moving = true
 				run = length > follow_gap * 2.0
-			face_point(player)
+			face_point(tgt)
 		"patrol":
 			if _pause_left > 0.0:
 				_pause_left -= dt

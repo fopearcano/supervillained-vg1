@@ -1,0 +1,356 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=36 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="5_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/prop_step.gd" id="7_propstep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="8_actorstep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="9_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="10_carrystep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="11_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "doge"
+role = "doge"
+at = ""
+point = Vector2(7.9, 24.5)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "field"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_cardstep")
+id = "s02"
+big = "17 JULY 1203"
+small = "THE SEA WALLS"
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 1.8
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_dialoguestep")
+id = "s03"
+speaker = "doge"
+text = "I AM OLD AND BLIND. GIVE ME THE BANNER OF SAINT MARK AND PUT ME ASHORE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_objectivestep")
+id = "s04"
+objective = "FOLLOW THE DOGE'S BANNER THROUGH THE LANDING"
+objective_kind = "follow"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = "doge"
+path = PackedStringArray("3", "1")
+leader_speed = 1.9
+leader_lines = PackedStringArray("TO THE WALLS!", "HERE. PLANT IT HERE.")
+rule = "sounder"
+rule_params = {
+"actor": "doge",
+"every": 1.8
+}
+rule_lines = {
+"sound": "(THE BANNER OF SAINT MARK)"
+}
+hint = ""
+hint_after = 0.6
+leader_leg_timeout = 20.0
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("7_propstep")
+id = "s05"
+prop = "banner"
+sprite = "banner_0"
+action = "place"
+at = ""
+point = Vector2(0.3, -0.3)
+tint = Color(1.0, 1.0, 1.0, 1)
+float_text = ""
+float_color = Color(1.0, 1.0, 1.0, 1)
+sound = ""
+near_player = true
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("8_actorstep")
+id = "s06"
+actor = "v0"
+action = "spawn"
+role = "varangian"
+at = "8"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("8_actorstep")
+id = "s07"
+actor = "v1"
+action = "spawn"
+role = "varangian"
+at = "9"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("8_actorstep")
+id = "s08"
+actor = "v2"
+action = "spawn"
+role = "varangian"
+at = "7"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("9_narrationstep")
+id = "s09"
+text = "AT THE PARAPET, THE AXE-BEARING GUARDS: DANES AND ENGLISH."
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("4_cardstep")
+id = "s10"
+big = "THE AXES COME DOWN"
+small = "THE GUARDS LEAVE THE PARAPET. STAND BY THE BANNER, SHIELD UP, UNTIL THE VENETIANS HOLD THE TOWERS."
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("6_objectivestep")
+id = "s11"
+objective = "HOLD YOUR GROUND BY THE BANNER"
+objective_kind = "survive"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {
+"rout": ["BACK TO THE WALL!", "TO THE EMPEROR!", "THE TOWERS ARE LOST!"]
+}
+hint = ""
+hint_after = 0.6
+fight = {
+"foes": ["v0", "v1", "v2"],
+"rout": 0,
+"hp": 3.0,
+"speed": 1.2,
+"radius": 6.0,
+"leash": 9.0,
+"parry": true
+}
+knocked_text = "UP AGAIN. WHEN THE RING UNDER AN AXE-MAN FILLS: SHIELD UP."
+survive = 18.0
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("8_actorstep")
+id = "s12"
+actor = "v0"
+action = "goto"
+role = ""
+at = "8"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 1.6
+run = true
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("8_actorstep")
+id = "s13"
+actor = "v1"
+action = "goto"
+role = ""
+at = "9"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 1.6
+run = true
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("8_actorstep")
+id = "s14"
+actor = "v2"
+action = "goto"
+role = ""
+at = "7"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 1.6
+run = true
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("4_cardstep")
+id = "s15"
+big = "THE TOWERS"
+small = "THE VENETIANS TAKE TOWERS ALONG THE SEA WALL. THE AXE-MEN FALL BACK."
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("5_dialoguestep")
+id = "s16"
+speaker = "marshal"
+text = "(LATER, IN THE MARSHAL'S BOOK) I DID NOT SEE THE BANNER ON THE TOWER MYSELF. MORE THAN FORTY PEOPLE TOLD ME."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("5_dialoguestep")
+id = "s17"
+speaker = "doge"
+text = "GO. TELL THE CAMP ON THE LAND SIDE. WHAT COMES OUT OF THAT GATE IS NOT SMALL."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("10_carrystep")
+id = "s18"
+label = "WORD FOR THE CAMP"
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("6_objectivestep")
+id = "s19"
+objective = "CARRY WORD TO THE LANDWARD CAMP"
+objective_kind = "reach"
+goal_marker = "2"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE LANDWARD CAMP"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("10_carrystep")
+id = "s20"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("4_cardstep")
+id = "s21"
+big = "A MUCH LARGER FORCE"
+small = "HAS COME OUT TO MEET THEM. CLARI WILL SAY A HUNDRED THOUSAND HORSEMEN."
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("5_dialoguestep")
+id = "s22"
+speaker = "zampano"
+text = "THERE WAS A BANNER, AND A BLIND MAN WAS CARRYING IT."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("11_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.2"
+content_version = 1
+title = "The Doge's banner"
+old_title = "The Doge's banner"
+level = 7
+summary = "17 JULY 1203, AT THE SEA WALLS. THE OLD, BLIND DOGE HAS HIMSELF PUT ASHORE WITH THE BANNER OF SAINT MARK. FOLLOW IT THROUGH THE LANDING WHILE AXE-BEARING GUARDS APPEAR AT THE PARAPET. THEY COME DOWN: HOLD YOUR GROUND BY THE BANNER, SHIELD UP, UNTIL THE VENETIANS HOLD THE TOWERS. THEN CARRY WORD TO THE LANDWARD CAMP: THE EMPEROR HAS COME OUT WITH A MUCH LARGER FORCE."
+map = "field"
+music = "medieval"
+cast = PackedStringArray("zampano", "doge", "marshal")
+steps = [SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24")]
+entry_conditions = {
+"requires_completed": ["7.1"]
+}
+persistent_effects = PackedStringArray("book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the assault of 17 July 1203", "the Doge and the banner of Saint Mark", "the axe-bearing guard", "Alexios III comes out")
+source_refs = PackedStringArray("Villehardouin pp. 41-45: the assault of 17 July; the Doge lands with the standard of Saint Mark (\"more than forty people told him\", quoted per docs/STORY-SOURCES.md); the Venetians take towers; Alexios III comes out", "Clari 44 and 46: his estimate of the emperor's horsemen (a claim)", "docs/STORY.md 7.2", "src/campaign/chapters/ch7.ts 7.2 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The stand by the banner against the axe-men is adaptation: a timed hold (18 s) in a fight that need rout nobody; a knockdown starts the hold again.", "\"A HUNDRED THOUSAND HORSEMEN\" is Clari's own figure, given as his (a claim).")
+technical_status = "technically_complete"

@@ -22,9 +22,9 @@ extends StoryStep
 ## Rule numbers are in `rule_params`; every line a rule shows is in `rule_lines`.
 
 const KINDS := ["reach", "collect", "follow", "fight", "rule", "survive"]
-const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder", "steady", "act_at"]
+const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder", "steady", "act_at", "shoulder"]
 ## Rules that complete a "rule" objective.
-const COMPLETING_RULES := ["lull", "listen", "act_at"]
+const COMPLETING_RULES := ["lull", "listen", "act_at", "shoulder"]
 const RULE_SCRIPTS := {
 	"visor": preload("res://story/rules/visor_rule.gd"),
 	"jack_gate": preload("res://story/rules/jack_gate_rule.gd"),
@@ -35,6 +35,7 @@ const RULE_SCRIPTS := {
 	"sounder": preload("res://story/rules/sounder_rule.gd"),
 	"steady": preload("res://story/rules/steady_rule.gd"),
 	"act_at": preload("res://story/rules/act_at_rule.gd"),
+	"shoulder": preload("res://story/rules/shoulder_rule.gd"),
 }
 const FIGHT_KEYS := ["foes", "hp", "speed", "radius", "leash", "health", "parry", "rout", "sword_cost"]
 const PICKUP_KINDS := ["shard", "spot", "coin", "marvel"]
@@ -188,7 +189,7 @@ func actor_refs() -> PackedStringArray:
 	var out := PackedStringArray()
 	if leader != "":
 		out.append(leader)
-	for k in ["blocker", "source", "actor"]:
+	for k in ["blocker", "source", "actor", "leader", "rejoin_actor", "window_actor"]:
 		if rule_params.has(k):
 			out.append(String(rule_params[k]))
 	for h: String in fight.get("foes", []):
@@ -272,6 +273,11 @@ func check(errors: PackedStringArray) -> void:
 			_need(errors, objective_kind == "survive", "objective %s: steady needs a survive objective" % id)
 			for k in ["label", "wobble"]:
 				_need(errors, rule_lines.has(k), "objective %s: steady needs rule_lines.%s" % [id, k])
+		"shoulder":
+			for k in ["leader", "from", "to", "band", "side", "lose", "gain", "speed", "pots_at", "rejoin_at", "rejoin_actor", "window_actor", "window_from"]:
+				_need(errors, rule_params.has(k), "objective %s: shoulder needs rule_params.%s" % [id, k])
+			for k in ["label", "ahead", "behind", "side", "pots", "rejoin", "window", "out_big", "out_small"]:
+				_need(errors, rule_lines.has(k), "objective %s: shoulder needs rule_lines.%s" % [id, k])
 		"act_at":
 			_need(errors, rule_params.has("radius") and action_label != "", "objective %s: act_at needs rule_params.radius and the walk's action" % id)
 			_need(errors, goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: act_at needs a goal" % id)
@@ -400,6 +406,10 @@ func tick(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 		return false
 	if st.has("rule") and (st["rule"] as ObjectiveRule).tick(ctx, self, st, dt):
 		return true
+	if st.has("rule_restart"):
+		var rr: Dictionary = st["rule_restart"]
+		_interrupt(ctx, st, "rule", String(rr["big"]), String(rr["small"]), 2.0)
+		return false
 	if ctx.error != "":
 		return true
 	if objective_kind == "follow":
@@ -486,6 +496,12 @@ func _tick_interrupt(ctx: StoryContext, st: Dictionary, dt: float) -> bool:
 		a.alert = 0.0
 	if String(it["kind"]) == "knocked":
 		ctx.combat.reset()
+		# A hold (survive) starts again after a knockdown.
+		if objective_kind == "survive":
+			st["t"] = 0.0
+	if String(it["kind"]) == "rule":
+		st.erase("rule_restart")
+		(st["rule"] as ObjectiveRule).restart(ctx, self, st)
 	for a: StringName in [&"action", &"pee", &"bark", &"switch", &"strike", &"guard"]:
 		InputService.consume(a)
 	ctx.set_controls(true)

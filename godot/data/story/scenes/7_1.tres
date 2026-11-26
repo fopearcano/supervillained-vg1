@@ -1,0 +1,211 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=25 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="3_cardstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="4_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="5_storypickup"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="6_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="7_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/minigame_step.gd" id="8_minigamestep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="9_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "city"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = []
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_cardstep")
+id = "s02"
+big = "CONSTANTINOPLE"
+small = "THE CITY FILLS THE SCREEN, AND LOOKS BACK"
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("5_storypickup")
+id = "walls"
+at = "7"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE GREAT WALLS"
+text = "TOWER AFTER TOWER, AS FAR AS THE SEA."
+sprite = ""
+effects = {
+"marvel": "THE GREAT WALLS",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("5_storypickup")
+id = "roofs"
+at = "3"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE CITY OF ROOFS"
+text = "EVERY ROOF IS FULL OF PEOPLE STARING BACK."
+sprite = ""
+effects = {
+"marvel": "THE CITY OF ROOFS",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("5_storypickup")
+id = "domes"
+at = "4"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE GOLDEN DOMES"
+text = "THEY SHINE EVEN WHEN THE SUN DOES NOT."
+sprite = ""
+effects = {
+"marvel": "THE GOLDEN DOMES",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("4_objectivestep")
+id = "s03"
+objective = "LOOK FROM THE CAMP TOWARDS THE DOMES"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5")]
+no_run = false
+action_label = "LOOK"
+action_text = "OOOH."
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("3_cardstep")
+id = "s04"
+big = "NIKETAS CHONIATES"
+small = "AN OFFICIAL OF THE EMPIRE, AND A HISTORIAN. NOBODY FROM THE LAWN: THE DREAM HAS NO FACE TO LEND HIM."
+color = Color(0.784313725, 0.62745098, 1.0, 1)
+seconds = 3.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("6_dialoguestep")
+id = "s05"
+speaker = "niketas"
+text = "THE BEGINNING OF JULY, IN THE YEAR 6711 SINCE THE CREATION OF THE WORLD. FROM OUR ROOFS THEY LOOK LIKE A FAIR THAT HAS LOST ITS WAY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("6_dialoguestep")
+id = "s06"
+speaker = "niketas"
+text = "THOSE OF THE WEST. LATINS. BARBARIANS WITH SHAVEN CHEEKS, SO THEY ALL LOOK YOUNG. WHO ARE THEY BRINGING US?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("7_narrationstep")
+id = "s07"
+text = "ROW THE YOUNG ALEXIOS ALONG THE WALLS. HIS SUBJECTS WILL KNOW HIM."
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("8_minigamestep")
+id = "s08"
+game = "tug"
+lines = {
+"title": "ALONG THE WALLS",
+"objective": "ROW THE YOUNG ALEXIOS ALONG THE WALLS",
+"help": "ROW! (TAP)",
+"lost": "THE SHOUTING PUSHES THE BOAT BACK"
+}
+won_effects = {}
+lost_effects = {
+"commozione": 3
+}
+params = {
+"friend": "prince"
+}
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("6_dialoguestep")
+id = "s09"
+speaker = "niketas"
+text = "WHO IS THAT BOY? WE ROMANS HAVE AN EMPEROR."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("3_cardstep")
+id = "s10"
+big = "NOBODY KNOWS HIM"
+small = "NO AMOUNT OF ROWING WILL MAKE HIM WELCOME"
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_dialoguestep")
+id = "s11"
+speaker = "zampano"
+text = "THERE WAS A PRINCE, AND NOBODY HAD EVER SEEN HIM."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("9_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.1"
+content_version = 1
+title = "Looking both ways"
+old_title = "Looking both ways"
+level = 7
+summary = "THE CITY FILLS THE SCREEN, AND EVERY WALL AND ROOF IS FULL OF PEOPLE LOOKING BACK. LOOK AT THE WALLS, THE ROOFS AND THE DOMES. THEN ROW THE YOUNG ALEXIOS ALONG THE WALLS SO THE CITY CAN RECOGNIZE ITS PRINCE. NOBODY RECOGNIZES HIM."
+map = "city"
+music = "medieval"
+cast = PackedStringArray("zampano", "niketas")
+steps = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15")]
+entry_conditions = {
+"requires_completed": ["6.3"]
+}
+persistent_effects = PackedStringArray("book.marvels", "meter.commozione", "book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Constantinople, June-July 1203", "reciprocal astonishment", "the young man shown to the city")
+source_refs = PackedStringArray("Clari 40-41 (De Re Militari): the people watch from the walls and rooftops; the crews look on the city with wonder; ten galleys show the young man and the city will not know him", "Villehardouin pp. 35-36: the same showing", "docs/STORY-SOURCES.md \"Period words\": THOSE OF THE WEST, LATINS, BARBARIANS; ROMANS; THE YEAR 6711", "docs/STORY.md 7.1", "src/campaign/chapters/ch7.ts 7.1 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "Niketas Choniates appears as himself; his lines are original (no quotation).", "The row along the walls is a tug meant to be lost (no won result): Commozione +3.")
+technical_status = "technically_complete"

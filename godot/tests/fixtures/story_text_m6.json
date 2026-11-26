@@ -70,5 +70,21 @@
  "6.3": {
   "content_version": 1,
   "sha256": "d90dc06cd3d50c6ce3a5b4c7bc8faa66921aa3d4b030eeb24430c8b2299f70c8"
+ },
+ "7.1": {
+  "content_version": 1,
+  "sha256": "5f72e86efa132e0b85a30bb7dba4be0b6fd91f6d6e4a60160ea882307f3d5c51"
+ },
+ "7.2": {
+  "content_version": 1,
+  "sha256": "0fdfab9f63cd1b3c6479ffcbfd1c07102d317414e56a4982ff7e1c2b33caf1de"
+ },
+ "7.3": {
+  "content_version": 1,
+  "sha256": "76c88cca7faf3166c0a739596ebcb9b3d2406217abda305da9d51ddc4bcb4721"
+ },
+ "7.4": {
+  "content_version": 1,
+  "sha256": "c1f0a4dfe566cf6fe6d9efd54372fc28e2189ed7fe6e9c1b0a3c33f846a89b2c"
  }
 }

@@ -1,0 +1,407 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=40 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="5_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="6_actorstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="7_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="8_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="9_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "emperor"
+role = "bagnaskizEmperor"
+at = "9"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "v1"
+role = "varangian"
+at = "8"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "v2"
+role = "varangian"
+at = "7"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_storyactorspec")
+name = "flanders"
+role = "knight"
+at = "3"
+point = Vector2(0.0, 0.0)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("3_storyactorspec")
+name = "window"
+role = "santina"
+at = ""
+point = Vector2(13.5, 7.5)
+face = "SW"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("3_storyactorspec")
+name = "pierre"
+role = "sbrimbrulonKnight"
+at = ""
+point = Vector2(7.5, 25.5)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("3_storyactorspec")
+name = "stpol"
+role = "knight"
+at = ""
+point = Vector2(9.5, 25.9)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "field"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7")]
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("4_cardstep")
+id = "s02"
+big = "A FAMILIAR FACE"
+small = "BAGNASKIZ, AS THE EMPEROR ALEXIOS III, THE UNCLE ON THE THRONE"
+color = Color(0.752941176, 0.439215686, 0.941176471, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("5_dialoguestep")
+id = "s03"
+speaker = "emperor"
+text = "I RIDE OUT. ALL OF YOU. AT THEM."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("4_cardstep")
+id = "s04"
+big = "CHARGE?"
+small = "NOBODY KNOWS YET."
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 1.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("5_dialoguestep")
+id = "s05"
+speaker = "knight"
+text = "THE COUNT OF FLANDERS TURNS BACK! BACK TO THE CAMP!"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("6_actorstep")
+id = "s06"
+actor = "flanders"
+action = "goto"
+role = ""
+at = "2"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 3.2
+run = true
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("5_dialoguestep")
+id = "s07"
+speaker = "sbrimbrulon"
+text = "WE WILL NOT TURN BACK ONE STEP. LORDS, RIDE ON, IN GOD'S NAME. AT A WALK. STAY AT MY SHOULDER, LITTLE ONE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("5_dialoguestep")
+id = "s08"
+speaker = "knight"
+text = "(BEHIND THEM, THE CAMP) LORD GOD, KEEP THEM TODAY, AND ALL THEIR COMPANY!"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("6_actorstep")
+id = "s09"
+actor = "pierre"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(6.5, 6.5)
+near_player = false
+face = ""
+face_player = false
+speed = 1.5
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("6_actorstep")
+id = "s10"
+actor = "stpol"
+action = "follow"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+side = 1.2
+target_actor = "pierre"
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("7_objectivestep")
+id = "s11"
+objective = "STAY LEVEL WITH PIERRE"
+objective_kind = "rule"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = true
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "shoulder"
+rule_params = {
+"leader": "pierre",
+"from": "S",
+"to": "1",
+"band": 1.2,
+"side": 3.0,
+"lose": 0.2,
+"gain": 0.12,
+"speed": 1.5,
+"pots_at": 0.15,
+"rejoin_at": 0.45,
+"rejoin_actor": "flanders",
+"window_actor": "window",
+"window_from": 0.25
+}
+rule_lines = {
+"label": "NERVE: LEVEL WITH PIERRE",
+"ahead": "HE BOLTS AHEAD. EASE BACK INTO STEP",
+"behind": "HE DROPS BACK. EASE INTO STEP",
+"side": "STAY AT HIS SHOULDER",
+"pots": "THE GROOMS AND COOKS COME TOO, WITH POTS AND PESTLES",
+"rejoin": "FLANDERS COMES ROUND AND REJOINS THEM",
+"window": "(...THE WIND TAKES HER WORDS...)",
+"out_big": "OUT OF STEP",
+"out_small": "BACK TO THE START: STAY LEVEL WITH PIERRE'S SHOULDER"
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("6_actorstep")
+id = "s12"
+actor = "emperor"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(7.5, 2.5)
+near_player = false
+face = ""
+face_player = false
+speed = 2.2
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("6_actorstep")
+id = "s13"
+actor = "v1"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(4.5, 2.5)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("6_actorstep")
+id = "s14"
+actor = "v2"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(10.5, 2.5)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("8_effectstep")
+id = "s15"
+effects = {
+"supervillain": 15,
+"value": "Physical courage",
+"flags": {
+"vanguard": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("4_cardstep")
+id = "s16"
+big = "THE EMPEROR TURNS FOR THE CITY"
+small = "NOBODY STRIKES A BLOW"
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("5_dialoguestep")
+id = "s17"
+speaker = "zampano"
+text = "THERE WERE A LOT OF THEM, AND THEY WERE SHOUTING."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("5_dialoguestep")
+id = "s18"
+speaker = "sbrimbrulon"
+text = "LET THEM SHOUT. WE WALKED."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("5_dialoguestep")
+id = "s19"
+speaker = "zampano"
+text = "THE LADIES ON THE WALLS THOUGHT WE LOOKED LIKE ANGELS. ESPECIALLY ONE OF US."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("5_dialoguestep")
+id = "s20"
+speaker = "sbrimbrulon"
+text = "WHO TOLD YOU THAT?"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("5_dialoguestep")
+id = "s21"
+speaker = "zampano"
+text = "I COULD TELL."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("5_dialoguestep")
+id = "s22"
+speaker = "zampano"
+text = "THERE WAS A WINDOW, AND THE WIND TOOK WHAT SHE SAID."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_30"]
+script = ExtResource("9_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.3"
+content_version = 1
+title = "Stay beside Pierre"
+old_title = "Stay beside Pierre"
+level = 7
+summary = "BAGNASKIZ WEARS THE FACE OF THE EMPEROR ALEXIOS III. THE COUNT OF FLANDERS TURNS BACK. PIERRE AND THE COUNT OF SAINT-POL GO ON AT A WALK, AND EVEN THE COOKS COME OUT WITH POTS AND PESTLES. HOLD LEVEL WITH PIERRE'S SHOULDER. HIGH ON THE WALLS A WOMAN WITH SANTINA'S FACE IS WATCHING; THE WIND TAKES WHAT SHE SAYS. THE EMPEROR TURNS FOR THE CITY. NOBODY STRIKES A BLOW."
+map = "field"
+music = "medieval"
+cast = PackedStringArray("zampano", "emperor", "knight", "sbrimbrulon")
+steps = [SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28"), SubResource("Resource_29"), SubResource("Resource_30")]
+entry_conditions = {
+"requires_completed": ["7.2"]
+}
+persistent_effects = PackedStringArray("meter.supervillain", "book.values", "flags.vanguard", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["vanguard"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the battle that was not, July 1203", "Pierre d'Amiens and the count of Saint-Pol", "Flanders turns back, then rejoins", "Alexios III retires")
+source_refs = PackedStringArray("Clari 45-48 (De Re Militari): Peter of Amiens and the count of Saint-Pol; grooms and cooks with \"copper pots and with pestles\"; they will not \"turn back one step\"; the ladies at the windows: \"it seemed as if our warriors were angels\" (47); Flanders rejoins (48) — quoted per docs/STORY-SOURCES.md", "Villehardouin pp. 43-45: Alexios III retires without attacking", "docs/STORY-SOURCES.md \"Period words\": IN GOD'S NAME (AT A WALK)", "docs/STORY.md 7.3", "src/campaign/chapters/ch7.ts 7.3 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The window and Santina's face are adaptation; the companions' pace is the source's (STORY.SHOULDER).")
+technical_status = "technically_complete"

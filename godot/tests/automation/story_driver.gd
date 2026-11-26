@@ -107,7 +107,8 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 		InputService.guard_hold_injected = false
 		return
 	var combat := scene.ctx.combat
-	if combat != null and combat.active() and not combat.won():
+	# A hold (survive) with foes: fight them until the clock runs out (none need be routed).
+	if combat != null and combat.active() and (not combat.won() or step.objective_kind == "survive"):
 		_fight(pos)
 		return
 	InputService.guard_hold_injected = false
@@ -128,6 +129,16 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 			_next_action = t + 0.4
 			InputService.trigger(&"action")
 			actions += 1
+		return
+	if step.rule == "shoulder":
+		# At Pierre's shoulder, a tile to his east, walking.
+		var lead: StoryActor = scene.actors.get(String(step.rule_params["leader"]))
+		if lead:
+			var at := Vector2(lead.gx + 1.0, lead.gy)
+			if scripted:
+				dog.set_grid_position(at.x, at.y)
+			elif pos.distance_to(at) > 0.15:
+				_steer(pos, at, [])
 		return
 	if step.rule == "listen":
 		var lp: Variant = step.rule_params["point"]
@@ -254,6 +265,13 @@ func _mini(step: MiniGameStep, st: Dictionary) -> void:
 					InputService.pointer_down(8, c)
 					InputService.pointer_up(8, c)
 					taps += 1
+		return
+	if step.game == "tug":
+		# Row as fast as a person can tap (about 8 a second); it is lost anyway.
+		if t >= _next_stroke:
+			_next_stroke = t + 0.125
+			InputService.trigger(&"action")
+			actions += 1
 		return
 	if step.game == "boat":
 		var b: BoatGame = st["game"]

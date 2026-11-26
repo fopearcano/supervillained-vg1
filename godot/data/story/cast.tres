@@ -130,5 +130,17 @@ speakers = {
 "gesture": true,
 "name": "THE PRINCE",
 "portrait": "prince"
+},
+"niketas": {
+"color": Color(0.784313725, 0.564705882, 0.878431373, 1),
+"gesture": true,
+"name": "NIKETAS",
+"portrait": "niketas"
+},
+"emperor": {
+"color": Color(0.752941176, 0.439215686, 0.941176471, 1),
+"gesture": false,
+"name": "THE EMPEROR",
+"portrait": "bagnaskizEmperor"
 }
 }

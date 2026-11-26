@@ -45,6 +45,10 @@ func _draw() -> void:
 		_draw_rumour(w, h, st["game"] as RumourGame)
 		_draw_result(w, h, result)
 		return
+	if step.game == "tug":
+		_draw_tug(w, h, st["game"] as TugGame)
+		_draw_result(w, h, result)
+		return
 	draw_rect(Rect2(0, 0, w, h), Color(0, 0, 0, 0.35))
 	T.retro_box(self, Rect2(6, h - 120, w - 12, 100), T.RED, T.YELLOW, 0.6)
 	T.draw_centered(self, w / 2.0, 74, String(step.lines.get("title", "")), T.YELLOW, 1, T.SHADOW)
@@ -214,3 +218,32 @@ func _draw_rumour(w: float, h: float, g: RumourGame) -> void:
 		draw_rect(r, Color(0, 0, 0, 0.6))
 		draw_rect(r, T.RED, false, 1.0)
 		T.draw_centered(self, r.get_center().x, r.position.y + 4, String((g.pieces[int(b["id"])] as Dictionary)["garble"]), T.CYAN, 1, T.SHADOW)
+
+
+## The tug: the dark band, the friend pulled toward the hole (or the boat pushed back), Zampano behind
+## him holding on, the rope's red bar; run frames (east) by time.
+func _draw_tug(w: float, h: float, g: TugGame) -> void:
+	draw_rect(Rect2(0, h * 0.5 - 40, w, 80), Color(0, 0, 0, 0.5))
+	var hole_x := w - 20.0
+	draw_rect(Rect2(hole_x - 6, h * 0.5 - 30, 26, 50), Color("#0a0606"))
+	var fx := roundf(w * 0.5 + g.pos * (hole_x - w * 0.5 - 10))
+	var friend := _frames(String(step.params.get("friend", "")))
+	if friend and friend.has_animation(&"run_e"):
+		var ft := friend.get_frame_texture(&"run_e", int(floor(g.time * 10.0)) % friend.get_frame_count(&"run_e"))
+		draw_texture(ft, Vector2(fx, h * 0.5 + 10) - Vector2(ft.get_width() * 0.5, ft.get_height() * 0.9))
+	var hero: SpriteFrames = ctx.player.body_sprite.sprite_frames if ctx.scene.world else null
+	if hero and hero.has_animation(&"run_e"):
+		var ht := hero.get_frame_texture(&"run_e", int(floor(g.time * 10.0)) % hero.get_frame_count(&"run_e"))
+		draw_texture(ht, Vector2(fx - 34, h * 0.5 + 12) - Vector2(ht.get_width() * 0.5, ht.get_height() * 0.9))
+	draw_rect(Rect2(fx - 30, h * 0.5 + 2, 24, 2), Color("#d8c8a0"))
+	var bw := w - 40.0
+	draw_rect(Rect2(20, h * 0.5 + 40, bw, 6), Color("#220808"))
+	draw_rect(Rect2(20, h * 0.5 + 41, roundf(bw * maxf(0.0, g.pos)), 4), Color("#ff3030"))
+	draw_rect(Rect2(20, h * 0.5 + 40, bw, 6), T.YELLOW, false, 1.0)
+	T.draw_centered(self, w / 2.0, roundf(h * 0.5 - 56), String(step.lines.get("help", "")), T.YELLOW, 1, T.SHADOW)
+	T.draw_centered(self, w / 2.0, 64, String(step.lines.get("title", "")), T.YELLOW, 1, T.SHADOW)
+
+
+func _frames(role: String) -> SpriteFrames:
+	var path := StoryCast.frames_path(role)
+	return load(path) if path != "" else null

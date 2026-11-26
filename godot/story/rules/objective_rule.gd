@@ -30,6 +30,12 @@ func on_action(_ctx: StoryContext, _step: ObjectiveStep, _st: Dictionary) -> voi
 	pass
 
 
+## After the card of a rule's own restart (st["rule_restart"], e.g. 7.3's OUT OF STEP): put the
+## walk back at its start.
+func restart(_ctx: StoryContext, _step: ObjectiveStep, _st: Dictionary) -> void:
+	pass
+
+
 func end(_ctx: StoryContext, _step: ObjectiveStep, _st: Dictionary) -> void:
 	pass
 

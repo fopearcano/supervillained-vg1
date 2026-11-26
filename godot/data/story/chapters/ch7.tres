@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="StoryChapterData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_chapter_data.gd" id="1_storychapterdata"]
+[ext_resource type="Resource" path="res://data/story/scenes/7_1.tres" id="s7_1"]
+[ext_resource type="Resource" path="res://data/story/scenes/7_2.tres" id="s7_2"]
+[ext_resource type="Resource" path="res://data/story/scenes/7_3.tres" id="s7_3"]
+[ext_resource type="Resource" path="res://data/story/scenes/7_4.tres" id="s7_4"]
+
+[resource]
+script = ExtResource("1_storychapterdata")
+number = 7
+scenes = [ExtResource("s7_1"), ExtResource("s7_2"), ExtResource("s7_3"), ExtResource("s7_4")]
+content_version = 1
+review_status = "draft_implemented_review_pending"
+title = "Constantinople"
+menu_title = "Constantinople"
+intro = "JUNE 1203 TO SPRING 1204. THE CITY FILLS THE SCREEN AND LOOKS BACK. IT WILL TAKE A YEAR, THREE EMPERORS CALLED ALEXIOS, A FIRE AND A HOLE IN A WALL BEFORE THE SMALL KNIGHT IS INSIDE IT. BY THEN IT IS NOT THE SAME CITY."
+cast_note = "SBRIMBRULON AS PIERRE D'AMIENS; CONFUSIONE AS ALEAUME; BAGNASKIZ AS THE MARSHAL, AND HIS FACE ON ALEXIOS III AND ALEXIOS V; THE YOUNG ALEXIOS IV; NIKETAS CHONIATES AS HIMSELF; WATSON; JACK; SANTINA AT A WINDOW"
+music = "medieval"
+professor_aside = "CLARI SAYS NO HARM WAS DONE TO POOR OR RICH. NIKETAS SAYS NO ONE WAS WITHOUT A SHARE IN THE GRIEF. THEY WERE IN THE SAME CITY ON THE SAME DAYS, YOU UNDERSTAND. ONE OF THEM WAS STANDING IN HIS OWN DOORWAY."
+review_notes = PackedStringArray("Draft implemented; narrative review pending for the whole level (OD-01).", "REVIEW REQUIRED (OQ-07): the mosque and the fire. 7.5 follows Barbero's lecture (pilgrims set out to burn the mosque, Greeks defend their Muslim neighbours, the fire); docs/STORY.md 7.4 omits it. The contradiction stays open.", "The two witnesses of the sack are kept apart (docs/STORY-SOURCES.md \"Kept disagreements\").")

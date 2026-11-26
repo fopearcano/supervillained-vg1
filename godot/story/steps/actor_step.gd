@@ -33,6 +33,8 @@ const ACTIONS := ["spawn", "despawn", "goto", "follow", "idle", "face", "gesture
 @export var radius := 0.0
 ## follow: tiles to the player's side.
 @export var side := 0.0
+## follow: an actor to follow instead of the player ("" = the player).
+@export var target_actor := ""
 ## emote: the clip and its length.
 @export var clip := ""
 @export var seconds := 0.0
@@ -62,7 +64,10 @@ func actor_defs() -> PackedStringArray:
 
 
 func actor_refs() -> PackedStringArray:
-	return PackedStringArray([actor]) if action != "spawn" else PackedStringArray()
+	var out := PackedStringArray([actor]) if action != "spawn" else PackedStringArray()
+	if target_actor != "":
+		out.append(target_actor)
+	return out
 
 
 func check(errors: PackedStringArray) -> void:
@@ -103,6 +108,7 @@ func begin(ctx: StoryContext, st: Dictionary) -> void:
 		"goto":
 			a.go_to(p, speed, run)
 		"follow":
+			a.follow_actor = ctx.actor(target_actor) if target_actor != "" else null
 			a.follow(speed, side)
 		"idle":
 			a.set_idle(face_player)

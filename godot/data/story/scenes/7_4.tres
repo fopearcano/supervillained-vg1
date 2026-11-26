@@ -1,0 +1,243 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=28 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="5_actorstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="6_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="7_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="8_storypickup"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="9_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="10_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "watson"
+role = "watson"
+at = ""
+point = Vector2(19.5, 20.5)
+face = "NW"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "niketas"
+role = "niketas"
+at = "9"
+point = Vector2(0.0, 0.0)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "city"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = [SubResource("Resource_1"), SubResource("Resource_2")]
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("4_cardstep")
+id = "s02"
+big = "ALEXIOS III FLEES"
+small = "ISAAC II IS BROUGHT OUT OF PRISON. HIS SON IS CROWNED ALEXIOS IV."
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("5_actorstep")
+id = "s03"
+actor = "watson"
+action = "follow"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 3.0
+run = false
+wait_arrival = false
+side = -0.8
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_dialoguestep")
+id = "s04"
+speaker = "watson"
+text = "MAN, IT IS PEACE. WE ARE VISITORS NOW. DO NOT TOUCH ANYTHING."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("8_storypickup")
+id = "palace"
+at = "8"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE PALACE OF THE LION'S MOUTH"
+text = "A PALACE BY THE SEA, WITH MORE ROOMS THAN THE CAMP HAS TENTS."
+sprite = ""
+effects = {
+"marvel": "THE PALACE OF THE LION'S MOUTH",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("8_storypickup")
+id = "hercules"
+at = "1"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE BRONZE HERCULES"
+text = "A BRONZE GIANT IN A LION SKIN, TIRED, LEANING ON NOTHING."
+sprite = ""
+effects = {
+"marvel": "THE BRONZE HERCULES",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("8_storypickup")
+id = "column"
+at = "5"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE CARVED COLUMN"
+text = "SHIPS, LADDERS, LITTLE MEN CLIMBING. NOBODY CAN SAY WHAT IT MEANS."
+sprite = ""
+effects = {
+"marvel": "THE CARVED COLUMN",
+"commozione": 3
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("8_storypickup")
+id = "courtyard"
+at = ""
+point = Vector2(4.5, 20.5)
+kind = "marvel"
+label = "NIKETAS'S COURTYARD"
+text = "A LAMP, A FIG TREE, AND A PURPLE CUSHION JUST LIKE THE ONE AT HOME."
+sprite = ""
+effects = {
+"marvel": "A LAMP IN A COURTYARD",
+"commozione": 4
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_objectivestep")
+id = "s05"
+objective = "VISIT THE CITY. LOOK AT EVERYTHING"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10")]
+no_run = false
+action_label = "LOOK"
+action_text = "OOOH."
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("6_dialoguestep")
+id = "s06"
+speaker = "niketas"
+text = "YOU MAY LOOK. YOUR PRINCE HAS PROMISED YOUR PEOPLE A GREAT DEAL OF OUR MONEY. LOOK WHILE IT IS STILL HERE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("6_dialoguestep")
+id = "s07"
+speaker = "zampano"
+text = "I HAVE A CUSHION LIKE THAT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("6_dialoguestep")
+id = "s08"
+speaker = "niketas"
+text = "THEN YOU KNOW WHAT IT IS TO COME HOME TO ONE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("9_effectstep")
+id = "s09"
+effects = {
+"flags": {
+"visitedCity": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("6_dialoguestep")
+id = "s10"
+speaker = "zampano"
+text = "THERE WAS A CITY, AND IT LET ME IN TO LOOK."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("10_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.4"
+content_version = 1
+title = "A city to visit"
+old_title = "A city to visit"
+level = 7
+summary = "ALEXIOS III HAS FLED. ISAAC II IS BROUGHT OUT OF PRISON AND HIS SON IS CROWNED ALEXIOS IV. FOR A WHILE THE PILGRIMS ARE VISITORS. WALK THE CITY WITH WATSON: THE PALACE OF THE LION'S MOUTH, A BRONZE HERCULES, A COLUMN CARVED WITH SHIPS NOBODY CAN READ, AND NIKETAS'S OWN COURTYARD, WITH A LAMP AND A PURPLE CUSHION LIKE THE ONE AT HOME. REMEMBER THE STREET."
+map = "city"
+music = "medieval"
+cast = PackedStringArray("zampano", "watson", "niketas")
+steps = [SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17")]
+entry_conditions = {
+"requires_completed": ["7.3"]
+}
+persistent_effects = PackedStringArray("book.marvels", "meter.commozione", "flags.visitedCity", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["visitedCity"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Constantinople, August 1203", "Alexios IV crowned", "the city visited: the palace, Hercules, the column, a courtyard")
+source_refs = PackedStringArray("Villehardouin pp. 45-48: Alexios III flees; Isaac is enthroned; the young Alexius crowned (1 August 1203)", "Clari 80: the palace of the Lion's Mouth", "Clari 92: pillars on which things to come were \"portrayed and written\" (quoted per docs/STORY-SOURCES.md)", "Choniates, destroyed monuments, para. 3: the great Hercules", "docs/STORY.md 7.4", "src/campaign/chapters/ch7.ts 7.4 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "Niketas's courtyard, the lamp and the visit are adaptation; the column, Hercules and the courtyard set up 7.9.", "REVIEW REQUIRED (OQ-07): the mosque and the fire. 7.5 follows Barbero's lecture (pilgrims set out to burn the mosque, Greeks defend their Muslim neighbours, the fire); docs/STORY.md 7.4 omits it. The contradiction stays open.")
+technical_status = "technically_complete"
