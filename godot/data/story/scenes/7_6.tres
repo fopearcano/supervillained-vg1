@@ -1,0 +1,375 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=36 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="4_actorstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="5_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="6_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="7_cardstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="8_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "alexios"
+role = "prince"
+at = "1"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "g0"
+role = "varangian"
+at = "2"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "g1"
+role = "varangian"
+at = "3"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("3_storyactorspec")
+name = "g2"
+role = "varangian"
+at = "5"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("3_storyactorspec")
+name = "g3"
+role = "varangian"
+at = "6"
+point = Vector2(0.0, 0.0)
+face = "S"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = true
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("3_storyactorspec")
+name = "envoy"
+role = "bagnaskizMarshal"
+at = ""
+point = Vector2(6.7, 14.5)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("3_storyactorspec")
+name = "envoy2"
+role = "knight"
+at = ""
+point = Vector2(8.3, 14.5)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "palace"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7")]
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("4_actorstep")
+id = "s02"
+actor = "envoy"
+action = "follow"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.2
+run = false
+wait_arrival = false
+side = -0.8
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("4_actorstep")
+id = "s03"
+actor = "envoy2"
+action = "follow"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.2
+run = false
+wait_arrival = false
+side = 0.8
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("5_dialoguestep")
+id = "s04"
+speaker = "marshal"
+text = "HE HAS NOT PAID. WE GO IN AND TELL HIM SO. WALK IN WITH US, AND WALK OUT AT THE SAME PACE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("6_objectivestep")
+id = "s05"
+objective = "WALK INTO THE THRONE ROOM WITH THE ENVOYS"
+objective_kind = "reach"
+goal_marker = "4"
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 1.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "no_running"
+rule_params = {
+"escorts": ["envoy", "envoy2"]
+}
+rule_lines = {
+"out_big": "YOU RAN",
+"out_small": "ENVOYS DO NOT RUN. AGAIN."
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("5_dialoguestep")
+id = "s06"
+speaker = "marshal"
+text = "YOU SWORE TO PAY. YOU HAVE NOT PAID. FROM TODAY WE ARE NO LONGER YOUR FRIENDS. THAT IS OUR DEFIANCE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("5_dialoguestep")
+id = "s07"
+speaker = "prince"
+text = "(ALEXIOS IV) ..."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("6_objectivestep")
+id = "s08"
+objective = "WALK OUT AT THE SAME PACE. DO NOT RUN"
+objective_kind = "reach"
+goal_marker = "S"
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 1.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "no_running"
+rule_params = {
+"escorts": ["envoy", "envoy2"]
+}
+rule_lines = {
+"out_big": "YOU RAN",
+"out_small": "ENVOYS DO NOT RUN. AGAIN."
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("7_cardstep")
+id = "s09"
+big = "ALIVE"
+small = "THEY WALK OUT ALIVE. NOBODY CAN BELIEVE IT."
+color = Color(0.301960784, 1.0, 0.352941176, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("7_cardstep")
+id = "s10"
+big = "AT NIGHT"
+small = "SHIPS ON FIRE COME DRIFTING DOWN ON THE FLEET. THE VENETIANS TOW THEM AWAY."
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("7_cardstep")
+id = "s11"
+big = "WINTER 1204"
+small = "MOURTZOUPHLOS TAKES THE THRONE AS ALEXIOS V."
+color = Color(0.752941176, 0.439215686, 0.941176471, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("7_cardstep")
+id = "s12"
+big = "IN THE MARSHAL'S BOOK"
+small = "ALEXIOS IV IS STRANGLED IN PRISON. HIS FATHER ISAAC DIES."
+color = Color(0.784313725, 0.62745098, 1.0, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("7_cardstep")
+id = "s13"
+big = "IN THE SMALL KNIGHT'S BOOK"
+small = "MOURTZOUPHLOS HAS THEM BOTH STRANGLED."
+color = Color(0.784313725, 0.62745098, 1.0, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("7_cardstep")
+id = "s14"
+big = "TWO BOOKS"
+small = "THEY DO NOT AGREE HOW THE OLD EMPEROR DIED. THE DREAM KEEPS BOTH."
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("4_actorstep")
+id = "s15"
+actor = "usurper"
+action = "spawn"
+role = "bagnaskizEmperor"
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = true
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("7_cardstep")
+id = "s16"
+big = "THE DREAM RUNS OUT OF FACES"
+small = "BAGNASKIZ AGAIN, UNDER A DIFFERENT CROWN: MOURTZOUPHLOS, ALEXIOS V"
+color = Color(0.752941176, 0.439215686, 0.941176471, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("5_dialoguestep")
+id = "s17"
+speaker = "emperor"
+text = "A DIFFERENT CROWN, LITTLE KNIGHT. LEAVE MY LAND IN EIGHT DAYS."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("7_cardstep")
+id = "s18"
+big = "THE GATES CLOSE"
+small = "TO THE PILGRIMS"
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("5_dialoguestep")
+id = "s19"
+speaker = "zampano"
+text = "THERE WAS A THRONE, AND I WALKED OUT OF IT AT A WALK."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("8_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.6"
+content_version = 1
+title = "A third Alexios"
+old_title = "A third Alexios"
+level = 7
+summary = "THE MARSHAL IS ONE OF THE ENVOYS WHO CARRY THE DEFIANCE TO THE PALACE: WALK IN WITH THEM, HEAR IT, AND WALK OUT AT THE SAME PACE. ENVOYS DO NOT RUN. FIRE-SHIPS COME DOWN ON THE FLEET AT NIGHT. THEN MOURTZOUPHLOS TAKES THE THRONE AS ALEXIOS V, AND THE YOUNG ALEXIOS IV DIES: THE TWO BOOKS DO NOT AGREE HOW. THE DREAM RUNS OUT OF FACES: BAGNASKIZ AGAIN, UNDER A DIFFERENT CROWN."
+map = "palace"
+music = "medieval"
+cast = PackedStringArray("zampano", "marshal", "prince", "emperor")
+steps = [SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27")]
+entry_conditions = {
+"requires_completed": ["7.5"]
+}
+persistent_effects = PackedStringArray("book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the defiance, winter 1203-1204", "the fire-ships", "Mourtzouphlos, Alexios V", "the deaths of Alexios IV and Isaac II, in two accounts")
+source_refs = PackedStringArray("Villehardouin pp. 53-56: the defiance delivered at Blachernae (Conon of Bethune, Geoffroi de Villehardouin, Miles of Brabant, three Venetians); the fire-ships; Mourtzouphlos seizes power; Alexios IV strangled; Isaac dies", "Clari 61-62: Mourtzouphlos has both strangled (his version)", "docs/STORY.md 7.6", "src/campaign/chapters/ch7.ts 7.6 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The walking rule is adaptation: running is possible and stops the walk (YOU RAN).", "The marshal's defiance is a paraphrase, not a quotation.", "REVIEW REQUIRED: the deaths of Alexios IV and Isaac II. The two accounts are kept apart as the draft reference gives them (Villehardouin pp. 53-56: Alexios IV strangled, Isaac dies; Clari 61-62: Mourtzouphlos has both strangled); page references and the dating (the draft says January 1204; Mourtzouphlos was crowned in early February) to be checked against the editions.")
+technical_status = "technically_complete"

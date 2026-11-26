@@ -12,9 +12,9 @@ const NOW := 1795608000000
 const CB := GameConfig.Combat
 const RS := GameConfig.Story
 ## Every M7 scene in catalog order (this build's).
-const IDS := ["5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4"]
+const IDS := ["5.1", "5.2", "5.3", "5.4", "5.5", "6.1", "6.2", "6.3", "7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7", "7.8", "7.9"]
 ## Choices a run takes (choice id -> option id; "letter": the letter's outcome) and the branches.
-const BRANCHES := {"5.1": [{"s16": "jerusalem"}, {"s16": "host"}], "5.3": [{"s07": "pope"}, {"s07": "host"}, {"s07": "debt"}], "5.4": [{"letter": "named"}, {"letter": "necessity"}], "6.1": [{"s10": "share"}, {"s10": "dice"}], "6.3": [{"s14": "stay"}, {"s14": "syria"}]}
+const BRANCHES := {"5.1": [{"s16": "jerusalem"}, {"s16": "host"}], "5.3": [{"s07": "pope"}, {"s07": "host"}, {"s07": "debt"}], "5.4": [{"letter": "named"}, {"letter": "necessity"}], "6.1": [{"s10": "share"}, {"s10": "dice"}], "6.3": [{"s14": "stay"}, {"s14": "syria"}], "7.8": [{"oath": "call"}, {"oath": "silent"}], "7.9": [{"s03": "declared"}, {"s03": "kept"}]}
 ## What each scene commits on top of its entry state: meter deltas, flags, abilities, coins, how many
 ## book entries of each kind (by branch, keyed "<id>" or "<id>/<option>").
 const SNAP := {
@@ -229,6 +229,101 @@ const SNAP := {
 		"abilities": [],
 		"book": {
 			"marvels": 4,
+			"remembered": 1
+		}
+	},
+	"7.5": {
+		"meters": {},
+		"flags": {},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
+	},
+	"7.6": {
+		"meters": {},
+		"flags": {},
+		"abilities": [],
+		"book": {
+			"remembered": 1
+		}
+	},
+	"7.7": {
+		"meters": {
+			"grace": 5,
+			"commozione": 6,
+			"supervillain": 10
+		},
+		"flags": {
+			"sworn": true,
+			"followed": true
+		},
+		"abilities": [],
+		"book": {
+			"values": 1,
+			"remembered": 1
+		}
+	},
+	"7.8/call": {
+		"meters": {
+			"commozione": 5,
+			"supervillain": 15,
+			"grace": 5,
+			"standing": -6
+		},
+		"flags": {
+			"oath": "enforced"
+		},
+		"abilities": [],
+		"book": {
+			"marvels": 2,
+			"values": 1,
+			"remembered": 2
+		}
+	},
+	"7.8/silent": {
+		"meters": {
+			"commozione": 10
+		},
+		"flags": {
+			"oath": "silent"
+		},
+		"abilities": [],
+		"book": {
+			"marvels": 2,
+			"remembered": 2
+		}
+	},
+	"7.9/declared": {
+		"meters": {
+			"grace": 6,
+			"commozione": 4
+		},
+		"flags": {
+			"lamp": "declared",
+			"columnAgain": true
+		},
+		"abilities": [],
+		"coins": 2,
+		"book": {
+			"values": 1,
+			"marvels": 1,
+			"remembered": 1
+		}
+	},
+	"7.9/kept": {
+		"meters": {
+			"grace": -8,
+			"commozione": 4
+		},
+		"flags": {
+			"lamp": "kept",
+			"columnAgain": true
+		},
+		"abilities": [],
+		"coins": 5,
+		"book": {
+			"marvels": 1,
 			"remembered": 1
 		}
 	}
@@ -981,6 +1076,287 @@ func test_STY_704_four_marvels_once_and_the_visited_city() -> void:
 	var again := _play("7.4", st)
 	if assert_true(again.has("result"), "a second visit"):
 		assert_eq((again["result"]["state"]["book"]["marvels"] as Array).size(), (st["book"]["marvels"] as Array).size(), "no marvel twice")
+
+
+# --- Level 7: 7.5–7.9 ------------------------------------------------------------------------------
+
+## STY-705 (7.5): the chests carried (A CHEST on his back while he gathers them, each one lighter,
+## then put down); the Doge's rebuke; the mosque card; she follows him; the fire walk completes by
+## real input and only the remembered line persists.
+func test_STY_705_chests_the_mosque_and_the_walk_home() -> void:
+	var s := _scene("7.5", _entry("7.5"))
+	var out := {}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	var d := StoryDriver.new(s)
+	var carried := []
+	var follows := false
+	for k in 60 * 120:
+		if out.has("r"):
+			break
+		if s.ctx.carrying != "" and not carried.has(s.ctx.carrying):
+			carried.append(s.ctx.carrying)
+		if s.runner.current != null and s.runner.current.id == "s13":
+			follows = follows or (s.actors["woman"] as StoryActor).behavior == "follow"
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	if not assert_true(out.has("r"), "7.5 completes by real input"):
+		return
+	assert_eq(carried, ["A CHEST"], "the chests carried")
+	assert_true(follows, "she follows him home")
+	var trace: PackedStringArray = out["r"]["trace"]
+	for id: String in ["s04", "s07", "s09", "s13", "s16"]:
+		assert_eq(trace.count(id), 1, id + " once")
+	var shown: Array = out["r"]["metrics"]["notices"]
+	for t in ["FULL. HALF OF IT ALREADY BELONGS TO THE VENETIANS.", "HALF FULL. THE REST AFTER THE HARVEST, THEY SAY.", "EMPTY, EXCEPT FOR AN APOLOGY."]:
+		assert_true(shown.has(t), "a chest: " + t)
+	var st: Dictionary = out["r"]["state"]
+	assert_eq([st["meters"], st["flags"], st["coins"]], [_entry("7.5")["meters"], _entry("7.5")["flags"], _entry("7.5")["coins"]], "nothing but the remembered line")
+
+
+## WALK-019–021 (7.5's fire): no fire before 0.6 s; then it starts at marker 1 (FIRE!) and spreads
+## from the scene's seeded generator (the same tiles on the same ticks in another run); never onto the
+## goal, the walk's start or the checkpoint (safe); a burning tile pushes him back toward the restart
+## point with HOT!; passing the checkpoint makes it the restart point; the third burn is THE SMOKE: he
+## is back at the checkpoint with the woman beside him, the fire out and starting again, nothing applied.
+func test_WALK_019_021_fire_spread_push_safe_checkpoints_and_restart() -> void:
+	var s := _scene("7.5", _entry("7.5"))
+	if not _to_step(s, "s13"):
+		return
+	var st: Dictionary = s.runner.st
+	_ticks(s, int(0.5 / DT))
+	assert_false(bool(st["fire_on"]), "no fire before 0.6 s")
+	_ticks(s, int(0.2 / DT))
+	assert_true(bool(st["fire_on"]) and FireRule.burning(st, s.ctx.marker("1")), "the fire starts at marker 1")
+	assert_eq(s.hud.card_big, "FIRE!", "its card")
+	_ticks(s, int(6.0 / DT))
+	var n := (st["fire"] as Dictionary).size()
+	assert_true(n > 12, "it spreads (%d tiles in 6 s)" % n)
+	for p: Vector2 in [st["start"], st["goal"], s.ctx.marker("2")]:
+		assert_false(FireRule.burning(st, p), "safe: %s never burns" % p)
+	# The same tiles on the same ticks in another run (the seeded generator).
+	var s2 := _scene("7.5", _entry("7.5"))
+	if not _to_step(s2, "s13"):
+		return
+	_ticks(s2, int(0.5 / DT) + int(0.2 / DT) + int(6.0 / DT))
+	assert_eq((s2.runner.st["fire"] as Dictionary).keys(), (st["fire"] as Dictionary).keys(), "the same fire, run and run again")
+	# The checkpoint: the restart point.
+	var cp := s.ctx.marker("2")
+	s.world.player.set_grid_position(cp.x, cp.y)
+	_ticks(s, 1)
+	assert_true((st["passed"] as Array).has("2") and (st["start"] as Vector2).is_equal_approx(cp), "the checkpoint is the restart point")
+	assert_true((s.ctx.metrics["notices"] as Array).has("CHECKPOINT"), "its notice")
+	# A burning tile pushes him back toward it.
+	var before := s.ctx.state.duplicate(true)
+	var hot: Vector2i = (st["fire_order"] as Array)[(st["fire_order"] as Array).size() / 2]
+	var at := Vector2(hot.x + 0.5, hot.y + 0.5)
+	s.world.player.set_grid_position(at.x, at.y)
+	_ticks(s, 1)
+	assert_eq(int(st["burns"]), 1, "one burn")
+	assert_true((s.ctx.metrics["notices"] as Array).has("HOT!"), "HOT!")
+	var d0 := at.distance_to(cp)
+	_ticks(s, 6)
+	assert_true(s.ctx.player_pos().distance_to(cp) < d0, "pushed back toward the restart point")
+	# Two more burns: THE SMOKE.
+	for b in 2:
+		_ticks(s, int(RS.FIRE_HURT_TIME / DT) + 1)
+		var order: Array = st["fire_order"]
+		var k2: Vector2i = order[mini(order.size() - 1, order.size() / 2 + b + 1)]
+		s.world.player.set_grid_position(k2.x + 0.5, k2.y + 0.5)
+		_ticks(s, 1)
+	assert_true(st.has("interrupt"), "the third burn: the smoke")
+	assert_eq(s.hud.card_big, "THE SMOKE", "its card")
+	assert_true(_ticks_until(s, func() -> bool: return not st.has("interrupt"), 300), "the card passes")
+	assert_vec_near(s.ctx.player_pos(), cp, 0.01, "back at the last checkpoint")
+	assert_true(Vector2(s.actors["woman"].gx, s.actors["woman"].gy).distance_to(cp) < 1.0, "the woman beside him")
+	assert_eq([(st["fire"] as Dictionary).size(), bool(st["fire_on"]), int(st["burns"]), int(st["fire_restarts"])], [0, false, 0, 1], "the fire out; it starts again")
+	assert_eq(s.ctx.state, before, "nothing applied")
+	assert_eq(s.ctx.metrics["smoke"], ["s13"], "the smoke once")
+	_ticks(s, int(0.8 / DT))
+	assert_true(bool(st["fire_on"]) and FireRule.burning(st, s.ctx.marker("1")), "and the fire starts again at its origin")
+
+
+## STY-706 (7.6): the envoys walk beside him; running stops the walk (YOU RAN; back at the start,
+## the envoys beside him, nothing applied); at a walk, in and out; the two accounts of the deaths are
+## kept apart (the marshal's, the small knight's, then both kept); Bagnaskiz under a different crown.
+func test_STY_706_envoy_walk_at_pace_and_the_two_accounts() -> void:
+	var s := _scene("7.6", _entry("7.6"))
+	if not _to_step(s, "s05"):
+		return
+	assert_eq([s.actors["envoy"].behavior, s.actors["envoy2"].behavior], ["follow", "follow"], "the envoys walk beside him")
+	var before := s.ctx.state.duplicate(true)
+	var start: Vector2 = s.runner.st["start"]
+	var ran := false
+	for k in 120:
+		InputService.inject_move(0.0, -1.0, true)
+		InputService.update(DT)
+		s.tick(DT)
+		if s.runner.st.has("interrupt"):
+			ran = true
+			break
+	InputService.clear_injection()
+	assert_true(ran and s.hud.card_big == "YOU RAN", "running stops the walk")
+	assert_true(_ticks_until(s, func() -> bool: return not s.runner.st.has("interrupt"), 300), "the card passes")
+	assert_vec_near(s.ctx.player_pos(), start, 0.01, "back at the start")
+	assert_true(Vector2(s.actors["envoy"].gx, s.actors["envoy"].gy).distance_to(start) < 1.0, "the envoys with him")
+	assert_eq([s.ctx.state, s.ctx.metrics["ran"]], [before, ["s05"]], "nothing applied; once")
+	var out := {}
+	s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+	var d := StoryDriver.new(s)
+	for k in 60 * 120:
+		if out.has("r"):
+			break
+		d.drive(DT)
+		InputService.update(DT)
+		s.tick(DT)
+	if not assert_true(out.has("r"), "7.6 completes at a walk"):
+		return
+	assert_eq(out["r"]["metrics"]["ran"], ["s05"], "the driver never ran")
+	var trace: PackedStringArray = out["r"]["trace"]
+	assert_true(trace.find("s12") < trace.find("s13") and trace.find("s13") < trace.find("s14"), "the marshal's account, the small knight's, both kept")
+	var cards := {}
+	for step: StoryStep in StoryLibrary.scene("7.6").steps:
+		if step is CardStep:
+			cards[step.id] = (step as CardStep).small
+	assert_false(cards["s12"] == cards["s13"], "two different accounts")
+	assert_true(String(cards["s13"]).contains("BOTH"), "the small knight: both strangled")
+	assert_eq(s.actors["usurper"].role, "bagnaskizEmperor", "Bagnaskiz, under a different crown")
+
+
+## STY-707, MINI-010 (7.7): the oath said (Grace +5, `sworn`); the cloth-route readback (only with
+## `clothRoute`); the tug at the hole is lost by design and the scene goes on once (Commozione +6
+## once); with `comradeship` his voice guides him in, without it only the rattle of his mail (found by
+## ear); Supervillain +10, `followed`; the value COMRADESHIP is not added twice.
+func test_STY_707_MINI_010_oath_tug_lost_and_the_comradeship_readback() -> void:
+	var e1 := _entry("7.7")
+	e1["book"]["values"] = ["Comradeship"]
+	assert_true(bool(e1["flags"].get("comradeship")) and bool(e1["flags"].get("clothRoute")), "the first branches: comradeship, the cloth")
+	var a := _play("7.7", e1)
+	if not assert_true(a.has("result"), "7.7 with comradeship completes"):
+		return
+	var ta: PackedStringArray = a["result"]["trace"]
+	assert_eq([a["result"]["metrics"]["minis"], ta.count("s10"), ta.count("s11")], [["tug:lost"], 1, 1], "the tug lost once; the scene goes on once")
+	assert_true(ta.has("s05a") and ta.has("s13a") and ta.has("s13b") and not ta.has("s13c"), "the cloth readback; his voice")
+	var sa: Dictionary = a["result"]["state"]
+	var want := {"grace": 5.0, "commozione": 6.0, "supervillain": 10.0}
+	for m: String in want:
+		assert_eq(float(sa["meters"][m]) - float(e1["meters"][m]), float(want[m]), m)
+	assert_eq([sa["flags"].get("sworn"), sa["flags"].get("followed"), (sa["book"]["values"] as Array).count("Comradeship")], [true, true, 1], "sworn; followed; COMRADESHIP once")
+	var e2 := _entry("7.7")
+	e2["flags"]["comradeship"] = false
+	e2["flags"].erase("clothRoute")
+	var b := _play("7.7", e2)
+	if not assert_true(b.has("result"), "7.7 without comradeship completes (by ear)"):
+		return
+	var tb: PackedStringArray = b["result"]["trace"]
+	assert_true(tb.has("s13c") and tb.has("s13d") and not tb.has("s13a") and not tb.has("s05a"), "only the rattle; no cloth readback")
+	assert_eq((b["result"]["state"]["book"]["values"] as Array).count("Comradeship"), 1, "COMRADESHIP")
+
+
+## STY-708A (7.8): two marvels; the page turned; in a lull he calls the pilgrims to their oath by
+## real input: `oath` enforced, Commozione 5 spent, Supervillain +15, Grace +5, Standing −6, KEPT
+## OATHS, his own words remembered; the girl is let go; THE KNIGHT. With less than 5 Commozione the
+## call takes all he has left.
+func test_STY_708A_the_call_in_a_lull_and_the_knight_route() -> void:
+	var e := _entry("7.8")
+	var out := _play("7.8", e, {"oath": "call"})
+	if not assert_true(out.has("result"), "7.8 (call) completes"):
+		return
+	var st: Dictionary = out["result"]["state"]
+	var dm := {}
+	for m: String in ["commozione", "supervillain", "grace", "standing"]:
+		dm[m] = float(st["meters"][m]) - float(e["meters"][m])
+	assert_eq(dm, {"commozione": 5.0, "supervillain": 15.0, "grace": 5.0, "standing": -6.0}, "marvels +10, the call −5; +15, +5, −6")
+	assert_eq(st["flags"].get("oath"), "enforced", "oath enforced")
+	assert_true((st["book"]["values"] as Array).has("Kept oaths") and (st["book"]["remembered"] as Array).has("NO HAND ON A WOMAN! YOU SWORE! (IN HIS OWN WORDS)"), "KEPT OATHS; his words")
+	var m: Dictionary = out["result"]["metrics"]
+	assert_eq([m["lull_acts"], m.get("silence", [])], [["s13"], []], "one heard call; no silence")
+	var tr: PackedStringArray = out["result"]["trace"]
+	assert_true(tr.has("s16a") and tr.has("s16b") and not tr.has("s16c"), "the pilgrims answer him")
+	var sc: StoryScene = out["scene"]
+	assert_eq([sc.actors["girl"].behavior, sc.actors["jack"].behavior], ["goto", "flee"], "the girl let go; Jack runs")
+	assert_eq(CampaignFlow.ending(st), "knight", "THE KNIGHT")
+	for mv in ["THE GREAT CHURCH", "THE HIPPODROME"]:
+		assert_eq((st["book"]["marvels"] as Array).count(mv), 1, mv)
+	# Short of Commozione: it takes all he has left.
+	var s := _scene("7.8", _entry("7.8"))
+	if not _to_step(s, "s13"):
+		return
+	s.ctx.state["meters"]["commozione"] = 3.0
+	assert_true(_drive_until(s, func() -> bool: return (s.ctx.metrics.get("lull_acts", []) as Array).size() > 0, 60 * 30), "called")
+	assert_eq(float(s.ctx.state["meters"]["commozione"]), 0.0, "all he had left")
+	assert_true((s.ctx.metrics["notices"] as Array).has("IT TAKES ALL HE HAS LEFT"), "its notice")
+
+
+## STY-708B (7.8): he stands silent by real input (no action); after 16 s Niketas calls the oath
+## himself: `oath` silent, his words remembered as overheard, nothing spent, no Supervillain; the
+## girl is let go; THE WITNESS (ending key `alpha`).
+func test_STY_708B_silence_niketas_calls_and_the_witness_route() -> void:
+	var e := _entry("7.8")
+	var out := _play("7.8", e, {"oath": "silent"})
+	if not assert_true(out.has("result"), "7.8 (silent) completes"):
+		return
+	var st: Dictionary = out["result"]["state"]
+	var dm := {}
+	for m: String in ["commozione", "supervillain", "grace", "standing"]:
+		dm[m] = float(st["meters"][m]) - float(e["meters"][m])
+	assert_eq(dm, {"commozione": 10.0, "supervillain": 0.0, "grace": 0.0, "standing": 0.0}, "only the marvels")
+	assert_eq(st["flags"].get("oath"), "silent", "oath silent")
+	assert_true((st["book"]["remembered"] as Array).has("YOU SWORE AN OATH! LET HER GO! (NIKETAS, OVERHEARD)"), "Niketas, overheard")
+	assert_false((st["book"]["values"] as Array).has("Kept oaths"), "no KEPT OATHS")
+	var m: Dictionary = out["result"]["metrics"]
+	assert_eq([m.get("lull_acts", []), m["silence"]], [[], ["s13"]], "no call; the silence")
+	var tr: PackedStringArray = out["result"]["trace"]
+	assert_true(tr.has("s16c") and tr.has("s16d") and not tr.has("s16a"), "the pilgrims answer Niketas")
+	var sc: StoryScene = out["scene"]
+	assert_eq(sc.actors["girl"].behavior, "goto", "the girl let go")
+	assert_eq(CampaignFlow.ending(st), "alpha", "THE WITNESS (alpha)")
+
+
+## STY-709 (7.9): the lamp picked up and carried; declared (Grace +6, AN HONEST SHARE, carried to the
+## pile) or kept (Grace −8, coins +3, put out of sight at once, the hanging card); the empty pedestal
+## (a marvel, once) and the column (`columnAgain`); the pile; the cloth-route readback only with
+## `clothRoute`; coins +2; JERUSALEM: LOADING… and it never loads (from Level 5 on no stage is
+## Jerusalem; the chapter ends here).
+func test_STY_709_lamp_declared_or_kept_the_pile_and_jerusalem_never_loads() -> void:
+	for want: String in ["declared", "kept"]:
+		var e := _entry("7.9")
+		if want == "kept":
+			e["flags"].erase("clothRoute")
+		var s := _scene("7.9", e)
+		var out := {}
+		s.completed.connect(func(r: Dictionary) -> void: out["r"] = r)
+		var d := StoryDriver.new(s, {"s03": want})
+		var carried_at := {}
+		for k in 60 * 120:
+			if out.has("r"):
+				break
+			if s.runner.current != null and not carried_at.has(s.runner.current.id):
+				carried_at[s.runner.current.id] = s.ctx.carrying
+			d.drive(DT)
+			InputService.update(DT)
+			s.tick(DT)
+		if not assert_true(out.has("r"), "7.9/%s completes" % want):
+			continue
+		var st: Dictionary = out["r"]["state"]
+		var tr: PackedStringArray = out["r"]["trace"]
+		assert_eq(st["flags"].get("lamp"), want, want)
+		assert_eq(float(st["meters"]["grace"]), float(_after("7.9", want, e)["meters"]["grace"]), "Grace %s (clamped to the meter)" % ("+6" if want == "declared" else "-8"))
+		assert_eq(int(st["coins"]) - int(e["coins"]), 2 if want == "declared" else 5, "coins")
+		assert_eq((st["book"]["values"] as Array).has("An honest share"), want == "declared", "AN HONEST SHARE")
+		assert_eq(carried_at.get("s04", "?"), "A LAMP" if want == "declared" else "", "the lamp carried to the pile, or out of sight")
+		assert_eq(tr.has("s03c"), want == "kept", "the hanging card")
+		assert_eq(tr.has("s07a"), want == "declared", "the cloth readback only with clothRoute")
+		assert_eq([(st["book"]["marvels"] as Array).count("AN EMPTY PEDESTAL"), st["flags"].get("columnAgain")], [1, true], "the pedestal; the column")
+		assert_true(tr.has("s15") and tr.has("s16") and tr[tr.size() - 2] == "s16", "JERUSALEM: LOADING..., then never")
+	assert_eq(StoryLibrary.scene("7.9").completion["boundary"], "chapter_end", "the chapter ends")
+	# 2.1's dream of the pastel city is a promise; from the departure (Level 5) on, no stage is Jerusalem.
+	for ch: StoryChapterData in StoryLibrary.chapters():
+		if ch.number < 5:
+			continue
+		for sc: StorySceneData in ch.scenes:
+			for step: StoryStep in sc.steps:
+				assert_false(step is StageStep and (step as StageStep).map == "jerusalem", "%s: Jerusalem never loads" % sc.id)
 
 # --- Restart, replay, force-close -----------------------------------------------------------------
 

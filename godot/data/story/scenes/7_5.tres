@@ -1,0 +1,302 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=34 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="3_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="4_carrystep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="5_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="6_storypickup"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="7_actorstep"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="8_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="9_cardstep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="10_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="11_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "city"
+player_at = "8"
+player_point = Vector2(0.0, 0.0)
+player_face = "S"
+actors = []
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_narrationstep")
+id = "s02"
+text = "THE FIRST PAYMENT. ALEXIOS IV SENDS IT OUT OF THE PALACE IN CHESTS."
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_carrystep")
+id = "s03"
+label = "A CHEST"
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("6_storypickup")
+id = "chest1"
+at = ""
+point = Vector2(11.5, 6.5)
+kind = "coin"
+label = "A CHEST"
+text = "FULL. HALF OF IT ALREADY BELONGS TO THE VENETIANS."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_storypickup")
+id = "chest2"
+at = ""
+point = Vector2(9.5, 8.5)
+kind = "coin"
+label = "ANOTHER CHEST"
+text = "HALF FULL. THE REST AFTER THE HARVEST, THEY SAY."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("6_storypickup")
+id = "chest3"
+at = ""
+point = Vector2(12.5, 9.5)
+kind = "coin"
+label = "THE LAST CHEST"
+text = "EMPTY, EXCEPT FOR AN APOLOGY."
+sprite = ""
+effects = {}
+carry_label = ""
+sound = "coin"
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("5_objectivestep")
+id = "s04"
+objective = "CARRY THE CHESTS OUT OF THE PALACE"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("4_carrystep")
+id = "s05"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("7_actorstep")
+id = "s06"
+actor = "doge"
+action = "spawn"
+role = "doge"
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = true
+face = ""
+face_player = true
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("8_dialoguestep")
+id = "s07"
+speaker = "doge"
+text = "(FROM HIS GALLEY, TO THE YOUNG EMPEROR) WE PULLED YOU OUT OF THE MUD, BOY. WE CAN PUT YOU BACK IN IT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_actorstep")
+id = "s08"
+actor = "doge"
+action = "despawn"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.0
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("9_cardstep")
+id = "s09"
+big = "THE MOSQUE"
+small = "SOME PILGRIMS GO TO BURN THE MOSQUE OF THE CITY'S MUSLIMS. THEIR GREEK NEIGHBOURS COME TO DEFEND IT. IN THE FIGHT, A FIRE. IT BURNS FOR TWO DAYS."
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 3.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("10_storyactorspec")
+name = "woman"
+role = "householdWoman"
+at = ""
+point = Vector2(18.3, 15.9)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("2_stagestep")
+id = "s10"
+map = "city"
+player_at = "3"
+player_point = Vector2(0.0, 0.0)
+player_face = "W"
+actors = [SubResource("Resource_13")]
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("7_actorstep")
+id = "s11"
+actor = "woman"
+action = "follow"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 3.0
+run = false
+wait_arrival = false
+side = 0.5
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("8_dialoguestep")
+id = "s12"
+speaker = "householdWoman"
+text = "(A WOMAN OF NIKETAS'S HOUSEHOLD) I CANNOT SEE MY OWN STREET FOR THE SMOKE. YOU WALKED IT WITH YOUR SAILOR. TAKE ME BACK TO THE COURTYARD."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("5_objectivestep")
+id = "s13"
+objective = "LEAD HER BACK TO THE COURTYARD ALONG THE STREET YOU LEARNED"
+objective_kind = "reach"
+goal_marker = "9"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE COURTYARD"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray("2")
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "fire"
+rule_params = {
+"from": "1",
+"start_after": 0.6,
+"spread_every": 0.35,
+"per_tick": 3,
+"breaths": 3,
+"escort": "woman"
+}
+rule_lines = {
+"fire_big": "FIRE!",
+"fire_small": "IT EATS A GREAT PART OF THE CITY. KEEP TO THE STREET!",
+"hot": "HOT!",
+"label": "BREATH",
+"out_big": "THE SMOKE",
+"out_small": "BACK TO THE LAST SAFE PLACE. GO ROUND THE FLAMES"
+}
+hint = "THE GREEN CHECKPOINT IS SAFE: THE FIRE NEVER REACHES IT"
+hint_after = 4.0
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("8_dialoguestep")
+id = "s14"
+speaker = "householdWoman"
+text = "THE HOUSE HAS BURNED. THE FIG TREE IS GONE. THE LAMP IS STILL HERE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("8_dialoguestep")
+id = "s15"
+speaker = "householdWoman"
+text = "YOUR PEOPLE ARE LEAVING THE CITY FOR YOUR CAMP. GO WITH THEM. DO NOT COME BACK."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("9_cardstep")
+id = "s16"
+big = "DIVISION"
+small = "THUS WAS THERE DIVISION BETWEEN THE GREEKS AND THE FRANKS, AS THE MARSHAL PUTS IT"
+color = Color(0.784313725, 0.62745098, 1.0, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("8_dialoguestep")
+id = "s17"
+speaker = "zampano"
+text = "THERE WAS A CITY, AND IT WAS ON FIRE, AND I KNEW ONE STREET."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("11_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.5"
+content_version = 1
+title = "Unpaid promises"
+old_title = "Unpaid promises"
+level = 7
+summary = "THE FIRST PAYMENT COMES; THE REST DOES NOT. CARRY THE CHESTS OUT OF THE PALACE: EACH ONE LIGHTER. THE DOGE TELLS THE YOUNG EMPEROR WHAT HE THINKS OF HIM. THEN SOME PILGRIMS GO TO BURN THE MOSQUE OF THE CITY'S MUSLIMS, THEIR GREEK NEIGHBOURS DEFEND IT, AND A FIRE STARTS THAT BURNS FOR TWO DAYS. LEAD A WOMAN OF NIKETAS'S HOUSEHOLD HOME ALONG THE STREET YOU LEARNED. SHE TELLS HIM NOT TO COME BACK."
+map = "city"
+music = "medieval"
+cast = PackedStringArray("zampano", "doge", "householdWoman")
+steps = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22")]
+entry_conditions = {
+"requires_completed": ["7.4"]
+}
+persistent_effects = PackedStringArray("book.remembered")
+completion = {
+"boundary": "scene"
+}
+reality = false
+historical_tags = PackedStringArray("dream", "Constantinople, autumn 1203", "the unpaid sums", "the mosque and the great fire", "division between the Greeks and the Franks")
+source_refs = PackedStringArray("Clari LVI and LIX (Munro): a first payment, then no more; the Doge rebukes the young emperor (paraphrased, per docs/STORY-SOURCES.md)", "Villehardouin pp. 48-53: Alexius cannot pay; the riot and the fire of two days; \"Thus was there division between the Greeks and the Franks\" (pp. 51-52, quoted per docs/STORY-SOURCES.md)", "Barbero's lecture on the Fourth Crusade: the mosque, the Greeks defending their Muslim neighbours, the fire; Niketas loses his house", "docs/STORY.md 7.5", "src/campaign/chapters/ch7.ts 7.5 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "REVIEW REQUIRED (OQ-07): the mosque and the fire. 7.5 follows Barbero's lecture (pilgrims set out to burn the mosque, Greeks defend their Muslim neighbours, the fire); docs/STORY.md 7.4 omits it. The contradiction stays open.", "The chests, the woman and the walk home are adaptation; the fire is a walk with safe checkpoints (WALK-019-021). The smoke (three burns) sends him back to the last checkpoint; nothing persists before the scene completes.")
+technical_status = "technically_complete"

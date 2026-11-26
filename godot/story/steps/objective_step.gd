@@ -22,7 +22,7 @@ extends StoryStep
 ## Rule numbers are in `rule_params`; every line a rule shows is in `rule_lines`.
 
 const KINDS := ["reach", "collect", "follow", "fight", "rule", "survive"]
-const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder", "steady", "act_at", "shoulder"]
+const RULES := ["", "visor", "jack_gate", "cut_off", "receding", "lull", "listen", "sounder", "steady", "act_at", "shoulder", "fire", "no_running"]
 ## Rules that complete a "rule" objective.
 const COMPLETING_RULES := ["lull", "listen", "act_at", "shoulder"]
 const RULE_SCRIPTS := {
@@ -36,6 +36,8 @@ const RULE_SCRIPTS := {
 	"steady": preload("res://story/rules/steady_rule.gd"),
 	"act_at": preload("res://story/rules/act_at_rule.gd"),
 	"shoulder": preload("res://story/rules/shoulder_rule.gd"),
+	"fire": preload("res://story/rules/fire_rule.gd"),
+	"no_running": preload("res://story/rules/no_running_rule.gd"),
 }
 const FIGHT_KEYS := ["foes", "hp", "speed", "radius", "leash", "health", "parry", "rout", "sword_cost"]
 const PICKUP_KINDS := ["shard", "spot", "coin", "marvel"]
@@ -150,6 +152,10 @@ func effect_sets() -> Array:
 		out.append(fight["sword_cost"])
 	if rule_params.get("good_effects") is Dictionary and not (rule_params["good_effects"] as Dictionary).is_empty():
 		out.append(rule_params["good_effects"])
+	if rule_params.get("silence_effects") is Dictionary and not (rule_params["silence_effects"] as Dictionary).is_empty():
+		out.append(rule_params["silence_effects"])
+	if rule_params.get("cost") is Dictionary:
+		out.append({String(rule_params["cost"]["meter"]): -1})
 	return out
 
 
@@ -189,7 +195,7 @@ func actor_refs() -> PackedStringArray:
 	var out := PackedStringArray()
 	if leader != "":
 		out.append(leader)
-	for k in ["blocker", "source", "actor", "leader", "rejoin_actor", "window_actor"]:
+	for k in ["blocker", "source", "actor", "leader", "rejoin_actor", "window_actor", "escort", "silence_actor"]:
 		if rule_params.has(k):
 			out.append(String(rule_params[k]))
 	for h: String in fight.get("foes", []):
@@ -262,6 +268,11 @@ func check(errors: PackedStringArray) -> void:
 			for k in ["noise", "noise_label", "drowned", "act_text"]:
 				_need(errors, rule_lines.has(k), "objective %s: lull needs rule_lines.%s" % [id, k])
 			_need(errors, int(rule_params.get("need", 0)) > 0, "objective %s: lull needs a positive count" % id)
+			if rule_params.has("silence_after"):
+				_need(errors, rule_params.has("silence_actor") and rule_lines.has("silence") and rule_params.has("silence_effects"),
+					"objective %s: a lull that silence ends needs silence_actor, silence_effects and rule_lines.silence" % id)
+			if rule_params.has("cost"):
+				_need(errors, rule_lines.has("cost_ok") and rule_lines.has("cost_short"), "objective %s: a lull act with a cost needs rule_lines.cost_ok and cost_short" % id)
 			_need(errors, action_label != "", "objective %s: lull needs its action" % id)
 		"listen":
 			for k in ["point", "radius", "seconds"]:
@@ -278,6 +289,17 @@ func check(errors: PackedStringArray) -> void:
 				_need(errors, rule_params.has(k), "objective %s: shoulder needs rule_params.%s" % [id, k])
 			for k in ["label", "ahead", "behind", "side", "pots", "rejoin", "window", "out_big", "out_small"]:
 				_need(errors, rule_lines.has(k), "objective %s: shoulder needs rule_lines.%s" % [id, k])
+		"fire":
+			for k in ["from", "start_after", "spread_every", "per_tick", "breaths"]:
+				_need(errors, rule_params.has(k), "objective %s: fire needs rule_params.%s" % [id, k])
+			for k in ["fire_big", "fire_small", "hot", "label", "out_big", "out_small"]:
+				_need(errors, rule_lines.has(k), "objective %s: fire needs rule_lines.%s" % [id, k])
+			_need(errors, goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: fire needs a goal" % id)
+			_need(errors, not no_run, "objective %s: a fire walk lets him run" % id)
+		"no_running":
+			for k in ["out_big", "out_small"]:
+				_need(errors, rule_lines.has(k), "objective %s: no_running needs rule_lines.%s" % [id, k])
+			_need(errors, not no_run, "objective %s: no_running needs running possible (no_run off)" % id)
 		"act_at":
 			_need(errors, rule_params.has("radius") and action_label != "", "objective %s: act_at needs rule_params.radius and the walk's action" % id)
 			_need(errors, goal_marker != "" or goal_point != Vector2.ZERO, "objective %s: act_at needs a goal" % id)

@@ -113,6 +113,10 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 		return
 	InputService.guard_hold_injected = false
 	if step.rule == "lull":
+		# 7.8: the policy's "oath" ("call" by default) or "silent" (stand and say nothing).
+		if step.rule_params.has("silence_after") and String(policy.get("oath", "call")) == "silent":
+			InputService.inject_move(0.0, 0.0)
+			return
 		_lull(step, pos)
 		return
 	if step.objective_kind == "survive" and step.rule == "steady":
@@ -154,6 +158,10 @@ func _objective(step: ObjectiveStep, st: Dictionary) -> void:
 	var bark_here := false
 	if step.rule == "cut_off":
 		blocked.append(step.rule_params["gap"])
+	# A fire: what a player sees is the burning tiles; he goes round them.
+	if step.rule == "fire":
+		for k: Vector2i in st.get("fire", {}):
+			blocked.append(Rect2(k.x, k.y, 1, 1))
 	if step.rule == "jack_gate" and not st.get("open", false):
 		var gap: Rect2 = step.rule_params["gap"]
 		if gate == "bark":

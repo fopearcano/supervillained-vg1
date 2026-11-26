@@ -1,0 +1,356 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=42 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="4_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/branch_step.gd" id="5_branchstep"]
+[ext_resource type="Script" path="res://story/data/story_branch_case.gd" id="6_storybranchcase"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="7_cardstep"]
+[ext_resource type="Script" path="res://story/steps/minigame_step.gd" id="8_minigamestep"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="9_actorstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="10_objectivestep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="11_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="12_effectstep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="13_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "legate"
+role = "bishop"
+at = "3"
+point = Vector2(0.0, 0.0)
+face = "SE"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_storyactorspec")
+name = "conf"
+role = "confusione"
+at = "4"
+point = Vector2(0.0, 0.0)
+face = "SW"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("3_storyactorspec")
+name = "jack"
+role = "jack"
+at = ""
+point = Vector2(9.5, 10.5)
+face = "N"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "breach"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "N"
+actors = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3")]
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("4_dialoguestep")
+id = "s02"
+speaker = "bishop"
+text = "SWEAR IT ON THE SAINTS. EVERYTHING TAKEN IS BROUGHT IN AND DECLARED. NO HAND ON A WOMAN. NO HAND ON A PRIEST OR A NUN."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("4_dialoguestep")
+id = "s03"
+speaker = "zampano"
+text = "SO HELP ME GOD."
+remembered = false
+effects = {
+"grace": 5,
+"flags": {
+"sworn": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("4_dialoguestep")
+id = "s04"
+speaker = "jack"
+text = "SO HELP ME GOD. (HE IS CROSSING HIS FINGERS.)"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("7_cardstep")
+id = "s05a"
+big = "EVERYTHING BROUGHT IN"
+small = "LIKE THE BOLT OF RED CLOTH AT ZARA"
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("6_storybranchcase")
+id = "cloth"
+when = {
+"flag": "clothRoute",
+"eq": true
+}
+steps = [SubResource("Resource_8")]
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("5_branchstep")
+id = "s05"
+cases = [SubResource("Resource_9")]
+otherwise = []
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("7_cardstep")
+id = "s06"
+big = "THE FRIDAY ASSAULT FAILS"
+small = "FROM THE WALLS: WOOF! WOOF! THEY ARE MOCKING HIS BARK, LIKE JACK AT THE GATE."
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("7_cardstep")
+id = "s07"
+big = "SUNDAY"
+small = "THE BISHOPS ABSOLVE THE HOST AND SEND THE WOMEN AWAY FROM THE CAMP"
+color = Color(0.941176471, 0.847058824, 0.62745098, 1)
+seconds = 2.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("7_cardstep")
+id = "s08"
+big = "MONDAY"
+small = "PIERRE'S MEN HACK A HOLE IN A WALLED-UP GATE. ON THE OTHER SIDE, A CROWD. NOBODY DARES GO IN."
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("4_dialoguestep")
+id = "s09"
+speaker = "confusione"
+text = "I DARE. ON HANDS AND FEET."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("8_minigamestep")
+id = "s10"
+game = "tug"
+lines = {
+"title": "BY THE FOOT",
+"objective": "HOLD ALEAUME BACK BY THE FOOT",
+"help": "HOLD ON! (TAP)",
+"lost": "HE WRIGGLES FREE"
+}
+won_effects = {}
+lost_effects = {
+"commozione": 6
+}
+params = {
+"friend": "confusione"
+}
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("9_actorstep")
+id = "s11"
+actor = "conf"
+action = "goto"
+role = ""
+at = "2"
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 2.6
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("4_dialoguestep")
+id = "s12"
+speaker = "zampano"
+text = "I HAD HIS FOOT. I HAD IT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("4_dialoguestep")
+id = "s13a"
+speaker = "confusione"
+text = "(FROM INSIDE THE WALL) BROTHER! YOU SPLIT YOUR HALF LOAF WITH ME AT ZARA. THIS WAY. FOLLOW MY VOICE."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("10_objectivestep")
+id = "s13b"
+objective = "FOLLOW HIS VOICE IN"
+objective_kind = "reach"
+goal_marker = "2"
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.9
+pickups = []
+no_run = true
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("6_storybranchcase")
+id = "comrade"
+when = {
+"flag": "comradeship",
+"eq": true
+}
+steps = [SubResource("Resource_18"), SubResource("Resource_19")]
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("11_narrationstep")
+id = "s13c"
+text = "HE IS GONE INTO THE DARK WITHOUT A WORD. ONLY HIS MAIL RATTLES."
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("10_objectivestep")
+id = "s13d"
+objective = "FOLLOW THE RATTLE OF HIS MAIL"
+objective_kind = "reach"
+goal_marker = "2"
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.9
+pickups = []
+no_run = true
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "sounder"
+rule_params = {
+"actor": "conf",
+"every": 1.4,
+"hidden": true
+}
+rule_lines = {
+"sound": "...RATTLE..."
+}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("5_branchstep")
+id = "s13"
+cases = [SubResource("Resource_20")]
+otherwise = [SubResource("Resource_21"), SubResource("Resource_22")]
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("12_effectstep")
+id = "s14"
+effects = {
+"supervillain": 10,
+"value": "Comradeship",
+"flags": {
+"followed": true
+}
+}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("7_cardstep")
+id = "s15"
+big = "WITHIN THE WALL"
+small = "ALEAUME WAITS FOR HIM. BEHIND THEM, A GATE IS BROKEN OPEN."
+color = Color(0.247058824, 0.941176471, 1.0, 1)
+seconds = 2.2
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("7_cardstep")
+id = "s16"
+big = "THAT NIGHT"
+small = "MOURTZOUPHLOS FLEES THE CITY"
+color = Color(0.752941176, 0.439215686, 0.941176471, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("4_dialoguestep")
+id = "s17"
+speaker = "zampano"
+text = "THERE WAS A HOLE, AND MY BROTHER WAS IN IT. HE IS NOT MY BROTHER."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("13_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.7"
+content_version = 1
+title = "The hole in the wall"
+old_title = "The hole in the wall"
+level = 7
+summary = "BEFORE THE ASSAULT EVERYONE SWEARS: EVERYTHING TAKEN IS BROUGHT IN AND DECLARED, AND NO HAND ON WOMEN OR CLERGY. THE FRIDAY ASSAULT FAILS AND THE WALLS MOCK THEM. ON THE MONDAY PIERRE'S MEN HACK A HOLE IN A WALLED-UP GATE AND NOBODY DARES GO IN. ALEAUME DOES. HOLD HIM BACK BY THE FOOT: HE WRIGGLES FREE. FOLLOW HIM IN."
+map = "breach"
+music = "medieval"
+cast = PackedStringArray("zampano", "bishop", "jack", "confusione")
+steps = [SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28")]
+entry_conditions = {
+"requires_completed": ["7.6"]
+}
+persistent_effects = PackedStringArray("meter.grace", "flags.sworn", "meter.commozione", "meter.supervillain", "book.values", "flags.followed", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["sworn", "followed"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "April 1204", "the oath before the assault", "the failed Friday", "the breach at the walled-up gate", "Aleaume of Clari")
+source_refs = PackedStringArray("Clari 68 (the agreement: booty declared under oath, women and clergy protected), 70-71 (the Friday assault fails; the mockery), 72-73 (absolution; the women sent away), 75-76 (Pierre at the walled-up postern; Aleaume goes in on hands and feet while his brother holds him by the foot), 77-79", "Villehardouin pp. 59-63: the covenant; the assaults; 12 April 1204", "docs/STORY.md 7.7", "src/campaign/chapters/ch7.ts 7.7 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "Confusione plays Aleaume; the deed is Aleaume's, not Zampano's.", "The tug is lost by design (MINI-010): Commozione +6 once; the scene goes on once.", "With comradeship (6.1) his voice guides; without it only the rattle of his mail (a goal found by ear).")
+technical_status = "technically_complete"

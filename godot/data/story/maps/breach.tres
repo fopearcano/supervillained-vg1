@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StoryMapData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_map_data.gd" id="1_map"]
+
+[resource]
+script = ExtResource("1_map")
+id = "breach"
+rows = PackedStringArray("%%%%%%%%%%%%%%%%", "%%%%%%%++%%%%%%%", "%%%%%%%+2%%%%%%%", "%%%%%%%++%%%%%%%", "%%%%%%%++%%%%%%%", "%%%%%%%++%%%%%%%", "#------1-------#", "#--------------#", "#--------------#", "#----3-----4---#", "#--------------#", "#--------------#", "#--------------#", "#-------S------#", "#--------------#", "################")
+base = "-"
+theme = "constantinople"
+environment = "ch01_greenzone"

@@ -9,6 +9,10 @@ extends ObjectiveRule
 ## shows its line; from the first act the `spread` actors answer with `spread` lines (one every
 ## half second, in turn). Every line is in rule_lines: noise (the voice's phrases), noise_label,
 ## drowned (acting under the noise), act_text (said with each act).
+## 7.8: `cost` ({meter, amount}) is spent by each heard act (rule_lines cost_ok, or cost_short when
+## he has less: it takes all he has left); `silence_after` seconds without a heard act end the walk
+## the other way: `silence_actor` says rule_lines.silence, `silence_effects` are applied
+## (metrics "silence").
 
 const S := GameConfig.Story
 const NOISE_COLOR := Color("#ff9a1f")
@@ -25,6 +29,7 @@ func begin(ctx: StoryContext, step: ObjectiveStep, st: Dictionary) -> void:
 	st["used"] = false
 	st["spread_t"] = 0.0
 	st["spread_k"] = 0
+	st["lull_t"] = 0.0
 	_hud(ctx, step, st)
 
 
@@ -64,6 +69,13 @@ func on_action(ctx: StoryContext, step: ObjectiveStep, st: Dictionary) -> void:
 	st["good"] = int(st["good"]) + 1
 	var n := int(st["good"])
 	(ctx.metrics.get_or_add("lull_acts", []) as Array).append(step.id)
+	if step.rule_params.has("cost"):
+		var cost: Dictionary = step.rule_params["cost"]
+		var meter := String(cost["meter"])
+		var have := float((ctx.state["meters"] as Dictionary).get(meter, 0.0))
+		var amount := float(cost["amount"])
+		ctx.apply({meter: -minf(have, amount)})
+		ctx.notice(String(step.rule_lines["cost_ok"] if have >= amount else step.rule_lines["cost_short"]), Color("#ff3b3b") if have >= amount else NOISE_COLOR)
 	var fx: Dictionary = step.rule_params.get("good_effects", {})
 	if not fx.is_empty():
 		ctx.apply(fx)
@@ -88,6 +100,13 @@ func on_action(ctx: StoryContext, step: ObjectiveStep, st: Dictionary) -> void:
 
 
 func tick(ctx: StoryContext, step: ObjectiveStep, st: Dictionary, dt: float) -> bool:
+	st["lull_t"] = float(st["lull_t"]) + dt
+	if int(st["good"]) == 0 and step.rule_params.has("silence_after") and float(st["lull_t"]) >= float(step.rule_params["silence_after"]):
+		var a := ctx.actor(String(step.rule_params["silence_actor"]))
+		ctx.say_float(String(step.rule_lines["silence"]), Vector2(a.gx, a.gy) if a else ctx.player_pos(), Color("#f0f0f0"))
+		ctx.apply(step.rule_params["silence_effects"])
+		(ctx.metrics.get_or_add("silence", []) as Array).append(step.id)
+		return true
 	st["phase_t"] = float(st["phase_t"]) - dt
 	if float(st["phase_t"]) <= 0.0:
 		st["talking"] = not st["talking"]

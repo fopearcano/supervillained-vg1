@@ -86,5 +86,25 @@
  "7.4": {
   "content_version": 1,
   "sha256": "c1f0a4dfe566cf6fe6d9efd54372fc28e2189ed7fe6e9c1b0a3c33f846a89b2c"
+ },
+ "7.5": {
+  "content_version": 1,
+  "sha256": "c05322a9d96a2bf3445c72f6f48a8f5dccadc09bd61e9479c29d7ba0f2147d2b"
+ },
+ "7.6": {
+  "content_version": 1,
+  "sha256": "aa71c517a8a19975fd54d3bb5757ce7dc86f6a3ffbde48bc948a69f6ab8764f3"
+ },
+ "7.7": {
+  "content_version": 1,
+  "sha256": "3b52bdca2b1fdc6165e3c6df27b419b0e86e435a9b583e1cf8eba6d652055f5e"
+ },
+ "7.8": {
+  "content_version": 1,
+  "sha256": "2966aa26fc174df661fc569a64fa4006553dd4d423937e2c17a0391cd1dcb704"
+ },
+ "7.9": {
+  "content_version": 1,
+  "sha256": "66a5c0a049ea0cfccb30966b9969d3ed12fdf9572423a1d6dbf1f1b12503f0c5"
  }
 }

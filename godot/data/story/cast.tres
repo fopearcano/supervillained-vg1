@@ -142,5 +142,17 @@ speakers = {
 "gesture": false,
 "name": "THE EMPEROR",
 "portrait": "bagnaskizEmperor"
+},
+"householdWoman": {
+"color": Color(0.847058824, 0.658823529, 0.941176471, 1),
+"gesture": true,
+"name": "A WOMAN OF THE HOUSEHOLD",
+"portrait": "householdWoman"
+},
+"bishop": {
+"color": Color(0.956862745, 0.941176471, 0.894117647, 1),
+"gesture": true,
+"name": "A BISHOP",
+"portrait": "bishop"
 }
 }

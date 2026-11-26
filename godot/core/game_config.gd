@@ -423,6 +423,9 @@ class Story:
 	const CAUGHT_CARD := 1.6
 	## A checkpoint is passed within this distance.
 	const CHECKPOINT_RADIUS := 1.2
+	## 7.5's fire (source STORY.FIRE): the push away from a burning tile, and the hurt time.
+	const FIRE_KNOCKBACK := 6.0
+	const FIRE_HURT_TIME := 0.4
 	## Acting in a lull (2.2 the preacher, 3.3 the square): seconds of talk and of quiet ([min, max],
 	## drawn from the scene's seeded generator), the action's range and the phrase interval.
 	const LULL_TALK := [2.4, 3.4]

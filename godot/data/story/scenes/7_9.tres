@@ -1,0 +1,383 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=45 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="3_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="4_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="5_storypickup"]
+[ext_resource type="Script" path="res://story/steps/choice_step.gd" id="6_choicestep"]
+[ext_resource type="Script" path="res://story/data/story_choice_option.gd" id="7_storychoiceoption"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="8_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/carry_step.gd" id="9_carrystep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="10_cardstep"]
+[ext_resource type="Script" path="res://story/steps/branch_step.gd" id="11_branchstep"]
+[ext_resource type="Script" path="res://story/data/story_branch_case.gd" id="12_storybranchcase"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="13_effectstep"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="14_cuestep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="15_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("3_storyactorspec")
+name = "conf"
+role = "confusione"
+at = ""
+point = Vector2(6.5, 19.5)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "city"
+player_at = "S"
+player_point = Vector2(5.5, 18.5)
+player_face = "S"
+actors = [SubResource("Resource_1")]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("5_storypickup")
+id = "lamp"
+at = ""
+point = Vector2(4.5, 20.5)
+kind = "spot"
+label = "THE LAMP FROM NIKETAS'S COURTYARD"
+text = "STILL WARM FROM LAST NIGHT."
+sprite = "lamp_0"
+effects = {}
+carry_label = "A LAMP"
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("4_objectivestep")
+id = "s02"
+objective = "THE LAMP IS LYING IN THE STREET. PICK IT UP"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_3")]
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("8_dialoguestep")
+id = "s03a"
+speaker = "confusione"
+text = "IT WILL END UP IN SOMEBODY ELSE'S HOUSE. BUT NOT BY US."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("7_storychoiceoption")
+id = "declared"
+label = "(CARRY IT TO THE COMMON PILE, AS SWORN.)"
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"grace": 6,
+"flags": {
+"lamp": "declared"
+},
+"value": "An honest share"
+}
+then_steps = [SubResource("Resource_5")]
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("9_carrystep")
+id = "s03b"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("10_cardstep")
+id = "s03c"
+big = "THAT AFTERNOON"
+small = "THE COUNT OF SAINT-POL HANGS A KNIGHT WHO KEPT THINGS BACK, WITH HIS SHIELD AT HIS NECK"
+color = Color(1.0, 0.164705882, 0.22745098, 1)
+seconds = 2.8
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("8_dialoguestep")
+id = "s03d"
+speaker = "zampano"
+text = "(UNDER THE CLOAK, THE LAMP IS VERY HEAVY.)"
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("7_storychoiceoption")
+id = "kept"
+label = "(HIDE IT UNDER YOUR CLOAK.)"
+said = ""
+silent = false
+cost = 0
+locked_text = ""
+effects = {
+"grace": -8,
+"coins": 3,
+"flags": {
+"lamp": "kept"
+}
+}
+then_steps = [SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_9")]
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("6_choicestep")
+id = "s03"
+speaker = "confusione"
+prompt = "WE SWORE TO BRING EVERYTHING IN, BROTHER. EVERYTHING. EVEN LAMPS."
+prompt_again = ""
+options = [SubResource("Resource_6"), SubResource("Resource_10")]
+once_each = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("5_storypickup")
+id = "pedestal"
+at = "1"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "AN EMPTY PEDESTAL"
+text = "THE BRONZE HERCULES IS GONE. THROWN DOWN AND MELTED FOR COIN, THEY SAY."
+sprite = ""
+effects = {
+"marvel": "AN EMPTY PEDESTAL",
+"commozione": 4
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("5_storypickup")
+id = "column"
+at = "5"
+point = Vector2(0.0, 0.0)
+kind = "spot"
+label = "THE CARVED COLUMN"
+text = "SHIPS, LADDERS, LITTLE MEN CLIMBING. NOW EVERYONE SAYS THEY KNEW WHAT IT MEANT."
+sprite = ""
+effects = {
+"flags": {
+"columnAgain": true
+}
+}
+carry_label = ""
+sound = "jingle"
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("4_objectivestep")
+id = "s04"
+objective = "GO BY THE PLACES YOU VISITED"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_12"), SubResource("Resource_13")]
+no_run = false
+action_label = "LOOK"
+action_text = "..."
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("4_objectivestep")
+id = "s05"
+objective = "GO TO THE COMMON PILE"
+objective_kind = "reach"
+goal_marker = "0"
+goal_point = Vector2(0.0, 0.0)
+goal_label = "THE PILE"
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = ""
+action_text = ""
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("9_carrystep")
+id = "s06"
+label = ""
+sprite = ""
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("10_cardstep")
+id = "s07a"
+big = "FROM A HOUSE TO THE PILE"
+small = "LIKE THE BOLT OF RED CLOTH AT ZARA"
+color = Color(1.0, 0.88627451, 0.22745098, 1)
+seconds = 2.0
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("12_storybranchcase")
+id = "cloth"
+when = {
+"flag": "clothRoute",
+"eq": true
+}
+steps = [SubResource("Resource_17")]
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("11_branchstep")
+id = "s07"
+cases = [SubResource("Resource_18")]
+otherwise = []
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("10_cardstep")
+id = "s08"
+big = "THE COMMON PILE"
+small = "THE GOLD AND THE SILK STAY UNDER GUARD. THE POOR KNIGHTS RECEIVE THE COARSE SILVER."
+color = Color(0.847058824, 0.847058824, 0.909803922, 1)
+seconds = 2.6
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("8_dialoguestep")
+id = "s09"
+speaker = "confusione"
+text = "A CLERK WANTS A KNIGHT'S SHARE. THE COUNT OF SAINT-POL SAYS CLERKS SHARE LIKE KNIGHTS. SO DO I."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("8_dialoguestep")
+id = "s10"
+speaker = "zampano"
+text = "THEY DIVIDED THE HOUSES WHILE WE WERE AT THE WALLS. EVEN THE GOOD ONES. ESPECIALLY THE GOOD ONES."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("8_dialoguestep")
+id = "s11"
+speaker = "zampano"
+text = "THE GOLD WENT TO LI RIKE HOMME. LI POVRE CHEVALIER GOT THE SILVER."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("13_effectstep")
+id = "s12"
+effects = {
+"coins": 2
+}
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("8_dialoguestep")
+id = "s13"
+speaker = "zampano"
+text = "THERE WAS GOLD, AND THEN THERE WAS SILVER, AND THEN THERE WAS ME."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("14_cuestep")
+id = "s14"
+sound = "glitch"
+shake = 0.0
+flash = false
+visor = -1.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("10_cardstep")
+id = "s15"
+big = "JERUSALEM"
+small = "LOADING..."
+color = Color(0.964705882, 0.752941176, 0.878431373, 1)
+seconds = 2.4
+dim = 0.9
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("10_cardstep")
+id = "s16"
+big = "JERUSALEM"
+small = "THE PASTEL CITY NEVER LOADS"
+color = Color(0.690196078, 0.439215686, 1.0, 1)
+seconds = 2.0
+dim = 0.95
+sound = ""
+flash = true
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("15_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.9"
+content_version = 1
+title = "The common pile"
+old_title = "The common pile"
+level = 7
+summary = "THE LAMP FROM NIKETAS'S COURTYARD IS LYING IN THE STREET. BRING IT TO THE COMMON PILE, AS SWORN, OR KEEP IT UNDER YOUR CLOAK. ON THE WAY THE BRONZE HERCULES IS GONE FROM ITS PEDESTAL, AND THE CARVED COLUMN NOW SEEMS TO SAY WHAT EVERYONE KNEW ALL ALONG. AT THE PILE THE GOLD AND SILK STAY UNDER GUARD, AND THE POOR KNIGHTS GET THE COARSE SILVER. JERUSALEM IS LOADING."
+map = "city"
+music = "medieval"
+cast = PackedStringArray("zampano", "confusione")
+steps = [SubResource("Resource_2"), SubResource("Resource_4"), SubResource("Resource_11"), SubResource("Resource_14"), SubResource("Resource_15"), SubResource("Resource_16"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_25"), SubResource("Resource_26"), SubResource("Resource_27"), SubResource("Resource_28"), SubResource("Resource_29")]
+entry_conditions = {
+"requires_completed": ["7.8"]
+}
+persistent_effects = PackedStringArray("meter.grace", "flags.lamp", "book.values", "coins", "book.marvels", "meter.commozione", "flags.columnAgain", "book.remembered")
+completion = {
+"boundary": "chapter_end",
+"requires_flags": ["lamp"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "after the sack, April 1204", "the common pile", "things kept back", "statues melted for coin", "Jerusalem never reached")
+source_refs = PackedStringArray("Clari 81 (the treasure guarded; the poor knights get only the coarse silver), 92 (the pillars, read after the event), 98 (Aleaume claims a knight's share; Saint-Pol allows it), 105", "Villehardouin pp. 65-66: covetousness; things kept back; the count of Saint-Pol hangs a knight with his shield at his neck", "Choniates, destroyed monuments (paras. 2-3): bronze statues melted into coin; the Hercules thrown down", "docs/STORY.md 7.9", "src/campaign/chapters/ch7.ts 7.9 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "The lamp and the choice are adaptation. The column is an inscription read after the fact, not a prophecy machine.", "LI RIKE HOMME / LI POVRE CHEVALIER: Clari's Old French terms as the draft gives them; spelling REVIEW REQUIRED.")
+technical_status = "technically_complete"

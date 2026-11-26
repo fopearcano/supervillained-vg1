@@ -1,0 +1,475 @@
+[gd_resource type="Resource" script_class="StorySceneData" load_steps=48 format=3]
+
+[ext_resource type="Script" path="res://story/data/story_scene_data.gd" id="1_storyscenedata"]
+[ext_resource type="Script" path="res://story/steps/stage_step.gd" id="2_stagestep"]
+[ext_resource type="Script" path="res://story/steps/effect_step.gd" id="3_effectstep"]
+[ext_resource type="Script" path="res://story/steps/card_step.gd" id="4_cardstep"]
+[ext_resource type="Script" path="res://story/steps/objective_step.gd" id="5_objectivestep"]
+[ext_resource type="Script" path="res://story/data/story_pickup.gd" id="6_storypickup"]
+[ext_resource type="Script" path="res://story/steps/cue_step.gd" id="7_cuestep"]
+[ext_resource type="Script" path="res://story/data/story_actor_spec.gd" id="8_storyactorspec"]
+[ext_resource type="Script" path="res://story/steps/actor_step.gd" id="9_actorstep"]
+[ext_resource type="Script" path="res://story/steps/narration_step.gd" id="10_narrationstep"]
+[ext_resource type="Script" path="res://story/steps/branch_step.gd" id="11_branchstep"]
+[ext_resource type="Script" path="res://story/data/story_branch_case.gd" id="12_storybranchcase"]
+[ext_resource type="Script" path="res://story/steps/dialogue_step.gd" id="13_dialoguestep"]
+[ext_resource type="Script" path="res://story/steps/complete_step.gd" id="14_completestep"]
+
+[sub_resource type="Resource" id="Resource_1"]
+script = ExtResource("2_stagestep")
+id = "s01"
+map = "city"
+player_at = "S"
+player_point = Vector2(0.0, 0.0)
+player_face = "NW"
+actors = []
+
+[sub_resource type="Resource" id="Resource_2"]
+script = ExtResource("3_effectstep")
+id = "s02"
+effects = {
+"flags": {
+"oath": "undecided"
+}
+}
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("4_cardstep")
+id = "s03"
+big = "THE CITY IS TAKEN"
+small = "NO MISCHIEF WAS DONE TO POOR OR TO RICH, THE SMALL KNIGHT WILL WRITE. HE FILLS HIS BOOK."
+color = Color(1.0, 0.603921569, 0.121568627, 1)
+seconds = 2.8
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("6_storypickup")
+id = "church"
+at = "0"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE GREAT CHURCH"
+text = "A DOME LIKE THE SKY, HUNG ON NOTHING."
+sprite = ""
+effects = {
+"marvel": "THE GREAT CHURCH",
+"commozione": 5
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("6_storypickup")
+id = "hippodrome"
+at = "7"
+point = Vector2(0.0, 0.0)
+kind = "marvel"
+label = "THE HIPPODROME"
+text = "TIERS OF SEATS, AND BRONZE FIGURES EVERYWHERE."
+sprite = ""
+effects = {
+"marvel": "THE HIPPODROME",
+"commozione": 5
+}
+carry_label = ""
+sound = "star"
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("5_objectivestep")
+id = "s04"
+objective = "FILL THE BOOK OF MARVELS"
+objective_kind = "collect"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = [SubResource("Resource_4"), SubResource("Resource_5")]
+no_run = false
+action_label = "LOOK"
+action_text = "MERVEILLE!"
+action_sound = ""
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = ""
+rule_params = {}
+rule_lines = {}
+hint = ""
+hint_after = 0.6
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("7_cuestep")
+id = "s05"
+sound = "glitch"
+shake = 0.0
+flash = true
+visor = -1.0
+float_text = ""
+float_at = ""
+float_point = Vector2(0.0, 0.0)
+float_color = Color(1.0, 1.0, 1.0, 1)
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("4_cardstep")
+id = "s06"
+big = "TURN THE PAGE"
+small = "THE SAME STREETS, AS NIKETAS WILL WRITE THEM: MULES LED INTO THE GREAT CHURCH, ITS ALTAR BROKEN UP AND SHARED OUT. NO ONE WAS WITHOUT A SHARE IN THE GRIEF."
+color = Color(0.784313725, 0.62745098, 1.0, 1)
+seconds = 3.4
+dim = 0.55
+sound = ""
+flash = false
+
+[sub_resource type="Resource" id="Resource_9"]
+script = ExtResource("8_storyactorspec")
+name = "niketas"
+role = "niketas"
+at = "9"
+point = Vector2(0.0, 0.0)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_10"]
+script = ExtResource("8_storyactorspec")
+name = "venetian"
+role = "venetian"
+at = ""
+point = Vector2(4.5, 20.5)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_11"]
+script = ExtResource("8_storyactorspec")
+name = "family"
+role = "greek"
+at = ""
+point = Vector2(3.5, 21.5)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_12"]
+script = ExtResource("8_storyactorspec")
+name = "jack"
+role = "jack"
+at = ""
+point = Vector2(4.5, 19.5)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_13"]
+script = ExtResource("8_storyactorspec")
+name = "girl"
+role = "householdWoman"
+at = ""
+point = Vector2(5.0, 19.8)
+face = "E"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_14"]
+script = ExtResource("8_storyactorspec")
+name = "p1"
+role = "pilgrim"
+at = ""
+point = Vector2(8.5, 18.5)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_15"]
+script = ExtResource("8_storyactorspec")
+name = "p2"
+role = "knight"
+at = ""
+point = Vector2(9.5, 19.5)
+face = "W"
+behavior = "idle"
+target = ""
+target_point = Vector2(0.0, 0.0)
+speed = 2.0
+face_player = false
+
+[sub_resource type="Resource" id="Resource_16"]
+script = ExtResource("2_stagestep")
+id = "s07"
+map = "city"
+player_at = "S"
+player_point = Vector2(10.5, 17.5)
+player_face = "W"
+actors = [SubResource("Resource_9"), SubResource("Resource_10"), SubResource("Resource_11"), SubResource("Resource_12"), SubResource("Resource_13"), SubResource("Resource_14"), SubResource("Resource_15")]
+
+[sub_resource type="Resource" id="Resource_17"]
+script = ExtResource("9_actorstep")
+id = "s08"
+actor = "jack"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(7.5, 16.5)
+near_player = false
+face = ""
+face_player = false
+speed = 0.45
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_18"]
+script = ExtResource("9_actorstep")
+id = "s09"
+actor = "girl"
+action = "follow"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 0.6
+run = false
+wait_arrival = false
+target_actor = "jack"
+
+[sub_resource type="Resource" id="Resource_19"]
+script = ExtResource("9_actorstep")
+id = "s10"
+actor = "p1"
+action = "wander"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 0.8
+run = false
+wait_arrival = false
+radius = 1.0
+
+[sub_resource type="Resource" id="Resource_20"]
+script = ExtResource("9_actorstep")
+id = "s11"
+actor = "p2"
+action = "wander"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 0.8
+run = false
+wait_arrival = false
+radius = 1.0
+
+[sub_resource type="Resource" id="Resource_21"]
+script = ExtResource("10_narrationstep")
+id = "s12"
+text = "NIKETAS'S HOUSE BURNED IN THE FIRE; HE AND HIS FRIENDS HAVE SHELTERED IN ONE WITH A DARK ENTRANCE, AND THE LAMP CAME WITH THEM. NOW THE HOUSEHOLD IS LEAVING ON FOOT, A VENETIAN FRIEND IN FRONT, THE GIRLS IN THE MIDDLE WITH MUD ON THEIR FACES. JACK DRAGS ONE OF THEM OUT OF THE GROUP."
+
+[sub_resource type="Resource" id="Resource_22"]
+script = ExtResource("5_objectivestep")
+id = "s13"
+objective = "WAIT FOR A LULL AND CALL THE PILGRIMS TO THEIR OATH, OR STAND SILENT"
+objective_kind = "rule"
+goal_marker = ""
+goal_point = Vector2(0.0, 0.0)
+goal_label = ""
+goal_radius = 0.0
+pickups = []
+no_run = false
+action_label = "CALL"
+action_text = ""
+action_sound = "bark"
+checkpoints = PackedStringArray()
+leader = ""
+path = PackedStringArray()
+leader_speed = 0.0
+leader_lines = PackedStringArray()
+rule = "lull"
+rule_params = {
+"source": "p1",
+"stand": Vector2(7.5, 18.0),
+"range": 3.6,
+"need": 1,
+"cost": {
+"meter": "commozione",
+"amount": 5
+},
+"good_effects": {
+"flags": {
+"oath": "enforced"
+},
+"supervillain": 15,
+"grace": 5,
+"standing": -6,
+"value": "Kept oaths",
+"remembered": "NO HAND ON A WOMAN! YOU SWORE! (IN HIS OWN WORDS)"
+},
+"silence_after": 16.0,
+"silence_actor": "niketas",
+"silence_effects": {
+"flags": {
+"oath": "silent"
+},
+"remembered": "YOU SWORE AN OATH! LET HER GO! (NIKETAS, OVERHEARD)"
+}
+}
+rule_lines = {
+"noise": ["LOOT!", "THIS WAY!", "GOLD!", "WHO HAS A SACK?"],
+"noise_label": "THE STREET IS LOUD",
+"drowned": "NOBODY HEARS HIM OVER THE LOOTING. WAIT FOR A LULL",
+"act_text": "NO HAND ON A WOMAN! YOU SWORE!",
+"silence": "YOU SWORE AN OATH! LET HER GO!",
+"cost_ok": "-5 COMMOZIONE",
+"cost_short": "IT TAKES ALL HE HAS LEFT"
+}
+hint = "IN A LULL, PRESS CALL. OR SAY NOTHING"
+hint_after = 1.0
+
+[sub_resource type="Resource" id="Resource_23"]
+script = ExtResource("9_actorstep")
+id = "s14"
+actor = "jack"
+action = "flee"
+role = ""
+at = ""
+point = Vector2(0.0, 0.0)
+near_player = false
+face = ""
+face_player = false
+speed = 3.0
+run = false
+wait_arrival = false
+radius = 6.0
+
+[sub_resource type="Resource" id="Resource_24"]
+script = ExtResource("9_actorstep")
+id = "s15"
+actor = "girl"
+action = "goto"
+role = ""
+at = ""
+point = Vector2(3.5, 20.8)
+near_player = false
+face = ""
+face_player = false
+speed = 1.6
+run = false
+wait_arrival = false
+
+[sub_resource type="Resource" id="Resource_25"]
+script = ExtResource("13_dialoguestep")
+id = "s16a"
+speaker = "knight"
+text = "(THE PILGRIMS) HE IS RIGHT. WE SWORE. LET HER GO, JACK."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_26"]
+script = ExtResource("13_dialoguestep")
+id = "s16b"
+speaker = "jack"
+text = "ALL RIGHT! ALL RIGHT! I WAS ONLY... CARRYING HER. FOR SAFETY."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_27"]
+script = ExtResource("12_storybranchcase")
+id = "called"
+when = {
+"flag": "oath",
+"eq": "enforced"
+}
+steps = [SubResource("Resource_25"), SubResource("Resource_26")]
+
+[sub_resource type="Resource" id="Resource_28"]
+script = ExtResource("13_dialoguestep")
+id = "s16c"
+speaker = "knight"
+text = "(THE PILGRIMS) THE GREEK IS RIGHT. WE SWORE. LET HER GO, JACK."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_29"]
+script = ExtResource("10_narrationstep")
+id = "s16d"
+text = "ZAMPANO SAID NOTHING. HE HEARD EVERY WORD."
+
+[sub_resource type="Resource" id="Resource_30"]
+script = ExtResource("11_branchstep")
+id = "s16"
+cases = [SubResource("Resource_27")]
+otherwise = [SubResource("Resource_28"), SubResource("Resource_29")]
+
+[sub_resource type="Resource" id="Resource_31"]
+script = ExtResource("13_dialoguestep")
+id = "s17"
+speaker = "niketas"
+text = "SHE IS BACK WITH HER FAMILY. OUR HOUSE IS NOT. THESE THINGS THE ARMIES OF THE WEST DID TO A CHRISTIAN PEOPLE. I WILL WRITE DOWN WHO SPOKE, AND WHO DID NOT."
+remembered = false
+effects = {}
+
+[sub_resource type="Resource" id="Resource_32"]
+script = ExtResource("13_dialoguestep")
+id = "s18"
+speaker = "zampano"
+text = "THERE WAS A DOORWAY, AND IT WAS SOMEBODY ELSE'S."
+remembered = true
+effects = {}
+
+[sub_resource type="Resource" id="Resource_33"]
+script = ExtResource("14_completestep")
+id = "done"
+
+[resource]
+script = ExtResource("1_storyscenedata")
+id = "7.8"
+content_version = 1
+title = "Whose street was it?"
+old_title = "Whose street was it?"
+level = 7
+summary = "THE CITY IS TAKEN. THE SMALL KNIGHT WILL WRITE THAT NO MISCHIEF WAS DONE, AND FILL HIS BOOK WITH WONDERS. TURN THE PAGE: THE SAME STREETS AS NIKETAS WILL WRITE THEM, AND HIS OWN DOORWAY. HIS HOUSEHOLD IS LEAVING; JACK DRAGS A GIRL OUT OF THE GROUP. WAIT FOR A LULL AND CALL THE PILGRIMS TO THEIR OATH, OR STAND SILENT WHILE NIKETAS CALLS THEM HIMSELF. EITHER WAY THEY LET HER GO."
+map = "city"
+music = "medieval"
+cast = PackedStringArray("zampano", "niketas", "jack", "knight")
+steps = [SubResource("Resource_1"), SubResource("Resource_2"), SubResource("Resource_3"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8"), SubResource("Resource_16"), SubResource("Resource_17"), SubResource("Resource_18"), SubResource("Resource_19"), SubResource("Resource_20"), SubResource("Resource_21"), SubResource("Resource_22"), SubResource("Resource_23"), SubResource("Resource_24"), SubResource("Resource_30"), SubResource("Resource_31"), SubResource("Resource_32"), SubResource("Resource_33")]
+entry_conditions = {
+"requires_completed": ["7.7"]
+}
+persistent_effects = PackedStringArray("flags.oath", "book.marvels", "meter.commozione", "meter.supervillain", "meter.grace", "meter.standing", "book.values", "book.remembered")
+completion = {
+"boundary": "scene",
+"requires_flags": ["oath"]
+}
+reality = false
+historical_tags = PackedStringArray("dream", "the sack, April 1204", "two accounts side by side", "Niketas's flight", "the oath recalled", "decides the ending")
+source_refs = PackedStringArray("Clari 80: the taking; \"no mischief was done to poor or to rich\" (quoted per docs/STORY-SOURCES.md)", "Choniates, the sack (Munro pp. 15-16): the Great Church; \"No one was without a share in the grief\" (quoted per docs/STORY-SOURCES.md)", "Barbero's lecture, after Niketas: the house with a dark entrance, the Venetian friend, the girls with mud on their faces, a girl dragged away and let go when the oath is recalled", "docs/STORY.md 7.8", "src/campaign/chapters/ch7.ts 7.8 (draft reference)")
+review_status = "draft_implemented_review_pending"
+review_notes = PackedStringArray("Draft implemented; narrative review pending (OD-01).", "Zampano's call and Jack's role are invented.", "Decides the ending: calling the oath in a lull (Commozione 5, or all he has left) sets oath=enforced (THE KNIGHT); 16 s of silence and Niketas calls it himself, oath=silent (THE WITNESS, ending key alpha).", "Niketas's last line is the game's, not a quotation.")
+technical_status = "technically_complete"

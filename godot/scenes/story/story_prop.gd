@@ -24,6 +24,15 @@ func setup(p_handle: String, catalog: SpriteCatalog, p_key: String, tint: Color 
 	return self
 
 
+## Another frame of the catalogue (the fire's flicker).
+func set_key(catalog: SpriteCatalog, p_key: String) -> void:
+	if p_key == key:
+		return
+	key = p_key
+	_sprite.texture = catalog.texture(p_key)
+	_sprite.offset = -Vector2(catalog.anchor(p_key))
+
+
 func set_grid_position(x: float, y: float) -> void:
 	gx = x
 	gy = y
