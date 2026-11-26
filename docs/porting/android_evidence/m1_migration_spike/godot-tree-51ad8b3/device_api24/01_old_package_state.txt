@@ -1,7 +1,0 @@
-versionCode=1 minSdk=24 targetSdk=36
-versionName=1.0
-dataDir=/data/user/0/com.zampano.supervillained
-firstInstallTime=2026-11-24 13:20:02
-lastUpdateTime=2026-11-24 13:20:02
-signatures=PackageSignatures{1da50f2 [f4e4e733]}
-pkgFlags=[ DEBUGGABLE HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]

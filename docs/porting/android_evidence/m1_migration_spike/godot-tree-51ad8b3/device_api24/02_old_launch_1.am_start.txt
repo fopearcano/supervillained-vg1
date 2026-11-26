@@ -1,7 +1,0 @@
-Starting: Intent { cmp=com.zampano.supervillained/.MainActivity }
-Status: ok
-Activity: com.zampano.supervillained/.MainActivity
-ThisTime: 1366
-TotalTime: 1366
-WaitTime: 1370
-Complete

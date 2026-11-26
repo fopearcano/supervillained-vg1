@@ -1,12 +1,12 @@
-; Engine configuration file for the SUPERVILLAINED VG1 Godot port.
-; The PixiJS/TypeScript game in the repository root is untouched; this project lives in /godot.
+; Minimal SUPERVILLAINED dog prototype.
+; The original PixiJS/TypeScript game in the repository root remains untouched.
 
 config_version=5
 
 [application]
 
-config/name="SUPERVILLAINED VG1"
-config/description="Godot 4.7 port of SUPERVILLAINED VG1 (Green Zone vertical slice)."
+config/name="SUPERVILLAINED Dog Prototype"
+config/description="Editable Godot prototype: move Zampano, eat, poop, pee and clean the Green Zone."
 run/main_scene="res://main/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 run/max_fps=60
@@ -19,8 +19,6 @@ buses/default_bus_layout="res://data/audio/default_bus_layout.tres"
 
 [autoload]
 
-SaveService="*res://autoload/save_service.gd"
-AppState="*res://autoload/app_state.gd"
 InputService="*res://autoload/input_service.gd"
 AudioService="*res://autoload/audio_service.gd"
 
@@ -60,14 +58,6 @@ run={
 pee={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":32)]
-}
-action={
-"deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":74), Object(InputEventKey,"physical_keycode":88)]
-}
-bark={
-"deadzone": 0.2,
-"events": [Object(InputEventKey,"physical_keycode":66)]
 }
 menu={
 "deadzone": 0.2,

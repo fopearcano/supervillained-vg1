@@ -1,7 +1,0 @@
---------- beginning of main
-attempt 1 (generation 1): loading https://localhost/__sv_m1_migration_spike__/read.html diag={"page_url":"https:\/\/localhost\/__sv_m1_migration_spike__\/read.html","lifecycle_test_hold_ms":20000,"webview_data_dir_existed_before_read":true,"local_storage_dir_existed_before_read":true,"package_name":"com.zampano.supervillained","app_version_code":2}
-holding the page of generation 1 for up to 20000 ms (lifecycle test)
-blocked request https://localhost/favicon.ico
-attempt 1: status=success origin=https://localhost present=5
-teardown of generation 1 (completed): timeout cancelled, WebView destroyed on thread main
-emit attempt 1 status=success

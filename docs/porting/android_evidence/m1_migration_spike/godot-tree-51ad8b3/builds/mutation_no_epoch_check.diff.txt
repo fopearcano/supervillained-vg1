@@ -1,7 +1,0 @@
-diff --git a/godot/platform/android/m1_migration_spike/native/src/com/zampano/svspike/MigrationSpikePlugin.java b/godot/platform/android/m1_migration_spike/native/src/com/zampano/svspike/MigrationSpikePlugin.java
-index c6a0775..d74de62 100644
---- a/godot/platform/android/m1_migration_spike/native/src/com/zampano/svspike/MigrationSpikePlugin.java
-+++ b/godot/platform/android/m1_migration_spike/native/src/com/zampano/svspike/MigrationSpikePlugin.java
-@@ -288 +288 @@ public class MigrationSpikePlugin extends GodotPlugin {
--		if (now != epoch) b.append(b.length() == 0 ? "" : ", ").append("stale epoch ").append(epoch).append(" (now ").append(now).append(')');
-+		// MUTATION no_epoch_check: epoch comparison removed

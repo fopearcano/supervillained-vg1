@@ -1,5 +1,0 @@
-11-24 13:24:06.175   701   735 I ActivityManager: Start proc 28983:com.zampano.supervillained/u0a254 for next-top-activity {com.zampano.supervillained/com.godot.game.GodotAppLauncher}
-11-24 13:24:20.372   701   720 I ActivityManager: Start proc 29069:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0i148 for  {com.zampano.supervillained/org.chromium.content.app.SandboxedProcessService0:0}
-pidof after M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE: '28983'
-topResumedActivity=ActivityRecord{263001655 u0 com.zampano.supervillained/com.godot.game.GodotAppLauncher t114}
-ResumedActivity: ActivityRecord{263001655 u0 com.zampano.supervillained/com.godot.game.GodotAppLauncher t114}

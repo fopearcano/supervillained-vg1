@@ -1,8 +1,6 @@
 class_name SpriteCatalog
 extends Resource
-## Editor-generated catalogue of static sprites (props, items, HUD icons): key -> texture and
-## anchor (pixels from the texture's top-left to the contact point). Built by
-## tools/build_resources.gd from the source manifests; never assembled at runtime.
+## Green Zone sprite catalogue: key -> texture and anchor in pixels.
 
 ## key ("tree_0", "treat_0", ...) -> {"texture": Texture2D, "anchor": Vector2i, "size": Vector2i}
 @export var entries: Dictionary = {}

@@ -1,4 +1,0 @@
---------- beginning of main
-attempt 1: reserved generation 1 (epoch 0) on thread GLThread 98; start queued on the UI thread in 5000 ms (lifecycle test)
-godot_terminating on thread GLThread 98: epoch 1, invalidated reserved generation 1
-godot_terminating: generation 1 was still queued (no WebView); its start is discarded, nothing emitted

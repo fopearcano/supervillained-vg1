@@ -1,7 +1,0 @@
-Starting: Intent { cmp=com.zampano.supervillained/com.godot.game.GodotAppLauncher }
-Status: ok
-LaunchState: COLD
-Activity: com.zampano.supervillained/com.godot.game.GodotApp
-TotalTime: 1919
-WaitTime: 1923
-Complete

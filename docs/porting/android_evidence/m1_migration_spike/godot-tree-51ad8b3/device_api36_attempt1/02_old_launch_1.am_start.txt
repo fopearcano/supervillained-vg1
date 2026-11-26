@@ -1,7 +1,0 @@
-Starting: Intent { cmp=com.zampano.supervillained/.MainActivity }
-Status: ok
-LaunchState: COLD
-Activity: com.zampano.supervillained/.MainActivity
-TotalTime: 3366
-WaitTime: 3369
-Complete

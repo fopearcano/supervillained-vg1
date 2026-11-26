@@ -1,6 +1,0 @@
-Starting: Intent { cmp=com.zampano.supervillained/com.godot.game.GodotAppLauncher }
-Status: timeout
-LaunchState: UNKNOWN (-1)
-Activity: com.zampano.supervillained/com.godot.game.GodotApp
-WaitTime: 71145
-Complete

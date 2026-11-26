@@ -1,10 +1,9 @@
 class_name PauseOverlay
 extends OverlayPanel
-## Pause menu (MENU button, Esc/P, Android Back or background): RESUME, RESTART, QUIT.
+## Pause menu (MENU button, Esc/P or Android Back): RESUME or RESTART.
 
 signal resume_requested
 signal restart_requested
-signal quit_requested
 
 
 func _ready() -> void:
@@ -12,7 +11,6 @@ func _ready() -> void:
 	items = [
 		{"label": "RESUME", "color": T.GREEN, "action": func() -> void: resume_requested.emit()},
 		{"label": "RESTART", "color": T.YELLOW, "action": func() -> void: restart_requested.emit()},
-		{"label": "QUIT", "color": T.PINK, "action": func() -> void: quit_requested.emit()},
 	]
 
 

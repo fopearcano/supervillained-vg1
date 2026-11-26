@@ -170,17 +170,8 @@ static func definition() -> LevelDefinition:
 	def.environment = "ch01_greenzone"
 	def.spawns = {
 		"treats": {"count": 30, "maxOffset": 3, "minSpacing": 2.2},
-		"cats": {"first": 16.0, "interval": [16.0, 27.0], "max": 2},
-		"balls": {"first": 28.0, "interval": [22.0, 34.0], "max": 2},
 	}
-	def.events = {
-		"underAttack": {"scriptedProgress": 0.56, "bagnaskizHits": 3},
-		"pollutionWaves": [
-			{"progress": 0.2, "count": 2, "radius": 2.4, "strength": 0.72, "distance": [3.0, 7.0]},
-			{"progress": 0.43, "count": 2, "radius": 2.8, "strength": 0.82, "distance": [3.0, 8.0]},
-			{"progress": 0.72, "count": 3, "radius": 3.0, "strength": 0.9, "distance": [2.0, 8.0]},
-		],
-	}
+	def.events = {}
 	def.rows = build_rows()
 	return def
 

@@ -1,7 +1,0 @@
- godot/README.md              |  43 +-
- godot/tools/m1_review.gd     | 921 ++++++++++++++++++++++++++++++++++++++-----
- godot/tools/title_capture.gd |  21 +-
- 3 files changed, 875 insertions(+), 110 deletions(-)
-M	godot/README.md
-M	godot/tools/m1_review.gd
-M	godot/tools/title_capture.gd

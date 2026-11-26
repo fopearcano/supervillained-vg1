@@ -1,4 +1,0 @@
-11-24 13:23:33.464   701   735 I ActivityManager: Start proc 28686:com.zampano.supervillained/u0a253 for next-top-activity {com.zampano.supervillained/com.godot.game.GodotAppLauncher}
-pidof after M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE: '28686'
-topResumedActivity=ActivityRecord{182490535 u0 com.zampano.supervillained/com.godot.game.GodotAppLauncher t113}
-ResumedActivity: ActivityRecord{182490535 u0 com.zampano.supervillained/com.godot.game.GodotAppLauncher t113}

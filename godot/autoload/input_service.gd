@@ -14,8 +14,6 @@ const InputCfg := GameConfig.InputCfg
 const KEY_EDGES := {
 	&"pee": [&"pee"],
 	&"confirm": [&"confirm"],
-	&"action": [&"action"],
-	&"bark": [&"bark"],
 	&"menu": [&"menu", &"back"],
 	&"run": [&"run"],
 }

@@ -1,2 +1,0 @@
-Performing Streamed Install
-adb.exe: failed to install %USERPROFILE%\sv-m1-spike\c17\apk\spike_wrong_key.apk: Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package com.zampano.supervillained signatures do not match the previously installed version; ignoring!]

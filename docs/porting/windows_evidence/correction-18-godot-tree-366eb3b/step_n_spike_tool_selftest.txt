@@ -1,7 +1,0 @@
-M1_TOOL_SELFTEST PASS success: compare accepts
-M1_TOOL_SELFTEST PASS not_found: compare accepts
-M1_TOOL_SELFTEST PASS success with a per-key error: compare rejects (attempt 1: story no error; attempt 2: story no error)
-M1_TOOL_SELFTEST PASS not_found with a per-key error: compare rejects (attempt 1: coins no error; attempt 2: coins no error)
-M1_TOOL_SELFTEST PASS success with a changed value: compare rejects (attempt 1: coins raw value identical; in-process repeated read identical)
-M1_TOOL_SELFTEST PASS not_found with a present key: compare rejects (attempt 1: coins absent; in-process repeated read identical)
-M1_TOOL_SELFTEST_RESULT 6 passed, 0 failed

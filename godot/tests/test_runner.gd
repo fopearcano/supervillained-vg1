@@ -1,12 +1,11 @@
 extends SceneTree
 ## First-party headless test runner (TEST_PLAN.md §3).
 ##   godot --headless --path godot --script res://tests/test_runner.gd -- --suite all
-## Options: --suite all|unit|content|integration, --file <substring>, --case <substring>,
+## Options: --suite all|prototype, --file <substring>, --case <substring>,
 ## --repeat <n>.
 ## Fails on assertion failures, engine errors/warnings, orphan nodes, nodes left in the tree and
 ## timeouts; writes JSON and JUnit XML to res://test-results/ (git-ignored); exits non-zero on any
-## failure. Isolation: every case starts with fresh user:// save storage, default settings, reset
-## InputService/Input actions/AudioService state, reset renderable ids and default engine pacing.
+## failure. Isolation resets input, audio, renderable ids and engine pacing between cases.
 ## On Windows use the console binary so the exit code reaches the shell:
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path godot --script res://tests/test_runner.gd -- --suite all
 
@@ -75,12 +74,6 @@ func _isolate() -> void:
 	for a in InputMap.get_actions():
 		Input.action_release(a)
 	root.get_node("AudioService").reset_for_tests()
-	var save := root.get_node("SaveService")
-	save.fault_after = ""
-	save.fault_future_copy.clear()
-	save.base_dir = "%s/case_%03d/" % [_run_dir, _case_index]
-	save.load_from_disk()
-	root.get_node("AppState").reload()
 	load("res://iso/iso_renderable.gd").reset_ids()
 	Engine.max_fps = 0
 	Engine.time_scale = 1.0

@@ -1,6 +1,0 @@
-Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
-
-       PCK 32905976 bytes, 254 runtime resources checked, 512 packed files
-PASS test_SLICE_android_pck_has_runtime_data_and_starts_clean   16071 ms
-
-1 passed, 0 failed, 1 total (16.1 s), Godot 4.7.2-stable (official)

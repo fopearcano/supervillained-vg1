@@ -1,9 +1,8 @@
 class_name GameConfig
 extends RefCounted
-## Every tuning number used by the port, copied from src/config.ts (audited commit 95b69c0).
+## Central tuning numbers used by the prototype.
 ## Units: distances in grid tiles, time in seconds, speeds in tiles/second, screen sizes in
-## logical pixels. Values are verified against the source export by the CFG-001 content test;
-## never change one to compensate for a porting bug.
+## logical pixels.
 
 
 class Display:
@@ -12,12 +11,6 @@ class Display:
 	const MAX_WIDTH := 270
 	const MAX_ASPECT := 0.62
 	const MIN_ASPECT := 0.42
-
-
-class Loop:
-	const STEP := 1.0 / 60.0
-	const MAX_FRAME := 0.25
-	const MAX_STEPS := 6
 
 
 class Iso:
@@ -41,12 +34,10 @@ class Player:
 	const ACCEL := 16.0
 	const DECEL := 20.0
 	const RADIUS := 0.26
-	const BOB_AMOUNT := 0.06
 	const IDLE_PHASE_TIME := 3.0
 	const HURT_INVULN := 2.0
 	const MARK_DISTANCE := 1.05
 	const DRINK_DISTANCE := 1.0
-	const BOUNCE := 1.5
 
 
 class Energy:
@@ -65,13 +56,6 @@ class InputCfg:
 	const ACTION_TTL := 0.25
 	const TAP_SLOP := 10.0
 	const KEYBOARD_WALK_MAG := 0.8
-	const SWIPE_MIN := 16.0
-	const SWIPE_MAX_TIME := 0.45
-	const SWIPE_RATIO := 1.2
-	const DOUBLE_TAP_TIME := 0.32
-	const DOUBLE_TAP_DIST := 18.0
-	const TAP_MAX_TIME := 0.3
-	const GESTURE_FLASH := 0.5
 
 
 class Occlusion:
@@ -134,71 +118,15 @@ class Pollution:
 	const FRESH_TIME := 1.2
 
 
-class Zone:
-	const HEALTH_ZERO_STARS := 0.8
-	const HEALTH_FULL_STARS := 0.995
-	const PEE_DEFICIT_PENALTY := 0.012
-
-
-class Lives:
-	const START := 2
-	const MAX := 9
-	const SPEED_COST := 0.05
-
-
-class Score:
-	const TIME_BONUS_PER_SECOND := 10
-	const STAR_BONUS := 500
-
-
-class Bark:
-	const COOLDOWN := 0.45
-	const RANGE := 2.8
-	const HALF_ANGLE := 0.75
-	const WAVE_SPEED := 9.0
-	const ANIM_TIME := 0.3
-
-
 class Fx:
 	const SHAKE_DECAY := 9.0
 	const SHAKE_POOP := 2.0
 	const SHAKE_HURT := 4.0
-	const SHAKE_BARK := 1.2
-	const SHAKE_HIT := 3.0
-	const POPUP_TIME := 1.1
 	const SCORE_POPUP_TIME := 0.9
-	const TRANSITION_TIME := 0.45
 
 
 class Audio:
-	const DEFAULT_VOLUME := 0.7
-	## Synthesized music (the dream's medieval loop).
-	const MUSIC_VOLUME := 0.32
-	## Recorded music (intro, Green Zone, levels 2-4).
 	const MUSIC_FILE_VOLUME := 0.55
-	## Per-track loudness trims of the recorded music (1 = as recorded).
-	const MUSIC_FILE_GAIN := {"level2": 0.58, "level3": 0.84, "level4": 0.5}
+	const MUSIC_FILE_GAIN := {}
 	const SFX_VOLUME := 0.9
-	const FILE_GAIN := {"coin": 2.4, "laser": 1.3, "poop": 1.2, "meow": 1.1, "siren": 0.6}
-	const TRIM_LEVEL := 0.01
-	## The cash after a caught cat starts this many seconds after the meow.
-	const CASH_DELAY := 0.35
-	## The siren starts after the "under attack" alarm, quieter, and loops until the attack ends.
-	const SIREN_DELAY := 3.9
-	const SIREN_VOLUME := 0.45
-
-
-## Subset of COMBAT used outside story fights (src/config.ts COMBAT.SHIELD.SPEED).
-class Combat:
-	const SHIELD_SPEED := 0.55
-
-
-## Maps the source config group names to the inner classes above (CFG-001 parity test).
-static func groups() -> Dictionary:
-	return {
-		"DISPLAY": Display, "LOOP": Loop, "ISO": Iso, "CAMERA": Camera, "PLAYER": Player,
-		"ENERGY": Energy, "INPUT": InputCfg, "OCCLUSION": Occlusion, "HUNGER": Hunger,
-		"TREAT": Treat, "DIGESTION": Digestion, "POOP": Poop, "BLADDER": Bladder,
-		"POLLUTION": Pollution, "ZONE": Zone, "LIVES": Lives, "SCORE": Score, "BARK": Bark,
-		"FX": Fx,
-	}
+	const FILE_GAIN := {"coin": 2.4, "poop": 1.2}

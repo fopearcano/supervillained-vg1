@@ -1,3 +1,0 @@
-settings global webview_provider: com.android.chrome
-com.android.chrome versionName=69.0.3497.100
-com.google.android.webview versionName=53.0.2785.124

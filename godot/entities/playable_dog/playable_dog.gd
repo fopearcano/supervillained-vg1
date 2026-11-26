@@ -1,32 +1,31 @@
 class_name PlayableDog
 extends CharacterBody2D
-## The player's dog (port of src/entities/zampano.ts), generic over PlayableCharacterProfile.
+## Zampano, the prototype's playable dog.
 ##
 ## Authoritative state is grid space in 64-bit floats (gx, gy, vx, vy in tiles and tiles/s).
 ## Each logic tick (called by the owning scene from _physics_process, in source order):
 ## screen-space intent → inverse projection → walk/run/terrain/accel → GridKinematicSolver
 ## (WorldMapModel.move_circle) → node position = projection of the foot point. Native slide
-## resolution is not used for static geometry (M2 collision decision, IMPLEMENTATION_LOG.md);
+## resolution is not used for static geometry;
 ## the body stays a CharacterBody2D on the PlayerBody layer for Area2D interactions.
 
 const P := GameConfig.Player
 
 ## Action states; "free" = controlled by the player.
 const LOCKS_MOVEMENT := {
-	"free": false, "bark": false, "eat": false,
-	"pee": true, "poop": true, "fetch": true, "hurt": true, "drink": true, "exit": true,
+	"free": false, "eat": false,
+	"pee": true, "poop": true, "hurt": true, "drink": true,
 }
 const STATE_ANIM := {
-	"pee": "pee", "poop": "poop", "bark": "bark", "eat": "eat", "fetch": "fetch", "hurt": "hurt", "drink": "eat",
+	"pee": "pee", "poop": "poop", "eat": "eat", "hurt": "hurt", "drink": "eat",
 }
 const TERRAIN_SPEED := {TileCatalog.Ground.TALL_GRASS: 0.85, TileCatalog.Ground.WATER: 0.8}
 const BUSH_SPEED := 0.7
 
-## The playable character. Callers inject it before add_child() (IsoWorld: AppState's `--as`
-## selection); the scene itself references no profile.
+## The world injects Zampano's profile before add_child(). The fallback supports direct tests.
 @export var profile: PlayableCharacterProfile
 ## Zampanò, loaded lazily only when a dog is used without an injected profile (direct
-## instantiation by tools and unit tests). A path, not a preload: no static dependency.
+## instantiation by focused tests). A path, not a preload: no static dependency.
 const FALLBACK_PROFILE_PATH := "res://data/characters/zampano_profile.tres"
 ## True when this dog fell back to FALLBACK_PROFILE_PATH.
 var used_fallback_profile := false
@@ -40,16 +39,7 @@ var state := "free"
 var state_time := 0.0
 var state_duration := 0.0
 var running := false
-## Extra velocity applied by the world this step (ball magnet), tiles/s.
-var push_x := 0.0
-var push_y := 0.0
-var knock_x := 0.0
-var knock_y := 0.0
 var invulnerable := 0.0
-## Movement multiplier (lives-for-speed in the Green Zone; bogs and thirst in the story).
-var speed_mul := 1.0
-var no_run := false
-var guarding := false
 var energy := NeedsSystem.Energy.new()
 ## "empty" when he just got tired this step, "ready" when running is possible again.
 var energy_event := ""
@@ -62,14 +52,11 @@ var iso := IsoRenderable.new()
 ## Physics-interpolation resets performed (spawn, teleport, camera snap): DOG-008 evidence.
 var interpolation_resets := 0
 
-## RUN wanted: false, true (held) or "scripted" (no energy cost).
-var _run_wanted: Variant = false
+var _run_wanted := false
 var _intent_x := 0.0
 var _intent_y := 0.0
 var _squash := 0.0
 var _squash_vel := 0.0
-var _fetch_x := 0.0
-var _fetch_y := 0.0
 var _idle_time := 0.0
 var _anim_restart := false
 
@@ -127,8 +114,8 @@ func set_grid_position(x: float, y: float) -> void:
 		interpolation_resets += 1
 
 
-## Screen-space intent (magnitude 0..1) and RUN (true, false or "scripted").
-func set_intent(mx: float, my: float, run: Variant = false) -> void:
+## Screen-space intent (magnitude 0..1) and whether RUN is held.
+func set_intent(mx: float, my: float, run: bool = false) -> void:
 	_intent_x = mx
 	_intent_y = my
 	_run_wanted = run
@@ -146,7 +133,7 @@ var moving: bool:
 
 var can_run: bool:
 	get:
-		return not no_run and energy.can_run()
+		return energy.can_run()
 
 
 func start_action(new_state: String, duration: float) -> void:
@@ -155,23 +142,11 @@ func start_action(new_state: String, duration: float) -> void:
 	state_duration = duration
 	if STATE_ANIM.has(new_state):
 		_play(STATE_ANIM[new_state], facing, true)
-	if new_state == "fetch":
-		var g := IsoGrid.dir_to_grid_xy(facing)
-		_fetch_x = g[0]
-		_fetch_y = g[1]
 
 
 ## Damped-spring squash: amount > 0 stretches, < 0 squashes.
 func bump(amount: float) -> void:
 	_squash_vel += amount * 30.0
-
-
-func knockback(dx: float, dy: float, speed: float) -> void:
-	var length := JsMath.hypot(dx, dy)
-	if length == 0.0:
-		length = 1.0
-	knock_x = dx / length * speed
-	knock_y = dy / length * speed
 
 
 func face(dir: String) -> void:
@@ -193,28 +168,17 @@ func update_movement(dt: float, map: WorldMapModel) -> void:
 		var mag := minf(1.0, JsMath.hypot(_intent_x, _intent_y))
 		if mag > 0.01:
 			var dir := IsoGrid.screen_dir_to_grid_xy(_intent_x, _intent_y)
-			running = not guarding and (_run_wanted is String or (_run_wanted is bool and _run_wanted and can_run))
-			var guard := GameConfig.Combat.SHIELD_SPEED if guarding else 1.0
-			var speed := (P.RUN_SPEED if running else P.WALK_SPEED * minf(1.0, mag / 0.55)) * speed_mul * guard
+			running = _run_wanted and can_run
+			var speed := P.RUN_SPEED if running else P.WALK_SPEED * minf(1.0, mag / 0.55)
 			var terrain := _terrain_factor(map)
 			tx = dir[0] * speed * terrain
 			ty = dir[1] * speed * terrain
-	elif state == "fetch":
-		var half := 1.0 if state_time < state_duration * 0.5 else -1.0
-		tx = _fetch_x * P.RUN_SPEED * 0.9 * half
-		ty = _fetch_y * P.RUN_SPEED * 0.9 * half
-		running = true
 	var rate := P.ACCEL if JsMath.hypot(tx, ty) > JsMath.hypot(vx, vy) else P.DECEL
 	var k := 1.0 - exp(-rate * dt)
 	vx += (tx - vx) * k
 	vy += (ty - vy) * k
-	var kd := exp(-9.0 * dt)
-	knock_x *= kd
-	knock_y *= kd
-	var mx := (vx + push_x + knock_x) * dt
-	var my := (vy + push_y + knock_y) * dt
-	push_x = 0.0
-	push_y = 0.0
+	var mx := vx * dt
+	var my := vy * dt
 	if mx != 0.0 or my != 0.0:
 		var r := map.move_circle(gx, gy, mx, my, P.RADIUS)
 		gx = r[0]
@@ -222,13 +186,11 @@ func update_movement(dt: float, map: WorldMapModel) -> void:
 	# Energy: spent only by running the player asked for; recovers otherwise.
 	var activity := "idle"
 	if moving:
-		activity = "run" if running and _run_wanted is bool and _run_wanted else "walk"
+		activity = "run" if running else "walk"
 	energy_event = energy.update(dt, activity)
-	# Facing follows the velocity (not while knocked back, nor behind a raised shield).
-	if JsMath.hypot(vx, vy) > 0.3 and state != "hurt" and not guarding:
+	if JsMath.hypot(vx, vy) > 0.3 and state != "hurt" and controllable:
 		var d := IsoGrid.dir_from_grid_vector(vx, vy, facing)
-		if state == "fetch" or controllable:
-			facing = d
+		facing = d
 	iso.gx = gx
 	iso.gy = gy
 	_update_animation(dt)
@@ -259,8 +221,8 @@ func _update_animation(dt: float) -> void:
 	var state_anim: String = STATE_ANIM.get(state, "")
 	if state_anim != "" and state != "free":
 		next = state_anim
-		# Eating/barking while walking keeps the legs moving.
-		if (state == "eat" or state == "bark") and speed > 0.4 and state_time > 0.2:
+		# Eating while walking keeps the legs moving.
+		if state == "eat" and speed > 0.4 and state_time > 0.2:
 			next = "run" if running else "walk"
 	elif speed > P.WALK_SPEED * 1.15:
 		next = "run"

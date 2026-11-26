@@ -1,8 +1,0 @@
---------- beginning of main
-Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
-OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 610.47) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 3090/PCIe/SSE2)
-
-M1_SPIKE_START {"godot":"4.7.2-stable (official)","keys":["settings","records","coins","story","story-v1-backup"],"os":"Android"}
-M1_SPIKE_LIFECYCLE {"method":"readLegacyStoreQueuedForLifecycleTest","mode":"cancelled_while_queued_same_process"}
-M1_SPIKE_LIFECYCLE_CANCEL {"frames_since_request":0,"result_received":false}
-M1_SPIKE_LIFECYCLE_SAME_PROCESS_DONE {"ms_since_cancel":9590,"result_received":false}

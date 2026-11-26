@@ -7,16 +7,10 @@ script = ExtResource("1_b73x4")
 audited_commit = "95b69c04c5c3b9626e49719f8f916a44659cd265"
 trim_level = 0.01
 offsets = Dictionary[StringName, float]({
-&"alarm": 0.5738333333333333,
-&"ball": 0.168375,
-&"bark": 0.09470833333333334,
 &"coin": 0.3969583333333333,
 &"drink": 0.27989583333333334,
-&"laser": 0.0,
-&"meow": 0.0,
 &"pee": 0.00752083333333333,
 &"poop": 0.0,
-&"siren": 0.0,
 &"splash": 0.0,
 &"treat": 0.040375
 })

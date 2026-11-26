@@ -1,6 +1,0 @@
-ro.product.model=Android SDK built for x86_64
-ro.build.version.release=7.0
-ro.build.version.sdk=24
-ro.build.fingerprint=Android/sdk_google_phone_x86_64/generic_x86_64:7.0/NYC/6696031:userdebug/dev-keys
-ro.kernel.qemu=1
-ro.product.cpu.abilist=x86_64,x86

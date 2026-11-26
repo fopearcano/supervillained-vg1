@@ -1,4 +1,0 @@
-Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
-OpenGL API 3.3.0 NVIDIA 610.47 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3090
-
-{"late_effect_dropped":true,"live_players":2,"ok":true,"paused_in_background":[true,true],"replayed_on_resume":false,"resumed":[true,true]}

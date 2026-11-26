@@ -1,61 +1,28 @@
 extends Node
-## Music continuity, buses and cue playback (port of src/core/audio.ts and src/fx/gameAudio.ts).
-## - Tracks: the recorded files of src/fx/audioFiles.ts MUSIC_FILES ('intro' on reading screens,
-##   'greenzone' during the walk, 'level2'-'level4') resume where they were left (source setTrack
-##   keeps every element's position); 'medieval' (the synthesized dream loop) restarts from 0 on
-##   every switch, like the source's new AudioBufferSourceNode.
-## - Music level: AUDIO.MUSIC_VOLUME for 'medieval', AUDIO.MUSIC_FILE_VOLUME x the track's
-##   AUDIO.MUSIC_FILE_GAIN trim for recorded tracks, times the duck factor.
-## - Recorded effects (SOUND_FILES) start after their leading silence (source leadingSilence():
-##   first sample above AUDIO.TRIM_LEVEL minus 10 ms), measured by tools/source_extract at 48 kHz.
-## - Synthesized effects (src/fx/sounds.ts SOUNDS) are editor-rendered mono 22,050 Hz 16-bit PCM
-##   WAVs (tools/source_extract); nothing is synthesized at runtime. They start at 0.
-## - Effect requests follow src/core/audio.ts AudioEngine.play(): a request made while muted or
-##   while the application is suspended (the source's AudioContext is not running) is dropped, not
-##   deferred; the same cue again within 45 ms of audio time is dropped; `delay` (source
-##   play({delay})) counts audio time, which does not advance while suspended.
-## - In the background everything already playing or already scheduled is suspended (the source
-##   suspends its AudioContext) and resumes on return.
-## - Master level: muted or volume 0 is silence (bus muted), otherwise the volume (source master
-##   gain `muted ? 0 : volume`).
+## Music continuity, buses and cue playback for the dog prototype.
+## Recorded effects skip their known leading silence. Requests made while muted or suspended are
+## dropped; same-cue requests within 45 ms are suppressed. Backgrounding suspends every player.
 
 const MUSIC := {
-	&"intro": "res://assets/audio/recorded/intro-music.mp3",
 	&"greenzone": "res://assets/audio/recorded/greenzone-music.mp3",
-	&"level2": "res://assets/audio/recorded/level2-music.mp3",
-	&"level3": "res://assets/audio/recorded/level3-music.mp3",
-	&"level4": "res://assets/audio/recorded/level4-music.mp3",
-	&"medieval": "res://assets/audio/synth/medieval.wav",
 }
-## Tracks that restart from the beginning instead of resuming (synthesized buffers in the source).
-const RESTARTING_TRACKS: Array[StringName] = [&"medieval"]
 const SFX := {
-	&"bark": "res://assets/audio/recorded/dog-bark.mp3",
 	&"treat": "res://assets/audio/recorded/food-collect.mp3",
 	&"poop": "res://assets/audio/recorded/poos.mp3",
 	&"pee": "res://assets/audio/recorded/pees-drop.mp3",
 	&"drink": "res://assets/audio/recorded/pees-collect.wav",
 	&"splash": "res://assets/audio/recorded/water.mp3",
-	&"meow": "res://assets/audio/recorded/cat-meow.mp3",
 	&"coin": "res://assets/audio/recorded/cash-after-cat.mp3",
-	&"ball": "res://assets/audio/recorded/ball.mp3",
-	&"alarm": "res://assets/audio/recorded/alarm-greenzone-under-attack.mp3",
-	&"siren": "res://assets/audio/recorded/siren.mp3",
-	&"laser": "res://assets/audio/recorded/laser-eyes.mp3",
 }
 const SYNTH_DIR := "res://assets/audio/synth/"
-## src/fx/sounds.ts SOUNDS, in source order.
-const SYNTH: Array[StringName] = [&"fetch", &"warning", &"empty", &"hurt", &"hit", &"swish", &"clang",
-	&"flee", &"saved", &"star", &"jingle", &"gameover", &"click", &"glitch"]
-## Generated Resource (exported); the source JSON is provenance only and is not exported.
+const SYNTH: Array[StringName] = [&"warning", &"empty", &"hurt", &"star"]
 const LEADING_SILENCE: SfxLeadingSilence = preload("res://data/audio/sfx_leading_silence.tres")
 const POOL_SIZE := 8
 
 var missing_cues: Dictionary = {}
-## Every cue/track requested (tests assert the event->cue mapping through this).
+## Every cue/track requested, useful during focused tests.
 var requested: Dictionary = {}
-## Debug builds only: the last DIAG_LIMIT effects started, [[cue, offset, started_suspended], ...]
-## (tests/diagnostics). Release builds record nothing.
+## Debug builds only: the last DIAG_LIMIT effects started, [[cue, offset, suspended], ...].
 const DIAG_LIMIT := 64
 var diagnostics := OS.is_debug_build()
 var started: Array = []
@@ -66,7 +33,7 @@ var output_available := true
 var current_track: StringName = &""
 var track_positions: Dictionary = {}
 var suspended := false
-## Settings applied by AppState (source settings.muted / settings.volume).
+## Defaults are intentionally local; settings persistence is outside prototype scope.
 var muted := false
 var volume := 1.0
 ## Audio clock (source AudioContext.currentTime): seconds of unsuspended time since reset.
@@ -124,8 +91,6 @@ func _music_db() -> float:
 
 ## Linear music gain of `track` (source musicLevel() x the element's MUSIC_FILE_GAIN trim).
 func music_level(track: StringName) -> float:
-	if RESTARTING_TRACKS.has(track):
-		return GameConfig.Audio.MUSIC_VOLUME * _duck
 	return GameConfig.Audio.MUSIC_FILE_VOLUME * float(GameConfig.Audio.MUSIC_FILE_GAIN.get(String(track), 1.0)) * _duck
 
 
@@ -153,7 +118,7 @@ func play_music(track: StringName) -> void:
 		(stream as AudioStreamMP3).loop = true
 	_music.stream = stream
 	_music.volume_db = _music_db()
-	_music.play(0.0 if RESTARTING_TRACKS.has(track) else float(track_positions.get(track, 0.0)))
+	_music.play(float(track_positions.get(track, 0.0)))
 	_music.stream_paused = suspended
 
 

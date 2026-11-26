@@ -1,4 +1,0 @@
-[gd_resource type="Resource" format=3]
-
-[resource]
-metadata/purpose = "PCK smoke negative sentinel: it exists in the source tree only (tests/ is never exported), so a packed run with an isolated --path must not resolve it."

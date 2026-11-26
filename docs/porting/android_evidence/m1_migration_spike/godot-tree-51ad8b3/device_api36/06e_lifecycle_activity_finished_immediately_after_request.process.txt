@@ -1,3 +1,0 @@
-11-24 13:32:59.831   701   735 I ActivityManager: Start proc 31068:com.zampano.supervillained/u0a257 for next-top-activity {com.zampano.supervillained/com.godot.game.GodotAppLauncher}
-11-24 13:33:11.818   701  1782 I ActivityManager: Process com.zampano.supervillained (pid 31068) has died: cch CRE
-pidof after the wait: ''

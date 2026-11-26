@@ -1,2 +1,0 @@
-lifecycle_test_cancel: generation 1 was still queued (no WebView); its start is discarded, nothing emitted
-discarded queued start of attempt 1 (generation 1): plugin terminated, stale epoch 0 (now 1), generation invalidated (reserved: 0); no WebView created, nothing emitted

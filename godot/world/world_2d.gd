@@ -1,11 +1,10 @@
 class_name IsoWorld
 extends Node2D
-## A playable isometric world (port of src/world/world.ts): ground/pollution TileMapLayers,
-## depth-sorted objects, the playable dog and the camera. Shared by the Green Zone and (from M5)
-## every story stage: callers provide a WorldMapModel and optional entities; nothing here is
-## Green-Zone specific.
+## The prototype's isometric world: ground/pollution TileMapLayers, depth-sorted props,
+## Zampano and the camera.
 
 const DOG_SCENE := preload("res://entities/playable_dog/playable_dog.tscn")
+const ZAMPANO_PROFILE := preload("res://data/characters/zampano_profile.tres")
 const CHUNK := 8
 const GRASS_WIND_PHASES := 4
 
@@ -66,10 +65,7 @@ func setup(p_map: WorldMapModel, options: Dictionary = {}) -> void:
 	if options.get("forest", true):
 		_spawn_forest()
 	player = DOG_SCENE.instantiate()
-	# The developer `--as=` profile (AppState.selected_profile, Zampanò by default); a caller may
-	# pass options.profile (a PROFILES id) instead.
-	var profile_id: StringName = options.get("profile", AppState.selected_profile)
-	player.profile = load(AppState.PROFILES[profile_id])
+	player.profile = ZAMPANO_PROFILE
 	object_layer.add_child(player)
 	player.set_grid_position(map.start.x, map.start.y)
 	player.face("N")

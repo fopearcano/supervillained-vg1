@@ -5,15 +5,6 @@ extends RefCounted
 
 var failures: PackedStringArray = []
 var tree: SceneTree
-var _fixture_cache: Dictionary = {}
-
-
-## Source reference fixtures (generated from the audited TypeScript; never hand-edited).
-func fixture(name: String = "source_reference") -> Dictionary:
-	if not _fixture_cache.has(name):
-		var text := FileAccess.get_file_as_string("res://tests/fixtures/%s.json" % name)
-		_fixture_cache[name] = JSON.parse_string(text)
-	return _fixture_cache[name]
 
 
 func fail(msg: String) -> void:

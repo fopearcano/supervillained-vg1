@@ -153,8 +153,8 @@ func circle_blocked(x: float, y: float, r: float) -> bool:
 
 
 ## Moves a circle by (dx, dy) with sliding: solid props push the circle out radially, blocked tile
-## squares stop the motion per axis. This is the approved GridKinematicSolver (see
-## docs/porting/IMPLEMENTATION_LOG.md, M2 collision decision). Returns [x, y, blocked].
+## squares stop the motion per axis. This grid-space solver is authoritative for static geometry.
+## Returns [x, y, blocked].
 func move_circle(x: float, y: float, dx: float, dy: float, r: float) -> Array:
 	var blocked := false
 	var nx := x + dx

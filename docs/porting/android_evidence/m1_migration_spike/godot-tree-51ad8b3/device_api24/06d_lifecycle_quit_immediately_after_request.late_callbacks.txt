@@ -1,1 +1,0 @@
-godot_terminating: generation 1 was still queued (no WebView); its start is discarded, nothing emitted
